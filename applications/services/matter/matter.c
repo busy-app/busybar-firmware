@@ -4,10 +4,11 @@
 #include "matter.h"
 #include "matter_common_i.h"
 
-#define TAG                 "MatterSrv"
-#define FRAME_Q_SIZE        4
-#define REQUEST_Q_SIZE      1
-#define CODES_AWAIT_TIMEOUT (furi_ms_to_ticks(1000))
+#define TAG            "MatterSrv"
+#define FRAME_Q_SIZE   4
+#define REQUEST_Q_SIZE 1
+#define FIRST_TIMEOUT  (furi_ms_to_ticks(5000))
+#define TIMEOUT        (furi_ms_to_ticks(200))
 
 struct MatterSrv {
     FuriEventLoop* event_loop;
@@ -17,6 +18,7 @@ struct MatterSrv {
     IntercomChannel* intercom_ch;
     bool switch_state;
     uint8_t commissioned_fabrics;
+    bool first_frame_sent;
 };
 
 // =========
@@ -107,10 +109,11 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
-    furi_check(
-        intercom_tx(matter->intercom_ch, frame, sizeof(*frame), FuriWaitForever) ==
-        sizeof(*frame));
+static FURI_WARN_UNUSED bool
+    matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
+    FuriWait timeout = matter->first_frame_sent ? TIMEOUT : FIRST_TIMEOUT;
+    matter->first_frame_sent = true;
+    return intercom_tx(matter->intercom_ch, frame, sizeof(*frame), timeout) == sizeof(*frame);
 }
 
 // ==========
@@ -129,6 +132,7 @@ typedef enum {
 typedef struct {
     FuriApiLock lock;
     MatterApiRequestType type;
+    bool success;
     union {
         struct {
             FuriString* qr_code;
@@ -165,7 +169,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
             .type = MatterIntercomFrameTypeSwitchState,
             .switch_state.value = request->switch_state,
         };
-        matter_send_frame(matter, &frame);
+        request->success = matter_send_frame(matter, &frame);
         break;
     }
 
@@ -174,7 +178,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
             .type = MatterIntercomFrameTypeSwitchStartupMode,
             .startup.mode = request->startup_mode,
         };
-        matter_send_frame(matter, &frame);
+        request->success = matter_send_frame(matter, &frame);
         break;
     }
 
@@ -182,7 +186,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
         const MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeReset,
         };
-        matter_send_frame(matter, &frame);
+        request->success = matter_send_frame(matter, &frame);
         break;
     }
 
@@ -190,7 +194,10 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
         const MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeCommission,
         };
-        matter_send_frame(matter, &frame);
+        if(!matter_send_frame(matter, &frame)) {
+            request->success = false;
+            break;
+        }
 
         furi_string_reset(request->qr_code);
         furi_string_reset(request->manual_code);
@@ -200,7 +207,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
             MatterIntercomFrameTypePairingCodes,
             &codes_frame,
             sizeof(codes_frame),
-            CODES_AWAIT_TIMEOUT);
+            TIMEOUT);
 
         if(success) {
             FURI_LOG_I(TAG, "QR code: %s", codes_frame.qr_code);
@@ -208,9 +215,11 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
             request->window_duration = MATTER_COMMISSION_TIME_SECONDS;
             furi_string_set_str(request->qr_code, codes_frame.qr_code);
             furi_string_set_str(request->manual_code, codes_frame.manual_code);
+            request->success = true;
         } else {
             FURI_LOG_E(TAG, "Commissioning response timeout");
             request->window_duration = 0;
+            request->success = false;
         }
 
         break;
@@ -225,11 +234,16 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
     api_lock_unlock(request->lock);
 }
 
-static void matter_synchronous_request(MatterSrv* matter, MatterApiRequest* request) {
+static FURI_WARN_UNUSED bool
+    matter_synchronous_request(MatterSrv* matter, MatterApiRequest* request) {
     request->lock = api_lock_alloc_locked();
     furi_check(
         furi_message_queue_put(matter->request_queue, &request, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(request->lock);
+    if(!request->success) {
+        FURI_LOG_E(TAG, "Request failed");
+    }
+    return request->success;
 }
 
 FuriPubSub* matter_get_pubsub(MatterSrv* matter) {
@@ -242,34 +256,34 @@ bool matter_get_switch_state(MatterSrv* matter) {
     MatterApiRequest request = {
         .type = MatterApiRequestTypeGetSwitchState,
     };
-    matter_synchronous_request(matter, &request);
+    if(!matter_synchronous_request(matter, &request)) return false;
     return request.switch_state;
 }
 
-void matter_set_switch_state(MatterSrv* matter, bool state) {
+bool matter_set_switch_state(MatterSrv* matter, bool state) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeSetSwitchState,
         .switch_state = state,
     };
-    matter_synchronous_request(matter, &request);
+    return matter_synchronous_request(matter, &request);
 }
 
-void matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode) {
+bool matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeSetSwitchStartupMode,
         .startup_mode = mode,
     };
-    matter_synchronous_request(matter, &request);
+    return matter_synchronous_request(matter, &request);
 }
 
-void matter_factory_reset(MatterSrv* matter) {
+bool matter_factory_reset(MatterSrv* matter) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeReset,
     };
-    matter_synchronous_request(matter, &request);
+    return matter_synchronous_request(matter, &request);
 }
 
 size_t
@@ -280,7 +294,7 @@ size_t
         .qr_code = qr_code,
         .manual_code = manual_code,
     };
-    matter_synchronous_request(matter, &request);
+    if(!matter_synchronous_request(matter, &request)) return 0;
     return request.window_duration;
 }
 
@@ -289,7 +303,7 @@ bool matter_is_commissioned(MatterSrv* matter) {
     MatterApiRequest request = {
         .type = MatterApiRequestTypeGetFabricCount,
     };
-    matter_synchronous_request(matter, &request);
+    if(!matter_synchronous_request(matter, &request)) return false;
     return request.fabric_count > 0;
 }
 

@@ -62,7 +62,7 @@ FuriPubSub* matter_get_pubsub(MatterSrv* matter);
  * 
  * @param[in] matter Service instance
  * 
- * @returns Current state of the Matter switch
+ * @returns Current state of the Matter switch. Always false on error.
  */
 bool matter_get_switch_state(MatterSrv* matter);
 
@@ -70,24 +70,30 @@ bool matter_get_switch_state(MatterSrv* matter);
  * @brief Sets the state of the Matter switch
  * 
  * @param[in] matter Service instance
- * @param[in] state Desired Matter switch state
+ * @param[in] state Desired Matter switch 
+ * 
+ * @returns true on success
  */
-void matter_set_switch_state(MatterSrv* matter, bool state);
+bool matter_set_switch_state(MatterSrv* matter, bool state);
 
 /**
  * @brief Set the startup mode of the Matter switch
  *
  * @param[in] matter Service instance
  * @param[in] mode Desired Matter switch startup mode
+ * 
+ * @returns true on success
  */
-void matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode);
+bool matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode);
 
 /**
  * @brief Deletes all Matter data
  * 
  * @param[in] matter Service instance
+ * 
+ * @returns true on success
  */
-void matter_factory_reset(MatterSrv* matter);
+bool matter_factory_reset(MatterSrv* matter);
 
 /**
  * @brief Enables Matter commissioning
@@ -107,6 +113,8 @@ size_t
  *        fabric
  * 
  * @param[in] matter Service instance
+ * 
+ * @returns true if commissioned to any fabric. Always false on error.
  */
 bool matter_is_commissioned(MatterSrv* matter);
 
