@@ -406,8 +406,57 @@ bool compress_decode_streamed(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef void (*CompressStreamDecoderFreeFn)(CompressStreamDecoder* instance);
+typedef bool (*CompressStreamDecoderReadFn)(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size);
+typedef bool (*CompressStreamDecoderSeekFn)(CompressStreamDecoder* instance, size_t position);
+typedef size_t (*CompressStreamDecoderTellFn)(CompressStreamDecoder* instance);
+typedef bool (*CompressStreamDecoderRewindFn)(CompressStreamDecoder* instance);
+
+typedef struct CompressStreamDecoderVtable {
+    CompressStreamDecoderFreeFn free;
+    CompressStreamDecoderReadFn read;
+    CompressStreamDecoderSeekFn seek;
+    CompressStreamDecoderTellFn tell;
+    CompressStreamDecoderRewindFn rewind;
+} CompressStreamDecoderVtable;
+
+static CompressStreamDecoder* hs_alloc(const CompressConfigHeatshrink* config, CompressIoCallback read_cb, void* read_context);
+static void hs_free(CompressStreamDecoder* instance);
+static bool hs_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size);
+static bool hs_seek(CompressStreamDecoder* instance, size_t position);
+static size_t hs_tell(CompressStreamDecoder* instance);
+static bool hs_rewind(CompressStreamDecoder* instance);
+
+static CompressStreamDecoder* gz_alloc(CompressIoCallback read_cb, void* read_context);
+static void gz_free(CompressStreamDecoder* instance);
+static bool gz_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size);
+static bool gz_seek(CompressStreamDecoder* instance, size_t position);
+static size_t gz_tell(CompressStreamDecoder* instance);
+static bool gz_rewind(CompressStreamDecoder* instance);
+
+
+static CompressStreamDecoderVtable compress_api[CompressTypeMax] = {
+    [CompressTypeHeatshrink] = {
+        .free = hs_free,
+        .read = hs_read,
+        .seek = hs_seek,
+        .tell = hs_tell,
+        .rewind = hs_rewind,
+    },
+    [CompressTypeGzip] = {
+        .free = gz_free,
+        .read = gz_read,
+        .seek = gz_seek,
+        .tell = gz_tell,
+        .rewind = gz_rewind,
+    },
+};
+
 struct CompressStreamDecoder {
-    heatshrink_decoder* decoder;
+    CompressStreamDecoderVtable *api;
+    union {
+        heatshrink_decoder* decoder;
+    };
     size_t stream_position;
     size_t decode_buffer_size;
     size_t decode_buffer_position;
@@ -421,11 +470,64 @@ CompressStreamDecoder* compress_stream_decoder_alloc(
     const void* config,
     CompressIoCallback read_cb,
     void* read_context) {
-    furi_check(type == CompressTypeHeatshrink);
-    furi_check(config);
 
-    const CompressConfigHeatshrink* hs_config = (const CompressConfigHeatshrink*)config;
+    switch(type) {
+    case CompressTypeHeatshrink:
+        return hs_alloc(config, read_cb, read_context);
+    case CompressTypeGzip:
+        return gz_alloc(read_cb, read_context);
+    default:
+        furi_crash("Unimplemented");
+        break;
+    }
+}
+
+void compress_stream_decoder_free(CompressStreamDecoder* instance) {
+    furi_check(instance);
+
+    instance->api->free(instance);
+}
+
+bool compress_stream_decoder_read(
+    CompressStreamDecoder* instance,
+    uint8_t* data_out,
+    size_t data_out_size) {
+    furi_check(instance);
+    furi_check(data_out);
+
+    return instance->api->read(instance, data_out, data_out_size);
+}
+
+bool compress_stream_decoder_seek(CompressStreamDecoder* instance, size_t position) {
+    furi_check(instance);
+
+    return instance->api->seek(instance, position);
+}
+
+size_t compress_stream_decoder_tell(CompressStreamDecoder* instance) {
+    furi_check(instance);
+
+    return instance->api->tell(instance);
+}
+
+bool compress_stream_decoder_rewind(CompressStreamDecoder* instance) {
+    furi_check(instance);
+
+    return instance->api->rewind(instance);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Heatshrink
+
+static CompressStreamDecoder* hs_alloc(
+    const CompressConfigHeatshrink* hs_config,
+    CompressIoCallback read_cb, 
+    void* read_context) {
+
+    furi_check(hs_config);
+
     CompressStreamDecoder* instance = malloc(sizeof(CompressStreamDecoder));
+    instance->api = &compress_api[CompressTypeHeatshrink];
     instance->decoder = heatshrink_decoder_alloc(
         hs_config->input_buffer_sz, hs_config->window_sz2, hs_config->lookahead_sz2);
     instance->stream_position = 0;
@@ -438,14 +540,13 @@ CompressStreamDecoder* compress_stream_decoder_alloc(
     return instance;
 }
 
-void compress_stream_decoder_free(CompressStreamDecoder* instance) {
-    furi_check(instance);
+static void hs_free(CompressStreamDecoder* instance) {
     heatshrink_decoder_free(instance->decoder);
     free(instance->decode_buffer);
     free(instance);
 }
 
-static bool compress_decode_stream_chunk(
+static bool hs_decode_stream_chunk(
     CompressStreamDecoder* sd,
     CompressIoCallback read_cb,
     void* read_context,
@@ -515,14 +616,9 @@ static bool compress_decode_stream_chunk(
     return decomp_chunk_size == 0;
 }
 
-bool compress_stream_decoder_read(
-    CompressStreamDecoder* instance,
-    uint8_t* data_out,
-    size_t data_out_size) {
-    furi_check(instance);
-    furi_check(data_out);
 
-    if(compress_decode_stream_chunk(
+static bool hs_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size) {
+    if(hs_decode_stream_chunk(
            instance, instance->read_cb, instance->read_context, data_out, data_out_size)) {
         instance->stream_position += data_out_size;
         return true;
@@ -530,9 +626,7 @@ bool compress_stream_decoder_read(
     return false;
 }
 
-bool compress_stream_decoder_seek(CompressStreamDecoder* instance, size_t position) {
-    furi_check(instance);
-
+static bool hs_seek(CompressStreamDecoder* instance, size_t position) {
     /* Check if requested position is ahead of current position 
        we can't rewind the input stream */
     furi_check(position >= instance->stream_position);
@@ -546,7 +640,7 @@ bool compress_stream_decoder_seek(CompressStreamDecoder* instance, size_t positi
         if(bytes_to_read > instance->decode_buffer_size) {
             bytes_to_read = instance->decode_buffer_size;
         }
-        if(!compress_stream_decoder_read(instance, dummy_buffer, bytes_to_read)) {
+        if(!hs_read(instance, dummy_buffer, bytes_to_read)) {
             success = false;
             break;
         }
@@ -556,18 +650,52 @@ bool compress_stream_decoder_seek(CompressStreamDecoder* instance, size_t positi
     return success;
 }
 
-size_t compress_stream_decoder_tell(CompressStreamDecoder* instance) {
-    furi_check(instance);
+static size_t hs_tell(CompressStreamDecoder* instance) {
     return instance->stream_position;
 }
 
-bool compress_stream_decoder_rewind(CompressStreamDecoder* instance) {
-    furi_check(instance);
-
+static bool hs_rewind(CompressStreamDecoder* instance) {
     /* Reset decoder and read buffer */
     heatshrink_decoder_reset(instance->decoder);
     instance->stream_position = 0;
     instance->decode_buffer_position = 0;
 
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gzip
+
+static CompressStreamDecoder* gz_alloc(CompressIoCallback read_cb, void* read_context) {
+    UNUSED(read_cb);
+    UNUSED(read_context);
+    furi_crash("Unimplemented");
+}
+
+static void gz_free(CompressStreamDecoder* instance) {
+    UNUSED(instance);
+    furi_crash("Unimplemented");
+}
+
+static bool gz_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size) {
+    UNUSED(instance);
+    UNUSED(data_out);
+    UNUSED(data_out_size);
+    furi_crash("Unimplemented");
+}
+
+static bool gz_seek(CompressStreamDecoder* instance, size_t position) {
+    UNUSED(instance);
+    UNUSED(position);
+    furi_crash("Unimplemented");
+}
+
+static size_t gz_tell(CompressStreamDecoder* instance) {
+    UNUSED(instance);
+    furi_crash("Unimplemented");
+}
+
+static bool gz_rewind(CompressStreamDecoder* instance) {
+    UNUSED(instance);
+    furi_crash("Unimplemented");
 }

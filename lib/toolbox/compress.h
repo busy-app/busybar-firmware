@@ -52,6 +52,8 @@ typedef struct Compress Compress;
 /** Supported compression types */
 typedef enum {
     CompressTypeHeatshrink = 0,
+    CompressTypeGzip,
+    CompressTypeMax,
 } CompressType;
 
 /** Configuration for heatshrink compression */
