@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "sntp_settings.h"
+#include "settings/settings.h"
 
 #include <furi.h>
 #include <time.h>

@@ -147,11 +147,6 @@ static bool api_time_set_timezone_callback(
             API_TIME_H_TO_M(timezone_offset_hours) +
             (timezone_offset_hours > 0 ? timezone_offset_minutes : -timezone_offset_minutes);
 
-        if(timezone_offset < SNTP_TIMEZONE_OFFSET_MIN ||
-           timezone_offset > SNTP_TIMEZONE_OFFSET_MAX) {
-            break;
-        }
-
         Sntp* sntp = furi_record_open(RECORD_SNTP);
         SntpSettings settings;
         sntp_get_settings(sntp, &settings);

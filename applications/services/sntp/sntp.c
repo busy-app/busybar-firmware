@@ -1,9 +1,10 @@
 #include "sntp.h"
+#include "settings/settings_i.h"
 #include "sntp_time_update.h"
 
 #include <wifi/wifi.h>
-#include <furi_hal_rtc.h>
 
+#include <furi_hal_rtc.h>
 #include <api_lock.h>
 
 #define TAG "SntpSvc"
@@ -99,10 +100,11 @@ static void sntp_message_queue_callback(FuriEventLoopObject* object, void* conte
         break;
 
     case SntpMessageTypeSetSettings:
-        result = sntp_settings_save(message.set_settings) &&
-                 sntp_settings_load(&instance->settings);
+        result = sntp_settings_save(message.set_settings);
 
         if(result) {
+            instance->settings = *message.set_settings;
+
             if(instance->settings.is_enabled) {
                 furi_event_loop_pend_callback(instance->event_loop, sntp_timer_callback, instance);
                 furi_event_loop_timer_start(
