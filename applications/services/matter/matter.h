@@ -70,7 +70,7 @@ bool matter_get_switch_state(MatterSrv* matter);
  * @brief Sets the state of the Matter switch
  * 
  * @param[in] matter Service instance
- * @param[in] state Desired Matter switch 
+ * @param[in] state Desired Matter switch state
  * 
  * @returns true on success
  */

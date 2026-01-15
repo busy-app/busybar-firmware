@@ -202,24 +202,22 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
         furi_string_reset(request->qr_code);
         furi_string_reset(request->manual_code);
         MatterIntercomPairingCodesFrame codes_frame;
-        bool success = matter_pick_frame_of_type(
+        request->success = matter_pick_frame_of_type(
             matter,
             MatterIntercomFrameTypePairingCodes,
             &codes_frame,
             sizeof(codes_frame),
             TIMEOUT);
 
-        if(success) {
+        if(request->success) {
             FURI_LOG_I(TAG, "QR code: %s", codes_frame.qr_code);
             FURI_LOG_I(TAG, "Manual code: %s", codes_frame.manual_code);
             request->window_duration = MATTER_COMMISSION_TIME_SECONDS;
             furi_string_set_str(request->qr_code, codes_frame.qr_code);
             furi_string_set_str(request->manual_code, codes_frame.manual_code);
-            request->success = true;
         } else {
             FURI_LOG_E(TAG, "Commissioning response timeout");
             request->window_duration = 0;
-            request->success = false;
         }
 
         break;
