@@ -1,11 +1,13 @@
 <template>
   <SectionCard
+    data-id="firmware-section-primary"
     title="Firmware"
     :subtitle="fwVersionPolifilled"
-    icon="i-ri-cpu-line"
+    icon="i-bi-firmware-fill"
   >
     <template #actions>
       <UButton
+        data-id="firmware-section-primary-update-from-file-button"
         label="Update from file"
         icon="i-ri-upload-2-line"
         variant="link"
@@ -18,6 +20,7 @@
 
       <ModalGeneric
         v-model:open="showUpdateModal"
+        data-id="modal-update-firmware"
         title="Update firmware"
         :dismissible="stage === 'idle' || stage === 'error' || stage === 'success'"
         :show-close-button="stage === 'idle' || stage === 'error' || stage === 'success'"
@@ -50,6 +53,7 @@
             <UFileUpload
               v-if="!firmwareFileModel"
               v-model="firmwareFileModel"
+              data-id="modal-update-firmware-file-upload"
               accept=".tar"
               class="w-full h-[400px] rounded-xl"
               label="Upload Firmware file (.tar)"
@@ -65,12 +69,14 @@
                   label="Select file"
                   color="neutral"
                   variant="soft"
+                  :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
                   class="mt-2"
                 />
               </template>
             </UFileUpload>
             <div
               v-else
+              data-id="modal-update-firmware-file-uploaded"
               class="flex flex-col gap-6"
             >
               <div class="flex flex-col gap-2">
@@ -84,9 +90,10 @@
                     name="i-ri-file-zip-line"
                     class="size-6"
                   />
-                  <div>{{ firmwareFileModel?.name || 'File name unknown' }}</div>
+                  <div data-id="modal-update-firmware-file-uploaded-name">{{ firmwareFileModel?.name || 'File name unknown' }}</div>
                 </div>
                 <UButton
+                  data-id="modal-update-firmware-file-uploaded-remove-button"
                   icon="i-ri-delete-bin-7-line"
                   variant="soft"
                   color="neutral"
@@ -100,10 +107,23 @@
           </template>
 
           <template v-else-if="stage !== 'error'">
-            <div class="flex flex-col gap-6">
+            <div
+              data-id="modal-update-in-progress"
+              class="flex flex-col gap-6"
+            >
               <div class="flex flex-col gap-2">
-                <div v-if="stage === 'uploading'">Update in progress. Do not disconnect the cable.</div>
-                <div v-else-if="stage === 'updating'">Update in progress.</div>
+                <div
+                  v-if="stage === 'uploading'"
+                  data-id="modal-update-in-progress-stage-uploading-message"
+                >
+                  Update in progress. Do not disconnect the cable.
+                </div>
+                <div
+                  v-else-if="stage === 'updating'"
+                  data-id="modal-update-in-progress-stage-updating-message"
+                >
+                  Update in progress.
+                </div>
                 <div class="text-muted">Current version: {{ fwVersionPolifilled }}</div>
               </div>
 
@@ -111,6 +131,7 @@
                 <CircularProgress
                   v-if="stage === 'uploading'"
                   v-model="deviceStore.firmwareUpdate.progress"
+                  data-id="modal-update-in-progress-uploading-circular"
                   size="32px"
                   :thickness="0.25"
                   color="#6A7282"
@@ -119,6 +140,7 @@
                 <CircularProgress
                   v-if="stage === 'unpacking'"
                   v-model="indeterminateProgressModel"
+                  data-id="modal-update-in-progress-unpacking-circular"
                   size="32px"
                   :thickness="0.25"
                   color="#6A7282"
@@ -127,6 +149,7 @@
                 />
                 <div
                   v-if="stage !== 'uploading' && stage !== 'unpacking'"
+                  data-id="modal-update-in-progress-upload-success-icon"
                   class="flex p-2 rounded-full bg-green-500/15"
                 >
                   <UIcon
@@ -138,12 +161,14 @@
                   <div class="font-medium">Uploading {{ firmwareFileModel?.name || 'firmware package' }}</div>
                   <div
                     v-if="stage === 'uploading'"
+                    data-id="modal-update-in-progress-uploading-percentage"
                     class="text-neutral-600 dark:text-neutral-300"
                   >
                     {{ deviceStore.firmwareUpdate.progress }}%
                   </div>
                   <div
                     v-else-if="stage === 'unpacking'"
+                    data-id="modal-update-in-progress-unpacking-message"
                     class="text-neutral-600 dark:text-neutral-300"
                   >
                     Unpacking firmware package
@@ -165,6 +190,7 @@
                 <CircularProgress
                   v-if="stage === 'updating'"
                   v-model="indeterminateProgressModel"
+                  data-id="modal-update-in-progress-updating-circular"
                   size="32px"
                   :thickness="0.25"
                   color="#6A7282"
@@ -173,6 +199,7 @@
                 />
                 <div
                   v-else-if="stage === 'success'"
+                  data-id="modal-update-in-progress-full-update-success-icon"
                   class="flex p-2 rounded-full bg-green-500/15"
                 >
                   <UIcon
@@ -194,7 +221,10 @@
           </template>
 
           <template v-else>
-            <div class="flex flex-col gap-6">
+            <div
+              data-id="modal-update-firmware-error-message"
+              class="flex flex-col gap-6"
+            >
               <div>Failed to install the update.</div>
               <div class="flex items-center gap-2">
                 <div class="flex p-2 rounded-full bg-red-500/15">

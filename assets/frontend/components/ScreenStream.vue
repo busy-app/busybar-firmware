@@ -1,5 +1,8 @@
 <template>
-  <div class="screen-stream-container">
+  <div
+    data-id="screen-stream"
+    class="screen-stream-container"
+  >
     <div class="device-image">
       <img
         src="~/assets/images/busybar-device.png"
@@ -9,6 +12,7 @@
     <div class="canvas-container">
       <canvas
         ref="canvasRef"
+        data-id="screen-stream-canvas"
         :width="canvasWidth"
         :height="canvasHeight"
         class="aspect-[72/16]"
@@ -21,7 +25,6 @@
 import { DeviceScreen } from '@busy-app/busy-lib';
 
 const deviceScreenStreamStore = useDeviceScreenStreamStore();
-const toast = useToast();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const canvasCtx = ref<CanvasRenderingContext2D | null>(null);
 
@@ -163,8 +166,6 @@ function dataCallback (data: Uint8Array) {
 }
 
 function stopCallback () {
-  console.log('Screen stream stopped');
-
   if (canvasCtx.value) {
     canvasCtx.value.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
   }
@@ -180,9 +181,6 @@ onMounted(() => {
   }
 
   deviceScreenStreamStore.startScreenStream(dataCallback, stopCallback)
-    .then(() => {
-      console.log('Screen stream started');
-    })
     .catch(error => {
       console.error('Error starting screen stream:', error);
       toast.add({

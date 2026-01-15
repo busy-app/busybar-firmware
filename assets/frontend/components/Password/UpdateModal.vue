@@ -1,6 +1,7 @@
 <template>
   <ModalGeneric
     v-model:open="pms.showUpdatePasswordModal"
+    data-id="modal-update-password"
     :dismissible="false"
     title="Change password"
     description="Enter current and new passwords. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
@@ -8,7 +9,7 @@
     :primary-action-props="{
       label: 'Update password',
       loading: pms.loading,
-      disabled: pms.newPasswordValidation !== undefined || pms.currentPasswordValidation !== undefined || pms.passwordModel.current === '' || pms.passwordModel.new === '',
+      disabled: isInvalid,
       onClick: pms.setPassword
     }"
     :secondary-action-props="{
@@ -20,17 +21,21 @@
   >
     <template #body>
       <UFormField
+        v-if="apiStore.apiKey"
         label="Current password"
         :error="pms.currentPasswordValidation"
       >
         <UInput
           v-model="pms.passwordModel.current"
           v-maska="'##########'"
+          name="current-password"
           size="xl"
           variant="soft"
+          :ui="{ base: 'ring-1 ring-glass' }"
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Enter password"
           @update:model-value="pms.passwordModel.currentWrong = false"
+          @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
         >
           <template #trailing>
             <UButton
@@ -55,10 +60,13 @@
         <UInput
           v-model="pms.passwordModel.new"
           v-maska="'##########'"
+          name="new-password"
           size="xl"
           variant="soft"
+          :ui="{ base: 'ring-1 ring-glass' }"
           :type="pms.passwordModel.showNew ? 'text' : 'password'"
           placeholder="From 4 to 10 digits"
+          @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
         >
           <template #trailing>
             <UButton
@@ -83,4 +91,10 @@
 import { vMaska } from 'maska/vue';
 
 const pms = usePasswordModalStore();
+const apiStore = useApiStore();
+
+const isInvalid = computed(() => pms.newPasswordValidation !== undefined
+  || pms.currentPasswordValidation !== undefined
+  || (!!apiStore.apiKey && pms.passwordModel.current === '')
+  || pms.passwordModel.new === '');
 </script>
