@@ -1,32 +1,41 @@
 <template>
-  <SectionCard>
+  <SectionCard data-id="settings-section-primary">
     <div class="grid sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-neutral-300/30 dark:divide-neutral-700/30 p-2">
       <div class="flex flex-col gap-8 pb-6 sm:pb-0 sm:pr-6">
         <div class="flex justify-between items-center">
           <UIcon
+            data-id="mute-icon"
             :name="mute.isMuted ? 'i-ri-volume-mute-line' : 'i-ri-volume-up-line'"
             class="size-7"
           />
 
           <UButton
+            data-id="mute-button"
             label="Mute"
             icon="i-ri-volume-mute-line"
             variant="subtle"
             size="sm"
             :color="mute.isMuted ? 'primary' : 'neutral'"
             class="rounded-full"
-            @click="mute.isMuted ? onUpdateAudioSlider(mute.volumeBeforeMute) : setVolumeToMute()"
+            @click="mute.isMuted ? unmute() : setVolumeToMute()"
           />
         </div>
 
         <div class="flex flex-col gap-2.5">
           <div class="flex justify-between items-center">
             <div class="text-lg font-medium">Sound</div>
-            <div class="text-muted">{{ volumeNumber }}%</div>
+            <div
+              data-id="volume-percentage"
+              class="text-muted"
+            >
+              {{ nextVolumeNumber || volumeNumber }}%
+            </div>
           </div>
 
           <USlider
             v-model="nextVolumeNumber"
+            data-id="volume-slider"
+            :step="5"
             :default-value="volumeNumber"
             :ui="{
               root: '',
@@ -34,7 +43,7 @@
               range: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
               thumb: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
-            @update:model-value="onUpdateAudioSlider"
+            @change="onChangeAudioSlider"
           />
         </div>
       </div>
@@ -42,29 +51,46 @@
       <div class="flex flex-col gap-8 pt-6 sm:pt-0 sm:pl-6">
         <div class="flex justify-between items-center">
           <UIcon
+            data-id="brightness-auto-icon"
             :name="isBrightnessAuto ? 'i-busy-brightness-auto' : 'i-ri-sun-line'"
             class="size-7"
           />
 
           <UButton
+            data-id="brightness-auto-button"
             label="Auto"
             icon="i-ri-input-method-line"
             variant="subtle"
             size="sm"
             :color="isBrightnessAuto ? 'primary' : 'neutral'"
             class="rounded-full"
-            @click="isBrightnessAuto ? onUpdateBrightnessSlider(50) : setBrightnessToAuto()"
+            @click="isBrightnessAuto ? disableAutoBrightness() : setBrightnessToAuto()"
           />
         </div>
 
         <div class="flex flex-col gap-2.5">
           <div class="flex justify-between items-center">
             <div class="text-lg font-medium">Brightness</div>
-            <div class="text-muted">{{ brightnessNumber }}%</div>
+            <div
+              v-if="!isBrightnessAuto"
+              data-id="brightness-percentage"
+              class="text-muted"
+            >
+              {{ brightnessNumber }}%
+            </div>
+            <div
+              v-else
+              data-id="brightness-auto"
+              class="text-muted"
+            >
+              Automatic
+            </div>
           </div>
 
           <USlider
             v-model="nextBrightnessNumber"
+            data-id="brightness-slider"
+            :step="5"
             :default-value="brightnessNumber"
             :ui="{
               root: '',
@@ -72,7 +98,7 @@
               range: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
               thumb: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
-            @update:model-value="onUpdateBrightnessSlider"
+            @change="onChangeBrightnessSlider"
           />
         </div>
       </div>
@@ -161,11 +187,12 @@ const mute = ref({
   volumeBeforeMute: 50
 });
 
-function onUpdateAudioSlider (value: number | number[] | undefined) {
-  nextVolumeNumber.value = Array.isArray(value) ? value[0] : value;
-  if (loading.value.audio === true) {
-    return;
-  }
+function unmute () {
+  nextVolumeNumber.value = mute.value.volumeBeforeMute;
+  setAudioVolume();
+}
+
+function onChangeAudioSlider () {
   setAudioVolume();
 }
 
@@ -177,16 +204,12 @@ async function setAudioVolume () {
 
   loading.value.audio = true;
   const v = nextVolumeNumber.value;
-  nextVolumeNumber.value = undefined;
 
   await deviceStore.setAudioVolume(v);
   deviceStore.audio = { volume: v };
 
   setTimeout(() => {
     loading.value.audio = false;
-    if (nextVolumeNumber.value !== undefined) {
-      setAudioVolume();
-    }
   }, 250);
 }
 
@@ -208,11 +231,12 @@ const nextBrightnessNumber = ref<number | undefined>(undefined);
 const brightnessNumber = computed(() => isNaN(Number(deviceStore.displayBrightness?.front)) ? 50 : Number(deviceStore.displayBrightness?.front));
 const isBrightnessAuto = computed(() => deviceStore.displayBrightness?.front === 'auto');
 
-function onUpdateBrightnessSlider (value: number | number[] | undefined) {
-  nextBrightnessNumber.value = Array.isArray(value) ? value[0] : value;
-  if (loading.value.brightness === true) {
-    return;
-  }
+function disableAutoBrightness () {
+  nextBrightnessNumber.value = 50;
+  setDisplayBrightness();
+}
+
+function onChangeBrightnessSlider () {
   setDisplayBrightness();
 }
 
@@ -223,7 +247,6 @@ async function setDisplayBrightness () {
 
   loading.value.brightness = true;
   const b = nextBrightnessNumber.value;
-  nextBrightnessNumber.value = undefined;
 
   await deviceStore.setDisplayBrightness({
     front: b,
@@ -236,9 +259,6 @@ async function setDisplayBrightness () {
 
   setTimeout(() => {
     loading.value.brightness = false;
-    if (nextBrightnessNumber.value !== undefined) {
-      setDisplayBrightness();
-    }
   }, 250);
 }
 

@@ -1,5 +1,8 @@
 <template>
-  <div class="w-screen min-h-screen px-4 sm:px-6 py-4">
+  <div
+    data-id="layout-default"
+    class="w-screen min-h-screen px-4 sm:px-6 py-4"
+  >
     <UContainer>
       <DefaultLayoutHeader />
       <DefaultLayoutPreview class="pb-10" />
@@ -17,3 +20,26 @@
     </UContainer>
   </div>
 </template>
+
+<script setup lang="ts">
+const deviceStore = useDeviceStore();
+const wifiStore = useWifiStore();
+
+async function refreshDeviceData () {
+  await deviceStore.checkConnection();
+  if (!deviceStore.isConnected) {
+    return;
+  }
+  toast.remove('device-disconnected');
+
+  await deviceStore.fetchDeviceStatus();
+  await wifiStore.fetchWifiState();
+  await deviceStore.fetchHttpAPIAccess();
+}
+
+const refreshInterval = setInterval(refreshDeviceData, 5000);
+
+onBeforeUnmount(() => {
+  clearInterval(refreshInterval);
+});
+</script>
