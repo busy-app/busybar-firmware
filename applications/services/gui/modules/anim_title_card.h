@@ -65,10 +65,9 @@ void anim_title_card_run_background_anim(AnimTitleCard* instance);
  * @brief Run the icon animation between specified frame ranges.
  *
  * @param[in,out] instance pointer to the AnimTitleCard instance to be animated
- * @param[in] start starting frame index
- * @param[in] stop ending frame index
+ * @param[in] section Named section to play back
  */
-void anim_title_card_run_icon_anim(AnimTitleCard* instance, uint32_t start, uint32_t stop);
+void anim_title_card_run_icon_anim(AnimTitleCard* instance, const char* section);
 
 /**
  * @brief Run the title text animation with positioning and duration.

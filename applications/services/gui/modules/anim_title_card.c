@@ -1,40 +1,55 @@
 #include "anim_title_card.h"
 #include "../storage_macros.h"
 #include "../widget_i.h"
-#include "anim_image.h"
+#include "anim_play.h"
 
+#define TAG            "AnimTitleCard"
 #define MY_CLASS       (&anim_title_card_lvgl_class)
 #define MY_LABEL_CLASS (&anim_title_card_label_lvgl_class)
-
-typedef struct {
-    uint32_t next_frame_idx;
-    int32_t offset;
-} AnimTitleCardBackgroundAnimFrame;
 
 struct AnimTitleCard {
     Widget base;
 
-    AnimImage* background_anim_image;
-    AnimImage* icon_anim_image;
+    AnimPlay* background_anim;
+    AnimPlay* icon_anim;
     lv_obj_t* title_label;
-
-    uint32_t background_anim_frame_idx;
 };
 
 const lv_obj_class_t anim_title_card_lvgl_class;
 const lv_obj_class_t anim_title_card_label_lvgl_class;
 
-static uint32_t anim_title_card_background_frame_callback(AnimImage* anim_image, void* context);
-static void anim_title_card_background_completed_callback(AnimImage* anim_image, void* context);
-
-static const AnimTitleCardBackgroundAnimFrame background_anim_frames[] = {
-    {.next_frame_idx = 6, .offset = 1}, /* 2 frame */
-    {.next_frame_idx = 8, .offset = 2}, /* 6 frame */
-    {.next_frame_idx = 12, .offset = 1}, /* 8 frame */
-    {.next_frame_idx = 24, .offset = 0}, /* 12 frame */
-    {.next_frame_idx = 30, .offset = 1}, /* 24 frame */
-    {.next_frame_idx = 2, .offset = 0}, /* 30 frame */
+static const int8_t card_offset_animation[] = {
+    [0 ... 1] = 0,
+    [2 ... 5] = 1,
+    [6 ... 7] = 2,
+    [8 ... 11] = 1,
+    [12 ... 23] = 0,
+    [24 ... 29] = 1,
 };
+
+static void
+    anim_title_card_frame(AnimPlay* instance, const AnimFileFrameInfo* info, void* context) {
+    furi_assert(instance);
+    furi_assert(context);
+    AnimTitleCard* card = context;
+
+    if(info->flags & AnimFileFrameFlagError) return;
+
+    int32_t offset = 0;
+    if(info->index >= COUNT_OF(card_offset_animation)) {
+        offset = 0;
+    } else {
+        offset = card_offset_animation[info->index];
+    }
+
+    lv_obj_set_style_translate_y(TO_LV_OBJ(card->title_label), offset, LV_PART_MAIN);
+    lv_obj_set_style_translate_y(TO_LV_OBJ(card->icon_anim), offset, LV_PART_MAIN);
+
+    if(info->flags & AnimFileFrameFlagFinished) {
+        lv_obj_add_flag(TO_LV_OBJ(card->background_anim), LV_OBJ_FLAG_HIDDEN);
+        anim_play_pause(card->background_anim);
+    }
+}
 
 /* LVGL-specific code */
 
@@ -43,64 +58,33 @@ static void anim_title_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
 
     AnimTitleCard* instance = (AnimTitleCard*)obj;
 
-    instance->background_anim_frame_idx = 0;
-
     lv_obj_set_flex_flow(TO_LV_OBJ(obj), LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
         TO_LV_OBJ(obj), LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    instance->icon_anim_image = anim_image_alloc(&instance->base);
+    instance->icon_anim = anim_play_alloc(&instance->base);
 
     instance->title_label = lv_obj_class_create_obj(MY_LABEL_CLASS, obj);
     lv_obj_class_init_obj(instance->title_label);
     lv_obj_set_style_text_color(instance->title_label, lv_color_white(), LV_PART_MAIN);
 
-    instance->background_anim_image = anim_image_alloc(&instance->base);
-    lv_obj_add_flag(TO_LV_OBJ(instance->background_anim_image), LV_OBJ_FLAG_IGNORE_LAYOUT);
-    lv_obj_add_flag(TO_LV_OBJ(instance->background_anim_image), LV_OBJ_FLAG_HIDDEN);
+    instance->background_anim = anim_play_alloc(&instance->base);
+    lv_obj_add_flag(TO_LV_OBJ(instance->background_anim), LV_OBJ_FLAG_IGNORE_LAYOUT);
+    lv_obj_add_flag(TO_LV_OBJ(instance->background_anim), LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_style_blend_mode(
-        TO_LV_OBJ(instance->background_anim_image), LV_BLEND_MODE_ADDITIVE, LV_PART_MAIN);
-    anim_image_set_source(
-        instance->background_anim_image, GUI_ANIM_PATH("wave_invitation_72x16.anim"));
-    anim_image_set_frame_callback(
-        instance->background_anim_image,
-        background_anim_frames[COUNT_OF(background_anim_frames) - 1].next_frame_idx,
-        anim_title_card_background_frame_callback,
-        instance);
-    anim_image_set_completed_callback(
-        instance->background_anim_image, anim_title_card_background_completed_callback, instance);
-    anim_image_set_loop(instance->background_anim_image, false);
-    anim_image_stop(instance->background_anim_image);
+        TO_LV_OBJ(instance->background_anim), LV_BLEND_MODE_ADDITIVE, LV_PART_MAIN);
+
+    anim_play_set_frame_callback(instance->background_anim, anim_title_card_frame, instance);
+    if(anim_play_set_source(
+           instance->background_anim, GUI_ANIM_PATH("wave_invitation_72x16.anim"))) {
+        anim_play_pause(instance->background_anim);
+    }
 }
 
 /* Implementation */
 
 static void anim_title_card_title_anim_exec_callback(void* var, int32_t value) {
     lv_obj_set_style_translate_x(var, value, LV_PART_MAIN);
-}
-
-static void anim_title_card_background_completed_callback(AnimImage* anim_image, void* context) {
-    furi_assert(anim_image);
-    furi_assert(context);
-
-    AnimTitleCard* instance = context;
-
-    lv_obj_add_flag(TO_LV_OBJ(instance->background_anim_image), LV_OBJ_FLAG_HIDDEN);
-}
-
-uint32_t anim_title_card_background_frame_callback(AnimImage* anim_image, void* context) {
-    furi_assert(anim_image);
-    furi_assert(context);
-
-    AnimTitleCard* instance = context;
-    const AnimTitleCardBackgroundAnimFrame* frame =
-        &background_anim_frames[instance->background_anim_frame_idx++];
-
-    lv_obj_set_style_translate_y(TO_LV_OBJ(instance->title_label), frame->offset, LV_PART_MAIN);
-    lv_obj_set_style_translate_y(
-        TO_LV_OBJ(instance->icon_anim_image), frame->offset, LV_PART_MAIN);
-
-    return frame->next_frame_idx;
 }
 
 /* Public API */
@@ -130,8 +114,8 @@ void anim_title_card_set_icon(AnimTitleCard* instance, const char* file_path) {
     furi_check(instance);
     furi_check(file_path);
 
-    anim_image_set_source(instance->icon_anim_image, file_path);
-    anim_image_stop(instance->icon_anim_image);
+    anim_play_set_source(instance->icon_anim, file_path);
+    anim_play_pause(instance->icon_anim);
 }
 
 void anim_title_card_set_title(AnimTitleCard* instance, const char* title) {
@@ -144,17 +128,28 @@ void anim_title_card_set_title(AnimTitleCard* instance, const char* title) {
 void anim_title_card_run_background_anim(AnimTitleCard* instance) {
     furi_check(instance);
 
-    instance->background_anim_frame_idx = 0;
+    lv_obj_remove_flag(TO_LV_OBJ(instance->background_anim), LV_OBJ_FLAG_HIDDEN);
 
-    lv_obj_remove_flag(TO_LV_OBJ(instance->background_anim_image), LV_OBJ_FLAG_HIDDEN);
-    anim_image_rewind(instance->background_anim_image);
-    anim_image_start(instance->background_anim_image);
+    AnimFile* file = anim_play_get_file(instance->background_anim);
+    if(file) {
+        if(!anim_file_set_section_indexed(
+               file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX)) {
+            FURI_LOG_E(TAG, "failed to reset icon animation");
+        }
+        anim_play_start(instance->background_anim);
+    }
 }
 
-void anim_title_card_run_icon_anim(AnimTitleCard* instance, uint32_t start, uint32_t stop) {
+void anim_title_card_run_icon_anim(AnimTitleCard* instance, const char* section) {
     furi_check(instance);
 
-    anim_image_set_range(instance->icon_anim_image, start, stop, false, false);
+    AnimFile* file = anim_play_get_file(instance->icon_anim);
+    if(file) {
+        if(!anim_file_set_section_named(file, AnimFilePlayFlagNone, section)) {
+            FURI_LOG_E(TAG, "icon doesn't have \"%s\" section", section);
+        }
+        anim_play_start(instance->icon_anim);
+    }
 }
 
 void anim_title_card_run_title_anim(

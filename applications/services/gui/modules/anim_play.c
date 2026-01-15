@@ -1,24 +1,9 @@
-#include "anim_play.h"
-#include "../widget_i.h"
+#include "anim_play_i.h"
 
 #include <furi/furi.h>
 #include <string.h>
 #include <storage/storage.h>
 #include <assets_images.h>
-
-extern const lv_obj_class_t anim_play_lvgl_class;
-
-struct AnimPlay {
-    Widget base;
-    lv_obj_t* canvas;
-    uint8_t* canvas_buf;
-
-    lv_timer_t* timer;
-
-    char* file_path;
-    Storage* storage;
-    AnimFile* file;
-};
 
 #define TAG             "AnimPlay"
 #define MY_CLASS        (&anim_play_lvgl_class)
@@ -34,10 +19,10 @@ static void anim_play_timer_cb(lv_timer_t* timer) {
     furi_check(instance->file);
     furi_check(instance->canvas_buf);
 
-    AnimFileFrameFlag flags = anim_file_frame(instance->file, instance->canvas_buf);
+    AnimFileFrameInfo info = anim_file_frame(instance->file, instance->canvas_buf);
     lv_obj_invalidate(instance->canvas);
 
-    UNUSED(flags); // TODO: use
+    if(instance->frame_cb) instance->frame_cb(instance, &info, instance->frame_cb_context);
 }
 
 // ==========
@@ -104,7 +89,7 @@ Widget* anim_play_get_base(AnimPlay* instance) {
     return (Widget*)instance;
 }
 
-AnimFile* anim_play_set_source(AnimPlay* instance, const char* file_path) {
+bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
     furi_check(instance);
 
     bool path_given = !!file_path;
@@ -117,11 +102,9 @@ AnimFile* anim_play_set_source(AnimPlay* instance, const char* file_path) {
             instance->file_path = NULL;
         }
 
-        if(!path_given && instance->file) {
-            anim_file_free(instance->file);
-            break;
-        }
+        if(instance->file) anim_file_free(instance->file);
 
+        if(!path_given) break;
         instance->file_path = strdup(file_path);
         instance->file = anim_file_alloc(instance->storage, file_path);
         if(!instance->file) break;
@@ -148,6 +131,11 @@ AnimFile* anim_play_set_source(AnimPlay* instance, const char* file_path) {
         // TODO: placeholder
     }
 
+    return loaded_successfully;
+}
+
+AnimFile* anim_play_get_file(AnimPlay* instance) {
+    furi_check(instance);
     return instance->file;
 }
 
@@ -159,6 +147,15 @@ void anim_play_start(AnimPlay* instance) {
 
 void anim_play_pause(AnimPlay* instance) {
     furi_check(instance);
-    furi_check(instance->file);
     lv_timer_pause(instance->timer);
+}
+
+void anim_play_set_frame_callback(
+    AnimPlay* instance,
+    AnimPlayFrameCallback callback,
+    void* context) {
+    furi_check(instance);
+    if(!callback) furi_check(!context);
+    instance->frame_cb = callback;
+    instance->frame_cb_context = context;
 }

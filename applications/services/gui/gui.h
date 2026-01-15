@@ -14,6 +14,11 @@ extern "C" {
 
 #define RECORD_GUI "gui"
 
+// Common UI resources shared between apps
+#define GUI_ASSETS_PATH(path) EXT_PATH("apps_assets/gui") "/" path
+#define GUI_IMG_PATH(path)    GUI_ASSETS_PATH("images") "/" path
+#define GUI_ANIM_PATH(path)   GUI_ASSETS_PATH("animations") "/" path
+
 /** Enumeration of available display identifiers. */
 typedef enum {
     GuiDisplayIdFront, /**< Front (main display) */
