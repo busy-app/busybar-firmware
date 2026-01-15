@@ -12,6 +12,21 @@ from flipper.app import App
 # Usage example:
 #   python3 update_bundle.py --stage updater_stage.bin --resources /path/to/resources --sil-fw sil_fw.bin --sil-radio-fw sil_radio_fw.bin --output ./update_folder
 
+class Output:
+    def __init__(self, args):
+        output_dir_set = args.output is not None
+        output_tar_set = args.output_tar is not None
+        output_tgz_set = args.output_tgz is not None
+        assert int(output_dir_set) + int(output_tar_set) + int(output_tgz_set) == 1 # Mutually exclusive
+        self.is_dir = output_dir_set
+        self.is_tar = output_tar_set or output_tgz_set
+        self.is_compressed = output_tgz_set
+        if output_tar_set:
+            self.path = args.output_tar
+        elif output_tgz_set:
+            self.path = args.output_tgz
+        else:
+            self.path = args.output
 
 class Main(App):
     def init(self):
@@ -50,6 +65,12 @@ class Main(App):
             type=str,
             default=None,
         )
+        output_group.add_argument(
+            "--output-tgz",
+            help="Output TGZ archive for update bundle (creates a single .tgz file)",
+            type=str,
+            default=None,
+        )
 
         self.parser.add_argument(
             "--target",
@@ -61,10 +82,10 @@ class Main(App):
 
     def main(self):
         args = self.args
-        is_tar_output = args.output_tar is not None
+        output = Output(args)
         temp_dir_path = None
 
-        if is_tar_output:
+        if output.is_tar:
             # Create a temporary directory to stage files
             temp_dir_path = tempfile.mkdtemp(prefix="update_bundle_")
             self.logger.info(
@@ -103,7 +124,7 @@ class Main(App):
                 )
                 try:
                     self.create_tar_from_folder(
-                        resources_bundle_tar_path, args.resources
+                        resources_bundle_tar_path, args.resources, False
                     )
                     manifest["updater_resources"] = generated_resources_tar_filename
                     self.logger.info(
@@ -140,18 +161,18 @@ class Main(App):
             with open(manifest_path, "w") as f:
                 json.dump(manifest, f, indent=4)
 
-            if is_tar_output:
+            if output.is_tar:
                 self.logger.info(
-                    f"Creating final update bundle TAR archive at: {args.output_tar}"
+                    f"Creating final update bundle archive at: {output.path}"
                 )
                 self.create_tar_from_folder(
-                    args.output_tar, actual_output_path
+                    output.path, actual_output_path, output.is_compressed
                 )  # actual_output_path is the temp_dir
                 self.logger.info(
-                    f"Update bundle TAR archive created at {args.output_tar}"
+                    f"Update bundle TAR archive created at {output.path}"
                 )
             else:
-                self.logger.info(f"Update bundle folder created at {args.output}")
+                self.logger.info(f"Update bundle folder created at {output.path}")
 
             return 0
 
@@ -175,7 +196,7 @@ class Main(App):
                 crc = zlib.crc32(data, crc)
         return crc & 0xFFFFFFFF
 
-    def create_tar_from_folder(self, output_filename, source_dir):
+    def create_tar_from_folder(self, output_filename, source_dir, compress):
         """
         Creates a TAR archive from the source_dir with normalized metadata.
         """
@@ -191,7 +212,8 @@ class Main(App):
         if not os.path.isdir(source_dir):
             raise FileNotFoundError(f"Source directory not found: {source_dir}")
 
-        with tarfile.open(output_filename, "w") as tar:
+        mode = "w:gz" if compress else "w"
+        with tarfile.open(output_filename, mode) as tar:
             self.logger.debug(
                 f"Archiving contents of {source_dir} into {output_filename}"
             )

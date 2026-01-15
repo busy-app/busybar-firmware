@@ -4,8 +4,13 @@ dist_env = DIST_ENV
 u5_env = U5_ENV
 sil_env = SIL_ENV
 
+compress = False # TODO environment variable?
+
+tar_suffix = ".tgz" if compress else ".tar"
+output_option = "--output-tgz" if compress else "--output-tar"
+
 update_tar = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tar"),
+    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}" + tar_suffix),
     None,
     [
         [
@@ -13,7 +18,7 @@ update_tar = dist_env.Command(
             dist_env.Real("#scripts/update_bundle.py"),
             "--target",
             u5_env.subst("$TARGET_HW"),
-            "--output-tar",
+            output_option,
             "$TARGET",
             "--stage",
             u5_env["UPD_ENV"]["FW_BIN"][0],
@@ -55,7 +60,7 @@ dist_env.PhonyTarget(
 
 # Tar without radio firmware for minimal update package
 min_update_tar = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tar"),
+    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}" + tar_suffix),
     None,
     [
         [
@@ -63,7 +68,7 @@ min_update_tar = dist_env.Command(
             dist_env.Real("#scripts/update_bundle.py"),
             "--target",
             u5_env.subst("$TARGET_HW"),
-            "--output-tar",
+            output_option,
             "$TARGET",
             "--stage",
             u5_env["UPD_ENV"]["FW_BIN"][0],
@@ -115,7 +120,7 @@ installs.extend(
     (
         InstallAs(
             dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}.tar")
+                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}" + tar_suffix)
             ),
             update_tar,
         ),
