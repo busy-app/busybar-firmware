@@ -209,66 +209,60 @@ static void autoupdate_timer_callback(void* context) {
 
     FURI_LOG_D(TAG, "Autoupdate: starting check...");
 
-    do {
-        if(furi_semaphore_get_space(instance->autoupdate_semaphore) > 0) {
-            FURI_LOG_D(TAG, "Autoupdate: skipped, on pause");
-            break;
-        }
+    if(furi_semaphore_get_space(instance->autoupdate_semaphore) > 0) {
+        FURI_LOG_D(TAG, "Autoupdate: skipped, on pause");
+        return;
+    }
 
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        time_t timestamp = sntp_get_utc_timestamp(sntp);
-        furi_record_close(RECORD_SNTP);
+    Sntp* sntp = furi_record_open(RECORD_SNTP);
+    time_t timestamp = sntp_get_utc_timestamp(sntp);
+    furi_record_close(RECORD_SNTP);
 
-        DateTime datetime;
-        datetime_timestamp_to_datetime(timestamp, &datetime);
+    DateTime datetime;
+    datetime_timestamp_to_datetime(timestamp, &datetime);
 
-        int time_minutes = datetime.hour * 60 + datetime.minute;
-        int interval_start = instance->settings.autoupdate_interval_start;
-        int interval_end = instance->settings.autoupdate_interval_end;
-        bool is_time_in_interval =
-            (interval_start <= interval_end) ?
-                (time_minutes >= interval_start) && (time_minutes < interval_end) :
-                (time_minutes >= interval_start) || (time_minutes < interval_end);
+    int time_minutes = datetime.hour * 60 + datetime.minute;
+    int interval_start = instance->settings.autoupdate_interval_start;
+    int interval_end = instance->settings.autoupdate_interval_end;
+    bool is_time_in_interval =
+        (interval_start <= interval_end) ?
+            (time_minutes >= interval_start) && (time_minutes < interval_end) :
+            (time_minutes >= interval_start) || (time_minutes < interval_end);
 
-        if(!is_time_in_interval) {
-            FURI_LOG_D(
-                TAG,
-                "Autoupdate: skipped, outside time window (%02d:%02d)",
-                datetime.hour,
-                datetime.minute);
-            break;
-        }
+    if(!is_time_in_interval) {
+        FURI_LOG_D(
+            TAG,
+            "Autoupdate: skipped, outside time window (%02d:%02d)",
+            datetime.hour,
+            datetime.minute);
+        return;
+    }
 
-        UpdaterCheckState check_state;
-        furi_state_get(instance->check_state, &check_state);
+    UpdaterCheckState check_state;
+    furi_state_get(instance->check_state, &check_state);
 
-        do {
-            if(check_state.result != UpdaterCheckResultAvailable) {
-                FURI_LOG_D(TAG, "Autoupdate: skipped, no update available");
-                break;
-            }
+    if(check_state.result != UpdaterCheckResultAvailable) {
+        FURI_LOG_D(TAG, "Autoupdate: skipped, no update available");
+        return;
+    }
 
-            if(check_state.event != UpdaterCheckEventStop) {
-                FURI_LOG_D(TAG, "Autoupdate: skipped, check for update is running");
-                break;
-            }
+    if(check_state.event != UpdaterCheckEventStop) {
+        FURI_LOG_D(TAG, "Autoupdate: skipped, check for update is running");
+        return;
+    }
 
-            UpdaterStatus install_status = install_from_url_internal(
-                instance,
-                furi_string_get_cstr(instance->check_url),
-                furi_string_get_cstr(instance->check_sha256),
-                true);
+    UpdaterStatus install_status = install_from_url_internal(
+        instance,
+        furi_string_get_cstr(instance->check_url),
+        furi_string_get_cstr(instance->check_sha256),
+        true);
 
-            if(install_status == UpdaterStatusOk) {
-                FURI_LOG_I(TAG, "Autoupdate: installation started");
-            } else {
-                FURI_LOG_W(
-                    TAG,
-                    "Autoupdate: failed to start (%s)",
-                    updater_get_status_string(install_status));
-            }
-        } while(false);
-    } while(false);
+    if(install_status == UpdaterStatusOk) {
+        FURI_LOG_I(TAG, "Autoupdate: installation started");
+    } else {
+        FURI_LOG_W(
+            TAG, "Autoupdate: failed to start (%s)", updater_get_status_string(install_status));
+    }
 }
 
 static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* message) {
