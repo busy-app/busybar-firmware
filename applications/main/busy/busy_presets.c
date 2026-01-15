@@ -129,41 +129,41 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
         {
             .background_config =
                 {
-                    .anim_path = BUSY_ANIM_PATH("particles_busy_39x16.anim"),
+                    .anim_path = BUSY_ANIM_PATH("particles_busy_41x16.anim"),
                 },
             .progress_config =
                 {
-                    .lottie_path = BUSY_LOTTIE_PATH("progress_busy_39x16.json"),
+                    .lottie_path = BUSY_LOTTIE_PATH("progress_busy_41x16.json"),
                     .direction = TimerIndicatorProgressDirectionHorizontal,
                     .end_offset_px = 38,
                 },
             .foreground_config =
                 {
-                    .image_path = BUSY_IMG_PATH("indicator_busy_39x16.bin"),
+                    .image_path = BUSY_IMG_PATH("indicator_busy_41x16.bin"),
                 },
         },
     [BusyTimerIndicatorTypeRest] =
         {
             .background_config =
                 {
-                    .anim_path = BUSY_ANIM_PATH("particles_rest_39x16.anim"),
+                    .anim_path = BUSY_ANIM_PATH("particles_rest_41x16.anim"),
                 },
             .progress_config =
                 {
-                    .lottie_path = BUSY_LOTTIE_PATH("progress_rest_39x16.json"),
+                    .lottie_path = BUSY_LOTTIE_PATH("progress_rest_41x16.json"),
                     .direction = TimerIndicatorProgressDirectionVertical,
                     .end_offset_px = 22,
                 },
             .foreground_config =
                 {
-                    .image_path = BUSY_IMG_PATH("indicator_rest_39x16.bin"),
+                    .image_path = BUSY_IMG_PATH("indicator_rest_41x16.bin"),
                 },
         },
     [BusyTimerIndicatorTypeWorkBig] =
         {
             .background_config =
                 {
-                    .anim_path = BUSY_ANIM_PATH("indicator_busy_70x16.anim"),
+                    .anim_path = BUSY_ANIM_PATH("indicator_busy_72x16.anim"),
                 },
         },
     [BusyTimerIndicatorTypeRestBig] = {},
@@ -173,7 +173,7 @@ const TimerIndicatorTransition
     busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeMax] = {
         [BusyTimerIndicatorTransitionTypeInfToSimple] =
             {
-                .anim_path = BUSY_ANIM_PATH("indicator_busy_transition_70x16.anim"),
+                .anim_path = BUSY_ANIM_PATH("indicator_busy_transition_72x16.anim"),
                 .duration_ms = FRAMES_TO_MS(40),
                 .start_width_px = 70,
                 .end_width_px = 39,
