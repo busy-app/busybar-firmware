@@ -217,6 +217,7 @@ static void busy_free(BusyApp* instance) {
         transition_overlay_free(instance->transition_overlay);
 
         widget_free(instance->front_window);
+        timer_card_free(instance->timer_card);
         flex_layout_free(instance->back_container);
     });
 
