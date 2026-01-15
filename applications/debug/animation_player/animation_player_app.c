@@ -76,11 +76,8 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
         instance->anim_play = anim_play_alloc(root);
 
         if(anim_play_set_source(instance->anim_play, path_arg)) {
-            AnimFile* file = anim_play_get_file(instance->anim_play);
-            bool success = anim_file_set_section_indexed(
-                file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
-            UNUSED(success);
-            // anim_play_start(instance->anim_play);
+            anim_play_get_file(instance->anim_play);
+            anim_play_loop_whole(instance->anim_play);
         }
     });
 

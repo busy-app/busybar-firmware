@@ -102,6 +102,9 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->matter = furi_record_open(RECORD_MATTER);
 
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    busy_set_matter(instance, false);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
@@ -155,9 +158,6 @@ static BusyApp* busy_alloc(const char* arg) {
         FuriEventLoopEventIn,
         busy_api_queue_callback,
         instance);
-
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    busy_set_matter(instance, false);
 
     if(arg && strcmp(arg, BUSY_APP_TIMER_MODE) == 0) {
         instance->run_mode = BusyAppRunModeTimer;

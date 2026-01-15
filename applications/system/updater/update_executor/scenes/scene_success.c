@@ -5,6 +5,7 @@
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/anim_play.h>
 #include <gui/modules/label.h>
+#include <gui/storage_macros.h>
 
 #define SUCCESS_SCENE_DELAY_MS 1500
 
@@ -31,9 +32,7 @@ static void success_scene_on_enter(void* context) {
 
         AnimPlay* back_spinner_anim_play = anim_play_alloc(flex_layout_get_base(data->back_flex));
         if(anim_play_set_source(back_spinner_anim_play, GUI_ANIM_PATH("spinner_back_16x16.anim"))) {
-            AnimFile* file = anim_play_get_file(back_spinner_anim_play);
-            furi_assert(file);
-            anim_file_set_section_indexed(file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
+            anim_play_loop_whole(back_spinner_anim_play);
         }
         widget_set_size_content(anim_play_get_base(back_spinner_anim_play));
 
@@ -51,9 +50,7 @@ static void success_scene_on_enter(void* context) {
         AnimPlay* front_spinner_anim_play =
             anim_play_alloc(flex_layout_get_base(data->front_flex));
         if(anim_play_set_source(front_spinner_anim_play, GUI_ANIM_PATH("spinner_front_8x8.anim"))) {
-            AnimFile* file = anim_play_get_file(front_spinner_anim_play);
-            furi_assert(file);
-            anim_file_set_section_indexed(file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
+            anim_play_loop_whole(front_spinner_anim_play);
         }
         widget_set_size_content(anim_play_get_base(front_spinner_anim_play));
 

@@ -61,6 +61,13 @@ bool anim_play_set_source(AnimPlay* instance, const char* path);
 AnimFile* anim_play_get_file(AnimPlay* instance);
 
 /**
+ * @brief Helpher function to loop the entire animation.
+ * 
+ * @param[inout] instance Widget instance
+ */
+void anim_play_loop_whole(AnimPlay* instance);
+
+/**
  * @brief Starts or resumes playback of the animation
  * 
  * @note Playback is automatically started in `anim_play_set_source`

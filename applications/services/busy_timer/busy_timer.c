@@ -294,6 +294,7 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
 
     } else {
         busy_timer_stop_timer(instance);
+        busy_timer_notify_state_changed(instance);
         busy_timer_notify_interval_ended(instance, force);
     }
 }
@@ -609,7 +610,7 @@ static void busy_timer_get_time_message_handler(BusyTimer* instance, BusyTimerMe
 static void
     busy_timer_get_cycles_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     data->cycles->total_count = instance->config.cycle_count;
-    data->cycles->done_count = instance->current_interval_index / 2 + 1;
+    data->cycles->current_idx = instance->current_interval_index;
 }
 
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {

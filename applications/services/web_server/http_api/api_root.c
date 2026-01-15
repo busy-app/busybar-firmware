@@ -317,7 +317,13 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "name",
-        .method = "*",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_name_callback,
+    },
+    {
+        .uri = "name",
+        .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = http_api_name_callback,
     },

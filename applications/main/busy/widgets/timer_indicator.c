@@ -1,26 +1,38 @@
 #include "timer_indicator.h"
 
-#include <gui/modules/anim_play_i.h>
+#include <gui/widget_i.h>
+#include <gui/modules/image.h>
+#include <gui/modules/anim_play.h>
+#include <gui/modules/lottie_animation.h>
 
 #define MY_CLASS (&timer_indicator_lvgl_class)
 
-#define FRAMES_TO_MS(x) ((x) * 1000 / 60)
+#define SLOT_TEMPLATE \
+    "{"               \
+    " \"%s\": {"      \
+    "  \"p\": {"      \
+    "   \"k\": ["     \
+    "     %.2f,"      \
+    "     %.2f"       \
+    "   ]"            \
+    "}}}"
+
+#define SLOT_STR_LEN (sizeof(SLOT_TEMPLATE) + 20)
 
 struct TimerIndicator {
-    AnimPlay base;
-    TimerIndicatorAnimSources sources;
-    TimerIndicatorState state;
+    Widget base;
+    AnimPlay* bg_anim;
+    LottieAnimation* progress_lottie;
+    Image* fg_image;
+    char slot_store[SLOT_STR_LEN];
+    const TimerIndicatorPreset* current_preset;
 };
-
-typedef struct {
-    int32_t start_width;
-    int32_t end_width;
-    uint32_t duration_ms;
-} TimerTransitionPreset;
 
 const lv_obj_class_t timer_indicator_lvgl_class;
 
-static const TimerTransitionPreset timer_indicator_transition_presets[TimerIndicatorTransitionMax];
+// Function prototypes
+
+static void timer_indicator_apply_preset(TimerIndicator* instance);
 
 // LVGL-specific code
 
@@ -37,33 +49,43 @@ static void timer_indicator_lvgl_anim_completed_callback(lv_anim_t* anim) {
     TimerIndicator* instance = anim->var;
     furi_assert(instance);
 
-    AnimPlay* anim_play = (AnimPlay*)instance;
+    timer_indicator_apply_preset(instance);
 
-    anim_play_set_source(anim_play, instance->sources.states[instance->state]);
-
-    widget_set_width((Widget*)instance, LV_SIZE_CONTENT);
-}
-
-static void timer_indicator_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    TimerIndicator* instance = (TimerIndicator*)obj;
-    instance->state = TimerIndicatorStateMax;
+    widget_set_width(&instance->base, LV_SIZE_CONTENT);
 }
 
 // Implementation
 
-static void
-    timer_indicator_run_transition(TimerIndicator* instance, TimerIndicatorTransition transition) {
-    furi_assert(transition < TimerIndicatorTransitionMax);
+static void timer_indicator_reset(TimerIndicator* instance) {
+    if(instance->bg_anim) {
+        anim_play_free(instance->bg_anim);
+        instance->bg_anim = NULL;
+    }
+    if(instance->progress_lottie) {
+        lottie_animation_free(instance->progress_lottie);
+        instance->progress_lottie = NULL;
+    }
+    if(instance->fg_image) {
+        image_free(instance->fg_image);
+        instance->fg_image = NULL;
+    }
+}
 
-    const TimerTransitionPreset* const preset = &timer_indicator_transition_presets[transition];
+static void timer_indicator_start_transition(
+    TimerIndicator* instance,
+    const TimerIndicatorTransition* transition) {
+    timer_indicator_reset(instance);
+
+    instance->bg_anim = anim_play_alloc(&instance->base);
+    if(anim_play_set_source(instance->bg_anim, transition->anim_path)) {
+        anim_play_loop_whole(instance->bg_anim);
+    }
 
     lv_anim_t anim;
     lv_anim_init(&anim);
 
-    lv_anim_set_values(&anim, preset->start_width, preset->end_width);
-    lv_anim_set_duration(&anim, preset->duration_ms);
+    lv_anim_set_values(&anim, transition->start_width_px, transition->end_width_px);
+    lv_anim_set_duration(&anim, transition->duration_ms);
 
     lv_anim_set_bezier3_param(
         &anim,
@@ -78,6 +100,42 @@ static void
     lv_anim_set_var(&anim, instance);
 
     lv_anim_start(&anim);
+}
+
+static void timer_indicator_apply_bg_animation(TimerIndicator* instance) {
+    const TimerIndicatorBgConfig* config = &instance->current_preset->background_config;
+
+    if(config->anim_path) {
+        instance->bg_anim = anim_play_alloc(&instance->base);
+        if(anim_play_set_source(instance->bg_anim, config->anim_path)) {
+            anim_play_loop_whole(instance->bg_anim);
+        }
+    }
+}
+
+static void timer_indicator_apply_progress_lottie(TimerIndicator* instance) {
+    const TimerIndicatorProgressConfig* config = &instance->current_preset->progress_config;
+
+    if(config->lottie_path) {
+        instance->progress_lottie = lottie_animation_alloc(&instance->base);
+        lottie_animation_set_source(instance->progress_lottie, config->lottie_path);
+    }
+}
+
+static void timer_indicator_apply_fg_image(TimerIndicator* instance) {
+    const TimerIndicatorFgConfig* config = &instance->current_preset->foreground_config;
+
+    if(config->image_path) {
+        instance->fg_image = image_alloc(&instance->base);
+        image_set_source(instance->fg_image, config->image_path);
+    }
+}
+
+static void timer_indicator_apply_preset(TimerIndicator* instance) {
+    timer_indicator_reset(instance);
+    timer_indicator_apply_bg_animation(instance);
+    timer_indicator_apply_progress_lottie(instance);
+    timer_indicator_apply_fg_image(instance);
 }
 
 // Public API
@@ -102,71 +160,71 @@ Widget* timer_indicator_get_base(TimerIndicator* instance) {
     return (Widget*)instance;
 }
 
-AnimPlay* timer_indicator_get_anim_play(TimerIndicator* instance) {
-    furi_check(instance);
-    return (AnimPlay*)instance;
-}
-
-void timer_indicator_set_anim_sources(
+void timer_indicator_set_preset(
     TimerIndicator* instance,
-    const TimerIndicatorAnimSources* sources) {
+    const TimerIndicatorPreset* preset,
+    const TimerIndicatorTransition* transition) {
     furi_check(instance);
-    furi_check(sources);
+    furi_check(preset);
 
-    instance->sources = *sources;
+    instance->current_preset = preset;
+
+    if(transition) {
+        timer_indicator_start_transition(instance, transition);
+    } else {
+        timer_indicator_apply_preset(instance);
+    }
 }
 
-void timer_indicator_set_state(TimerIndicator* instance, TimerIndicatorState state) {
+void timer_indicator_set_progress(TimerIndicator* instance, float progress) {
     furi_check(instance);
-    furi_check(state < TimerIndicatorStateMax);
 
-    AnimPlay* anim_play = (AnimPlay*)instance;
+    if(instance->progress_lottie) {
+        const TimerIndicatorProgressConfig* config = &instance->current_preset->progress_config;
 
-    if(instance->state == TimerIndicatorStateWorkBig && state == TimerIndicatorStateWork) {
-        const TimerIndicatorTransition transition = TimerIndicatorTransitionOffToSimple;
+        const TimerIndicatorProgressDirection progress_dir = config->direction;
+        furi_assert(progress_dir < TimerIndicatorProgressDirectionMax);
 
-        if(anim_play_set_source(anim_play, instance->sources.transitions[transition])) {
-            AnimFile* file = anim_play_get_file(anim_play);
-            furi_assert(file);
-            bool success = anim_file_set_section_indexed(
-                file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
-            UNUSED(success);
+        const float delta = progress * (config->end_offset_px - config->start_offset_px);
+        const float offset = delta + config->start_offset_px;
+
+        if(progress_dir == TimerIndicatorProgressDirectionHorizontal) {
+            snprintf(
+                instance->slot_store,
+                SLOT_STR_LEN,
+                SLOT_TEMPLATE,
+                "hor_offset",
+                (double)offset,
+                0.);
+
+        } else if(progress_dir == TimerIndicatorProgressDirectionVertical) {
+            snprintf(
+                instance->slot_store,
+                SLOT_STR_LEN,
+                SLOT_TEMPLATE,
+                "ver_offset",
+                0.,
+                (double)offset);
+
+        } else {
+            furi_crash("Invalid TimerIndicatorProgressDirection value");
         }
 
-        timer_indicator_run_transition(instance, transition);
-
-    } else {
-        if(anim_play_set_source(anim_play, instance->sources.states[state])) {
-            AnimFile* file = anim_play_get_file(anim_play);
-            furi_assert(file);
-            bool success = anim_file_set_section_indexed(
-                file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
-            UNUSED(success);
-        }
+        lottie_animation_override_slot(instance->progress_lottie, instance->slot_store);
     }
+}
 
-    instance->state = state;
+void timer_indicator_enable_animations(TimerIndicator* instance, bool enable) {
+    furi_check(instance);
+    UNUSED(enable);
 }
 
 // LVGL class descriptor
 
 const lv_obj_class_t timer_indicator_lvgl_class = {
-    .base_class = &anim_play_lvgl_class,
-    .constructor_cb = timer_indicator_lvgl_constructor,
+    .base_class = &widget_lvgl_class,
     .name = "widget-timer-indicator",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(TimerIndicator),
-};
-
-// Presets
-
-static const TimerTransitionPreset
-    timer_indicator_transition_presets[TimerIndicatorTransitionMax] = {
-        [TimerIndicatorTransitionOffToSimple] =
-            {
-                .start_width = 70,
-                .end_width = 40,
-                .duration_ms = FRAMES_TO_MS(40),
-            },
 };

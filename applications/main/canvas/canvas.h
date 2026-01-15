@@ -12,7 +12,7 @@ typedef struct CanvasApp CanvasApp;
 
 typedef enum {
     CanvasElementTypeImage,
-    CanvasElementTypeAnimImage,
+    CanvasElementTypeAnimPlay,
     CanvasElementTypeText,
     CanvasElementTypeCountdown,
 } CanvasElementType;
@@ -38,7 +38,7 @@ typedef struct {
             uint32_t range_end;
             bool loop;
             bool wait_end;
-        } anim_image;
+        } anim_play;
 
         struct {
             char* text_str;

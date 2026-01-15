@@ -3,7 +3,7 @@
 #include <storage/storage.h>
 #include <gui/gui.h>
 #include <gui/modules/image.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 #include <gui/modules/label.h>
 #include <gui/modules/countdown.h>
 #include <m-dict.h>
@@ -39,7 +39,7 @@ typedef struct {
     GuiDisplayId display;
     union {
         Image* image;
-        AnimImage* anim_image;
+        AnimPlay* anim_play;
         Label* text;
         Countdown* countdown;
     };
@@ -105,9 +105,9 @@ static void canvas_element_timeout(void* context) {
         if(widget->type == CanvasElementTypeImage) {
             furi_assert(widget->image);
             image_free(widget->image);
-        } else if(widget->type == CanvasElementTypeAnimImage) {
-            furi_assert(widget->anim_image);
-            anim_image_free(widget->anim_image);
+        } else if(widget->type == CanvasElementTypeAnimPlay) {
+            furi_assert(widget->anim_play);
+            anim_play_free(widget->anim_play);
         } else if(widget->type == CanvasElementTypeText) {
             furi_assert(widget->text);
             label_free(widget->text);
@@ -146,8 +146,8 @@ static void canvas_widget_destroy(CanvasApp* canvas, CanvasWidget* widget) {
     with_gui(canvas->gui, {
         if(widget->type == CanvasElementTypeImage) {
             image_free(widget->image);
-        } else if(widget->type == CanvasElementTypeAnimImage) {
-            anim_image_free(widget->anim_image);
+        } else if(widget->type == CanvasElementTypeAnimPlay) {
+            anim_play_free(widget->anim_play);
         } else if(widget->type == CanvasElementTypeText) {
             label_free(widget->text);
         } else if(widget->type == CanvasElementTypeCountdown) {
@@ -194,19 +194,19 @@ static Widget* canvas_element_update_specific(
         image_set_source(widget->image, furi_string_get_cstr(element->image.file_path));
         return image_get_base(widget->image);
 
-    } else if(widget->type == CanvasElementTypeAnimImage) {
-        if(!widget->anim_image) {
-            widget->anim_image = anim_image_alloc(root);
+    } else if(widget->type == CanvasElementTypeAnimPlay) {
+        if(!widget->anim_play) {
+            widget->anim_play = anim_play_alloc(root);
         }
-        anim_image_set_source(
-            widget->anim_image, furi_string_get_cstr(element->anim_image.file_path));
-        anim_image_set_range(
-            widget->anim_image,
-            element->anim_image.range_start,
-            element->anim_image.range_end,
-            element->anim_image.loop,
-            element->anim_image.wait_end);
-        return anim_image_get_base(widget->anim_image);
+        anim_play_set_source(
+            widget->anim_play, furi_string_get_cstr(element->anim_play.file_path));
+        // anim_play_set_range(
+        //     widget->anim_play,
+        //     element->anim_play.range_start,
+        //     element->anim_play.range_end,
+        //     element->anim_play.loop,
+        //     element->anim_play.wait_end);
+        return anim_play_get_base(widget->anim_play);
 
     } else if(widget->type == CanvasElementTypeText) {
         if(!widget->text) {

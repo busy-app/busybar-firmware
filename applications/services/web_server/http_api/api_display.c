@@ -121,8 +121,8 @@ static bool api_display_draw_parse_image_path(
     const char* app_id,
     struct mg_str json_element,
     CanvasElementType type) {
-    furi_check((type == CanvasElementTypeImage) || (type == CanvasElementTypeAnimImage));
-    bool is_animated = type == CanvasElementTypeAnimImage;
+    furi_check((type == CanvasElementTypeImage) || (type == CanvasElementTypeAnimPlay));
+    bool is_animated = type == CanvasElementTypeAnimPlay;
 
     bool result = false;
 
@@ -186,42 +186,42 @@ static bool api_display_draw_parse_image_element(
     return result;
 }
 
-static bool api_display_draw_parse_anim_image_element(
+static bool api_display_draw_parse_anim_play_element(
     CanvasElement* canvas_element,
     const char* app_id,
     struct mg_str json_element) {
     bool result = false;
 
     do {
-        canvas_element->type = CanvasElementTypeAnimImage;
+        canvas_element->type = CanvasElementTypeAnimPlay;
         if(!api_display_draw_parse_image_path(
                &canvas_element->image.file_path, app_id, json_element, canvas_element->type))
             break;
 
         double num;
         if(mg_json_get_num(json_element, "$.range_start", &num)) {
-            canvas_element->anim_image.range_start = num;
+            canvas_element->anim_play.range_start = num;
         } else {
-            canvas_element->anim_image.range_start = 0;
+            canvas_element->anim_play.range_start = 0;
         }
 
         if(mg_json_get_num(json_element, "$.range_end", &num)) {
-            canvas_element->anim_image.range_end = num;
+            canvas_element->anim_play.range_end = num;
         } else {
-            canvas_element->anim_image.range_end = UINT32_MAX;
+            canvas_element->anim_play.range_end = UINT32_MAX;
         }
 
         bool json_bool;
         if(mg_json_get_bool(json_element, "$.loop", &json_bool)) {
-            canvas_element->anim_image.loop = json_bool;
+            canvas_element->anim_play.loop = json_bool;
         } else {
-            canvas_element->anim_image.loop = false;
+            canvas_element->anim_play.loop = false;
         }
 
         if(mg_json_get_bool(json_element, "$.wait_end", &json_bool)) {
-            canvas_element->anim_image.wait_end = json_bool;
+            canvas_element->anim_play.wait_end = json_bool;
         } else {
-            canvas_element->anim_image.wait_end = false;
+            canvas_element->anim_play.wait_end = false;
         }
 
         result = true;
@@ -305,7 +305,7 @@ static bool api_display_draw_parse_element(
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
             {"text", api_display_draw_parse_text_element},
             {"image", api_display_draw_parse_image_element},
-            {"anim_image", api_display_draw_parse_anim_image_element},
+            {"anim", api_display_draw_parse_anim_play_element},
             {"countdown", api_display_draw_parse_countdown_element},
         };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {

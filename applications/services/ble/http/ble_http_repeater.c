@@ -54,7 +54,7 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
             ble_uart_tx_data(
                 ble_http->ble, BleUartChannelNordic, &conn->recv.buf[index], send_size);
 
-            if(furi_semaphore_acquire(ble_http->wait, 1000) != FuriStatusOk) {
+            if(furi_semaphore_acquire(ble_http->wait, 2000) != FuriStatusOk) {
                 FURI_LOG_W(TAG, "Error during send process");
                 break;
             }
@@ -65,7 +65,6 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
         conn->recv.len = 0;
     } else if(ev == MG_EV_CLOSE) {
         if(ble_http->exit) return;
-        FURI_LOG_I(TAG, "Reopen conn");
         ble_http->conn =
             mg_connect(&ble_http->mgr, BLE_HTTP_HOST, ble_event_handler, ble_http_repeater);
     }
