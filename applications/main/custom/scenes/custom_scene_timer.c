@@ -2,7 +2,6 @@
 #include "../custom_presets.h"
 
 #include <gui/modules/image.h>
-#include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
 
 #include <busy/widgets/pause_overlay.h>

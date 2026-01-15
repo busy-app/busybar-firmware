@@ -1,16 +1,13 @@
 #include "../busy_i.h"
 
 #include <gui/modules/label.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 
-#define WAIT_ANIM_BEGIN (0)
-#define WAIT_ANIM_END   (179)
-
-#define PRESS_ANIM_BEGIN (180)
-#define PRESS_ANIM_END   (185)
+#define WAIT_SECTION  "wait"
+#define PRESS_SECTION "press"
 
 typedef struct {
-    AnimImage* front_anim;
+    AnimPlay* front_anim;
     BusyTimerState timer_state;
 } BusySceneNext;
 
@@ -60,10 +57,14 @@ static void busy_scene_next_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_next_input_callback, instance);
 
-        data->front_anim = anim_image_alloc(instance->front_window);
+        data->front_anim = anim_play_alloc(instance->front_window);
 
-        anim_image_set_source(data->front_anim, front_anim_file_path[data->timer_state]);
-        anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
+        anim_play_set_source(data->front_anim, front_anim_file_path[data->timer_state]);
+        AnimFile* file = anim_play_get_file(data->front_anim);
+        if(file) {
+            bool success = anim_file_set_section_named(file, AnimFilePlayFlagLoop, WAIT_SECTION);
+            UNUSED(success);
+        }
     });
 
     if(data->timer_state == BusyTimerStateIdle) {
@@ -84,7 +85,7 @@ static void busy_scene_next_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
-        anim_image_free(data->front_anim);
+        anim_play_free(data->front_anim);
     });
 }
 
@@ -103,8 +104,12 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
         if(event->event == BusyCustomEventStartPressed) {
             if(data->front_anim) {
                 with_gui(instance->gui, {
-                    anim_image_set_range(
-                        data->front_anim, PRESS_ANIM_BEGIN, PRESS_ANIM_END, false, false);
+                    AnimFile* file = anim_play_get_file(data->front_anim);
+                    if(file) {
+                        bool success =
+                            anim_file_set_section_named(file, AnimFilePlayFlagNone, PRESS_SECTION);
+                        UNUSED(success);
+                    }
                 });
             }
 

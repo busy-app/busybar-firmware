@@ -22,7 +22,7 @@ const TransitionOverlayPreset custom_transitions[CustomTransitionTypeMax] = {
                     .out_ms = 1000,
                 },
             .effect = TransitionOverlayEffectPress,
-            .mask.file_path = CUSTOM_ANIM_PATH("transition_select_72x16.anim"),
+            .mask.file_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
         },
 };
 

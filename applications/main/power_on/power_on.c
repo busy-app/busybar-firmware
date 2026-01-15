@@ -1,7 +1,7 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 #include <gui/modules/label.h>
 
 #include <storage/storage.h>
@@ -15,10 +15,8 @@
 #define POWER_ON_START_TIMEOUT_TICKS furi_ms_to_ticks(500)
 #define POWER_ON_APP_TIMEOUT_MIN     (15)
 
-#define MIN_TO_MS(minutes) (minutes * 60U * 1000U)
-
-#define POWER_ON_ANIMATION_LOOP_START_FRAME (90)
-#define POWER_ON_ANIMATION_LOOP_END_FRAME   (329)
+#define MIN_TO_MS(minutes)    (minutes * 60U * 1000U)
+#define POWER_ON_LOOP_SECTION "loop"
 
 #define POWER_ON_ANIM_PATH(path) APP_ASSETS_PATH("animations") "/" path
 #define POWER_ON_DONE_PATH       APP_DATA_PATH("done.txt")
@@ -130,11 +128,21 @@ static inline void power_on_done_flag_create(PowerOnApp* instance) {
     storage_file_free(file);
 }
 
-static AnimImage* power_on_animation_alloc(Widget* widget, const char* anim_path) {
-    AnimImage* anim = anim_image_alloc(widget);
-    anim_image_set_source(anim, anim_path);
-    anim_image_set_range(
-        anim, POWER_ON_ANIMATION_LOOP_START_FRAME, POWER_ON_ANIMATION_LOOP_END_FRAME, true, true);
+static AnimPlay* power_on_animation_alloc(Widget* widget, const char* anim_path) {
+    AnimPlay* anim = anim_play_alloc(widget);
+
+    do {
+        if(!anim_play_set_source(anim, anim_path)) break;
+        AnimFile* file = anim_play_get_file(anim);
+        furi_assert(file);
+
+        if(!anim_file_set_section_named(
+               file,
+               AnimFilePlayFlagFinishCurrentSection | AnimFilePlayFlagLoop,
+               POWER_ON_LOOP_SECTION))
+            break;
+    } while(0);
+
     return anim;
 }
 
@@ -147,8 +155,8 @@ int32_t power_on_app(void* arg) {
     Widget* front_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdFront);
     Widget* back_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdBack);
 
-    AnimImage* front_anim = NULL;
-    AnimImage* back_anim = NULL;
+    AnimPlay* front_anim = NULL;
+    AnimPlay* back_anim = NULL;
 
     Label* front_label = NULL;
     Label* back_label = NULL;
@@ -188,7 +196,7 @@ int32_t power_on_app(void* arg) {
             front_anim = power_on_animation_alloc(
                 front_root, POWER_ON_ANIM_PATH("front_power_on_72x16.anim"));
             back_anim = power_on_animation_alloc(
-                back_root, POWER_ON_ANIM_PATH("back_power_on_160x80.anim"));
+                back_root, POWER_ON_ANIM_PATH("back_power_on_148x80.anim"));
         });
 
         uint32_t flags =
@@ -205,8 +213,8 @@ int32_t power_on_app(void* arg) {
     } while(0);
 
     with_gui(instance->gui, {
-        if(front_anim) anim_image_free(front_anim);
-        if(back_anim) anim_image_free(back_anim);
+        if(front_anim) anim_play_free(front_anim);
+        if(back_anim) anim_play_free(back_anim);
 
         if(front_label) label_free(front_label);
         if(back_label) label_free(back_label);

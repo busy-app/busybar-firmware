@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 #include <gui/modules/snap_image.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 
 #include "../storage_macros.h"
 
@@ -26,7 +26,7 @@
 struct PauseOverlay {
     Widget base;
     SnapImage* snap;
-    AnimImage* mask;
+    AnimPlay* mask;
     lv_obj_t* layout;
     lv_obj_t* pause_img;
 };
@@ -58,10 +58,9 @@ static void pause_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     lv_label_set_text(label, "PAUSED");
     lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
 
-    instance->mask = anim_image_alloc((Widget*)instance);
-    anim_image_set_source(instance->mask, BUSY_ANIM_PATH("transition_pause_72x16.anim"));
-    anim_image_set_loop(instance->mask, false);
-    anim_image_stop(instance->mask);
+    instance->mask = anim_play_alloc((Widget*)instance);
+    anim_play_set_source(instance->mask, BUSY_ANIM_PATH("transition_pause_72x16.anim"));
+    anim_play_pause(instance->mask);
 
     lv_obj_set_style_blend_mode(TO_LV_OBJ(instance->mask), LV_BLEND_MODE_ADDITIVE, LV_PART_MAIN);
 
@@ -125,10 +124,12 @@ static void pause_overlay_animate_show(PauseOverlay* instance) {
 
     lv_obj_set_style_opa(TO_LV_OBJ(instance), LV_OPA_COVER, LV_PART_MAIN);
 
-    // const uint32_t frame_count = anim_image_get_frame_count(instance->mask);
-    // anim_image_set_range(instance->mask, 0, frame_count - 1, false, false);
-    anim_image_rewind(instance->mask);
-    anim_image_start(instance->mask);
+    AnimFile* file = anim_play_get_file(instance->mask);
+    if(file) {
+        furi_assert(anim_file_set_section_indexed(
+            file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX));
+        anim_play_start(instance->mask);
+    }
 
     widget_set_visible((Widget*)instance->layout, false);
     widget_set_visible((Widget*)instance, true);

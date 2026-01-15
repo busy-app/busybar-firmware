@@ -2,6 +2,8 @@
 
 #include <storage/storage.h>
 
+#include <busy/storage_macros.h>
+
 #define CUSTOM_ASSETS_PATH(path) EXT_PATH("apps_assets/custom") "/" path
 #define CUSTOM_ANIM_PATH(path)   CUSTOM_ASSETS_PATH("animations") "/" path
 #define CUSTOM_IMG_PATH(path)    CUSTOM_ASSETS_PATH("images") "/" path

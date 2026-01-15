@@ -315,6 +315,41 @@ MU_TEST(anim_test_rle) {
 }
 
 /**
+ * Loop whole animation once using the pending slot mechanism
+ */
+MU_TEST(anim_test_pend) {
+    const char* path = anim_test_prepare_file(AnimTestFile_Gray_RLE_Ramp_10x10x10);
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    AnimFile* anim = anim_file_alloc(storage, path);
+    mu_assert_not_null(anim);
+
+    mu_assert_int_eq(
+        true,
+        anim_file_set_section_indexed(anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX));
+    mu_assert_int_eq(
+        true,
+        anim_file_set_section_indexed(
+            anim, AnimFilePlayFlagFinishCurrentSection, ANIM_FILE_WHOLE_SECTION_INDEX));
+
+    uint8_t buffer[300];
+
+    for(size_t i = 0; i < 20; i++) {
+        anim_file_frame(anim, buffer);
+
+        for(size_t k = 0; k < 100; k++) {
+            size_t expected = (i % 10) << 4;
+            mu_assert_int_eq(expected, buffer[(k * 3) + 0]);
+            mu_assert_int_eq(expected, buffer[(k * 3) + 1]);
+            mu_assert_int_eq(expected, buffer[(k * 3) + 2]);
+        }
+    }
+
+    anim_file_free(anim);
+    furi_record_close(RECORD_STORAGE);
+}
+
+/**
  * Performance testing
  */
 MU_TEST(anim_test_perf) {
@@ -355,6 +390,7 @@ MU_TEST_SUITE(anim_basic_test_suite) {
     MU_RUN_TEST(anim_test_play_complex_pend);
     MU_RUN_TEST(anim_test_grayscale);
     MU_RUN_TEST(anim_test_rle);
+    MU_RUN_TEST(anim_test_pend);
     MU_RUN_TEST(anim_test_perf);
 }
 

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,14 +60,14 @@ void timer_indicator_free(TimerIndicator* instance);
 Widget* timer_indicator_get_base(TimerIndicator* instance);
 
 /**
- * @brief Get a pointer to the underlying AnimImage class instance.
+ * @brief Get a pointer to the underlying AnimPlay class instance.
  *
- * The return value can be used in all AnimImage methods.
+ * The return value can be used in all AnimPlay methods.
  *
  * @param[in,out] instance pointer to the TimerIndicator instance to be queried
  * @returns pointer to the base class instance
  */
-AnimImage* timer_indicator_get_anim_image(TimerIndicator* instance);
+AnimPlay* timer_indicator_get_anim_play(TimerIndicator* instance);
 
 /**
  * @brief Set animation sources for different states of a TimerIndicator instance.

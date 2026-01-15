@@ -1,6 +1,6 @@
 #include "anim_menu.h"
 
-#include <gui/modules/anim_image_i.h>
+#include <gui/modules/anim_play_i.h>
 
 #include <storage/storage.h>
 
@@ -9,13 +9,11 @@
 #define MY_CLASS (&anim_menu_lvgl_class)
 
 struct AnimMenu {
-    AnimImage base;
+    AnimPlay base;
     AnimMenuCallback callback;
     void* context;
-    uint32_t idle_frames;
-    uint32_t transition_frames;
-    uint32_t current_idx;
-    bool is_loaded;
+    size_t option_count;
+    size_t current_idx;
 };
 
 typedef struct {
@@ -25,80 +23,26 @@ typedef struct {
 
 const lv_obj_class_t anim_menu_lvgl_class;
 
-static inline AnimMenuFrameRange
-    anim_menu_calc_idle_range(const AnimMenu* instance, uint32_t idx) {
-    furi_assert(instance->idle_frames);
-    furi_assert(instance->transition_frames);
-
-    AnimMenuFrameRange range;
-    range.begin = idx * (instance->idle_frames + instance->transition_frames);
-    range.end = range.begin + instance->idle_frames - 1;
-
-    return range;
-}
-
-static inline AnimMenuFrameRange
-    anim_menu_calc_transition_range(const AnimMenu* instance, uint32_t idx) {
-    furi_assert(instance->idle_frames);
-    furi_assert(instance->transition_frames);
-
-    AnimMenuFrameRange range;
-    range.begin =
-        instance->idle_frames + (idx * (instance->idle_frames + instance->transition_frames));
-    range.end = range.begin + instance->transition_frames - 1;
-
-    return range;
-}
-
 static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
     AnimMenu* instance = (AnimMenu*)widget;
 
     bool consumed = false;
+    char section_name[36]; // strlen("transition-4294967295-to-4294967295") + 1
 
     if(event->type == InputTypeShort) {
+        size_t previous_idx = instance->current_idx;
+
         switch(event->key) {
         case InputKeyUp:
-            if(instance->current_idx == 0) {
-                instance->current_idx = 1;
-
-                if(instance->is_loaded) {
-                    AnimMenuFrameRange transition_range =
-                        anim_menu_calc_transition_range(instance, 0);
-                    anim_image_set_range(
-                        (AnimImage*)instance,
-                        transition_range.begin,
-                        transition_range.end,
-                        false,
-                        false);
-
-                    AnimMenuFrameRange idle_range = anim_menu_calc_idle_range(instance, 1);
-                    anim_image_set_range(
-                        (AnimImage*)instance, idle_range.begin, idle_range.end, true, true);
-                }
-            }
             consumed = true;
+            if(instance->current_idx == instance->option_count - 1) break;
+            instance->current_idx++;
             break;
 
         case InputKeyDown:
-            if(instance->current_idx == 1) {
-                instance->current_idx = 0;
-
-                if(instance->is_loaded) {
-                    AnimMenuFrameRange transition_range =
-                        anim_menu_calc_transition_range(instance, 1);
-                    anim_image_set_range(
-                        (AnimImage*)instance,
-                        transition_range.begin,
-                        transition_range.end,
-                        false,
-                        false);
-
-                    AnimMenuFrameRange idle_range = anim_menu_calc_idle_range(instance, 0);
-                    anim_image_set_range(
-                        (AnimImage*)instance, idle_range.begin, idle_range.end, true, true);
-                }
-            }
             consumed = true;
+            if(instance->current_idx == 0) break;
+            instance->current_idx--;
             break;
 
         case InputKeyOk:
@@ -113,19 +57,40 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
         default:
             break;
         }
+
+        do {
+            size_t current_idx = instance->current_idx;
+            if(current_idx == previous_idx) break;
+
+            AnimFile* file = anim_play_get_file(&instance->base);
+            if(!file) break;
+
+            snprintf(
+                section_name,
+                sizeof(section_name),
+                "transition-%zu-to-%zu",
+                previous_idx,
+                current_idx);
+            if(!anim_file_set_section_named(file, AnimFilePlayFlagNone, section_name)) break;
+
+            snprintf(section_name, sizeof(section_name), "item-%zu", current_idx);
+            if(!anim_file_set_section_named(
+                   file, AnimFilePlayFlagFinishCurrentSection | AnimFilePlayFlagLoop, section_name))
+                break;
+        } while(0);
     }
 
     return consumed;
 }
 
-static void anim_menu_lvlg_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void anim_menu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     AnimMenu* instance = (AnimMenu*)obj;
     widget_set_input_feed_callback((Widget*)instance, anim_menu_input_callback);
 }
 
-static void anim_menu_lvlg_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void anim_menu_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     AnimMenu* instance = (AnimMenu*)obj;
@@ -154,32 +119,25 @@ Widget* anim_menu_get_base(AnimMenu* instance) {
     return (Widget*)instance;
 }
 
-AnimImage* anim_menu_get_anim_image(AnimMenu* instance) {
+AnimPlay* anim_menu_get_anim_play(AnimMenu* instance) {
     furi_check(instance);
-    return (AnimImage*)instance;
+    return (AnimPlay*)instance;
 }
 
-bool anim_menu_set_source(
-    AnimMenu* instance,
-    const char* file_path,
-    uint32_t idle_frames,
-    uint32_t transition_frames) {
+bool anim_menu_set_source(AnimMenu* instance, const char* file_path, size_t options) {
     furi_check(instance);
     furi_check(file_path);
-    furi_check(idle_frames > 0);
-    furi_check(transition_frames > 0);
+    furi_check(options > 0);
 
-    instance->is_loaded = anim_image_set_source((AnimImage*)instance, file_path);
+    if(!anim_play_set_source(&instance->base, file_path)) return false;
 
-    if(instance->is_loaded) {
-        instance->idle_frames = idle_frames;
-        instance->transition_frames = transition_frames;
+    instance->option_count = options;
+    AnimFile* file = anim_play_get_file(&instance->base);
+    furi_assert(file);
 
-        anim_image_set_range((AnimImage*)instance, 0, idle_frames - 1, true, false);
-        anim_image_start((AnimImage*)instance);
-    }
+    if(!anim_file_set_section_named(file, AnimFilePlayFlagLoop, "item-0")) return false;
 
-    return instance->is_loaded;
+    return true;
 }
 
 void anim_menu_set_callback(AnimMenu* instance, AnimMenuCallback callback, void* context) {
@@ -192,9 +150,9 @@ void anim_menu_set_callback(AnimMenu* instance, AnimMenuCallback callback, void*
 // LVGL class descriptors
 
 const lv_obj_class_t anim_menu_lvgl_class = {
-    .base_class = &anim_image_lvgl_class,
-    .constructor_cb = anim_menu_lvlg_constructor,
-    .destructor_cb = anim_menu_lvlg_destructor,
+    .base_class = &anim_play_lvgl_class,
+    .constructor_cb = anim_menu_lvgl_constructor,
+    .destructor_cb = anim_menu_lvgl_destructor,
     .name = "widget-anim-menu",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,

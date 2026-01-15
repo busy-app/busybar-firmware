@@ -1,13 +1,13 @@
 #include "timer_indicator.h"
 
-#include <gui/modules/anim_image_i.h>
+#include <gui/modules/anim_play_i.h>
 
 #define MY_CLASS (&timer_indicator_lvgl_class)
 
 #define FRAMES_TO_MS(x) ((x) * 1000 / 60)
 
 struct TimerIndicator {
-    AnimImage base;
+    AnimPlay base;
     TimerIndicatorAnimSources sources;
     TimerIndicatorState state;
 };
@@ -37,10 +37,9 @@ static void timer_indicator_lvgl_anim_completed_callback(lv_anim_t* anim) {
     TimerIndicator* instance = anim->var;
     furi_assert(instance);
 
-    AnimImage* anim_image = (AnimImage*)instance;
+    AnimPlay* anim_play = (AnimPlay*)instance;
 
-    anim_image_set_source(anim_image, instance->sources.states[instance->state]);
-    anim_image_set_loop(anim_image, true);
+    anim_play_set_source(anim_play, instance->sources.states[instance->state]);
 
     widget_set_width((Widget*)instance, LV_SIZE_CONTENT);
 }
@@ -103,9 +102,9 @@ Widget* timer_indicator_get_base(TimerIndicator* instance) {
     return (Widget*)instance;
 }
 
-AnimImage* timer_indicator_get_anim_image(TimerIndicator* instance) {
+AnimPlay* timer_indicator_get_anim_play(TimerIndicator* instance) {
     furi_check(instance);
-    return (AnimImage*)instance;
+    return (AnimPlay*)instance;
 }
 
 void timer_indicator_set_anim_sources(
@@ -121,19 +120,29 @@ void timer_indicator_set_state(TimerIndicator* instance, TimerIndicatorState sta
     furi_check(instance);
     furi_check(state < TimerIndicatorStateMax);
 
-    AnimImage* anim_image = (AnimImage*)instance;
+    AnimPlay* anim_play = (AnimPlay*)instance;
 
     if(instance->state == TimerIndicatorStateWorkBig && state == TimerIndicatorStateWork) {
         const TimerIndicatorTransition transition = TimerIndicatorTransitionOffToSimple;
 
-        anim_image_set_source(anim_image, instance->sources.transitions[transition]);
-        anim_image_set_loop(anim_image, false);
+        if(anim_play_set_source(anim_play, instance->sources.transitions[transition])) {
+            AnimFile* file = anim_play_get_file(anim_play);
+            furi_assert(file);
+            bool success = anim_file_set_section_indexed(
+                file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
+            UNUSED(success);
+        }
 
         timer_indicator_run_transition(instance, transition);
 
     } else {
-        anim_image_set_source(anim_image, instance->sources.states[state]);
-        anim_image_set_loop(anim_image, true);
+        if(anim_play_set_source(anim_play, instance->sources.states[state])) {
+            AnimFile* file = anim_play_get_file(anim_play);
+            furi_assert(file);
+            bool success = anim_file_set_section_indexed(
+                file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
+            UNUSED(success);
+        }
     }
 
     instance->state = state;
@@ -142,7 +151,7 @@ void timer_indicator_set_state(TimerIndicator* instance, TimerIndicatorState sta
 // LVGL class descriptor
 
 const lv_obj_class_t timer_indicator_lvgl_class = {
-    .base_class = &anim_image_lvgl_class,
+    .base_class = &anim_play_lvgl_class,
     .constructor_cb = timer_indicator_lvgl_constructor,
     .name = "widget-timer-indicator",
     .width_def = LV_SIZE_CONTENT,

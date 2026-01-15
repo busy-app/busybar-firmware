@@ -2,17 +2,16 @@
 #include <busy/widgets/anim_menu.h>
 
 #include <gui/modules/menu.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 #include <gui/modules/flex_layout.h>
 
 #include <lvgl.h>
 
-#define ANIM_MENU_IDLE_FRAMES       (120)
-#define ANIM_MENU_TRANSITION_FRAMES (10)
+#define ANIM_MENU_OPTIONS 2
 
 typedef struct {
     FlexLayout* front_layout;
-    AnimImage* front_logo;
+    AnimPlay* front_logo;
     AnimMenu* front_menu;
     Menu* back_menu;
 } CustomSceneStart;
@@ -44,17 +43,13 @@ static void custom_scene_start_on_enter(void* context) {
 
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
 
-        data->front_logo = anim_image_alloc(flex_layout_get_base(data->front_layout));
-        anim_image_set_source(data->front_logo, CUSTOM_ANIM_PATH("start_logo_custom_41x16.anim"));
-        anim_image_set_loop(data->front_logo, false);
+        data->front_logo = anim_play_alloc(flex_layout_get_base(data->front_layout));
+        anim_play_set_source(data->front_logo, CUSTOM_ANIM_PATH("start_logo_custom_41x16.anim"));
 
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, custom_scene_start_menu_callback, instance);
         anim_menu_set_source(
-            data->front_menu,
-            CUSTOM_ANIM_PATH("start_menu_31x16.anim"),
-            ANIM_MENU_IDLE_FRAMES,
-            ANIM_MENU_TRANSITION_FRAMES);
+            data->front_menu, BUSY_ANIM_PATH("start_menu_31x16.anim"), ANIM_MENU_OPTIONS);
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(

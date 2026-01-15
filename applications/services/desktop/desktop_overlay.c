@@ -4,7 +4,7 @@
 #include <furi.h>
 #include <lvgl.h>
 
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 
 #define TAG "DesktopOverlay"
 
@@ -18,18 +18,21 @@ typedef struct {
 struct DesktopOverlay {
     Gui* gui;
     Widget* fade_out_widget;
-    AnimImage* mask_anim_image;
+    AnimPlay* mask_anim;
     bool show_requested;
 };
 
-static const DesctopOverlayFrameRange mask_anim_frame_ranges[] = {
-    [DesktopOverlayTransitionTypeUp] = {.begin = 10, .end = 19},
-    [DesktopOverlayTransitionTypeDown] = {.begin = 0, .end = 9},
-};
+#define MASK_L_TO_R "left_to_right"
+#define MASK_R_TO_L "right_to_left"
 
-static void desktop_overlay_mask_anim_image_completed_callback(AnimImage* anim, void* context) {
+static void
+    desktop_overlay_mask_frame(AnimPlay* anim, const AnimFileFrameInfo* frame, void* context) {
     UNUSED(context);
-    widget_set_visible(anim_image_get_base(anim), false);
+    if(frame->flags & FuriFlagError) return;
+
+    if(frame->flags & AnimFileFrameFlagFinished) {
+        widget_set_visible(anim_play_get_base(anim), false);
+    }
 }
 
 static void desktop_overlay_fade_out_anim_exec_callback(void* var, int32_t value) {
@@ -49,17 +52,13 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
         lv_obj_set_style_bg_color(
             (lv_obj_t*)instance->fade_out_widget, lv_color_black(), LV_PART_MAIN);
 
-        instance->mask_anim_image = anim_image_alloc(root);
-        widget_set_visible(anim_image_get_base(instance->mask_anim_image), false);
-        widget_set_blend_mode(
-            anim_image_get_base(instance->mask_anim_image), WidgetBlendModeMultiply);
-        anim_image_set_source(
-            instance->mask_anim_image, DESKTOP_ANIM_PATH("hosizontal_mask_transition_72x16.anim"));
-        anim_image_set_completed_callback(
-            instance->mask_anim_image,
-            desktop_overlay_mask_anim_image_completed_callback,
-            instance);
-        anim_image_stop(instance->mask_anim_image);
+        instance->mask_anim = anim_play_alloc(root);
+        widget_set_visible(anim_play_get_base(instance->mask_anim), false);
+        widget_set_blend_mode(anim_play_get_base(instance->mask_anim), WidgetBlendModeMultiply);
+        anim_play_set_source(
+            instance->mask_anim, DESKTOP_ANIM_PATH("hosizontal_mask_transition_72x16.anim"));
+        anim_play_set_frame_callback(instance->mask_anim, desktop_overlay_mask_frame, instance);
+        anim_play_pause(instance->mask_anim);
     });
 
     instance->show_requested = false;
@@ -96,11 +95,16 @@ void desktop_overlay_hide(DesktopOverlay* instance, DesktopOverlayTransitionType
         widget_set_visible(instance->fade_out_widget, false);
 
         if(type != DesktopOverlayTransitionTypeNone) {
-            const DesctopOverlayFrameRange* range = &mask_anim_frame_ranges[type];
+            const char* section = (type == DesktopOverlayTransitionTypeUp) ? MASK_R_TO_L :
+                                                                             MASK_L_TO_R;
+            widget_set_visible(anim_play_get_base(instance->mask_anim), true);
 
-            widget_set_visible(anim_image_get_base(instance->mask_anim_image), true);
-            anim_image_set_range(
-                instance->mask_anim_image, range->begin, range->end, false, false);
+            AnimFile* file = anim_play_get_file(instance->mask_anim);
+            if(file) {
+                if(anim_file_set_section_named(file, AnimFilePlayFlagNone, section)) {
+                    anim_play_start(instance->mask_anim);
+                }
+            }
         }
     });
 

@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 #include <gui/modules/snap_image.h>
 
 #define MY_CLASS (&transition_overlay_lvgl_class)
@@ -16,7 +16,7 @@
 struct TransitionOverlay {
     Widget base;
     SnapImage* snap;
-    AnimImage* mask;
+    AnimPlay* mask;
     lv_obj_t* color;
     Widget* press_widget;
     TransitionOverlayPreset preset;
@@ -76,11 +76,20 @@ static void transition_overlay_lvgl_constructor(const lv_obj_class_t* class_p, l
     TransitionOverlay* instance = (TransitionOverlay*)obj;
     instance->snap = snap_image_alloc((Widget*)obj);
     instance->color = lv_obj_create(obj);
-    instance->mask = anim_image_alloc((Widget*)obj);
+    instance->mask = anim_play_alloc((Widget*)obj);
 
     lv_obj_set_size(instance->color, LV_PCT(100), LV_PCT(100));
 
     widget_set_visible((Widget*)instance, false);
+}
+
+static void transition_overlay_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    TransitionOverlay* instance = (TransitionOverlay*)obj;
+    snap_image_free(instance->snap);
+    lv_obj_del(obj);
+    anim_play_free(instance->mask);
 }
 
 // Implementation
@@ -151,7 +160,7 @@ static void transition_overlay_animate_mask(TransitionOverlay* instance) {
 
     lv_anim_start(&anim);
 
-    anim_image_start(instance->mask);
+    anim_play_start(instance->mask);
 
     widget_set_visible((Widget*)instance->mask, true);
 }
@@ -176,8 +185,12 @@ static void transition_overlay_animate_press(TransitionOverlay* instance) {
 static void transition_overlay_reset(TransitionOverlay* instance) {
     lv_anim_delete(instance, NULL);
 
-    anim_image_rewind(instance->mask);
-    anim_image_stop(instance->mask);
+    anim_play_pause(instance->mask);
+    AnimFile* file = anim_play_get_file(instance->mask);
+    if(file) {
+        furi_assert(anim_file_set_section_indexed(
+            file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX));
+    }
 
     if(instance->press_widget) {
         widget_set_pos(instance->press_widget, 0, 0);
@@ -220,9 +233,8 @@ void transition_overlay_set_preset(
         lv_obj_set_style_bg_color(instance->color, TO_LV_COLOR(preset->mask.color), LV_PART_MAIN);
 
     } else if(preset->type == TransitionOverlayTypeMask) {
-        anim_image_set_source(instance->mask, preset->mask.file_path);
-        anim_image_set_loop(instance->mask, false);
-        anim_image_stop(instance->mask);
+        anim_play_set_source(instance->mask, preset->mask.file_path);
+        anim_play_pause(instance->mask);
     }
 }
 
@@ -266,6 +278,7 @@ void transition_overlay_start(TransitionOverlay* instance) {
 const lv_obj_class_t transition_overlay_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = transition_overlay_lvgl_constructor,
+    .destructor_cb = transition_overlay_lvgl_destructor,
     .name = "widget-transition-overlay",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

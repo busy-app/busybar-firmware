@@ -5,8 +5,8 @@
 
 const uint8_t test_file_Color_Ramp_1x1x4[] = {
     // header
-    'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
-    0, 1, 1, 0,   10, 0, 0, 0, // bgr888, 1x1, 10fps
+    'b', 'i', 'c', 'y', 'c', 'l', 'e', '0',
+    0, 1, 1, 0,   10, 0, 0, 0, // rgb888, 1x1, 10fps
     19, 0, 0, 0,  28, 0, 0, 0, // chunk sizes
     // sections
     0, 0, 0, 0,   3, 0, 0, 0,   43, 0, 0, 0,   1,   'w', 'h', 'o', 'l', 'e', 0,
@@ -26,8 +26,8 @@ const uint8_t test_file_Color_Ramp_1x1x4[] = {
  */
 const uint8_t test_file_Color_ComplexDuration_2x2x10[] = {
     // header
-    'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
-    0, 2, 2, 0,   10, 0, 0, 0, // bgr888, 2x2, 10fps
+    'b', 'i', 'c', 'y', 'c', 'l', 'e', '0',
+    0, 2, 2, 0,   10, 0, 0, 0, // rgb888, 2x2, 10fps
     36, 0, 0, 0,  64, 0, 0, 0, // chunk sizes
     // sections
     0, 0, 0, 0,   9, 0, 0, 0,   60, 0, 0, 0,   1,   'w', 'h', 'o', 'l', 'e', 0,
@@ -41,7 +41,7 @@ const uint8_t test_file_Color_ComplexDuration_2x2x10[] = {
 
 const uint8_t test_file_Gray_Ramp_2x2x4[] = {
     // header
-    'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
+    'b', 'i', 'c', 'y', 'c', 'l', 'e', '0',
     0, 2, 2, 1,   10, 0, 0, 0, // gray4, 2x2, 10fps
     19, 0, 0, 0,  24, 0, 0, 0, // chunk sizes
     // sections
@@ -55,7 +55,7 @@ const uint8_t test_file_Gray_Ramp_2x2x4[] = {
 
 const uint8_t test_file_Gray_RLE_Ramp_10x10x10[] = {
     // header
-    'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
+    'b', 'i', 'c', 'y', 'c', 'l', 'e', '0',
     0, 10, 10, 1,  10, 2, 0, 0, // gray4, 10x10, 10fps, max encoded len 2
     19, 0, 0, 0,   60, 0, 0, 0, // chunk sizes
     // sections

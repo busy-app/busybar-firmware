@@ -75,11 +75,12 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
         Widget* root = gui_layer_get_root_widget(main_layer, display_arg);
         instance->anim_play = anim_play_alloc(root);
 
-        AnimFile* file = anim_play_set_source(instance->anim_play, path_arg);
-        if(file) {
-            anim_file_set_section_indexed(
+        if(anim_play_set_source(instance->anim_play, path_arg)) {
+            AnimFile* file = anim_play_get_file(instance->anim_play);
+            bool success = anim_file_set_section_indexed(
                 file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
-            anim_play_start(instance->anim_play);
+            UNUSED(success);
+            // anim_play_start(instance->anim_play);
         }
     });
 

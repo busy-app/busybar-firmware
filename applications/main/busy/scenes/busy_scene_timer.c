@@ -2,7 +2,7 @@
 #include "../busy_presets.h"
 
 #include <gui/modules/image.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 #include <gui/modules/flex_layout.h>
 
 #include "../widgets/pause_overlay.h"
@@ -225,9 +225,9 @@ static void busy_scene_timer_handle_pause(BusyApp* instance) {
         timer_card_show_header(instance->timer_card, !data->is_paused);
 
         if(data->is_paused) {
-            anim_image_stop(timer_indicator_get_anim_image(data->timer_indicator));
+            anim_play_pause(timer_indicator_get_anim_play(data->timer_indicator));
         } else {
-            anim_image_start(timer_indicator_get_anim_image(data->timer_indicator));
+            anim_play_start(timer_indicator_get_anim_play(data->timer_indicator));
         }
     });
 

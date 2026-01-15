@@ -1,7 +1,7 @@
 #include "../busy_i.h"
 
 #include <gui/modules/menu.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_play.h>
 
 typedef struct {
     Menu* front_menu;
