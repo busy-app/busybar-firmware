@@ -50,7 +50,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
             }
 
         } else if(type == BusyApiMessageTypeRequestExit) {
-            if(instance->run_mode & BusyAppRunModeTimer) {
+            if(instance->run_mode == BusyAppRunModeTimer) {
                 // App was launched by the timer, exit
                 busy_exit(instance);
             } else {
@@ -88,34 +88,15 @@ static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static void busy_detect_run_modes(BusyApp* instance, const char* arg) {
-    if(arg) {
-        if(strstr(arg, BUSY_APP_TIMER_MODE)) {
-            instance->run_mode |= BusyAppRunModeTimer;
-        }
-        if(strstr(arg, BUSY_APP_CUSTOM_MODE)) {
-            instance->run_mode |= BusyAppRunModeCustom;
-        }
+static void busy_process_arguments(BusyApp* instance, const char* arg) {
+    if(arg == NULL) {
+        return;
     }
-}
-
-static void busy_load_settings(BusyApp* instance) {
-    // TODO: Move to global app profile
-    const BusySettingsProfileId settings_profile_id =
-        busy_has_mode(instance, BusyAppRunModeCustom) ? BusySettingsProfileIdCustom :
-                                                        BusySettingsProfileIdBusy;
-
-    BusySettings* settings = &instance->settings;
-
-    if(!busy_settings_load(settings, settings_profile_id)) {
-        FURI_LOG_W(TAG, "Loading default settings");
-        busy_settings_set_default(settings, settings_profile_id);
-        busy_settings_save(settings, settings_profile_id);
+    if(strstr(arg, BUSY_APP_TIMER_MODE)) {
+        instance->run_mode = BusyAppRunModeTimer;
     }
-
-    if(!busy_theme_read(instance->theme, settings->theme_name)) {
-        FURI_LOG_W(TAG, "Setting default theme");
-        busy_theme_set_default(instance->theme);
+    if(strstr(arg, BUSY_APP_CUSTOM_MODE)) {
+        instance->global_preset_id = BusyAppGlobalPresetIdCustom;
     }
 }
 
@@ -134,10 +115,7 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->matter = furi_record_open(RECORD_MATTER);
     instance->theme = busy_theme_alloc();
 
-    busy_detect_run_modes(instance, arg);
-
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    busy_set_matter(instance, false);
+    busy_process_arguments(instance, arg);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -163,12 +141,8 @@ static BusyApp* busy_alloc(const char* arg) {
         widget_set_padding(nav_bar_get_base(instance->nav_bar), 2, 2, 0, 0);
         flex_layout_set_child_widget_grow(
             instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
-
-        if(busy_has_mode(instance, BusyAppRunModeCustom)) {
-            nav_bar_set_header_image(instance->nav_bar, BUSY_IMG_PATH("header_custom_41x16.bin"));
-        } else {
-            nav_bar_set_header_image(instance->nav_bar, BUSY_IMG_PATH("header_busy_41x16.bin"));
-        }
+        nav_bar_set_header_image(
+            instance->nav_bar, busy_get_global_preset(instance)->header_img_path);
 
         instance->timer_card = timer_card_alloc(back_root);
         widget_set_pos_y(timer_card_get_base(instance->timer_card), 2);
@@ -202,11 +176,10 @@ static BusyApp* busy_alloc(const char* arg) {
 
     busy_load_settings(instance);
 
-    if(busy_has_mode(instance, BusyAppRunModeTimer)) {
-        busy_go_to_show_timer_scene(instance);
-    } else {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
-    }
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    busy_set_matter(instance, false);
+
+    busy_go_to_initial_scene(instance);
 
     furi_record_create(RECORD_BUSY_APP, instance);
     return instance;
@@ -313,6 +286,14 @@ void busy_pop_location(BusyApp* instance) {
     with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
 }
 
+void busy_go_to_initial_scene(BusyApp* instance) {
+    if(instance->run_mode == BusyAppRunModeTimer) {
+        busy_go_to_show_timer_scene(instance);
+    } else {
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
+    }
+}
+
 void busy_go_to_show_timer_scene(BusyApp* instance) {
     furi_assert(instance);
 
@@ -331,7 +312,34 @@ void busy_exit(BusyApp* instance) {
     furi_event_loop_stop(instance->event_loop);
 }
 
-bool busy_has_mode(const BusyApp* instance, BusyAppRunMode mode) {
+void busy_load_settings(BusyApp* instance) {
     furi_assert(instance);
-    return instance->run_mode & mode;
+
+    BusySettings* settings = &instance->settings;
+    const BusySettingsProfileId profile_id = busy_get_global_preset(instance)->settings_profile_id;
+
+    if(!busy_settings_load(settings, profile_id)) {
+        FURI_LOG_W(TAG, "Loading default settings");
+        busy_settings_set_default(settings, profile_id);
+        busy_settings_save(settings, profile_id);
+    }
+
+    if(!busy_theme_read(instance->theme, settings->theme_name)) {
+        FURI_LOG_W(TAG, "Setting default theme");
+        busy_theme_set_default(instance->theme);
+    }
+}
+
+void busy_save_settings(BusyApp* instance) {
+    furi_assert(instance);
+
+    BusySettings* settings = &instance->settings;
+    const BusySettingsProfileId profile_id = busy_get_global_preset(instance)->settings_profile_id;
+
+    busy_settings_save(settings, profile_id);
+}
+
+const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance) {
+    furi_assert(instance);
+    return &busy_app_global_presets[instance->global_preset_id];
 }
