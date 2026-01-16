@@ -215,7 +215,7 @@ static void autoupdate_timer_callback(void* context) {
     }
 
     Sntp* sntp = furi_record_open(RECORD_SNTP);
-    time_t timestamp = sntp_get_utc_timestamp(sntp);
+    time_t timestamp = sntp_get_local_timestamp(sntp);
     furi_record_close(RECORD_SNTP);
 
     DateTime datetime;

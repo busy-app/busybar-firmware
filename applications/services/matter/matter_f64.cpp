@@ -229,6 +229,9 @@ void MatterPostAttributeChangeCallback(
     ClusterId cluster = attributePath.mClusterId;
     AttributeId attribute = attributePath.mAttributeId;
 
+    // Matter likes to update attributes before fully initializing
+    if(!matter_global_srv->m_intercom_ch) return;
+
     if(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id) {
         matter_send_state_update(matter_global_srv, static_cast<bool>(*value));
     }
