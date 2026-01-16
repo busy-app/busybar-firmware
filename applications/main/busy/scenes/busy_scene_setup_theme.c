@@ -138,7 +138,11 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
-    busy_settings_save(&instance->settings);
+    // TODO: Move to global app profile
+    const BusySettingsProfileId settings_profile_id =
+        busy_has_mode(instance, BusyAppRunModeCustom) ? BusySettingsProfileIdCustom :
+                                                        BusySettingsProfileIdBusy;
+    busy_settings_save(&instance->settings, settings_profile_id);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);

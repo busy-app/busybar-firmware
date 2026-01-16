@@ -99,17 +99,18 @@ static void busy_detect_run_modes(BusyApp* instance, const char* arg) {
     }
 }
 
-static void busy_set_default_settings(BusySettings* settings) {
-    strcpy(settings->theme_name, "default");
-}
-
 static void busy_load_settings(BusyApp* instance) {
+    // TODO: Move to global app profile
+    const BusySettingsProfileId settings_profile_id =
+        busy_has_mode(instance, BusyAppRunModeCustom) ? BusySettingsProfileIdCustom :
+                                                        BusySettingsProfileIdBusy;
+
     BusySettings* settings = &instance->settings;
 
-    if(!busy_settings_load(settings)) {
+    if(!busy_settings_load(settings, settings_profile_id)) {
         FURI_LOG_W(TAG, "Loading default settings");
-        busy_set_default_settings(settings);
-        busy_settings_save(settings);
+        busy_settings_set_default(settings, settings_profile_id);
+        busy_settings_save(settings, settings_profile_id);
     }
 
     if(!busy_theme_read(instance->theme, settings->theme_name)) {
