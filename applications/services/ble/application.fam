@@ -6,7 +6,7 @@ App(
     stack_size=4 * 1024,
     order=140,
     targets=["f64", "f65"],
-    requires=["intercom"],
+    requires=["intercom", "nvm"],
     sources=[
         "ble.c",
         "ble_system_command.c",
