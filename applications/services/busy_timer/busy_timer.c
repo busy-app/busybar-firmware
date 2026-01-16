@@ -301,7 +301,7 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
     }
 }
 
-static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
+static void busy_timer_update(BusyTimer* instance, time_t timestamp_ms) {
     do {
         // Got snapshot from a peer with a clock that is ahead of ours
         if(timestamp_ms < instance->prev_tick_timestamp_ms) {
@@ -398,7 +398,7 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
 }
 
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
-    const uint64_t snapshot_timestamp_ms = snapshot->timestamp_ms;
+    const time_t snapshot_timestamp_ms = snapshot->timestamp_ms;
 
     if(snapshot_timestamp_ms <= instance->user_snapshot.timestamp_ms) {
         // Ignore snapshots that are older than the last known one
