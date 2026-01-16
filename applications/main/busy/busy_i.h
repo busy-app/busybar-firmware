@@ -31,8 +31,8 @@
 
 typedef enum {
     BusyAppRunModeNormal,
-    BusyAppRunModeTimer,
-    BusyAppRunModeMax,
+    BusyAppRunModeTimer = 1UL << 0,
+    BusyAppRunModeCustom = 1UL << 1,
 } BusyAppRunMode;
 
 typedef enum {
@@ -143,3 +143,5 @@ void busy_go_to_show_timer_scene(BusyApp* instance);
 bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);
+
+bool busy_has_mode(const BusyApp* instance, BusyAppRunMode mode);
