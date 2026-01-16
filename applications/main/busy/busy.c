@@ -175,11 +175,10 @@ static BusyApp* busy_alloc(const char* arg) {
         instance);
 
     busy_load_settings(instance);
+    busy_go_to_initial_scene(instance);
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
-
-    busy_go_to_initial_scene(instance);
 
     furi_record_create(RECORD_BUSY_APP, instance);
     return instance;
