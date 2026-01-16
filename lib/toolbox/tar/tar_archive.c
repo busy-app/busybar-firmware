@@ -153,11 +153,11 @@ static bool try_tar_magic(File *f) {
     }
 }
 /**
- * Detect archieve type by magic number.
+ * Detect archive type by magic number.
  * 
  * @return true if detection succeeded, false on any error.
  */ 
-static bool detect_archieve_mode(Storage* storage, const char* path, TarOpenMode *out_mode) {
+static bool detect_archive_mode(Storage* storage, const char* path, TarOpenMode *out_mode) {
     File *f = storage_file_alloc(storage);
     bool result = false;
     do {
@@ -219,7 +219,7 @@ bool tar_archive_open(TarArchive* archive, const char* path, TarOpenMode mode) {
         open_mode = FSOM_OPEN_EXISTING;
         break;
     case TarOpenModeReadAuto:
-        if(!detect_archieve_mode(archive->storage, path, &mode)) {
+        if(!detect_archive_mode(archive->storage, path, &mode)) {
             return false;
         }
         mtar_access = MTAR_READ;
