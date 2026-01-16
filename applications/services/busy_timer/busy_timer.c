@@ -693,6 +693,14 @@ static void
     busy_timer_apply_snapshot(instance, data->snapshot_c);
 }
 
+static void
+    busy_timer_set_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    if(instance->profile_id != data->profile_id) {
+        instance->profile_id = data->profile_id;
+        busy_timer_load_settings(instance);
+    }
+}
+
 // Service
 
 static BusyTimer* busy_timer_alloc(void) {
@@ -749,4 +757,5 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
     [BusyTimerMessageTypeGetSnapshot] = busy_timer_get_snapshot_message_handler,
     [BusyTimerMessageTypeSetSnapshot] = busy_timer_set_snapshot_message_handler,
+    [BusyTimerMessageTypeSetProfile] = busy_timer_set_profile_message_handler,
 };

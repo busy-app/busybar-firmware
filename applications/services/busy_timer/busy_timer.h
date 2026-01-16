@@ -109,6 +109,8 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot);
 
 void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot);
 
+void busy_timer_set_profile(BusyTimer* instance, BusyTimerProfileId profile_id);
+
 const char** busy_timer_get_mode_names(void);
 
 #ifdef __cplusplus

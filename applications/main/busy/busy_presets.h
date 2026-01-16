@@ -1,5 +1,6 @@
 #pragma once
 
+#include <busy_timer/busy_timer.h>
 #include <status_lights/status_lights.h>
 
 #include <toolbox/color.h>
@@ -63,6 +64,7 @@ typedef enum {
 typedef struct {
     const char* const header_img_path;
     const char* const start_anim_path;
+    BusyTimerProfileId timer_profile_id;
     BusySettingsProfileId settings_profile_id;
 } BusyAppGlobalPreset;
 
