@@ -57,6 +57,7 @@ const struct mtar_ops filesystem_ops = {
 typedef struct {
     File* stream;
     CompressStreamDecoder* decoder;
+    size_t header_skip; ///< header bytes to skip at the beginning of the file
 } CompressStream;
 
 /* HSDS 'heatshrink data stream' header magic */
@@ -94,8 +95,8 @@ static int mtar_compress_file_seek(void* stream, unsigned offset) {
     CompressStream* hs_stream = stream;
     bool success = false;
     if(offset == 0) {
-        success = storage_file_seek(hs_stream->stream, sizeof(HeatshrinkStreamHeader), true) &&
-                  compress_stream_decoder_rewind(hs_stream->decoder);
+        success = storage_file_seek(hs_stream->stream, hs_stream->header_skip, true) &&
+                  compress_stream_decoder_reset(hs_stream->decoder);
     } else {
         success = compress_stream_decoder_seek(hs_stream->decoder, offset);
     }
@@ -170,7 +171,7 @@ static bool detect_archieve_mode(Storage* storage, const char* path, TarOpenMode
             result = true;
         } else if (try_gzip_magic(f)) {
             FURI_LOG_D(TAG, "Gzip detected");
-            *out_mode = TarOpenModeReadHeatshrink;
+            *out_mode = TarOpenModeReadGzip;
             result = true;
         } else if (try_tar_magic(f)) {
             FURI_LOG_D(TAG, "Tarball detected");
@@ -248,6 +249,7 @@ bool tar_archive_open(TarArchive* archive, const char* path, TarOpenMode mode) {
 
         CompressStream* hs_stream = malloc(sizeof(CompressStream));
         hs_stream->stream = stream;
+        hs_stream->header_skip = sizeof(HeatshrinkStreamHeader);
         CompressConfigHeatshrink heatshrink_config;
         heatshrink_config.window_sz2 = header.window_sz2;
         heatshrink_config.lookahead_sz2 = header.lookahead_sz2;
@@ -260,6 +262,7 @@ bool tar_archive_open(TarArchive* archive, const char* path, TarOpenMode mode) {
     case TarOpenModeReadGzip: {
         CompressStream* gz_stream = malloc(sizeof(CompressStream));
         gz_stream->stream = stream;
+        gz_stream->header_skip = 0;
         gz_stream->decoder = compress_stream_decoder_alloc(CompressTypeGzip, NULL, file_read_cb, stream);
         mtar_init(&archive->tar, mtar_access, &compress_ops, gz_stream);
         break;

@@ -412,14 +412,14 @@ typedef void (*CompressStreamDecoderFreeFn)(CompressStreamDecoder* instance);
 typedef bool (*CompressStreamDecoderReadFn)(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size);
 typedef bool (*CompressStreamDecoderSeekFn)(CompressStreamDecoder* instance, size_t position);
 typedef size_t (*CompressStreamDecoderTellFn)(CompressStreamDecoder* instance);
-typedef bool (*CompressStreamDecoderRewindFn)(CompressStreamDecoder* instance);
+typedef bool (*CompressStreamDecoderResetFn)(CompressStreamDecoder* instance);
 
 typedef struct CompressStreamDecoderOps {
     CompressStreamDecoderFreeFn free;
     CompressStreamDecoderReadFn read;
     CompressStreamDecoderSeekFn seek;
     CompressStreamDecoderTellFn tell;
-    CompressStreamDecoderRewindFn rewind;
+    CompressStreamDecoderResetFn reset;
 } CompressStreamDecoderOps;
 
 static CompressStreamDecoder* hs_alloc(const CompressConfigHeatshrink* config, CompressIoCallback read_cb, void* read_context);
@@ -427,14 +427,14 @@ static void hs_free(CompressStreamDecoder* instance);
 static bool hs_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size);
 static bool hs_seek(CompressStreamDecoder* instance, size_t position);
 static size_t hs_tell(CompressStreamDecoder* instance);
-static bool hs_rewind(CompressStreamDecoder* instance);
+static bool hs_reset(CompressStreamDecoder* instance);
 
 static CompressStreamDecoder* gz_alloc(CompressIoCallback read_cb, void* read_context);
 static void gz_free(CompressStreamDecoder* instance);
 static bool gz_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size);
 static bool gz_seek(CompressStreamDecoder* instance, size_t position);
 static size_t gz_tell(CompressStreamDecoder* instance);
-static bool gz_rewind(CompressStreamDecoder* instance);
+static bool gz_reset(CompressStreamDecoder* instance);
 
 
 static CompressStreamDecoderOps compress_ops[CompressTypeMax] = {
@@ -443,23 +443,29 @@ static CompressStreamDecoderOps compress_ops[CompressTypeMax] = {
         .read = hs_read,
         .seek = hs_seek,
         .tell = hs_tell,
-        .rewind = hs_rewind,
+        .reset = hs_reset,
     },
     [CompressTypeGzip] = {
         .free = gz_free,
         .read = gz_read,
         .seek = gz_seek,
         .tell = gz_tell,
-        .rewind = gz_rewind,
+        .reset = gz_reset,
     },
 };
 
 struct CompressStreamDecoder {
     CompressStreamDecoderOps *ops;
     union {
-        heatshrink_decoder* decoder;
+        struct {
+            heatshrink_decoder* decoder;
+            size_t stream_position;
+        };
+        struct {
+            z_stream zs;
+            bool is_eof;
+        };
     };
-    size_t stream_position;
     size_t decode_buffer_size;
     size_t decode_buffer_position;
     uint8_t* decode_buffer;
@@ -512,10 +518,10 @@ size_t compress_stream_decoder_tell(CompressStreamDecoder* instance) {
     return instance->ops->tell(instance);
 }
 
-bool compress_stream_decoder_rewind(CompressStreamDecoder* instance) {
+bool compress_stream_decoder_reset(CompressStreamDecoder* instance) {
     furi_check(instance);
 
-    return instance->ops->rewind(instance);
+    return instance->ops->reset(instance);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -656,7 +662,7 @@ static size_t hs_tell(CompressStreamDecoder* instance) {
     return instance->stream_position;
 }
 
-static bool hs_rewind(CompressStreamDecoder* instance) {
+static bool hs_reset(CompressStreamDecoder* instance) {
     /* Reset decoder and read buffer */
     heatshrink_decoder_reset(instance->decoder);
     instance->stream_position = 0;
@@ -668,36 +674,136 @@ static bool hs_rewind(CompressStreamDecoder* instance) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gzip
 
+#define GZ_DECODE_BUF_SIZE 8192
+
 static CompressStreamDecoder* gz_alloc(CompressIoCallback read_cb, void* read_context) {
-    UNUSED(read_cb);
-    UNUSED(read_context);
-    furi_crash("Unimplemented");
+    furi_check(read_cb);
+
+    CompressStreamDecoder *s = calloc(1, sizeof(CompressStreamDecoder));
+    if(!s) {
+        return NULL;
+    }
+
+    s->ops = &compress_ops[CompressTypeGzip];
+    s->read_cb = read_cb;
+    s->read_context = read_context;
+    s->is_eof = false;
+    s->decode_buffer_size = GZ_DECODE_BUF_SIZE;
+    s->decode_buffer_position = 0;
+
+    do {
+        s->decode_buffer = malloc(GZ_DECODE_BUF_SIZE);
+        if(!s->decode_buffer) {
+            break;
+        }
+
+        do {
+            memset(&s->zs, 0, sizeof(z_stream));
+            int r = inflateInit2(&s->zs, 16 + MAX_WBITS); // magic parameter to allow gzip decoding
+            if(r != Z_OK) {
+                FURI_LOG_E(TAG, "inflateInit2 returned %d", r);
+                break;
+            }
+            return s;
+        } while(false);
+        free(s->decode_buffer);
+    } while(false);
+    free(s);
+    return NULL;
 }
 
 static void gz_free(CompressStreamDecoder* instance) {
-    UNUSED(instance);
-    furi_crash("Unimplemented");
+    furi_check(instance);
+
+    inflateEnd(&instance->zs);
+    free(instance);
 }
 
 static bool gz_read(CompressStreamDecoder* instance, uint8_t* data_out, size_t data_out_size) {
-    UNUSED(instance);
-    UNUSED(data_out);
-    UNUSED(data_out_size);
-    furi_crash("Unimplemented");
+    furi_check(instance);
+    furi_check(data_out);
+
+    z_stream *zs = &instance->zs;
+
+    zs->next_out = data_out;
+    zs->avail_out = data_out_size;
+
+    while(zs->avail_out > 0) {
+        if(zs->avail_in == 0 && !instance->is_eof) {
+            // need more data
+            int32_t r = instance->read_cb(instance->read_context, instance->decode_buffer, instance->decode_buffer_size);
+
+            if(r < 0) {
+                return false;
+            } else if(r == 0) {
+                instance->is_eof = true;
+            } else {
+                zs->next_in = instance->decode_buffer;
+                zs->avail_in = (uInt)r;
+            }
+        }
+
+        int r = inflate(zs, Z_NO_FLUSH);
+
+        if(r == Z_STREAM_END) {
+            // done
+            break;
+        } else if(r != Z_OK) {
+            FURI_LOG_E(TAG, "gz_read: inflate returned %d (%s)", r, zs->msg);
+            return false;
+        } else if(instance->is_eof && zs->avail_in == 0) {
+            // also done
+            break;
+        } else {
+            // might need more input, continue
+        }
+    }
+
+    size_t produced = data_out_size - zs->avail_out;
+
+    return produced > 0;
 }
 
 static bool gz_seek(CompressStreamDecoder* instance, size_t position) {
-    UNUSED(instance);
-    UNUSED(position);
-    furi_crash("Unimplemented");
+    /* Check if requested position is ahead of current position 
+       we can't rewind the input stream */
+    furi_check(position >= instance->zs.total_out);
+
+    // Read and discard data up to position
+    const size_t buf_size = 1024;
+    uint8_t *buf = malloc(buf_size);
+    furi_check(buf);
+    bool result = true;
+    while(position > instance->zs.total_out) {
+        size_t to_read = MIN(position - instance->zs.total_out, buf_size);
+        if(!gz_read(instance, buf, to_read)) {
+            FURI_LOG_E(TAG, "gz_read error");
+            result = false;
+            break;
+        }
+    }
+    free(buf);
+    return result;
 }
 
 static size_t gz_tell(CompressStreamDecoder* instance) {
-    UNUSED(instance);
-    furi_crash("Unimplemented");
+    furi_check(instance);
+
+    return instance->zs.total_out;
 }
 
-static bool gz_rewind(CompressStreamDecoder* instance) {
-    UNUSED(instance);
-    furi_crash("Unimplemented");
+static bool gz_reset(CompressStreamDecoder* instance) {
+    furi_check(instance);
+
+    instance->is_eof = false;
+
+    z_stream *zs = &instance->zs;
+    inflateEnd(zs);
+    memset(zs, 0, sizeof(z_stream));
+    int r = inflateInit2(zs, 16 + MAX_WBITS);
+
+    if(r != Z_OK) {
+        FURI_LOG_E(TAG, "inflateInit2 returned %d", r);
+    }
+    return r == Z_OK;
 }

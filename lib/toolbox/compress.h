@@ -182,7 +182,7 @@ void compress_stream_decoder_free(CompressStreamDecoder* instance);
  * @param      data_out       The data out
  * @param[in]  data_out_size  The data out size
  *
- * @return     true on success
+ * @return     true on success, false on EOF or error.
  */
 bool compress_stream_decoder_read(
     CompressStreamDecoder* instance,
@@ -214,7 +214,7 @@ size_t compress_stream_decoder_tell(CompressStreamDecoder* instance);
  *
  * @return     true on success
  */
-bool compress_stream_decoder_rewind(CompressStreamDecoder* instance);
+bool compress_stream_decoder_reset(CompressStreamDecoder* instance);
 
 #ifdef __cplusplus
 }
