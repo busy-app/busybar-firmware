@@ -48,8 +48,7 @@ static void busy_scene_start_on_enter(void* context) {
 
         data->front_logo = anim_image_alloc(flex_layout_get_base(data->front_layout));
 
-        anim_image_set_source(
-            data->front_logo, busy_get_global_preset(instance)->start_anim_path);
+        anim_image_set_source(data->front_logo, busy_get_global_preset(instance)->start_anim_path);
 
         anim_image_set_loop(data->front_logo, false);
 
