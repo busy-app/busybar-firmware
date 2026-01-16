@@ -88,6 +88,25 @@ static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
+static void busy_set_default_settings(BusySettings* settings) {
+    strcpy(settings->theme_name, "default");
+}
+
+static void busy_load_settings(BusyApp* instance) {
+    BusySettings* settings = &instance->settings;
+
+    if(!busy_settings_load(settings)) {
+        FURI_LOG_W(TAG, "Loading default settings");
+        busy_set_default_settings(settings);
+        busy_settings_save(settings);
+    }
+
+    if(!busy_theme_read(instance->theme, settings->theme_name)) {
+        FURI_LOG_W(TAG, "Setting default theme");
+        busy_theme_set_default(instance->theme);
+    }
+}
+
 static BusyApp* busy_alloc(const char* arg) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
@@ -101,6 +120,7 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->matter = furi_record_open(RECORD_MATTER);
+    instance->theme = busy_theme_alloc();
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
@@ -131,11 +151,12 @@ static BusyApp* busy_alloc(const char* arg) {
         flex_layout_set_child_widget_grow(
             instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
 
+        instance->timer_card = timer_card_alloc(back_root);
+        widget_set_pos_y(timer_card_get_base(instance->timer_card), 2);
+
         // Create application window on Back display
         instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
-
-        instance->timer_card = timer_card_alloc(flex_layout_get_base(instance->back_container));
     });
 
     furi_event_loop_subscribe_message_queue(
@@ -158,6 +179,8 @@ static BusyApp* busy_alloc(const char* arg) {
         FuriEventLoopEventIn,
         busy_api_queue_callback,
         instance);
+
+    busy_load_settings(instance);
 
     if(arg && strcmp(arg, BUSY_APP_TIMER_MODE) == 0) {
         instance->run_mode = BusyAppRunModeTimer;
@@ -194,6 +217,7 @@ static void busy_free(BusyApp* instance) {
         transition_overlay_free(instance->transition_overlay);
 
         widget_free(instance->front_window);
+        timer_card_free(instance->timer_card);
         flex_layout_free(instance->back_container);
     });
 
@@ -210,6 +234,7 @@ static void busy_free(BusyApp* instance) {
     furi_message_queue_free(instance->event_queue);
     furi_message_queue_free(instance->api_queue);
     furi_event_loop_free(instance->event_loop);
+    busy_theme_free(instance->theme);
 
     free(instance);
 }

@@ -155,12 +155,6 @@ size_t furi_hal_version_uid_size(void);
  */
 const uint8_t* furi_hal_version_uid(void);
 
-/** Get device serial number (UID) as a string
-  *
-  * @param[in]  uid     a string to store the value
-  */
-void furi_hal_version_get_uid_str(FuriString* uid);
-
 // ============================================================================
 // OTP Validity Status
 // ============================================================================

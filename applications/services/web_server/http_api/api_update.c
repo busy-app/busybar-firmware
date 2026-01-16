@@ -421,23 +421,35 @@ static bool api_update_changelog_callback(
         FURI_LOG_I(TAG, "Received update changelog request for version: %s", version);
 
         Updater* updater = furi_record_open(RECORD_UPDATER);
-        FuriState* update_check_state = updater_get_check_state(updater);
-        const UpdaterCheckState* check_state = furi_state_acquire(update_check_state);
 
+        UpdaterCheckState check_state;
+        furi_state_get(updater_get_check_state(updater), &check_state);
+
+        FuriString* check_changelog = furi_string_alloc();
+        FuriString* check_version = furi_string_alloc();
         do {
-            if(check_state->result != UpdaterCheckResultAvailable) {
+            if(check_state.result != UpdaterCheckResultAvailable) {
                 error_text = "Update not available";
                 break;
             }
 
-            if(furi_string_cmp_str(check_state->version, version) != 0) {
+            updater_get_check_info(
+                updater,
+                &(UpdateCheckInfo){
+                    .version = check_version,
+                    .url = NULL,
+                    .id = NULL,
+                    .sha256 = NULL,
+                    .changelog = check_changelog,
+                });
+
+            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
                 error_text = "Version mismatch";
                 break;
             }
 
             cJSON* response = cJSON_CreateObject();
-            cJSON_AddStringToObject(
-                response, "changelog", furi_string_get_cstr(check_state->changelog));
+            cJSON_AddStringToObject(response, "changelog", furi_string_get_cstr(check_changelog));
             char* json_str = cJSON_Print(response);
             MG_REPLY_OK_BODY(conn, "%s\n", json_str);
             cJSON_free(json_str);
@@ -446,7 +458,8 @@ static bool api_update_changelog_callback(
             is_error = false;
         } while(false);
 
-        furi_state_release(update_check_state);
+        furi_string_free(check_version);
+        furi_string_free(check_changelog);
         furi_record_close(RECORD_UPDATER);
     } while(false);
 
@@ -482,25 +495,38 @@ static bool api_update_install_callback(
 
         Updater* updater = furi_record_open(RECORD_UPDATER);
         FuriState* update_check_state = updater_get_check_state(updater);
-        const UpdaterCheckState* check_state = furi_state_acquire(update_check_state);
+        UpdaterCheckState check_state;
+        furi_state_get(update_check_state, &check_state);
 
+        FuriString* check_version = furi_string_alloc();
+        FuriString* check_url = furi_string_alloc();
+        FuriString* check_sha256 = furi_string_alloc();
         do {
-            if(check_state->result != UpdaterCheckResultAvailable) {
+            if(check_state.result != UpdaterCheckResultAvailable) {
                 error_code = 400;
                 error_text = "Update not available";
                 break;
             }
 
-            if(furi_string_cmp_str(check_state->version, version) != 0) {
+            updater_get_check_info(
+                updater,
+                &(UpdateCheckInfo){
+                    .version = check_version,
+                    .url = check_url,
+                    .id = NULL,
+                    .sha256 = check_sha256,
+                    .changelog = NULL,
+                });
+
+            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
                 error_code = 400;
                 error_text = "Version mismatch";
                 break;
             }
 
             UpdaterStatus update_status = updater_install_from_url(
-                updater,
-                furi_string_get_cstr(check_state->url),
-                furi_string_get_cstr(check_state->sha256));
+                updater, furi_string_get_cstr(check_url), furi_string_get_cstr(check_sha256));
+
             if(update_status != UpdaterStatusOk) {
                 switch(update_status) {
                 case UpdaterStatusBatteryLow:
@@ -523,7 +549,9 @@ static bool api_update_install_callback(
             is_success = true;
         } while(false);
 
-        furi_state_release(update_check_state);
+        furi_string_free(check_version);
+        furi_string_free(check_url);
+        furi_string_free(check_sha256);
         furi_record_close(RECORD_UPDATER);
     } while(false);
 
@@ -553,70 +581,86 @@ static bool api_update_status_callback(
     UpdaterStatus allowance_status = updater_get_allowance_status(updater);
     bool is_allowed = (allowance_status == UpdaterStatusOk);
 
-    FuriState* update_state_obj = updater_get_update_state(updater);
-    const UpdaterUpdateState* update_state = furi_state_acquire(update_state_obj);
+    UpdaterUpdateState update_state;
+    furi_state_get(updater_get_update_state(updater), &update_state);
 
-    FuriState* check_state_obj = updater_get_check_state(updater);
-    const UpdaterCheckState* check_state = furi_state_acquire(check_state_obj);
+    UpdaterCheckState check_state;
+    furi_state_get(updater_get_check_state(updater), &check_state);
+
+    FuriString* check_version = furi_string_alloc();
+    updater_get_check_info(
+        updater,
+        &(UpdateCheckInfo){
+            .version = check_version,
+            .url = NULL,
+            .id = NULL,
+            .sha256 = NULL,
+            .changelog = NULL,
+        });
 
     cJSON* response = cJSON_CreateObject();
 
     cJSON* install = cJSON_AddObjectToObject(response, UPDATE_JSON_KEY_INSTALL);
     cJSON_AddBoolToObject(install, UPDATE_JSON_KEY_IS_ALLOWED, is_allowed);
 
-    const char* event_str = (update_state->event < COUNT_OF(update_event_strings)) ?
-                                update_event_strings[update_state->event] :
-                                "unknown";
-    cJSON_AddStringToObject(install, UPDATE_JSON_KEY_EVENT, event_str);
+    cJSON_AddStringToObject(
+        install,
+        UPDATE_JSON_KEY_EVENT,
+        (update_state.event < COUNT_OF(update_event_strings)) ?
+            update_event_strings[update_state.event] :
+            "unknown");
 
-    const char* action_str = (update_state->action < COUNT_OF(update_action_strings)) ?
-                                 update_action_strings[update_state->action] :
-                                 "unknown";
-    cJSON_AddStringToObject(install, UPDATE_JSON_KEY_ACTION, action_str);
+    cJSON_AddStringToObject(
+        install,
+        UPDATE_JSON_KEY_ACTION,
+        (update_state.action < COUNT_OF(update_action_strings)) ?
+            update_action_strings[update_state.action] :
+            "unknown");
 
-    const char* status_str = (update_state->status < COUNT_OF(update_status_strings)) ?
-                                 update_status_strings[update_state->status] :
-                                 "unknown";
-    cJSON_AddStringToObject(install, UPDATE_JSON_KEY_STATUS, status_str);
+    cJSON_AddStringToObject(
+        install,
+        UPDATE_JSON_KEY_STATUS,
+        (update_state.status < COUNT_OF(update_status_strings)) ?
+            update_status_strings[update_state.status] :
+            "unknown");
 
-    const char* detail_str = update_state->detail ? furi_string_get_cstr(update_state->detail) :
-                                                    "";
-    cJSON_AddStringToObject(install, UPDATE_JSON_KEY_DETAIL, detail_str);
+    cJSON_AddStringToObject(install, UPDATE_JSON_KEY_DETAIL, update_state.detail);
 
     cJSON* download = cJSON_AddObjectToObject(install, UPDATE_JSON_KEY_DOWNLOAD);
     cJSON_AddNumberToObject(
-        download, UPDATE_JSON_KEY_SPEED_BPS, update_state->as_download.speed_bytes_per_sec);
+        download, UPDATE_JSON_KEY_SPEED_BPS, update_state.as_download.speed_bytes_per_sec);
     cJSON_AddNumberToObject(
-        download, UPDATE_JSON_KEY_RECEIVED_BYTES, update_state->as_download.received_size);
+        download, UPDATE_JSON_KEY_RECEIVED_BYTES, update_state.as_download.received_size);
     cJSON_AddNumberToObject(
-        download, UPDATE_JSON_KEY_TOTAL_BYTES, update_state->as_download.total_size);
+        download, UPDATE_JSON_KEY_TOTAL_BYTES, update_state.as_download.total_size);
 
     cJSON* check = cJSON_AddObjectToObject(response, UPDATE_JSON_KEY_CHECK);
 
-    const char* version_str =
-        (check_state->result == UpdaterCheckResultAvailable && check_state->version) ?
-            furi_string_get_cstr(check_state->version) :
-            "";
-    cJSON_AddStringToObject(check, UPDATE_JSON_KEY_AVAILABLE_VERSION, version_str);
+    cJSON_AddStringToObject(
+        check, UPDATE_JSON_KEY_AVAILABLE_VERSION, furi_string_get_cstr(check_version));
 
-    const char* check_event_str = (check_state->event < COUNT_OF(check_event_strings)) ?
-                                      check_event_strings[check_state->event] :
-                                      "unknown";
-    cJSON_AddStringToObject(check, UPDATE_JSON_KEY_EVENT, check_event_str);
+    cJSON_AddStringToObject(
+        check,
+        UPDATE_JSON_KEY_EVENT,
+        (check_state.event < COUNT_OF(check_event_strings)) ?
+            check_event_strings[check_state.event] :
+            "unknown");
 
-    const char* check_result_str = (check_state->result < COUNT_OF(check_result_strings)) ?
-                                       check_result_strings[check_state->result] :
-                                       "unknown";
-    cJSON_AddStringToObject(check, UPDATE_JSON_KEY_STATUS, check_result_str);
+    cJSON_AddStringToObject(
+        check,
+        UPDATE_JSON_KEY_STATUS,
+        (check_state.result < COUNT_OF(check_result_strings)) ?
+            check_result_strings[check_state.result] :
+            "unknown");
 
-    furi_state_release(check_state_obj);
-    furi_state_release(update_state_obj);
     furi_record_close(RECORD_UPDATER);
 
     char* json_str = cJSON_Print(response);
     MG_REPLY_OK_BODY(conn, "%s\n", json_str);
     cJSON_free(json_str);
     cJSON_Delete(response);
+
+    furi_string_free(check_version);
 
     return true;
 }

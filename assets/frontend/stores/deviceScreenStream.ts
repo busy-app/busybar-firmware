@@ -2,8 +2,10 @@ import { defineStore } from 'pinia';
 import { ScreenStream, DeviceScreen } from '@busy-app/busy-lib';
 
 export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () => {
-  const barUrl = useRuntimeConfig().public.barUrl || location.origin;
+  // fixme: waiting for busylib to fix this
+  const barUrl = useRuntimeConfig().public.barUrl || window.location.origin;
   const apiKey = useApiStore().apiKey;
+  const deviceStore = useDeviceStore();
 
   const currentScreen = ref<DeviceScreen>(DeviceScreen.FRONT);
 
@@ -33,6 +35,7 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
 
     screenStream.value.onStop(() => {
       isConnected.value = false;
+      deviceStore.checkConnection();
       stopCallback();
     });
 
@@ -41,6 +44,7 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
     }) => {
       console.error('WebSocket error', raw);
       isConnected.value = false;
+      deviceStore.checkConnection();
       stopCallback();
     });
 
@@ -53,8 +57,6 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
     return new Promise(resolve => {
       if (screenStream.value) {
         screenStream.value.onStop(() => {
-          console.log('WebSocket disconnect');
-
           resolve();
         });
         screenStream.value.closeWebsocket();

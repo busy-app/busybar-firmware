@@ -418,10 +418,11 @@ static void setting_reset_furi_string(
 
     FURI_LOG_D(TAG, "Loading default for \"%s\": \"%s\"", setting->name, interface->default_value);
 
+    FuriString* _value = *(FuriString**)value;
     json_write_string(json_node, setting->name, interface->default_value);
     provider->is_write_pending = true;
 
-    if(value) furi_string_set(value, interface->default_value);
+    if(_value) furi_string_set(_value, interface->default_value);
 }
 
 static void setting_load_furi_string(
@@ -432,11 +433,12 @@ static void setting_load_furi_string(
     const SettingProviderFuriStringInterface* interface = setting->interface;
 
     do {
-        if(!json_read_string(json_node, setting->name, value)) {
+        FuriString* _value = *(FuriString**)value;
+        if(!json_read_string(json_node, setting->name, _value)) {
             FURI_LOG_W(TAG, "Failed to load \"%s\" as string...", setting->name);
-        } else if(interface->is_valid_callback && !interface->is_valid_callback(setting, value)) {
+        } else if(interface->is_valid_callback && !interface->is_valid_callback(setting, _value)) {
             FURI_LOG_W(
-                TAG, "Invalid \"%s\" value: %s...", setting->name, furi_string_get_cstr(value));
+                TAG, "Invalid \"%s\" value: %s...", setting->name, furi_string_get_cstr(_value));
         } else {
             break;
         }
@@ -452,7 +454,7 @@ static bool setting_save_furi_string(
     const void* value) {
     const SettingProviderFuriStringInterface* interface = setting->interface;
 
-    const FuriString* _value = value;
+    const FuriString* _value = *(FuriString**)value;
     bool is_valid = !interface->is_valid_callback || interface->is_valid_callback(setting, _value);
 
     if(is_valid) {

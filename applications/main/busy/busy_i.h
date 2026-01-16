@@ -12,6 +12,8 @@
 #include <busy_timer/busy_timer.h>
 
 #include "busy.h"
+#include "busy_theme.h"
+#include "busy_settings.h"
 
 #include "storage_macros.h"
 
@@ -34,7 +36,8 @@ typedef enum {
 } BusyAppRunMode;
 
 typedef enum {
-    BusyCustomEventTimerTick = 100,
+    BusyCustomEventIndexMax = 0x80,
+    BusyCustomEventTimerTick,
     BusyCustomEventTimerModeChanged,
     BusyCustomEventTimerStateChanged,
     BusyCustomEventTimerIntervalEnded,
@@ -45,6 +48,7 @@ typedef enum {
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
+    BusyCustomEventOkShortPressed,
     BusyCustomEventReturnToStart,
     BusyCustomEventAnimationCompleted,
     BusyCustomEventMax,
@@ -114,6 +118,8 @@ struct BusyApp {
     TimerCard* timer_card;
     NavBar* nav_bar;
     // Misc state
+    BusyTheme* theme;
+    BusySettings settings;
     BusyAppRunMode run_mode;
     bool show_timer_requested;
 };

@@ -575,7 +575,7 @@ MU_TEST(setting_provider_test_furi_string) {
             .type = SettingProviderSettingTypeFuriString,
         };
         FuriString* value = furi_string_alloc();
-        setting_provider_load(provider, &setting, value);
+        setting_provider_load(provider, &setting, &value);
         mu_assert_string_eq("default_string", furi_string_get_cstr(value));
         furi_string_free(value);
     }
@@ -593,10 +593,10 @@ MU_TEST(setting_provider_test_furi_string) {
             .type = SettingProviderSettingTypeFuriString,
         };
         FuriString* value = furi_string_alloc_set("test_value");
-        mu_assert(setting_provider_save(provider, &setting, value), "Failed to save FuriString");
+        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save FuriString");
 
         furi_string_reset(value);
-        setting_provider_load(provider, &setting, value);
+        setting_provider_load(provider, &setting, &value);
         mu_assert_string_eq("test_value", furi_string_get_cstr(value));
         furi_string_free(value);
     }
@@ -621,11 +621,11 @@ MU_TEST(setting_provider_test_furi_string_validation) {
     {
         FuriString* value = furi_string_alloc_set("valid");
         mu_assert(
-            setting_provider_save(provider, &setting, value), "Failed to save valid FuriString");
+            setting_provider_save(provider, &setting, &value), "Failed to save valid FuriString");
         furi_string_free(value);
 
         value = furi_string_alloc();
-        setting_provider_load(provider, &setting, value);
+        setting_provider_load(provider, &setting, &value);
         mu_assert_string_eq("valid", furi_string_get_cstr(value));
         furi_string_free(value);
     }
@@ -633,12 +633,12 @@ MU_TEST(setting_provider_test_furi_string_validation) {
     {
         FuriString* invalid_value = furi_string_alloc_set("this_string_is_way_too_long");
         mu_assert(
-            !setting_provider_save(provider, &setting, invalid_value),
+            !setting_provider_save(provider, &setting, &invalid_value),
             "Should reject invalid FuriString");
         furi_string_free(invalid_value);
 
         FuriString* value = furi_string_alloc();
-        setting_provider_load(provider, &setting, value);
+        setting_provider_load(provider, &setting, &value);
         mu_assert_string_eq("valid", furi_string_get_cstr(value));
         furi_string_free(value);
     }

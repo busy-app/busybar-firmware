@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../wifi_common.h"
 
 #include <toolbox/setting_provider.h>
