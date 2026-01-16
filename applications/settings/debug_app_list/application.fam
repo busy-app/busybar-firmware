@@ -1,0 +1,10 @@
+App(
+    appid="debug_app_list",
+    name="Debug app list",
+    apptype=FlipperAppType.SETTINGS,
+    entry_point="debug_app_list_entry",
+    requires=["gui", "front_display", "back_display"],
+    stack_size=4 * 1024,
+    order=3,
+    targets=["f20", "f21", "f22"],
+)

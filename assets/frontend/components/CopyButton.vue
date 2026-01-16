@@ -22,20 +22,18 @@ const props = defineProps<{
   text: string;
 }>();
 
-const toast = useToast();
-
 const copyState = ref<'idle' | 'copying' | 'copied' | 'error'>('idle');
 
 const currentIcon = computed(() => {
   switch (copyState.value) {
     case 'idle':
-      return 'i-ri-file-copy-line';
+      return 'i-bi-copy';
     case 'copied':
-      return 'i-ri-check-line';
+      return 'i-bi-checkmark';
     case 'error':
-      return 'i-ri-alert-line';
+      return 'i-bi-alert';
     default:
-      return 'i-ri-file-copy-line';
+      return 'i-bi-copy';
   }
 });
 
@@ -81,7 +79,7 @@ async function copyToClipboard () {
       id: 'copy-error',
       title: 'Failed to copy to clipboard',
       description: 'Check console for more details',
-      icon: 'i-ri-alert-line',
+      icon: 'i-bi-alert',
       color: 'error',
       duration: 5000
     });

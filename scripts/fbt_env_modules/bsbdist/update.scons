@@ -9,7 +9,7 @@ update_tar = dist_env.Command(
     None,
     [
         [
-            "$PYTHON",
+            "${PYTHON3}",
             dist_env.Real("#scripts/update_bundle.py"),
             "--target",
             u5_env.subst("$TARGET_HW"),
@@ -59,7 +59,7 @@ min_update_tar = dist_env.Command(
     None,
     [
         [
-            "$PYTHON",
+            "${PYTHON3}",
             dist_env.Real("#scripts/update_bundle.py"),
             "--target",
             u5_env.subst("$TARGET_HW"),

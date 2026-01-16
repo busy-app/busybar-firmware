@@ -3,7 +3,7 @@
 #include "wifi.h"
 
 #include "wifi_common_i.h"
-#include "wifi_settings.h"
+#include "settings/settings.h"
 
 #include <api_lock.h>
 
@@ -15,12 +15,11 @@
 
 typedef enum {
     WifiEventRequest = 1UL << 0,
-    WifiEventResponse = 1UL << 1,
 } WifiEvent;
 
 typedef struct {
-    const WifiCredentials* credentials;
-    const WifiIpConfig* ip_config;
+    WifiCredentials credentials;
+    WifiIpConfig ip_config;
 } WifiConnectMessage;
 
 typedef struct {
@@ -34,35 +33,46 @@ typedef struct {
 } WifiGetInfoMessage;
 
 typedef struct {
-    WifiHardwareAddress* hw_address;
-} WifiGetHwAddressMessage;
-
-typedef struct {
     WifiRequestType request_type;
-    WifiStatus status;
+    WifiStatus* status;
     union {
         WifiConnectMessage connect_message;
         WifiScanMessage scan_message;
         WifiGetInfoMessage get_info_message;
-        WifiGetHwAddressMessage get_hw_address_message;
     };
     FuriApiLock lock;
 } WifiMessage;
 
 struct Wifi {
     FuriEventLoop* event_loop;
-    FuriSemaphore* access_semaphore;
+    FuriMessageQueue* response_queue;
+    FuriSemaphore* api_semaphore;
+    FuriSemaphore* dhcp_semaphore;
+    FuriState* state;
     Intercom* intercom;
-    WifiMessage* current_message;
+    IntercomChannel* intercom_ch_control;
+    IntercomChannel* intercom_ch_data;
     struct netif netif;
+    WifiMessage api_message;
     WifiRequest request;
-    WifiResponse response;
-    WifiSettings settings;
 };
 
-void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr);
+// API management
+bool wifi_api_is_locked(Wifi* instance);
 
-void wifi_net_up(Wifi* instance);
+void wifi_api_unlock(Wifi* instance, WifiStatus status);
+
+// Internal nonblocking API calls
+void wifi_schedule_init_request(Wifi* instance);
+
+void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings);
+
+void wifi_schedule_disconnect_request(Wifi* instance);
+
+// Network management
+void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);
+
+bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);
 
 void wifi_net_down(Wifi* instance);
 

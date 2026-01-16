@@ -8,7 +8,7 @@ on:
 
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
-  DEFAULT_TARGET: 21
+  DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
@@ -19,9 +19,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        u5_target: [20, 21]
+        target_spec: ["21_64", "22_65"]
     outputs:
-      default_target: ${{ env.DEFAULT_TARGET }}
+      default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
 
     steps:
       - name: "Wipe workspace"
@@ -35,18 +35,10 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Update submodules"
-        run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
-
-      - name: "Build update package (unsigned)"
+      - name: "Build firmware artifacts"
         id: build-fw
-        run: |
-          export "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')"
-          source ./scripts/toolchain/fbtenv.sh
-          export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
-
-      - name: "Check for uncommitted changes"
-        run: |
-          git diff --exit-code
+        uses: ./.github/actions/build-artifacts
+        with:
+          target_spec: ${{ matrix.target_spec }}
+          build_type: release
+          artifact_path: artifacts

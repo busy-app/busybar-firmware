@@ -1,9 +1,11 @@
 #pragma once
 
-#include "busy_timer.h"
+#include <stdbool.h>
+
+#define BUSY_SETTINGS_THEME_NAME_LEN (64)
 
 typedef struct {
-    BusyTimerConfig timer_config;
+    char theme_name[BUSY_SETTINGS_THEME_NAME_LEN + 1];
 } BusySettings;
 
 bool busy_settings_load(BusySettings* settings);

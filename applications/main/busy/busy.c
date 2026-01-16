@@ -1,4 +1,4 @@
-#include "busy.h"
+#include "busy_i.h"
 #include "busy_presets.h"
 
 #define BUSY_NAV_BAR_HEIGHT 20
@@ -31,6 +31,41 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
     }
 }
 
+static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    BusyApp* instance = context;
+    furi_assert(instance->api_queue == object);
+
+    BusyApiMessage message;
+    while(furi_message_queue_get(instance->api_queue, &message, 0) == FuriStatusOk) {
+        const BusyApiMessageType type = message.type;
+
+        if(type == BusyApiMessageTypeShowTimer) {
+            const BusyAppSceneId scene_id =
+                scene_manager_get_current_scene_id(instance->scene_manager);
+
+            if(scene_id != BusyAppSceneIdTimer) {
+                busy_go_to_show_timer_scene(instance);
+            }
+
+        } else if(type == BusyApiMessageTypeRequestExit) {
+            if(instance->run_mode == BusyAppRunModeTimer) {
+                // App was launched by the timer, exit
+                busy_exit(instance);
+            } else {
+                // App was launched normally, return to start menu
+                busy_send_custom_event(instance, BusyCustomEventReturnToStart);
+            }
+
+        } else {
+            furi_crash("Invalid BusyApiMessageType value");
+        }
+
+        api_lock_unlock(message.lock);
+    }
+}
+
 static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -53,28 +88,42 @@ static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static BusyApp* busy_alloc(void) {
+static void busy_set_default_settings(BusySettings* settings) {
+    strcpy(settings->theme_name, "default");
+}
+
+static void busy_load_settings(BusyApp* instance) {
+    BusySettings* settings = &instance->settings;
+
+    if(!busy_settings_load(settings)) {
+        FURI_LOG_W(TAG, "Loading default settings");
+        busy_set_default_settings(settings);
+        busy_settings_save(settings);
+    }
+
+    if(!busy_theme_read(instance->theme, settings->theme_name)) {
+        FURI_LOG_W(TAG, "Setting default theme");
+        busy_theme_set_default(instance->theme);
+    }
+}
+
+static BusyApp* busy_alloc(const char* arg) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
+    instance->api_queue = furi_message_queue_alloc(1, sizeof(BusyApiMessage));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
-    instance->busy_timer = busy_timer_alloc();
+    instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->matter = furi_record_open(RECORD_MATTER);
+    instance->theme = busy_theme_alloc();
 
-    if(!busy_settings_load(&instance->settings)) {
-        FURI_LOG_W(TAG, "Loading default settings");
-        // Get default timer config
-        busy_timer_get_config(instance->busy_timer, &instance->settings.timer_config);
-        busy_settings_save(&instance->settings);
-
-    } else {
-        busy_timer_set_config(instance->busy_timer, &instance->settings.timer_config);
-    }
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    busy_set_matter(instance, false);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -102,11 +151,12 @@ static BusyApp* busy_alloc(void) {
         flex_layout_set_child_widget_grow(
             instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
 
+        instance->timer_card = timer_card_alloc(back_root);
+        widget_set_pos_y(timer_card_get_base(instance->timer_card), 2);
+
         // Create application window on Back display
         instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
-
-        instance->timer_card = timer_card_alloc(flex_layout_get_base(instance->back_container));
     });
 
     furi_event_loop_subscribe_message_queue(
@@ -123,20 +173,42 @@ static BusyApp* busy_alloc(void) {
         busy_event_queue_callback,
         instance);
 
-    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->api_queue,
+        FuriEventLoopEventIn,
+        busy_api_queue_callback,
+        instance);
 
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    busy_set_matter(instance, false);
+    busy_load_settings(instance);
 
+    if(arg && strcmp(arg, BUSY_APP_TIMER_MODE) == 0) {
+        instance->run_mode = BusyAppRunModeTimer;
+        busy_go_to_show_timer_scene(instance);
+
+    } else {
+        instance->run_mode = BusyAppRunModeNormal;
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
+    }
+
+    furi_record_create(RECORD_BUSY_APP, instance);
     return instance;
 }
 
 static void busy_free(BusyApp* instance) {
+    while(!furi_record_destroy(RECORD_BUSY_APP)) {
+        // Workaround: wait before all users close the record
+        furi_delay_ms(1);
+    }
+
+    if(busy_timer_get_state(instance->busy_timer) != BusyTimerStateIdle) {
+        busy_timer_stop(instance->busy_timer);
+    }
+
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
 
     scene_manager_free(instance->scene_manager);
-    busy_timer_free(instance->busy_timer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -145,9 +217,11 @@ static void busy_free(BusyApp* instance) {
         transition_overlay_free(instance->transition_overlay);
 
         widget_free(instance->front_window);
+        timer_card_free(instance->timer_card);
         flex_layout_free(instance->back_container);
     });
 
+    furi_record_close(RECORD_BUSY_TIMER);
     furi_record_close(RECORD_MATTER);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
@@ -155,20 +229,19 @@ static void busy_free(BusyApp* instance) {
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->api_queue);
     furi_message_queue_free(instance->input_queue);
     furi_message_queue_free(instance->event_queue);
+    furi_message_queue_free(instance->api_queue);
     furi_event_loop_free(instance->event_loop);
+    busy_theme_free(instance->theme);
 
     free(instance);
 }
 
 int32_t busy_app(void* arg) {
-    UNUSED(arg);
-
-    BusyApp* instance = busy_alloc();
-    FuriThread* thread = furi_thread_get_current();
+    BusyApp* instance = busy_alloc(arg);
     furi_event_loop_run(instance->event_loop);
-    furi_thread_set_signal_callback(thread, NULL, NULL);
     busy_free(instance);
 
     return 0;
@@ -221,4 +294,22 @@ void busy_pop_location(BusyApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
+}
+
+void busy_go_to_show_timer_scene(BusyApp* instance) {
+    furi_assert(instance);
+
+    instance->show_timer_requested = true;
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
+}
+
+bool busy_return_to_start_scene(BusyApp* instance) {
+    furi_assert(instance);
+    return scene_manager_search_and_switch_to_previous_scene(
+        instance->scene_manager, BusyAppSceneIdStart);
+}
+
+void busy_exit(BusyApp* instance) {
+    furi_assert(instance);
+    furi_event_loop_stop(instance->event_loop);
 }

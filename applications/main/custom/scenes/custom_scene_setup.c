@@ -25,7 +25,8 @@ static void custom_scene_setup_on_enter(void* context) {
     furi_assert(context);
 
     CustomApp* instance = context;
-    CustomSceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    CustomSceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, CustomAppSceneIdSetup);
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_window);
@@ -48,7 +49,8 @@ static void custom_scene_setup_on_exit(void* context) {
     furi_assert(context);
 
     CustomApp* instance = context;
-    CustomSceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    CustomSceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, CustomAppSceneIdSetup);
 
     with_gui(instance->gui, {
         menu_free(data->front_menu);

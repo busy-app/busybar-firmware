@@ -10,6 +10,7 @@
 #include <app/server/Server.h>
 #include <app/server/OnboardingCodesUtil.h>
 #include <app/clusters/on-off-server/on-off-server.h>
+#include <app/clusters/identify-server/identify-server.h>
 #include <app-common/zap-generated/attributes/Accessors.h>
 
 #include <platform/bsb/BSBDeviceInfoProvider.hpp>
@@ -20,12 +21,14 @@
 #include <network/network.h>
 #include <wifi/wifi_common.h>
 #include <intercom/intercom.h>
+#include <status_lights/status_lights_backend.h>
 
 #include "matter_common_i.h"
 
 #define TAG "MatterSrv"
 
 #define RENDEZVOUS_FLAGS (RendezvousInformationFlags(chip::RendezvousInformationFlag::kOnNetwork))
+#define IDENTIFY_COLOR   ((Color)COLOR_MAKE_HEX(0xFFAA00))
 
 using namespace chip;
 using namespace Credentials;
@@ -46,11 +49,13 @@ public:
     MatterSrv(void);
     CHIP_ERROR init(void);
 
-    Intercom* m_intercom;
+    IntercomChannel* m_intercom_ch;
+    StatusLights* m_status_lights;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
     BsbFabricTableDelegate m_fabric_delegate;
+    ::Identify m_identify;
 };
 
 // sorry - the MatterPostAttributeChangeCallback can't accept any context
@@ -84,14 +89,34 @@ static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
     }
 }
 
-// ======================
+void matter_start_blinking(::Identify* identify) {
+    furi_assert(identify);
+    MatterSrv* matter = matter_global_srv;
+    status_lights_run_preset(matter->m_status_lights, StatusLightsPresetBlink, IDENTIFY_COLOR);
+}
+
+void matter_stop_blinking(::Identify* identify) {
+    furi_assert(identify);
+    MatterSrv* matter = matter_global_srv;
+    status_lights_run_preset(matter->m_status_lights, StatusLightsPresetOff, IDENTIFY_COLOR);
+}
+
+/**
+ * @warning Requires Matter stack to be locked
+ */
+void matter_restart_dnssd(void) {
+    ChipDeviceEvent event;
+    event.Type = DeviceEventType::kDnssdRestartNeeded;
+    PlatformMgr().PostEventOrDie(&event);
+}
+
+// =====================
 // Communication with u5
-// ======================
+// =====================
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
-        intercom_tx(
-            matter->m_intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
+        intercom_tx(matter->m_intercom_ch, frame, sizeof(*frame), FuriWaitForever) ==
         sizeof(*frame));
 }
 
@@ -204,6 +229,9 @@ void MatterPostAttributeChangeCallback(
     ClusterId cluster = attributePath.mClusterId;
     AttributeId attribute = attributePath.mAttributeId;
 
+    // Matter likes to update attributes before fully initializing
+    if(!matter_global_srv->m_intercom_ch) return;
+
     if(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id) {
         matter_send_state_update(matter_global_srv, static_cast<bool>(*value));
     }
@@ -230,6 +258,7 @@ void BsbFabricTableDelegate::OnFabricRemoved(
     FabricIndex fabricIndex) {
     UNUSED(fabricTable);
     UNUSED(fabricIndex);
+    matter_restart_dnssd();
     matter_send_fabric_count_update(matter_global_srv);
 }
 
@@ -266,6 +295,7 @@ static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
 
     } else if(event->Type == DeviceEventType::kCommissioningComplete) {
         FURI_LOG_D(TAG, "Commissioning complete");
+        matter_restart_dnssd();
         MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeCommissionStatus,
             .commission_status =
@@ -278,8 +308,13 @@ static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
     }
 }
 
-MatterSrv::MatterSrv(void) {
-    this->m_intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+MatterSrv::MatterSrv(void)
+    : m_identify(::Identify(
+          onOffEndpointId,
+          matter_start_blinking,
+          matter_stop_blinking,
+          chip::app::Clusters::Identify::IdentifyTypeEnum::kVisibleIndicator)) {
+    m_status_lights = static_cast<StatusLights*>(furi_record_open(RECORD_STATUS_LIGHTS));
 }
 
 CHIP_ERROR MatterSrv::init(void) {
@@ -320,8 +355,9 @@ CHIP_ERROR MatterSrv::init(void) {
         PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
-        intercom_set_rx_callback(m_intercom, IntercomChannelMatter, matter_handle_frame, this);
-
+        auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+        m_intercom_ch =
+            intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
 

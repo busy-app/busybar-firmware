@@ -38,6 +38,27 @@ typedef enum {
     AlignMax, /**< Special value, not to be used in application code */
 } Align;
 
+/** Like `Align`, but with coded axes for ease of processing */
+typedef enum {
+    AlignBitmaskLeft = (1 << 0),
+    AlignBitmaskHorCenter = (1 << 1),
+    AlignBitmaskRight = (1 << 2),
+
+    AlignBitmaskTop = (1 << 3),
+    AlignBitmaskVerCenter = (1 << 4),
+    AlignBitmaskBottom = (1 << 5),
+} AlignBitmask;
+
+/**
+ * @brief Convert `Align` into `AlignBitmask`
+ * 
+ * `AlignBitmask` may be easier to manually parse in some cases.
+ * 
+ * @param[in] align `Align` value
+ * @returns Converted `AlignBitmap` value
+ */
+AlignBitmask widget_align_to_bitmask(Align align);
+
 /** Enumeration of possible scrollbar modes for widget */
 typedef enum {
     WidgetScrollBarModeOff, /**< Never show scrollbars*/
@@ -151,6 +172,31 @@ int32_t widget_get_height(const Widget* instance);
 void widget_set_size(Widget* instance, int32_t width, int32_t height);
 
 /**
+ * @brief Set the maximum width of a Widget.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] max_width new width in pixels
+ */
+void widget_set_max_width(Widget* instance, int32_t max_width);
+
+/**
+ * @brief Set the maximum height of a Widget.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] max_height new height in pixels
+ */
+void widget_set_max_height(Widget* instance, int32_t max_height);
+
+/**
+ * @brief Set the maximum width and height of a Widget.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] max_width new width in pixels
+ * @param[in] max_height new height in pixels
+ */
+void widget_set_max_size(Widget* instance, int32_t max_width, int32_t max_height);
+
+/**
  * @brief Set both the width and height of a Widget to fit its content.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
@@ -236,10 +282,9 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
  * @brief Set the background color and opacity of a Widget instance.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
- * @param[in] color new background color
- * @param[in] opacity new background opacity (0.0 - 1.0)
+ * @param[in] color new background color including opacity
  */
-void widget_set_background_color(Widget* instance, Color color, float opacity);
+void widget_set_background_color(Widget* instance, Color color);
 
 /**
  * @brief Set the padding for a Widget instance.

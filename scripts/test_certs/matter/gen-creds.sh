@@ -2,14 +2,46 @@
 
 set -e
 
-matter_dir="$HOME/Files/Devel/connectedhomeip"
+# Parse arguments
+
+usage() {
+  echo "Usage: gen-creds.sh <type> <ver>"
+  echo "  type: test|certification"
+  echo "    Use \"test\" for regular testing."
+  echo "    Use \"certification\" for devices going into certification testing."
+  echo "  ver: see \"MATTER_SOFTWARE_VERSION\" in \"matter_f64.cpp\""
+  echo ""
+  echo "Required env vars:"
+  echo "  - MATTER_DIR: path to cloned repo:"
+  echo "    https://github.com/project-chip/connectedhomeip"
+  echo "  - CHIP_CERT: path to downloaded file:"
+  echo "    https://raw.githubusercontent.com/portasynthinca3/chip-cert/refs/heads/master/chip-cert-x86_64.AppImage"
+  exit 1
+}
+
+if [[ $# -ne 2 ]]; then
+  usage
+fi
+
+certificate_type=$1
+if ! [[ "$certificate_type" =~ ^(test|certification)$ ]]; then usage; fi
+software_ver=$2
+
+if [[ ! -v MATTER_DIR ]]; then usage; fi
+if [[ ! -v CHIP_CERT ]]; then usage; fi
+
+# Gather paths to files
+
+matter_dir=$MATTER_DIR
 matter_cert_dir="$matter_dir/credentials/test"
 matter_paa_dir="$matter_cert_dir/attestation"
 matter_cd_dir="$matter_cert_dir/certification-declaration"
 
+chip_cert_tool=$CHIP_CERT
+
 vendor_id="158A"
 product_id="0001"
-device_type_id="10A" # On/Off Pluggable Unit
+device_type_id="10A" # On/Off Plug-in Unit
 
 pai_key_file="test-PAI-${vendor_id}-key.pem"
 pai_cert_file="test-PAI-${vendor_id}-cert.pem"
@@ -17,10 +49,18 @@ pai_cert_file="test-PAI-${vendor_id}-cert.pem"
 dac_key_file="test-DAC-${vendor_id}-${product_id}-key.pem"
 dac_cert_file="test-DAC-${vendor_id}-${product_id}-cert.pem"
 
-cd_file="test-CD-${vendor_id}-${product_id}.der"
+cd_file="${certificate_type}-CD-${vendor_id}-${product_id}.der"
+
+# Gather certificate arguments
 
 valid_from="$(date +%Y-%m-%d) 00:00:00"
 valid_lifetime="4294967295"
+
+if [[ "$certificate_type" = "test" ]]; then
+  cd_certification_type="0"
+else
+  cd_certification_type="1"
+fi
 
 # Remove old files
 
@@ -33,7 +73,7 @@ rm -f \
 
 # Generate PAI
 
-chip-cert gen-att-cert --type i \
+$chip_cert_tool gen-att-cert --type i \
   --subject-cn "Matter Test PAI ${vendor_id}" \
   --subject-vid "${vendor_id}" \
   --valid-from "$valid_from" \
@@ -45,7 +85,7 @@ chip-cert gen-att-cert --type i \
 
 # Generate DAC
 
-chip-cert gen-att-cert --type d \
+$chip_cert_tool gen-att-cert --type d \
   --subject-cn "Matter Test DAC ${vendor_id}/${product_id}" \
   --subject-vid "${vendor_id}" \
   --subject-pid "${product_id}" \
@@ -58,14 +98,14 @@ chip-cert gen-att-cert --type d \
 
 # Verify chain
 
-chip-cert validate-att-cert \
+$chip_cert_tool validate-att-cert \
   --dac "$dac_cert_file" \
   --pai "$pai_cert_file" \
   --paa "$matter_paa_dir/Chip-Test-PAA-NoVID-Cert.pem"
 
 # Generate CD
 
-chip-cert gen-cd \
+$chip_cert_tool gen-cd \
   --key "$matter_cd_dir/Chip-Test-CD-Signing-Key.pem" \
   --cert "$matter_cd_dir/Chip-Test-CD-Signing-Cert.pem" \
   --out "$cd_file" \
@@ -76,7 +116,5 @@ chip-cert gen-cd \
   --certificate-id "CSA00000SWC00000-00" \
   --security-level "0" \
   --security-info "0" \
-  --version-number "1" \
-  --certification-type "0"
-
-
+  --version-number "${software_ver}" \
+  --certification-type "$cd_certification_type"

@@ -1,5 +1,8 @@
 <template>
-  <div class="w-full min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center gap-6">
+  <div
+    data-id="page-login"
+    class="w-full min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center gap-6"
+  >
     <template v-if="!initialLoading">
       <div class="text-xl font-medium">Virtual LAN is locked</div>
 
@@ -16,11 +19,13 @@
         <UInput
           v-model="pms.passwordModel.current"
           v-maska="'##########'"
+          name="current-password"
           size="xl"
           variant="soft"
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Password"
           @update:model-value="pms.passwordModel.currentWrong = false"
+          @keyup.enter="loading ? null : attemptUnlock()"
         >
           <template #trailing>
             <UButton
@@ -39,6 +44,7 @@
       </UFormField>
 
       <UButton
+        data-id="page-login-unlock-button"
         label="Unlock"
         color="primary"
         size="lg"
@@ -72,8 +78,6 @@ const pms = usePasswordModalStore();
 const deviceStore = useDeviceStore();
 const apiStore = useApiStore();
 
-const toast = useToast();
-
 const initialLoading = ref(true);
 const loading = ref(false);
 
@@ -100,8 +104,8 @@ async function attemptUnlock () {
       toast.add({
         id: 'system-status-error',
         title: 'Failed to fetch system status',
-        description: errorWithData(error) ? error.data?.error || genericErrorMessage : genericErrorMessage,
-        icon: 'i-ri-alert-line',
+        description: errorWithData(error) ? error.data?.error || String(error) || genericErrorMessage : genericErrorMessage,
+        icon: 'i-bi-alert',
         color: 'error',
         duration: 10000
       });

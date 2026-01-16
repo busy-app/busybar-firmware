@@ -5,6 +5,7 @@
 #pragma once
 
 #include <gui/widget.h>
+#include <gui/gui.h>
 #include <toolbox/color.h>
 
 #ifdef __cplusplus
@@ -121,9 +122,29 @@ void label_set_text_align(Label* instance, TextAlign align);
  *
  * @param[in,out] instance pointer to the Label instance to be modified
  * @param[in] mode new long content mode for label
- * @param[in] duration defines animation speed in scrollable modes
+ * @param[in] duration animation duration in scrollable modes (milliseconds)
  */
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
+
+/**
+ * @brief Calculate scroll duration for `label_set_long_content_mode`.
+ * 
+ * @param[in] instance pointer to the Label instance
+ * @param[in] rate_ppm scroll rate for off-screen text in pixels per minute
+ * 
+ * @note the label text and width should be set before calling this function.
+ * 
+ * @returns 
+ */
+uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_ppm);
+
+/**
+ * @brief Set font of label text.
+ * 
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] font what to set the font to
+ */
+void label_set_font(Label* instance, GuiFont font);
 
 #ifdef __cplusplus
 }

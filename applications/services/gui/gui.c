@@ -6,6 +6,11 @@
 
 #define TAG "Gui"
 
+// To ensure TO_LV_COLOR soundness
+static_assert(offsetof(lv_color_t, blue) == offsetof(Color, b));
+static_assert(offsetof(lv_color_t, green) == offsetof(Color, g));
+static_assert(offsetof(lv_color_t, red) == offsetof(Color, r));
+
 static void
     gui_flush_front_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
@@ -260,7 +265,9 @@ int gui_srv(void* arg) {
     return 0;
 }
 
+// ====================
 // Public API functions
+// ====================
 
 void gui_lock(Gui* instance) {
     furi_check(instance);
@@ -324,4 +331,27 @@ const uint8_t* gui_display_get_frame_buffer(Gui* gui, GuiDisplayId display_id) {
     furi_check(display_id < GuiDisplayIdMax);
 
     return gui->displays[display_id].draw_buffer;
+}
+
+// =====================
+// Private API functions
+// =====================
+
+const lv_font_t* gui_font_to_lvgl(GuiFont font) {
+    static const lv_font_t* const font_lut[GuiFontMax] = {
+        [GuiFontArkNumeralsCondensed10] = &lv_font_ark_numerals_condensed_10,
+        [GuiFontArkNumeralsRegular10] = &lv_font_ark_numerals_regular_10,
+        [GuiFontArkNumeralsSmall10] = &lv_font_ark_numerals_small_10,
+        [GuiFontArkRegular10] = &lv_font_ark_regular_10,
+        [GuiFontArkRegular20] = &lv_font_ark_regular_20,
+        [GuiFontBf4x5] = &lv_font_bf_4x5,
+        [GuiFontBf5x7CondensedNumerals] = &lv_font_bf_5x7_condensed_numerals,
+        [GuiFontBf5x7] = &lv_font_bf_5x7,
+        [GuiFontBf7x10] = &lv_font_bf_7x10,
+        [GuiFontCubic12] = &lv_font_cubic_12,
+        [GuiFontSomybmp7] = &lv_font_somybmp_7,
+        [GuiFontTiny6] = &lv_font_tiny_6,
+        [GuiFontTiny5_8] = &lv_font_tiny5_8,
+    };
+    return font_lut[font];
 }

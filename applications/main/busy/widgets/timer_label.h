@@ -15,6 +15,14 @@ extern "C" {
 /** TimerLabel opaque structure. */
 typedef struct TimerLabel TimerLabel;
 
+/** TimerLabel preset type. */
+typedef struct {
+    struct {
+        Color base; /**< Countdown base colour */
+        Color blink; /**< Countdown blink colour */
+    } countdown_colors; /**< Special colours used for countdown animation */
+} TimerLabelPreset;
+
 /**
  * @brief Create a new TimerLabel instance.
  *
@@ -48,6 +56,38 @@ Widget* timer_label_get_base(TimerLabel* instance);
  * @param[in] time_s time to show, in seconds
  */
 void timer_label_set_time(TimerLabel* instance, uint32_t time_s);
+
+/**
+ * @brief Set the current preset (affects countdown blinking)
+ *
+ * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ * @param[in] preset pointer to the TimerLabelPreset object
+ */
+void timer_label_set_preset(TimerLabel* instance, const TimerLabelPreset* preset);
+
+/**
+ * @brief Enable or disable the dark gradient background.
+ *
+ * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ * @param[in] enable show the background if @c true, hide it otherwise
+ */
+void timer_label_enable_background(TimerLabel* instance, bool enable);
+
+/**
+ * @brief Show the label text and background (if enabled) with animation.
+ *
+ * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ * @param[in] enable_animation use transition animation if @c true, no animated transition otherwise
+ */
+void timer_label_show(TimerLabel* instance, bool enable_animation);
+
+/**
+ * @brief Hide the label text and background (if enabled) with animation.
+ *
+ * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ * @param[in] enable_animation use transition animation if @c true, no animated transition otherwise
+ */
+void timer_label_hide(TimerLabel* instance, bool enable_animation);
 
 #ifdef __cplusplus
 }

@@ -12,20 +12,19 @@ on:
       update_url:
         required: false
         type: string
-      default_target:
+      target:
         required: false
         type: string
         default: '21'
 
 permissions:
   contents: read
-
-env:
-  DEFAULT_TARGET: ${{ github.event.inputs.default_target }}
+  id-token: write
 
 jobs:
   updater-test:
     runs-on: BusyBarTest
+    timeout-minutes: 20
     steps:
       - name: 'Checkout code at the build’s commit'
         uses: actions/checkout@v4
@@ -42,20 +41,19 @@ jobs:
           set -euo pipefail
           URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
           echo "Using URL: $URL"
-          curl --fail -L -o busybar-f${{ env.DEFAULT_TARGET }}-update.tar "$URL"
-          mkdir -p update_bundle
-          tar -xf busybar-f${{ env.DEFAULT_TARGET }}-update.tar -C update_bundle
+          curl --fail -L -o busybar-f${{ inputs.target }}-update.tar "$URL"
 
       - name: 'Flash firmware'
         id: flashing
-        timeout-minutes: 20
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py power reboot
+          python3 scripts/testops.py wait -t 20
+          python3 scripts/testops.py debug 1
           python3 scripts/testops.py format --no-confirm
-          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
-          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
-          python3 scripts/testops.py wait -t 240
+          python3 scripts/testops.py update-fw busybar-f${{ inputs.target }}-update.tar -r 3 --connect-timeout 10
+          python3 scripts/testops.py wait -t 260
 
       - name: 'Check that both cores are available (post-flash)'
         if: steps.flashing.outcome == 'success'
@@ -67,17 +65,40 @@ jobs:
       - name: 'Update again to PR firmware'
         id: updating
         if: steps.flashing.outcome == 'success'
-        timeout-minutes: 20
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
-          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
-          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
-          python3 scripts/testops.py wait -t 240
+          python3 scripts/testops.py debug 1
+          python3 scripts/testops.py update-fw busybar-f${{ inputs.target }}-update.tar -r 3 --connect-timeout 10
+          python3 scripts/testops.py wait -t 260
 
-      - name: 'Check that both cores are available (post-flash)'
-        if: steps.flashing.outcome == 'success'
+      - name: 'Check that both cores are available (post-update)'
+        if: steps.updating.outcome == 'success'
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
+
+      - name: 'Configure AWS CLI'
+        if: always()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: 'Upload runner logs to S3'
+        if: always()
+        run: |
+          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          LOG_FILE="/opt/logs/${{ runner.name }}/latest/runlog.log"
+          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/updater-test/$RUN_ID/runlog.log"
+          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/updater-test/$RUN_ID/runlog.log"
+
+          if [ -f "$LOG_FILE" ]; then
+            aws s3 cp "$LOG_FILE" "$S3_PATH"
+            echo "## 📋 Runner Logs" >> $GITHUB_STEP_SUMMARY
+            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Log file not found: $LOG_FILE"
+          fi

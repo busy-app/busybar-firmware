@@ -1,9 +1,158 @@
 {
-    "inherit": "f20",
+    "cpu_flags": [
+        "-mcpu=cortex-m33",
+        "-mthumb",
+        "-mfloat-abi=hard",
+        "-mfpu=fpv5-sp-d16"
+    ],
+    "c_cpp_flags": [
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wundef",
+        "-Wno-error=deprecated-declarations",
+        "-Wno-address-of-packed-member",
+        "-Wredundant-decls",
+        "-Wdouble-promotion",
+        "-fdata-sections",
+        "-ffunction-sections",
+        "-fsingle-precision-constant",
+        "-fno-math-errno"
+    ],
+    "c_flags": [
+        "-std=gnu2x",
+        "-Wstrict-prototypes"
+    ],
+    "cpp_flags": [
+        "-std=c++14",
+        "-fno-rtti",
+        "-fno-use-cxa-atexit",
+        "-fno-exceptions",
+        "-fno-threadsafe-statics",
+        "-ftemplate-depth=4096"
+    ],
+    "asm_flags": [
+        "-x",
+        "assembler-with-cpp",
+        "-c"
+    ],
+    "linker_flags": [
+        "-specs=nano.specs",
+        "-mlittle-endian",
+        "-Wl,--gc-sections",
+        "-Wl,--no-warn-rwx-segment",
+        "-Wl,--wrap,_malloc_r",
+        "-Wl,--wrap,_free_r",
+        "-Wl,--wrap,_calloc_r",
+        "-Wl,--wrap,_realloc_r",
+        "-Xlinker",
+        "-Map=${TARGET}.map"
+    ],
+    "defines": [
+        "STM32U595xx",
+        [
+            "HSE_VALUE",
+            "16000000U"
+        ],
+        "USE_FULL_LL_DRIVER",
+        "_GNU_SOURCE",
+        "BSB_MCU_U5"
+    ],
+    "include_paths": [
+        "src",
+        "config",
+        "fatfs",
+        "furi_hal",
+        "st",
+        "st/include",
+        "driver",
+        "st_abomination",
+        "lwip",
+        "mongoose",
+        "usb",
+        "mbedtls"
+    ],
+    "env_setup_scripts": [
+        "#/bsb_common_env_init.scons",
+        "#/core_libs_env_init.scons",
+        "#/freertos_env_init.scons"
+    ],
+    "extra_tool_paths": [
+        "../../scripts/fbt_tools"
+    ],
+    "sdk_headers": [],
     "sources": [
-        "*/*.c",
-        "f20:!furi_hal/furi_hal_display.c",
-        "f20:!furi_hal/furi_hal_resources_pins.c",
-        "f20:!furi_hal/furi_hal_version_device.c"
-    ]
+        "startup_stm32u595xx.s",
+        "*/*.c"
+    ],
+    "linker_script_flash": "STM32U595xx_FLASH.ld",
+    "linker_script_ram": "STM32U595xx_RAM.ld",
+    "linker_script_app": "application_ext.ld",
+    "sdk_symbols": "api_symbols.csv",
+    "variables_sconscript": "fbt_conf/stm32u595_vars.scons",
+    "platform_desc": "../../scripts/debug/platforms/stm32u595.json",
+    "rtos_flavor": "freertos-cm33-ntz",
+    "lib_modules": [
+        "fw_updater_opts",
+        "lib_base",
+        "mlib",
+        "cmsis",
+        "freertos",
+        "microtar",
+        "mbedtls",
+        "icon_assets",
+        "tinyusb",
+        "print",
+        "fatfs",
+        "lwip",
+        "cjson",
+        "thorvg",
+        "lvgl",
+        "lvgl_addons",
+        "network",
+        "mongoose",
+        "toolbox",
+        "formatters",
+        "flipper_format",
+        "flipper_application",
+        "heatshrink",
+        "bit_lib",
+        "datetime",
+        "targets",
+        "furi",
+        "settings_helpers",
+        "drivers",
+        "version",
+        "internal_assets",
+        "ext_applications",
+        "firmware_applications_u5",
+        "cli",
+        "containers"
+    ],
+    "fw_modules": [
+        "fw_elf",
+        "fw_artifacts",
+        "fw_cdb",
+        "sdk_extapps",
+        "bsb_assets",
+        "link_builddir"
+    ],
+    "dist_modules": [
+        "elf_flash",
+        "debug",
+        "lint",
+        "vscode_project",
+        "subl_project",
+        "cli",
+        "upload_resources",
+        "u5_updater",
+        "provisioning"
+    ],
+    "extra_target_meta": {
+        "debug_tags": [
+            "rtos",
+            "svd"
+        ]
+    }
 }

@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include "../time_macros.h"
+#include <busy_timer/time_macros.h>
 
 #define MY_CLASS (&timer_label_lvgl_class)
 
@@ -10,37 +10,111 @@
 #define FONT_CONDENSED (&lv_font_ark_numerals_condensed_10)
 #define FONT_SMALLNUM  (&lv_font_ark_numerals_small_10)
 
-#define BLINK_COUNT     (3)
-#define BLINK_DELAY_MS  (500)
-#define BLINK_PERIOD_MS (333)
+#define BLINK_START_S         (3)
+#define BLINK_INTERVAL_MS     (333)
+#define BLINK_INTERVAL_REV_MS (1000 - BLINK_INTERVAL_MS)
+
+#define COUNTDOWN_START_S       (BLINK_START_S + 1)
+#define COUNTDOWN_TRANSITION_MS (1000)
+
+#define BG_TRANSITION_MS   (667)
+#define TEXT_TRANSITION_MS (333)
+
+#define TEXT_DELAY_SHOW_MS (250)
+#define TEXT_DELAY_HIDE_MS (0)
+
+#define MAIN_WIDTH_PX    (40)
+#define BG_GRAD_WIDTH_PX (10)
+
+#define BG_GRAD_STOP_POS (255 * BG_GRAD_WIDTH_PX / MAIN_WIDTH_PX)
 
 struct TimerLabel {
     Widget base;
+    lv_obj_t* bg_gradient;
+    lv_obj_t* main_layout;
     lv_obj_t* top_layout;
     lv_obj_t* main_label;
     lv_obj_t* seconds_label;
     lv_obj_t* bottom_label;
+
+    lv_color_t countdown_base_color;
+    lv_color_t countdown_blink_color;
+
+    bool is_hidden;
 };
 
 const lv_obj_class_t timer_label_lvgl_class;
 
 // LVGL-specific code
 
-static void timer_label_lvgl_anim_callback(void* context, int32_t value) {
+static void timer_label_lvgl_anim_bg_gradient_callback(void* context, int32_t value) {
     furi_assert(context);
 
-    lv_obj_t* instance = context;
-    lv_obj_set_style_opa(instance, value, LV_PART_MAIN);
+    lv_obj_t* bg_gradient = context;
+    lv_obj_set_x(bg_gradient, value);
+}
+
+static void timer_label_lvgl_anim_text_callback(void* context, int32_t value) {
+    furi_assert(context);
+
+    lv_obj_t* main_layout = context;
+    lv_obj_set_style_opa(main_layout, value, LV_PART_MAIN);
+}
+
+static void timer_label_lvgl_anim_color_to_countdown_callback(void* context, int32_t value) {
+    furi_assert(context);
+
+    TimerLabel* instance = context;
+
+    const lv_color_t start_color = lv_color_white();
+    const lv_color_t end_color = instance->countdown_base_color;
+
+    const lv_color_t color = lv_color_mix(end_color, start_color, value);
+    lv_obj_set_style_text_color(instance->main_label, color, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->seconds_label, color, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->bottom_label, color, LV_PART_MAIN);
+}
+
+static void timer_label_lvgl_anim_countdown_blink_callback(void* context, int32_t value) {
+    furi_assert(context);
+
+    TimerLabel* instance = context;
+
+    const lv_color_t start_color = instance->countdown_base_color;
+    const lv_color_t end_color = instance->countdown_blink_color;
+
+    const lv_color_t color = lv_color_mix(end_color, start_color, value);
+    lv_obj_set_style_text_color(instance->main_label, color, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->seconds_label, color, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->bottom_label, color, LV_PART_MAIN);
 }
 
 static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-
     TimerLabel* instance = (TimerLabel*)obj;
 
-    instance->top_layout = lv_obj_create(obj);
+    instance->bg_gradient = lv_obj_create(obj);
+    lv_obj_add_flag(instance->bg_gradient, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_size(instance->bg_gradient, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_style_bg_color(instance->bg_gradient, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(instance->bg_gradient, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_dir(instance->bg_gradient, LV_GRAD_DIR_HOR, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_opa(instance->bg_gradient, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_color(instance->bg_gradient, lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_stop(instance->bg_gradient, BG_GRAD_STOP_POS, LV_PART_MAIN);
+    lv_obj_set_style_blend_mode(instance->bg_gradient, LV_BLEND_MODE_MULTIPLY, LV_PART_MAIN);
+
+    instance->main_layout = lv_obj_create(obj);
+    lv_obj_align(instance->main_layout, LV_ALIGN_LEFT_MID, BG_GRAD_WIDTH_PX, 0);
+    lv_obj_set_size(instance->main_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(instance->main_layout, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(instance->main_layout, 1, LV_PART_MAIN);
+
+    instance->countdown_base_color = lv_color_white();
+    instance->countdown_blink_color = lv_color_white();
+
+    instance->top_layout = lv_obj_create(instance->main_layout);
     lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_size(instance->top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_column(instance->top_layout, 1, LV_PART_MAIN);
@@ -52,25 +126,72 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_style_text_font(instance->seconds_label, FONT_SMALLNUM, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
 
-    instance->bottom_label = lv_label_create(obj);
+    instance->bottom_label = lv_label_create(instance->main_layout);
     lv_label_set_text(instance->bottom_label, "LEFT");
+}
+
+static void timer_label_to_countdown(TimerLabel* instance) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+    lv_anim_set_duration(&anim, COUNTDOWN_TRANSITION_MS);
+
+    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_color_to_countdown_callback);
+    lv_anim_set_var(&anim, instance);
+
+    lv_anim_start(&anim);
+}
+
+static void timer_label_countdown_blink(TimerLabel* instance) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+    lv_anim_set_duration(&anim, BLINK_INTERVAL_MS);
+    lv_anim_set_reverse_duration(&anim, BLINK_INTERVAL_REV_MS);
+
+    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_countdown_blink_callback);
+    lv_anim_set_var(&anim, instance);
+
+    lv_anim_start(&anim);
 }
 
 // Implementation
 
-static void timer_label_blink(TimerLabel* instance) {
+static void timer_label_animate_bg_gradient(TimerLabel* instance, int32_t stop_value) {
+    const int32_t start_value = lv_obj_get_x(instance->bg_gradient);
+
     lv_anim_t anim;
     lv_anim_init(&anim);
+    lv_anim_set_duration(&anim, BG_TRANSITION_MS);
+    lv_anim_set_values(&anim, start_value, stop_value);
 
-    lv_anim_set_repeat_count(&anim, BLINK_COUNT);
-    lv_anim_set_values(&anim, LV_OPA_COVER, LV_OPA_TRANSP);
-    lv_anim_set_delay(&anim, BLINK_DELAY_MS);
-    lv_anim_set_duration(&anim, BLINK_PERIOD_MS / 2);
-    lv_anim_set_reverse_duration(&anim, BLINK_PERIOD_MS / 2);
+    lv_anim_set_bezier3_param(
+        &anim,
+        LV_BEZIER_VAL_FLOAT(0.1F),
+        LV_BEZIER_VAL_FLOAT(0.5F),
+        LV_BEZIER_VAL_FLOAT(0.35F),
+        LV_BEZIER_VAL_FLOAT(1.0F));
 
-    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_callback);
-    lv_anim_set_var(&anim, instance);
+    lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
+    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_bg_gradient_callback);
 
+    lv_anim_set_var(&anim, instance->bg_gradient);
+    lv_anim_start(&anim);
+}
+
+static void timer_label_animate_text(TimerLabel* instance, uint8_t stop_value) {
+    const uint8_t start_value = lv_obj_get_style_opa(instance->main_layout, LV_PART_MAIN);
+
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_delay(&anim, stop_value ? TEXT_DELAY_SHOW_MS : TEXT_DELAY_HIDE_MS);
+    lv_anim_set_duration(&anim, TEXT_TRANSITION_MS);
+    lv_anim_set_values(&anim, start_value, stop_value);
+    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_text_callback);
+
+    lv_anim_set_var(&anim, instance->main_layout);
     lv_anim_start(&anim);
 }
 
@@ -122,8 +243,61 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
         lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
     }
 
-    if(!time_s) {
-        timer_label_blink(instance);
+    if(time_s == COUNTDOWN_START_S) {
+        timer_label_to_countdown(instance);
+    } else if(time_s <= BLINK_START_S) {
+        timer_label_countdown_blink(instance);
+    } else {
+        lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(instance->bottom_label, lv_color_white(), LV_PART_MAIN);
+    }
+}
+
+void timer_label_set_preset(TimerLabel* instance, const TimerLabelPreset* preset) {
+    furi_check(instance);
+    furi_check(preset);
+
+    instance->countdown_base_color = TO_LV_COLOR(preset->countdown_colors.base);
+    instance->countdown_blink_color = TO_LV_COLOR(preset->countdown_colors.blink);
+}
+
+void timer_label_enable_background(TimerLabel* instance, bool enable) {
+    furi_check(instance);
+    widget_set_visible((Widget*)instance->bg_gradient, enable);
+}
+
+void timer_label_show(TimerLabel* instance, bool enable_animation) {
+    furi_check(instance);
+
+    if(instance->is_hidden) {
+        if(enable_animation) {
+            timer_label_animate_bg_gradient(instance, 0);
+            timer_label_animate_text(instance, LV_OPA_COVER);
+
+        } else {
+            lv_obj_set_x(instance->bg_gradient, 0);
+            lv_obj_set_style_opa(instance->main_layout, LV_OPA_COVER, LV_PART_MAIN);
+        }
+
+        instance->is_hidden = false;
+    }
+}
+
+void timer_label_hide(TimerLabel* instance, bool enable_animation) {
+    furi_check(instance);
+
+    if(!instance->is_hidden) {
+        if(enable_animation) {
+            timer_label_animate_bg_gradient(instance, MAIN_WIDTH_PX);
+            timer_label_animate_text(instance, LV_OPA_TRANSP);
+
+        } else {
+            lv_obj_set_x(instance->bg_gradient, MAIN_WIDTH_PX);
+            lv_obj_set_style_opa(instance->main_layout, LV_OPA_TRANSP, LV_PART_MAIN);
+        }
+
+        instance->is_hidden = true;
     }
 }
 
@@ -133,7 +307,7 @@ const lv_obj_class_t timer_label_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = timer_label_lvgl_constructor,
     .name = "widget-timer-label",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
+    .width_def = MAIN_WIDTH_PX,
+    .height_def = LV_PCT(100),
     .instance_size = sizeof(TimerLabel),
 };

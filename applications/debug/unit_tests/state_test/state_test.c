@@ -92,7 +92,7 @@ MU_TEST(state_test_stress) {
         sub_count = CLAMP(sub_count + 1, sub_limit, 0ul);
         for(size_t i = 0; i < sub_count; i++) {
             MoonPhase stored_phase;
-            furi_state_get(subs[i], &stored_phase);
+            furi_state_get(state, &stored_phase);
             mu_assert_int_eq(phase, stored_phase);
         }
     }
@@ -104,10 +104,25 @@ MU_TEST(state_test_stress) {
     furi_state_free(state);
 }
 
+MU_TEST(state_test_acquire_release) {
+    MoonPhase phase = MoonPhaseNewMoon;
+
+    FuriState* state = furi_state_alloc(sizeof(MoonPhase));
+    FuriStateSub* sub = furi_state_subscribe(state, check_phase, &phase);
+
+    for(; phase < MoonPhaseMAX; ++phase) {
+        with_furi_state(state, MoonPhase * p, { *p = phase; });
+    }
+
+    furi_state_unsubscribe(sub);
+    furi_state_free(state);
+}
+
 MU_TEST_SUITE(state_test_suite) {
     MU_RUN_TEST(state_test_initial_cb);
     MU_RUN_TEST(state_test_atomic_get);
     MU_RUN_TEST(state_test_stress);
+    MU_RUN_TEST(state_test_acquire_release);
 }
 
 int run_minunit_state_test(void) {

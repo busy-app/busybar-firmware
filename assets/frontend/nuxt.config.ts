@@ -33,10 +33,12 @@ export default defineNuxtConfig({
   },
   css: [
     '@/assets/css/typography.css',
-    '@/assets/css/global.css'
+    '@/assets/css/global.css',
+    '@/assets/css/fonts.css'
   ],
   ui: {
-    colorMode: true
+    colorMode: true,
+    fonts: false
   },
   runtimeConfig: {
     public: {
@@ -98,10 +100,16 @@ export default defineNuxtConfig({
     }
   },
   icon: {
-    customCollections: [{
-      prefix: 'busy',
-      dir: './assets/icons'
-    }],
+    customCollections: [
+      {
+        prefix: 'busy',
+        dir: './assets/icons/busy'
+      },
+      {
+        prefix: 'bi',
+        dir: './assets/icons/bi'
+      }
+    ],
     clientBundle: {
       icons: [
         'ri:account-circle-fill',

@@ -6,7 +6,6 @@
 #include "cli_shell_line.h"
 #include "cli_shell_completions.h"
 #include <stdio.h>
-#include <furi_hal_version.h>
 #include <m-array.h>
 #include <containers/pipe.h>
 #include <toolbox/api_lock.h>

@@ -5,7 +5,7 @@ App(
     entry_point="wifi_srv",
     stack_size=4 * 1024,
     order=110,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     requires=[
         "intercom",
         "network",
@@ -14,7 +14,8 @@ App(
         "wifi.c",
         "wifi_api.c",
         "wifi_net.c",
-        "wifi_settings.c",
+        "settings/*.c",
+        "wifi_state.c",
     ],
 )
 
@@ -25,7 +26,7 @@ App(
     entry_point="wifi_srv",
     stack_size=4 * 1024,
     order=110,
-    targets=["f64"],
+    targets=["f64", "f65"],
     requires=[
         "intercom",
         "network",

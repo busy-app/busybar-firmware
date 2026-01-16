@@ -4,9 +4,10 @@
  */
 #pragma once
 
-#include "sntp_settings.h"
+#include "settings/settings.h"
 
 #include <furi.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,16 +18,6 @@ extern "C" {
 
 /** SNTP service opaque type declaration */
 typedef struct Sntp Sntp;
-
-/**
- * @brief Update the SNTP synchronization status.
- *
- * This function is used internally to report the result of a time synchronization attempt.
- *
- * @param[in,out] instance pointer to the SNTP service instance
- * @param[in] success true if synchronization succeeded, false otherwise
- */
-void sntp_status_update(Sntp* instance, bool success);
 
 /**
  * @brief Get the current SNTP settings.
@@ -51,6 +42,22 @@ void sntp_get_settings(const Sntp* instance, SntpSettings* settings);
  * @return true if settings were successfully applied, false otherwise
  */
 bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
+
+/**
+ * @brief Get local Unix seconds timestamp
+ * 
+ * @param[in] instance
+ * @return 64-bit local Unix seconds timestamp
+ */
+time_t sntp_get_local_timestamp(Sntp* instance);
+
+/**
+ * @brief Get local Unix milliseconds timestamp
+ *
+ * @param[in] instance
+ * @return 64-bit local Unix milliseconds timestamp
+ */
+time_t sntp_get_local_timestamp_ms(Sntp* instance);
 
 #ifdef __cplusplus
 }
