@@ -192,7 +192,7 @@ bool compress_stream_decoder_read(
 /** Seek to position in uncompressed data stream
  *
  * @param      instance   The CompressStreamDecoder instance
- * @param[in]  position   The position
+ * @param[in]  position   The position (absolute)
  * 
  * @return     true on success
  * @warning    Backward seeking is not supported

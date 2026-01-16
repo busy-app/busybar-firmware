@@ -5,6 +5,8 @@
 #include <heatshrink/heatshrink_decoder.h>
 #include <stdint.h>
 
+#include <zlib/zlib.h>
+
 #define TAG "Compress"
 
 /** Defines encoder and decoder window size */
@@ -412,13 +414,13 @@ typedef bool (*CompressStreamDecoderSeekFn)(CompressStreamDecoder* instance, siz
 typedef size_t (*CompressStreamDecoderTellFn)(CompressStreamDecoder* instance);
 typedef bool (*CompressStreamDecoderRewindFn)(CompressStreamDecoder* instance);
 
-typedef struct CompressStreamDecoderVtable {
+typedef struct CompressStreamDecoderOps {
     CompressStreamDecoderFreeFn free;
     CompressStreamDecoderReadFn read;
     CompressStreamDecoderSeekFn seek;
     CompressStreamDecoderTellFn tell;
     CompressStreamDecoderRewindFn rewind;
-} CompressStreamDecoderVtable;
+} CompressStreamDecoderOps;
 
 static CompressStreamDecoder* hs_alloc(const CompressConfigHeatshrink* config, CompressIoCallback read_cb, void* read_context);
 static void hs_free(CompressStreamDecoder* instance);
@@ -435,7 +437,7 @@ static size_t gz_tell(CompressStreamDecoder* instance);
 static bool gz_rewind(CompressStreamDecoder* instance);
 
 
-static CompressStreamDecoderVtable compress_api[CompressTypeMax] = {
+static CompressStreamDecoderOps compress_ops[CompressTypeMax] = {
     [CompressTypeHeatshrink] = {
         .free = hs_free,
         .read = hs_read,
@@ -453,7 +455,7 @@ static CompressStreamDecoderVtable compress_api[CompressTypeMax] = {
 };
 
 struct CompressStreamDecoder {
-    CompressStreamDecoderVtable *api;
+    CompressStreamDecoderOps *ops;
     union {
         heatshrink_decoder* decoder;
     };
@@ -485,7 +487,7 @@ CompressStreamDecoder* compress_stream_decoder_alloc(
 void compress_stream_decoder_free(CompressStreamDecoder* instance) {
     furi_check(instance);
 
-    instance->api->free(instance);
+    instance->ops->free(instance);
 }
 
 bool compress_stream_decoder_read(
@@ -495,25 +497,25 @@ bool compress_stream_decoder_read(
     furi_check(instance);
     furi_check(data_out);
 
-    return instance->api->read(instance, data_out, data_out_size);
+    return instance->ops->read(instance, data_out, data_out_size);
 }
 
 bool compress_stream_decoder_seek(CompressStreamDecoder* instance, size_t position) {
     furi_check(instance);
 
-    return instance->api->seek(instance, position);
+    return instance->ops->seek(instance, position);
 }
 
 size_t compress_stream_decoder_tell(CompressStreamDecoder* instance) {
     furi_check(instance);
 
-    return instance->api->tell(instance);
+    return instance->ops->tell(instance);
 }
 
 bool compress_stream_decoder_rewind(CompressStreamDecoder* instance) {
     furi_check(instance);
 
-    return instance->api->rewind(instance);
+    return instance->ops->rewind(instance);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -527,7 +529,7 @@ static CompressStreamDecoder* hs_alloc(
     furi_check(hs_config);
 
     CompressStreamDecoder* instance = malloc(sizeof(CompressStreamDecoder));
-    instance->api = &compress_api[CompressTypeHeatshrink];
+    instance->ops = &compress_ops[CompressTypeHeatshrink];
     instance->decoder = heatshrink_decoder_alloc(
         hs_config->input_buffer_sz, hs_config->window_sz2, hs_config->lookahead_sz2);
     instance->stream_position = 0;

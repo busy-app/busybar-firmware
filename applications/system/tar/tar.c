@@ -121,7 +121,7 @@ bool tar_extract_files_cli(FuriString* path, FuriString* args) {
             printf(CLI_STATUS_ERROR);
             break;
         }
-        if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeRead)) {
+        if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeReadAuto)) {
             printf(ANSI_FG_RED "Error: Failed to open archive for reading\r\n" ANSI_RESET);
             printf(CLI_STATUS_ERROR);
             break;
