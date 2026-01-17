@@ -401,7 +401,7 @@
       >
         <span class="underline">http://10.0.4.20/docs</span>
         <UIcon
-          name="i-busy-open-in-new"
+          name="i-bi-open-in-new"
           class="size-4"
         />
       </UButton>
@@ -418,7 +418,7 @@
         >
           <span class="underline">http://{{ wifiStore.wifi?.ip_config?.address }}/docs</span>
           <UIcon
-            name="i-busy-open-in-new"
+            name="i-bi-open-in-new"
             class="size-4"
           />
         </UButton>
