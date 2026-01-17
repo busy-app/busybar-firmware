@@ -99,16 +99,6 @@
 <script setup lang="ts">
 import { composeAnimation } from '@/util/seq2anim';
 
-useHead({
-  title: 'BUSY Bar Virtual LAN',
-  meta: [
-    {
-      name: 'description',
-      content: 'Control your BUSY Bar in the browser'
-    }
-  ]
-});
-
 const deviceStore = useDeviceStore();
 
 const filesModel = ref<File[] | null>(null);

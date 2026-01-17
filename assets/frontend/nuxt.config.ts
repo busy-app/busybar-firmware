@@ -42,7 +42,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      barUrl: ''
+      barUrl: '',
+      disablePolling: false
     }
   },
   experimental: {
@@ -112,6 +113,7 @@ export default defineNuxtConfig({
     ],
     clientBundle: {
       icons: [
+        'ri:folder-add-line',
         'ri:account-circle-fill',
         'ri:add-fill',
         'ri:add-line',

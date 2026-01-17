@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function handleHTTPError (error: any, title: string, shouldCheckForConnection?: boolean) {
+export async function handleHTTPError (error: any, title: string, shouldCheckForConnection?: boolean, duration?: number) {
   const deviceStore = useDeviceStore();
   if (error.data?.error === 'Forbidden') {
     await navigateTo('/login');
@@ -22,7 +22,7 @@ export async function handleHTTPError (error: any, title: string, shouldCheckFor
     description: parseError(error),
     icon: 'i-bi-alert',
     color: 'error',
-    duration: 10000
+    duration: typeof duration === 'number' ? duration : 10000
   });
 }
 
