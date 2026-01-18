@@ -15,6 +15,8 @@
 #define OTP1_MAC_SIZE   (6)
 #define OTP1_MODEL_SIZE (8)
 
+#define HW_UID_SIZE (12)
+
 typedef struct {
     bool otp1_valid;
     bool otp2_valid;
@@ -24,6 +26,7 @@ typedef struct {
     // Cached/derived values
     char model_code[OTP1_MODEL_SIZE + 1]; // Null-terminated model
     uint8_t usb_mac[OTP1_MAC_SIZE];
+    uint8_t hw_uid[HW_UID_SIZE];
 } FuriHalVersionState;
 
 static FuriHalVersionState furi_hal_version_state = {0};
@@ -148,6 +151,11 @@ static bool otp_is_otp4_provisioned(void) {
 /*** Initialization ***/
 
 void furi_hal_version_init(void) {
+    // Copy MCU UID, reversing byte order
+    for(size_t i = 0; i < HW_UID_SIZE; i++) {
+        furi_hal_version_state.hw_uid[i] = ((uint8_t*)UID_BASE_ADDRESS)[HW_UID_SIZE - 1 - i];
+    }
+
     // Check OTP provisioning status
     furi_hal_version_state.otp1_valid = otp_is_otp1_provisioned();
     furi_hal_version_state.otp2_valid = otp_is_otp2_provisioned();
@@ -351,22 +359,14 @@ const uint8_t* furi_hal_version_get_usb_mac(void) {
     return furi_hal_version_state.usb_mac;
 }
 
-/*** MCU UID ***/
+/*** Hardware UID ***/
 
 size_t furi_hal_version_uid_size(void) {
-    return 12; // STM32U5 has 96-bit (12-byte) UID
+    return HW_UID_SIZE;
 }
 
 const uint8_t* furi_hal_version_uid(void) {
-    return (const uint8_t*)UID_BASE;
-}
-
-void furi_hal_version_get_uid_str(FuriString* serial) {
-    const uint8_t* uid = furi_hal_version_uid();
-    furi_string_reset(serial);
-    for(size_t i = 0; i < furi_hal_version_uid_size(); i++) {
-        furi_string_cat_printf(serial, "%02X", uid[i]);
-    }
+    return furi_hal_version_state.hw_uid;
 }
 
 /*** OTP Validity Status ***/

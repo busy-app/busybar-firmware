@@ -39,7 +39,7 @@ typedef struct {
 
 typedef struct {
     BusyTimerSnapshotType type;
-    uint64_t timestamp_ms;
+    time_t timestamp_ms;
     union {
         BusyTimerSnapshotInfinite infinite;
         BusyTimerSnapshotSimple simple;
