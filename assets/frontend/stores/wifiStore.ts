@@ -51,7 +51,7 @@ export const useWifiStore = defineStore('wifi', () => {
         return response.networks;
       })
       .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t list WiFi networks');
+        await handleHTTPError(error, 'Couldn\'t list WiFi networks', false, 0);
         return [];
       });
   }
@@ -59,7 +59,7 @@ export const useWifiStore = defineStore('wifi', () => {
   async function connectToWifiNetwork (params: WifiConnectParams) {
     return await busyBar.connectWifi(params)
       .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t connect to WiFi network');
+        await handleHTTPError(error, 'Couldn\'t connect to WiFi network', false, 0);
         return false;
       });
   }
@@ -67,7 +67,7 @@ export const useWifiStore = defineStore('wifi', () => {
   async function disconnectFromWifiNetwork () {
     return await busyBar.disconnectWifi()
       .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network');
+        await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network', false, 0);
         return false;
       });
   }
