@@ -89,21 +89,23 @@
           <div>{{ item.name }}</div>
         </div>
 
-        <div class="flex justify-end gap-2">
-          <UTooltip
-            v-if="item.type === 'file'"
-            :delay-duration="0"
-            text="Download"
-          >
-            <UButton
-              icon="i-bi-download"
-              variant="ghost"
-              color="neutral"
-              square
-              :loading="loading.read"
-              @click="read(item.name)"
-            />
-          </UTooltip>
+        <div class="flex items-center justify-end gap-2">
+          <template v-if="item.type === 'file'">
+            <span class="text-sm text-muted">{{ bytesToSize((item as StorageFileElement).size) }}</span>
+            <UTooltip
+              :delay-duration="0"
+              text="Download"
+            >
+              <UButton
+                icon="i-bi-download"
+                variant="ghost"
+                color="neutral"
+                square
+                :loading="loading.read"
+                @click="read(item.name)"
+              />
+            </UTooltip>
+          </template>
           <UTooltip
             :delay-duration="0"
             text="Delete"
@@ -312,7 +314,7 @@
 </template>
 
 <script setup lang="ts">
-import type { StorageListElement } from '@busy-app/busy-lib';
+import type { StorageListElement, StorageFileElement } from '@busy-app/busy-lib';
 
 const deviceStore = useDeviceStore();
 
