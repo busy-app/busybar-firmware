@@ -111,7 +111,8 @@
             size="xl"
             variant="soft"
             :ui="{ base: 'ring-1 ring-glass' }"
-            @keyup.enter="loading.rename ? null : updateDeviceName"
+            :disabled="loading.rename"
+            @keyup.enter="updateDeviceName"
           />
         </template>
       </ModalGeneric>
@@ -277,6 +278,7 @@ const loading = ref({
 async function updateDeviceName () {
   loading.value.rename = true;
   await deviceStore.setDeviceName(nameModel.value.trim());
+  showRenameModal.value = false;
   loading.value.rename = false;
 }
 

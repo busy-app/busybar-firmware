@@ -151,7 +151,8 @@
             size="xl"
             variant="soft"
             :ui="{ base: 'ring-1 ring-glass' }"
-            @keyup.enter="loading.mkdir ? null : mkdir"
+            :disabled="loading.mkdir"
+            @keyup.enter="mkdir"
           />
         </template>
       </ModalGeneric>
