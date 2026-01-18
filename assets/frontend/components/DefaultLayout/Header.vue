@@ -58,12 +58,12 @@
               nameModel = '';
               showRenameModal = true;
             }
-          },
-          {
+          }
+          /* {
             label: 'Restart',
             icon: 'i-ri-restart-line',
             onSelect: () => { showRestartModal = true; }
-          }
+          } */
         ]"
         :content="{
           align: 'start',
