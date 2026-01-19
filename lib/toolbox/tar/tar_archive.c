@@ -110,43 +110,42 @@ const struct mtar_ops compress_ops = {
     .close = mtar_compress_file_close,
 };
 
-
-static bool try_heatshrink_magic(File *f) {
-    if (!storage_file_seek(f, 0, true)) {
+static bool try_heatshrink_magic(File* f) {
+    if(!storage_file_seek(f, 0, true)) {
         return false;
     }
 
     uint32_t buf = 0;
     size_t r = storage_file_read(f, &buf, sizeof(buf));
-    if (r < sizeof(buf)) {
+    if(r < sizeof(buf)) {
         return false;
     } else {
         return buf == HEATSHRINK_MAGIC;
     }
 }
 
-static bool try_gzip_magic(File *f) {
-    if (!storage_file_seek(f, 0, true)) {
+static bool try_gzip_magic(File* f) {
+    if(!storage_file_seek(f, 0, true)) {
         return false;
     }
 
     uint32_t buf = 0;
     size_t r = storage_file_read(f, &buf, sizeof(buf));
-    if (r < sizeof(buf)) {
+    if(r < sizeof(buf)) {
         return false;
     } else {
         return (buf & 0xffffff) == GZIP_MAGIC;
     }
 }
 
-static bool try_tar_magic(File *f) {
-    if (!storage_file_seek(f, 257, true)) {
+static bool try_tar_magic(File* f) {
+    if(!storage_file_seek(f, 257, true)) {
         return false;
     }
 
     uint64_t buf = 0;
     size_t r = storage_file_read(f, &buf, sizeof(buf));
-    if (r < sizeof(buf)) {
+    if(r < sizeof(buf)) {
         return false;
     } else {
         return buf == TAR_MAGIC;
@@ -156,24 +155,24 @@ static bool try_tar_magic(File *f) {
  * Detect archive type by magic number.
  * 
  * @return true if detection succeeded, false on any error.
- */ 
-static bool detect_archive_mode(Storage* storage, const char* path, TarOpenMode *out_mode) {
-    File *f = storage_file_alloc(storage);
+ */
+static bool detect_archive_mode(Storage* storage, const char* path, TarOpenMode* out_mode) {
+    File* f = storage_file_alloc(storage);
     bool result = false;
     do {
         if(!storage_file_open(f, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
             break;
         }
 
-        if (try_heatshrink_magic(f)) {
+        if(try_heatshrink_magic(f)) {
             FURI_LOG_D(TAG, "Heatshrink detected");
             *out_mode = TarOpenModeReadHeatshrink;
             result = true;
-        } else if (try_gzip_magic(f)) {
+        } else if(try_gzip_magic(f)) {
             FURI_LOG_D(TAG, "Gzip detected");
             *out_mode = TarOpenModeReadGzip;
             result = true;
-        } else if (try_tar_magic(f)) {
+        } else if(try_tar_magic(f)) {
             FURI_LOG_D(TAG, "Tarball detected");
             *out_mode = TarOpenModeRead;
             result = true;
@@ -263,7 +262,8 @@ bool tar_archive_open(TarArchive* archive, const char* path, TarOpenMode mode) {
         CompressStream* gz_stream = malloc(sizeof(CompressStream));
         gz_stream->stream = stream;
         gz_stream->header_skip = 0;
-        gz_stream->decoder = compress_stream_decoder_alloc(CompressTypeGzip, NULL, file_read_cb, stream);
+        gz_stream->decoder =
+            compress_stream_decoder_alloc(CompressTypeGzip, NULL, file_read_cb, stream);
         mtar_init(&archive->tar, mtar_access, &compress_ops, gz_stream);
         break;
     }

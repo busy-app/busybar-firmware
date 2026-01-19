@@ -15,11 +15,11 @@ typedef struct Storage Storage;
 /** Tar archive open mode 
  */
 typedef enum {
-    TarOpenModeRead = 'r',              ///< read-only uncompressed tar
-    TarOpenModeWrite = 'w',             ///< write-only uncompressed tar
-    TarOpenModeReadHeatshrink = 'h',    ///< read-only heatshrink-compressed tar
-    TarOpenModeReadGzip = 'g',          ///< read-only gzip-compressed tar
-    TarOpenModeReadAuto = 'a',          ///< read-only tar, auto-detect compression
+    TarOpenModeRead = 'r', ///< read-only uncompressed tar
+    TarOpenModeWrite = 'w', ///< write-only uncompressed tar
+    TarOpenModeReadHeatshrink = 'h', ///< read-only heatshrink-compressed tar
+    TarOpenModeReadGzip = 'g', ///< read-only gzip-compressed tar
+    TarOpenModeReadAuto = 'a', ///< read-only tar, auto-detect compression
 } TarOpenMode;
 
 /** Tar archive constructor
