@@ -92,6 +92,13 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
     }
 }
 
+#if !defined(BSB_MCU_SI917)
+static void ble_startup_callback(void* context) {
+    Ble* instance = context;
+    ble_init(instance);
+}
+#endif
+
 static Ble* ble_alloc() {
     Ble* instance = malloc(sizeof(Ble));
     instance->state = BleServiceStateReset;
@@ -131,6 +138,8 @@ static Ble* ble_alloc() {
     instance->current_command_api_lock = api_lock_alloc_locked();
     instance->current_command_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
     instance->current_command = malloc(instance->current_command_size);
+
+    furi_event_loop_pend_callback(instance->event_loop, ble_startup_callback, instance);
 #endif
 
     furi_record_create(RECORD_BLE, instance);

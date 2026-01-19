@@ -49,13 +49,10 @@ static void ble_send_message(
     furi_mutex_release(instance->current_command_lock);
 }
 
-bool ble_init(Ble* ble) {
+void ble_init(Ble* ble) {
     furi_assert(ble);
 
-    bool result = false;
-    ble_send_message(ble, BleCommandInit, NULL, 0, &result);
-
-    return result;
+    ble_send_message_no_wait(ble, BleCommandInit, NULL, 0);
 }
 
 bool ble_get_status(Ble* ble, BleStatus* const output) {
@@ -72,11 +69,7 @@ bool ble_start(Ble* ble) {
     furi_assert(ble);
 
     bool result = false;
-    do {
-        if(!ble_init(ble)) break;
-
-        ble_send_message(ble, BleCommandEnable, NULL, 0, &result);
-    } while(false);
+    ble_send_message(ble, BleCommandEnable, NULL, 0, &result);
 
     return result;
 }
@@ -85,11 +78,7 @@ bool ble_stop(Ble* ble) {
     furi_assert(ble);
 
     bool result = false;
-    do {
-        if(!ble_init(ble)) break;
-
-        ble_send_message(ble, BleCommandDisable, NULL, 0, &result);
-    } while(false);
+    ble_send_message(ble, BleCommandDisable, NULL, 0, &result);
 
     return result;
 }
