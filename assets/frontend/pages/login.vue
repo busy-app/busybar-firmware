@@ -92,23 +92,12 @@ async function attemptUnlock () {
     await deviceStore.fetchSystemStatus(true);
     await navigateTo('/');
   } catch (error: unknown) {
-    // Type guard for error with data property
-    const errorWithData = (err: unknown): err is { data?: { error: string } } => typeof err === 'object' && err !== null && 'data' in err;
-
-    if (errorWithData(error) && error.data?.error === 'Forbidden') {
+    if ((error as { status?: number })?.status === 403) {
       apiStore.apiKey = null;
       pms.passwordModel.current = '';
       pms.passwordModel.currentWrong = true;
     } else {
-      console.error('Error fetching system status:', error);
-      toast.add({
-        id: 'system-status-error',
-        title: 'Failed to fetch system status',
-        description: errorWithData(error) ? error.data?.error || String(error) || genericErrorMessage : genericErrorMessage,
-        icon: 'i-bi-alert',
-        color: 'error',
-        duration: 10000
-      });
+      await handleHTTPError(error, 'Failed to unlock Virtual LAN');
     }
   }
   loading.value = false;
