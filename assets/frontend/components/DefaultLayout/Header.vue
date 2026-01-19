@@ -299,6 +299,7 @@ async function restartDevice () {
 
 async function lockDown () {
   apiStore.apiKey = null;
+  deviceStore.busyBar.setApiKey('');
   await navigateTo('/login');
 }
 
