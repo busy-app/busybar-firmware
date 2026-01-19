@@ -44,7 +44,7 @@ matter_provision = distenv.PhonyTarget(
 )
 AlwaysBuild(matter_provision)
 
-Depends(matter_provision, mqtt_provision)
+Depends(mqtt_provision, matter_provision)
 
 
 firmware_env.Alias("crypto_provision", [mqtt_provision, matter_provision])

@@ -6,8 +6,6 @@
 
 #define TAG "BusyTimerSettings"
 
-#define BUSY_TIMER_SETTINGS_FILE APP_DATA_PATH("settings.json")
-
 #define BUSY_TIMER_SETTINGS_CURRENT_VERSION (0)
 
 #define VERSION_KEY "version"
@@ -25,6 +23,51 @@
 #define BUSY_TIMER_INFINITE_MODE_KEY "infinite"
 #define BUSY_TIMER_SIMPLE_MODE_KEY   "simple"
 #define BUSY_TIMER_INTERVAL_MODE_KEY "interval"
+
+#define TIME_DEFAULT_MN      (20)
+#define WORK_TIME_DEFAULT_MN (20)
+#define REST_TIME_DEFAULT_MN (5)
+#define CYCLE_COUNT_DEFAULT  (3)
+
+#define ENABLE_INTERVALS_DEFAULT (true)
+#define ENABLE_AUTOSTART_DEFAULT (false)
+#define ENABLE_DEMO_MODE_DEFAULT (false)
+
+static const char* busy_timer_settings_file_paths[BusyTimerProfileIdMax] = {
+    [BusyTimerProfileIdBusy] = APP_DATA_PATH("settings_busy.json"),
+    [BusyTimerProfileIdCustom] = APP_DATA_PATH("settings_custom.json"),
+};
+
+static const BusyTimerSettings busy_timer_settings_default[BusyTimerProfileIdMax] = {
+    [BusyTimerProfileIdBusy] =
+        {
+            .timer_config =
+                {
+                    .mode = BusyTimerModeInterval,
+                    .time_mn = TIME_DEFAULT_MN,
+                    .work_time_mn = WORK_TIME_DEFAULT_MN,
+                    .rest_time_mn = REST_TIME_DEFAULT_MN,
+                    .cycle_count = CYCLE_COUNT_DEFAULT,
+                    .enable_intervals = ENABLE_INTERVALS_DEFAULT,
+                    .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
+                    .enable_demo_mode = ENABLE_DEMO_MODE_DEFAULT,
+                },
+        },
+    [BusyTimerProfileIdCustom] =
+        {
+            .timer_config =
+                {
+                    .mode = BusyTimerModeInfinite,
+                    .time_mn = TIME_DEFAULT_MN,
+                    .work_time_mn = WORK_TIME_DEFAULT_MN,
+                    .rest_time_mn = REST_TIME_DEFAULT_MN,
+                    .cycle_count = CYCLE_COUNT_DEFAULT,
+                    .enable_intervals = ENABLE_INTERVALS_DEFAULT,
+                    .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
+                    .enable_demo_mode = ENABLE_DEMO_MODE_DEFAULT,
+                },
+        },
+};
 
 static bool busy_timer_settings_parse_timer_config(const cJSON* json, BusyTimerConfig* config) {
     bool success = false;
@@ -142,8 +185,9 @@ static bool busy_timer_settings_parse(const cJSON* json, BusyTimerSettings* sett
     return success;
 }
 
-bool busy_timer_settings_load(BusyTimerSettings* settings) {
+bool busy_timer_settings_load(BusyTimerSettings* settings, BusyTimerProfileId profile_id) {
     furi_check(settings);
+    furi_check(profile_id < BusyTimerProfileIdMax);
 
     bool success = false;
 
@@ -151,7 +195,9 @@ bool busy_timer_settings_load(BusyTimerSettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_TIMER_SETTINGS_FILE, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        const char* file_path = busy_timer_settings_file_paths[profile_id];
+
+        if(!storage_file_open(file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
             break;
         }
 
@@ -207,8 +253,9 @@ static void
     cJSON_AddBoolToObject(timer_json, BUSY_TIMER_ENABLE_DEMO_MODE_KEY, config->enable_demo_mode);
 }
 
-bool busy_timer_settings_save(const BusyTimerSettings* settings) {
+bool busy_timer_settings_save(const BusyTimerSettings* settings, BusyTimerProfileId profile_id) {
     furi_check(settings);
+    furi_check(profile_id < BusyTimerProfileIdMax);
 
     bool success = false;
 
@@ -216,7 +263,9 @@ bool busy_timer_settings_save(const BusyTimerSettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_TIMER_SETTINGS_FILE, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        const char* file_path = busy_timer_settings_file_paths[profile_id];
+
+        if(!storage_file_open(file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
             break;
         }
 
@@ -242,4 +291,11 @@ bool busy_timer_settings_save(const BusyTimerSettings* settings) {
     furi_record_close(RECORD_STORAGE);
 
     return success;
+}
+
+void busy_timer_settings_set_default(BusyTimerSettings* settings, BusyTimerProfileId profile_id) {
+    furi_check(settings);
+    furi_check(profile_id < BusyTimerProfileIdMax);
+
+    *settings = busy_timer_settings_default[profile_id];
 }

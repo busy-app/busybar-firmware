@@ -9,6 +9,7 @@ App(
         "fw_update",
         "matter_settings",
         "ble_settings",
+        "wifi_settings",
     ],
     targets=["f20", "f21", "f22"],
 )
