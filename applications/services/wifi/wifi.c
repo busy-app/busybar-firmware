@@ -13,21 +13,6 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
         furi_message_queue_put(instance->response_queue, data, FuriWaitForever) == FuriStatusOk);
 }
 
-static void wifi_save_settings(const WifiCredentials* credentials, const WifiIpConfig* ip_config) {
-    const WifiSettings settings = {
-        .credentials = *credentials,
-        .ip_config = *ip_config,
-    };
-
-    wifi_settings_save(&settings);
-}
-
-static void wifi_save_default_settings(void) {
-    WifiSettings default_settings;
-    wifi_settings_init_defaults(&default_settings);
-    wifi_settings_save(&default_settings);
-}
-
 static void wifi_print_connection_info(Wifi* instance) {
     with_furi_state(instance->state, const WifiInfo* info, {
         const WifiIpv4* addr = &info->ip_config.ip4.address;
@@ -51,12 +36,7 @@ static void wifi_apply_settings_pending_callback(void* context) {
 
     do {
         WifiSettings settings;
-
-        if(!wifi_settings_load(&settings)) {
-            FURI_LOG_W(TAG, "Failed to load settings, using defaults");
-            wifi_settings_init_defaults(&settings);
-            wifi_settings_save(&settings);
-        }
+        wifi_settings_load(&settings);
 
         if(strnlen(settings.credentials.ssid, SSID_MAX_LEN) == 0) {
             FURI_LOG_I(TAG, "No SSID specified");
@@ -140,7 +120,10 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 wifi_net_get_ip_config(instance, &new_ip_config);
 
                 wifi_state_transition(instance, WifiStateConnected, credentials, &new_ip_config);
-                wifi_save_settings(credentials, ip_config);
+                wifi_settings_save(&(WifiSettings){
+                    .credentials = *credentials,
+                    .ip_config = *ip_config,
+                });
 
                 wifi_print_connection_info(instance);
 
@@ -154,7 +137,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
             wifi_state_transition(instance, WifiStateDisconnected);
 
-            wifi_save_default_settings();
+            wifi_settings_reset(NULL);
         }
 
     } else {
@@ -162,7 +145,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
         if(request_type == WifiRequestTypeConnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
-            wifi_save_default_settings();
+            wifi_settings_reset(NULL);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
