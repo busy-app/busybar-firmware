@@ -18,7 +18,7 @@ export const useDeviceStore = defineStore('device', () => {
   const wifiStore = useWifiStore();
 
   const busyBar = new BusyBar({
-    addr: useRuntimeConfig().public.barUrl
+    addr: useRuntimeConfig().public.barUrl || window.location.origin
   });
 
   // Assume device is connected unless the screenstream stops.

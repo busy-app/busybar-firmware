@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 
 export const useApiStore = defineStore('apiStore', () => {
-  const barUrl = useRuntimeConfig().public.barUrl;
+  const barUrl = useRuntimeConfig().public.barUrl || window.location.origin;
   const apiKey = ref<string | null>(null);
 
   type FetchArgs = Parameters<typeof $fetch>;
