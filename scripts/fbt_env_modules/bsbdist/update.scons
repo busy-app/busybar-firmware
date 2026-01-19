@@ -4,13 +4,8 @@ dist_env = DIST_ENV
 u5_env = U5_ENV
 sil_env = SIL_ENV
 
-compress = dist_env["COMPRESS_BUNDLE"]
-
-tar_suffix = ".tgz" if compress else ".tar"
-output_option = "--output-tgz" if compress else "--output-tar"
-
 update_tar = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}" + tar_suffix),
+    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tar"),
     None,
     [
         [
@@ -18,7 +13,7 @@ update_tar = dist_env.Command(
             dist_env.Real("#scripts/update_bundle.py"),
             "--target",
             u5_env.subst("$TARGET_HW"),
-            output_option,
+            "--output-tar",
             "$TARGET",
             "--stage",
             u5_env["UPD_ENV"]["FW_BIN"][0],
@@ -44,8 +39,30 @@ Depends(
     ],
 )
 
+update_tgz = dist_env.Command(
+    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tgz"),
+    update_tar,
+    action=[
+        "gzip -fk ${SOURCE}",
+        Move("${TARGET}", "${SOURCE}.gz")
+    ]
+)
+
 dist_env.PhonyTarget(
     "flash_usb",
+    [
+        [
+            "${PYTHON3}",
+            dist_env.Real("#scripts/update_over_http.py"),
+            "--file",
+            "${SOURCE}",
+        ]
+    ],
+    source=update_tgz,
+)
+
+dist_env.PhonyTarget(
+    "flash_usb_tar",
     [
         [
             "${PYTHON3}",
@@ -60,7 +77,7 @@ dist_env.PhonyTarget(
 
 # Tar without radio firmware for minimal update package
 min_update_tar = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}" + tar_suffix),
+    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tar"),
     None,
     [
         [
@@ -68,7 +85,7 @@ min_update_tar = dist_env.Command(
             dist_env.Real("#scripts/update_bundle.py"),
             "--target",
             u5_env.subst("$TARGET_HW"),
-            output_option,
+            "--output-tar",
             "$TARGET",
             "--stage",
             u5_env["UPD_ENV"]["FW_BIN"][0],
@@ -89,6 +106,16 @@ Depends(
     ],
 )
 
+min_update_tgz = dist_env.Command(
+    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tgz"),
+    min_update_tar,
+    action=[
+        "gzip -fk ${SOURCE}",
+        Move("${TARGET}", "${SOURCE}.gz")
+    ]
+)
+
+
 dist_env.PhonyTarget(
     "flash_usb_min",
     [
@@ -99,9 +126,21 @@ dist_env.PhonyTarget(
             "${SOURCE}",
         ]
     ],
-    source=min_update_tar,
+    source=min_update_tgz,
 )
 
+dist_env.PhonyTarget(
+    "flash_usb_min_tar",
+    [
+        [
+            "${PYTHON3}",
+            dist_env.Real("#scripts/update_over_http.py"),
+            "--file",
+            "${SOURCE}",
+        ]
+    ],
+    source=min_update_tar,
+)
 
 # Dist folder
 
@@ -120,9 +159,15 @@ installs.extend(
     (
         InstallAs(
             dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}" + tar_suffix)
+                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}.tar")
             ),
             update_tar,
+        ),
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}.tgz")
+            ),
+            update_tgz,
         ),
         # U5 firmware artifacts
         InstallAs(
