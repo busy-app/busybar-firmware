@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include <furi.h>
+#include <FreeRTOS.h>
 
 // not used therefore defined to smallest possible type to save space
 typedef uint8_t osal_semaphore_def_t;
@@ -42,6 +43,32 @@ FURI_ALWAYS_INLINE static inline uint32_t _osal_ms2tick(uint32_t msec) {
 
 FURI_ALWAYS_INLINE static inline void osal_task_delay(uint32_t msec) {
     furi_delay_ms(msec);
+}
+
+#define OSAL_SPINLOCK_DEF(_name, _int_set) osal_spinlock_t _name
+
+typedef UBaseType_t osal_spinlock_t;
+
+FURI_ALWAYS_INLINE static inline void osal_spin_init(osal_spinlock_t* ctx) {
+    UNUSED(ctx);
+}
+
+FURI_ALWAYS_INLINE static inline void osal_spin_lock(osal_spinlock_t* ctx, bool in_isr) {
+    if(in_isr) {
+        return; // single core MCU does not need to lock in ISR
+    }
+    UNUSED(ctx);
+    // FURI_CRITICAL_ENTER is not usable here
+    vPortEnterCritical();
+}
+
+FURI_ALWAYS_INLINE static inline void osal_spin_unlock(osal_spinlock_t* ctx, bool in_isr) {
+    if(in_isr) {
+        return; // single core MCU does not need to lock in ISR
+    }
+    UNUSED(ctx);
+    // FURI_CRITICAL_EXIT is not usable here
+    vPortExitCritical();
 }
 
 FURI_ALWAYS_INLINE static inline osal_semaphore_t

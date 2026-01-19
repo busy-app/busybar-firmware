@@ -344,6 +344,7 @@ static Intercom* intercom_alloc(void) {
             TAG,
             "Initial sync failed, retrying in %ld ms",
             INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
+
         furi_delay_ms(INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
     }
 

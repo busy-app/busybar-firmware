@@ -76,8 +76,8 @@ class Main(App):
         self.parser.add_argument(
             "--url",
             required=False,
-            help="URL to send the update to (default: http://busybar.local/api/update)",
-            default="http://busybar.local/api/update",
+            help="URL to send the update to (default: http://10.0.4.20/api/update)",
+            default="http://10.0.4.20/api/update",
         )
         self.parser.set_defaults(func=self.main)
 
