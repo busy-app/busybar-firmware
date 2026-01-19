@@ -20,8 +20,6 @@ static void wifi_model_event_callback(const void* state, void* context) {
     if(model->callback) {
         model->callback(model->context);
     }
-
-    FURI_LOG_W(TAG, "callback");
 }
 
 WifiModel* wifi_model_alloc(void) {
