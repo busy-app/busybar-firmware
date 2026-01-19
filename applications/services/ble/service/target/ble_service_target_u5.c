@@ -37,7 +37,7 @@ static bool ble_service_init_response(BleServiceObject* instance, size_t data_si
 
     instance->ready = true;
 
-    BLE_LOG_D("%s - Ready", instance->config->name, "Ready");
+    BLE_LOG_D("%s - Ready", instance->config->name);
     return instance->ready;
 }
 
