@@ -23,28 +23,14 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
-const wifiStore = useWifiStore();
 
-async function refreshDeviceData () {
-  await deviceStore.checkConnection();
-  if (!deviceStore.isConnected) {
-    return;
-  }
-  toast.remove('device-disconnected');
-
-  await deviceStore.fetchDeviceStatus();
-  await wifiStore.fetchWifiState();
-  await deviceStore.fetchHttpAPIAccess();
-}
-
-let refreshInterval: NodeJS.Timeout;
 if (!useRuntimeConfig().public.disablePolling) {
-  refreshInterval = setInterval(refreshDeviceData, 5000);
+  deviceStore.setRefreshInterval();
 } else {
   console.log('Polling disabled');
 }
 
 onBeforeUnmount(() => {
-  clearInterval(refreshInterval);
+  deviceStore.clearRefreshInterval();
 });
 </script>

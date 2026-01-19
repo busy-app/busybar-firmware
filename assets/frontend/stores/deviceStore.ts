@@ -15,6 +15,7 @@ export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'suc
 
 export const useDeviceStore = defineStore('device', () => {
   const apiRequest = useApiStore().apiRequest;
+  const wifiStore = useWifiStore();
 
   const busyBar = new BusyBar({
     addr: useRuntimeConfig().public.barUrl
@@ -52,6 +53,28 @@ export const useDeviceStore = defineStore('device', () => {
       });
     }
     checkingConnection.value = false;
+  }
+
+  const refreshInterval = ref<NodeJS.Timeout>();
+  async function refreshDeviceData () {
+    await checkConnection();
+    if (!isConnected.value) {
+      return;
+    }
+    toast.remove('device-disconnected');
+
+    await fetchDeviceStatus();
+    await wifiStore.fetchWifiState();
+    await fetchHttpAPIAccess();
+  }
+  function setRefreshInterval () {
+    refreshInterval.value = setInterval(refreshDeviceData, 5000);
+  }
+  function clearRefreshInterval () {
+    if (refreshInterval.value) {
+      clearInterval(refreshInterval.value);
+      refreshInterval.value = undefined;
+    }
   }
 
   // Connection type
@@ -354,6 +377,8 @@ export const useDeviceStore = defineStore('device', () => {
     checkConnection,
     connectionType,
     detectConnectionType,
+    setRefreshInterval,
+    clearRefreshInterval,
 
     apiVersion,
     fetchApiVersion,

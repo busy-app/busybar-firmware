@@ -6,18 +6,17 @@ import type {
 } from '@busy-app/busy-lib';
 
 export const useWifiStore = defineStore('wifi', () => {
-  const busyBar = useDeviceStore().busyBar;
-
+  const deviceStore = useDeviceStore();
   const wifi = ref<WifiState | undefined>(undefined);
 
   async function fetchWifiState (): Promise<WifiState | undefined> {
-    const state = await busyBar.statusWifi()
+    const state = await deviceStore.busyBar.statusWifi()
       .then(response => {
         wifi.value = response;
         return response;
       })
       .catch(async error => {
-        await await handleHTTPError(error, 'Couldn\'t fetch WiFi state', true);
+        await handleHTTPError(error, 'Couldn\'t fetch WiFi state', true);
         return wifi.value;
       });
 
@@ -32,7 +31,8 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function listWifiNetworks () {
-    return await busyBar.networksWifi()
+    deviceStore.clearRefreshInterval();
+    return await deviceStore.busyBar.networksWifi()
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
@@ -53,22 +53,33 @@ export const useWifiStore = defineStore('wifi', () => {
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t list WiFi networks', false, 0);
         return [];
+      })
+      .finally(() => {
+        deviceStore.setRefreshInterval();
       });
   }
 
   async function connectToWifiNetwork (params: WifiConnectParams) {
-    return await busyBar.connectWifi(params)
+    deviceStore.clearRefreshInterval();
+    return await deviceStore.busyBar.connectWifi(params)
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t connect to WiFi network', false, 0);
         return false;
+      })
+      .finally(() => {
+        deviceStore.setRefreshInterval();
       });
   }
 
   async function disconnectFromWifiNetwork () {
-    return await busyBar.disconnectWifi()
+    deviceStore.clearRefreshInterval();
+    return await deviceStore.busyBar.disconnectWifi()
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network', false, 0);
         return false;
+      })
+      .finally(() => {
+        deviceStore.setRefreshInterval();
       });
   }
 
