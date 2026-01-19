@@ -2,6 +2,14 @@ from fbt_extra.util import find_variable_config
 
 Import("FW_ENV", "VARS")
 
+VARS.AddVariables(
+    BoolVariable(
+        "COMPRESS_BUNDLE",
+        "Compress the firmware bundle tarball",
+        True,
+    ),
+)
+
 # Inject default values for this target into global variables
 _fw_default_apps_config = {
     "default": [
@@ -32,3 +40,5 @@ assert isinstance(fw_appdirs_option.default, list)
 fw_appdirs_option.default.extend((("applications/system", False),))
 fw_appdirs_option.default.extend((("applications/debug", False),))
 fw_appdirs_option.default.extend((("applications/settings", False),))
+
+Help("\nBuild variables:" + VARS.GenerateHelpText(FW_ENV), append=True)
