@@ -17,6 +17,17 @@
  */
 #define BUSY_APP_TIMER_MODE "timer"
 
+/**
+ * @brief Special argument to launch in Custom mode.
+ *
+ * Passing this string as the application argument
+ * indicates that the app is to be run in Custom mode.
+ *
+ * In this mode, the app will show different graphics
+ * and additionally, use a different settings profile.
+ */
+#define BUSY_APP_CUSTOM_MODE "custom"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
