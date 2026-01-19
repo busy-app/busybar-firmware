@@ -30,6 +30,11 @@ if (!useRuntimeConfig().public.disablePolling) {
   console.log('Polling disabled');
 }
 
+onMounted(async () => {
+  // early access check
+  await deviceStore.fetchDeviceName();
+});
+
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
 });

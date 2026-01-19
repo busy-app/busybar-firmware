@@ -1,7 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function handleHTTPError (error: any, title: string, shouldCheckForConnection?: boolean, duration?: number) {
   const deviceStore = useDeviceStore();
-  if (error.data?.error === 'Forbidden') {
+
+  if (error?.status === 403) {
     await navigateTo('/login');
     return undefined;
   }
