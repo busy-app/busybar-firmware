@@ -526,6 +526,9 @@ static void ble_hw_config() {
     static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
     uint8_t local_dev_addr[BLE_WORKER_LOCAL_DEV_ADDR_LEN] = {0};
 
+    ble_worker_instance->pairing_info_available =
+        ble_security_init(ble_worker_instance->security_data);
+
     //! get the local device MAC address.
     status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
@@ -601,9 +604,6 @@ static void ble_hw_config() {
     ble_advertise_print_data(ble_worker_instance->advertise);
 
     // ble_adjust_gap_service_data();
-
-    ble_worker_instance->pairing_info_available =
-        ble_security_init(ble_worker_instance->security_data);
 
     status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
