@@ -11,7 +11,7 @@
       <PasswordUpdateModal />
       <PasswordRemoveModal />
 
-      <div class="w-full relative flex flex-col gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
+      <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
         <DefaultLayoutTabs />
         <div class="w-full max-w-[688px] mx-auto">
           <slot />
