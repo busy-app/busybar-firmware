@@ -146,6 +146,7 @@
           sideOffset: 8
         }"
         :ui="{
+          itemLabelExternalIcon: 'hidden'
         }"
       >
         <UButton
@@ -157,9 +158,10 @@
           variant="ghost"
           class="rounded-full"
         />
+
         <template #signin-trailing>
           <UIcon
-            name="i-ri-external-link-line"
+            name="i-bi-open-in-new"
             class="shrink-0 size-5 ml-4"
           />
         </template>
@@ -232,7 +234,8 @@ const userDropdownItems = computed(() => {
         icon: 'i-ri-account-circle-fill',
         slot: 'signin' as const,
         type: 'link',
-        href: 'https://cloud.busy.app'
+        href: 'https://cloud.busy.app',
+        target: '_blank'
       }
     ],
     [
