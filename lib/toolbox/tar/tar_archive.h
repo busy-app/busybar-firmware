@@ -22,7 +22,17 @@ typedef enum {
     TarOpenModeReadAuto = 'a', ///< read-only tar, auto-detect compression
 } TarOpenMode;
 
-/** Tar archive constructor
+/** Tar archive constructor.
+ *
+ * Warning: Not all tar files are supported by underlying microtar library.
+ * Unsupported files will cause access functions (tar_archive_unpack_to, tar_archive_get_entries_count, etc.) to fail.
+ * Guaranteed to be supported: Files created by python's tarfile module (python 3.11.9).
+ *
+ * Explanation:
+ * Octal values in tar headers can be encoded differently:
+ *  - macos tar inserts a space at the end: "000644 ",
+ *  - python's tarfile zero-pads the number: "0000644".
+ * Microtar fails when it encounters anything but an octal digit in the string.
  *
  * @param storage             Storage API pointer
  *
