@@ -101,10 +101,11 @@ bool tar_archive_add_dir(TarArchive* archive, const char* fs_full_path, const ch
 /** Get number of entries in the archive
  *
  * @param archive Tar archive object
+ * @param no_special Only count regular files and directories
  *
  * @return number of entries. -1 on error
  */
-int32_t tar_archive_get_entries_count(TarArchive* archive);
+int32_t tar_archive_get_entries_count(TarArchive* archive, bool no_special);
 
 /** Get read progress
  *

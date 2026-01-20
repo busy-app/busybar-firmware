@@ -300,22 +300,40 @@ void tar_archive_set_file_callback(TarArchive* archive, tar_unpack_file_cb callb
     archive->unpack_cb_context = context;
 }
 
+typedef struct CounterData {
+    int counter;
+    bool no_special;
+} CounterData;
+
 static int tar_archive_entry_counter(mtar_t* tar, const mtar_header_t* header, void* param) {
     UNUSED(tar);
-    UNUSED(header);
     furi_assert(param);
-    int32_t* counter = param;
-    (*counter)++;
+    CounterData* data = param;
+    int count = 1;
+    if(data->no_special) {
+        switch(header->type) {
+        case MTAR_TREG:
+        case MTAR_TDIR:
+            break;
+        default:
+            count = 0;
+            break;
+        }
+    }
+    data->counter += count;
     return 0;
 }
 
-int32_t tar_archive_get_entries_count(TarArchive* archive) {
+int32_t tar_archive_get_entries_count(TarArchive* archive, bool no_special) {
     furi_check(archive);
-    int32_t counter = 0;
-    if(mtar_foreach(&archive->tar, tar_archive_entry_counter, &counter) != MTAR_ESUCCESS) {
-        counter = -1;
+    CounterData data = {
+        .counter = 0,
+        .no_special = no_special,
+    };
+    if(mtar_foreach(&archive->tar, tar_archive_entry_counter, &data) != MTAR_ESUCCESS) {
+        data.counter = -1;
     }
-    return counter;
+    return data.counter;
 }
 
 bool tar_archive_get_read_progress(TarArchive* archive, int32_t* processed, int32_t* total) {
