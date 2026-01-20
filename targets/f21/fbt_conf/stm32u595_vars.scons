@@ -32,3 +32,5 @@ assert isinstance(fw_appdirs_option.default, list)
 fw_appdirs_option.default.extend((("applications/system", False),))
 fw_appdirs_option.default.extend((("applications/debug", False),))
 fw_appdirs_option.default.extend((("applications/settings", False),))
+
+Help("\nBuild variables:" + VARS.GenerateHelpText(FW_ENV), append=True)

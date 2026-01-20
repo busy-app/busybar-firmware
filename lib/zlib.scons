@@ -1,0 +1,25 @@
+from fbt.util import GLOB_FILE_EXCLUSION
+
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        Dir("zlib").srcnode(),
+    ],
+)
+
+env.Append(CPPDEFINES={"HAVE_UNISTD_H": 1, "HAVE_STDARG_H": 1})
+
+libenv = env.Clone(FW_LIB_NAME="zlib")
+libenv.ApplyLibFlags()
+
+
+sources = Glob(
+    "zlib/*.c",
+    exclude=GLOB_FILE_EXCLUSION,
+    source=True,
+)
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

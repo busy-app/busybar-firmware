@@ -5,6 +5,7 @@
 
 #include "../unit_tests.h"
 #include <toolbox/path.h>
+#include <toolbox/tar/tar_archive.h>
 #include <applications/system/tar/tar.h>
 
 #define TAG                       "TarTest"
@@ -16,6 +17,21 @@
 #define TAR_UNIT_TESTS_EXTRACT_PATH       UNIT_TESTS_PATH("tar_unit_test_extract")
 #define TAR_UNIT_TESTS_FILE_EXTRACT_NAME1 TAR_UNIT_TESTS_EXTRACT_PATH "/test1.txt"
 #define TAR_UNIT_TESTS_FILE_EXTRACT_NAME2 TAR_UNIT_TESTS_EXTRACT_PATH "/test2.txt"
+
+/*
+ * The test tar file (test.tgz in assets) was created using python's tarfile module:
+ *  python3 -m tarfile -c test.tar test.txt && gzip test.tar && mv test.tar.gz test.tgz
+ *
+ * Reason: microtar cannot handle tarballs created by the tar utility (at least on macos).
+ * Octal values in tar headers are encoded differently:
+ *  - macos tar inserts a space at the end: "000644 ",
+ *  - python's tarfile zero-pads the number: "0000644".
+ * Microtar fails when it encounters anything but an octal digit in the string.
+ */
+#define COMPRESSED_MESSAGE \
+    "Flipper Zero is a tiny piece of hardware with a curious personality of a cyber-dolphin.\n"
+#define GZIP_FILE         EXT_PATH("apps_assets/unit_tests/test.tgz")
+#define GZIP_EXTRACT_PATH UNIT_TESTS_PATH("ungzip")
 
 static void tar_config_setup(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -170,9 +186,68 @@ MU_TEST(tar_test_cli) {
     furi_string_free(args);
 }
 
+static bool check_file_contnents(Storage* storage, const char* path, const char* contents) {
+    bool result = false;
+
+    File* f = storage_file_alloc(storage);
+    do {
+        bool r = storage_file_open(f, path, FSAM_READ, FSOM_OPEN_EXISTING);
+        if(!r) {
+            mu_warn("Cannot open file");
+            break;
+        }
+
+        uint64_t size = storage_file_size(f);
+        size_t contents_len = strlen(contents);
+        if(size != contents_len) {
+            mu_warn("File size doesn't match");
+            break;
+        }
+
+        char* buf = malloc(contents_len);
+        size_t bytes_read = storage_file_read(f, buf, contents_len);
+        if(bytes_read != contents_len) {
+            mu_warn("Read length mismatch");
+        } else {
+            if(memcmp(buf, contents, contents_len) == 0) {
+                result = true;
+            } else {
+                mu_warn("Contents mismatch");
+            }
+        }
+        free(buf);
+    } while(false);
+    storage_file_free(f);
+    return result;
+}
+
+MU_TEST(tar_test_gzip) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    TarArchive* tar = tar_archive_alloc(storage);
+
+    {
+        FuriString* gzip_extract_path = furi_string_alloc_set_str(GZIP_EXTRACT_PATH);
+        FS_Error e = path_recursive_create_dir(storage, gzip_extract_path);
+        mu_assert_int_eq(FSE_OK, e);
+        furi_string_free(gzip_extract_path);
+    }
+    do {
+        bool r = tar_archive_open(tar, GZIP_FILE, TarOpenModeReadAuto);
+        mu_assert(r, "tar_archive_open");
+        mu_assert_int_eq(1, tar_archive_get_entries_count(tar, true));
+        r = tar_archive_unpack_to(tar, GZIP_EXTRACT_PATH, NULL);
+        mu_assert(r, "tar_archive_unpack_to");
+        mu_check(check_file_contnents(storage, GZIP_EXTRACT_PATH "/test.txt", COMPRESSED_MESSAGE));
+    } while(false);
+
+    tar_archive_free(tar);
+    furi_record_close(RECORD_STORAGE);
+}
+
 MU_TEST_SUITE(tar_test_suite) {
     MU_SUITE_CONFIGURE(&tar_config_setup, &tar_config_teardown);
     MU_RUN_TEST(tar_test_cli);
+    MU_RUN_TEST(tar_test_gzip);
 }
 
 int run_minunit_tar_test(void) {
