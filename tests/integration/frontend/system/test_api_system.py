@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from api import SystemAPI
+from clients.api import SystemAPI
 
 
 @allure.feature("5. Web Frontend")

@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from api import StreamingAPI
+from clients.api import StreamingAPI
 
 
 @allure.feature("5. Web Frontend")

@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from api import BaseAPI
+from clients.api import BaseAPI
 
 
 # All API endpoints from OpenAPI spec

@@ -4,7 +4,7 @@ import threading
 import allure
 import pytest
 
-from api import BaseAPI, InputAPI, SettingsAPI, StorageAPI, StreamingAPI
+from clients.api import BaseAPI, InputAPI, SettingsAPI, StorageAPI, StreamingAPI
 
 
 @allure.feature("5. Web Frontend")

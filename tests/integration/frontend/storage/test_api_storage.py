@@ -3,7 +3,7 @@ import time
 import allure
 import pytest
 
-from api import StorageAPI
+from clients.api import StorageAPI
 
 
 @allure.feature("5. Web Frontend")

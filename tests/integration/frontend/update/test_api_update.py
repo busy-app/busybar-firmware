@@ -5,7 +5,7 @@ from time import sleep
 import allure
 import pytest
 
-from api import UpdateAPI
+from clients.api import UpdateAPI
 
 
 # Example firmware version for negative testing

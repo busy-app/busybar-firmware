@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from api import BleAPI
+from clients.api import BleAPI
 
 
 @allure.feature("5. Web Frontend")

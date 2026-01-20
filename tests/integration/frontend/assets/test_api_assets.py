@@ -4,7 +4,7 @@ from time import sleep
 import allure
 import pytest
 
-from api import AssetsAPI
+from clients.api import AssetsAPI
 
 
 ASSETS_DIR = Path(__file__).parent.parent / "assets"
@@ -70,7 +70,7 @@ class TestAssetsAPI:
     @allure.title("POST /api/display/draw (image)")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-505")
+    # @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-505")
     def test_api_display_draw_image(self, assets_api: AssetsAPI):
         """Test POST /api/display/draw endpoint with image element"""
         test_app_id = "test_display_img"
@@ -111,7 +111,7 @@ class TestAssetsAPI:
     @allure.title("DELETE /api/display/draw")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-500")
+    # @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-500")
     def test_api_display_clear(self, assets_api: AssetsAPI):
         """Test DELETE /api/display/draw endpoint"""
         response = assets_api.clear_display()

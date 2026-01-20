@@ -3,7 +3,7 @@ import json
 import allure
 import pytest
 
-from api import SettingsAPI
+from clients.api import SettingsAPI
 
 
 @allure.feature("5. Web Frontend")

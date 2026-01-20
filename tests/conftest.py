@@ -12,9 +12,11 @@ from dotenv import load_dotenv
 from utils.logging_config import (TestLogContext, get_cli_logger,
                                   get_web_logger, log_cli_command,
                                   log_web_request, setup_logging)
+from utils.crash_detector import CrashDetector
+from utils.device_flasher import DeviceFlasher
 
 # API client imports
-from api import (
+from clients.api import (
     SystemAPI, WifiAPI, StorageAPI, AssetsAPI, AccountAPI,
     BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI
 )
@@ -36,7 +38,6 @@ def validate_environment():
         print(f"Warning: Missing environment variables: {', '.join(missing_vars)}")
         print("Using default values. Check your .env file if tests fail.")
 
-    # Log current configuration
     print(f"Test Configuration:")
     print(f"  CLI_HOST: {os.getenv('CLI_HOST', 'Not set (will use default)')}")
     print(f"  CLI_PORT: {os.getenv('CLI_PORT', 'Not set (will use default)')}")
@@ -53,19 +54,12 @@ logger = setup_logging(
     log_to_file=os.getenv("LOG_TO_FILE", "true").lower() == "true",
 )
 
-
-# CLIFixture class removed - now using SimpleCLIConnection for better reliability
-
-
 @pytest.fixture(scope="function")
 def test_logger(request) -> logging.Logger:
     """Test-specific logger"""
     from utils.logging_config import get_test_logger
 
     return get_test_logger(request.node.name)
-
-
-# Old async CLI fixtures removed - now using synchronous SimpleCLIConnection for better reliability
 
 
 @pytest.fixture(scope="session")
@@ -263,7 +257,6 @@ class SimpleCLIConnection:
             # Clean response - remove command echo and prompt
             cleaned = self._clean_response(response_str, command)
 
-            # Update 917 CLI state tracking
             if command == "sl_cli":
                 # Remove ANSI codes before checking for welcome message
                 import re
@@ -288,8 +281,7 @@ class SimpleCLIConnection:
                 self._in_sl_cli = False
                 self.logger.debug(f"Exited 917 CLI mode")
 
-            # Log the command execution
-            duration = timeout  # Approximate since we don't track exact timing
+            duration = timeout
             log_cli_command(command, cleaned, duration)
 
             return cleaned
@@ -440,10 +432,72 @@ def pytest_runtest_setup(item):
             feature = marker.name.replace("feature_", "").replace("_", " ").title()
             allure.dynamic.feature(feature)
 
+@pytest.fixture(scope="session")
+def device_flasher():
+    """Session-scoped device flasher for firmware recovery."""
+    from config.config import config
+    device_flasher =  DeviceFlasher(
+        device_ip=config.BUSYBAR_IP,
+        firmware_dir=config.BSB_FIRMWARE_PATH,
+        serial=config.DAPLINK_U5_ID or "auto",
+    )
+    device_flasher.reset_and_wait()
+    return device_flasher
 
 def pytest_runtest_teardown(item, nextitem):
     """Test teardown"""
     logger.info(f"Test completed: {item.name}")
+
+@pytest.fixture(autouse=True)
+def crash_detector(request, device_flasher):
+    """
+    Auto-use fixture that monitors for device crashes during tests.
+
+    Before each test: captures the initial state of /tmp/crash_detected.flag
+    After each test: checks if the crash flag was updated
+
+    If a crash is detected:
+    1. Attaches crash info and trace file to the allure report
+    2. Resets device to recover
+    3. Waits for device to become available again
+    4. Marks test as failed via pytest hook
+    """
+    detector = CrashDetector()
+    detector.capture_initial_state()
+
+    yield detector
+
+    # Check for crash in teardown - store on node for hook to process
+    crash_info = detector.check_for_crash(flasher=device_flasher)
+    if crash_info:
+        request.node._crash_info = crash_info
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    Hook to mark test as failed if device crash was detected.
+
+    This ensures crash appears as test failure, not just teardown error.
+    """
+    outcome = yield
+    report = outcome.get_result()
+
+    # Check for crash info stored by crash_detector fixture
+    crash_info = getattr(item, "_crash_info", None)
+
+    if crash_info and report.when == "call":
+        # If test passed but crash occurred, mark as failed
+        if report.outcome == "passed":
+            report.outcome = "failed"
+            crash_msg = (
+                f"DEVICE CRASH DETECTED!\n"
+                f"Processor: {crash_info.processor}\n"
+                f"Crash line: {crash_info.crash_line}\n"
+                f"Timestamp: {crash_info.timestamp}\n"
+                f"See allure report for full crash trace."
+            )
+            report.longrepr = crash_msg
 
 @pytest.fixture
 def api_factory(api_session, web_base_url):
@@ -521,4 +575,3 @@ def cli_device_info(persistent_cli_connection):
     )
     allure.attach(data, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
     return data
-

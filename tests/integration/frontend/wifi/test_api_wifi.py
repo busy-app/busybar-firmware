@@ -5,7 +5,7 @@ import allure
 import pytest
 import requests
 
-from api import TEST_WIFI_SSID, WifiAPI
+from clients.api import TEST_WIFI_SSID, WifiAPI
 
 
 @pytest.fixture(scope="module", autouse=True)

@@ -112,10 +112,8 @@ from .update import (
 )
 
 __all__ = [
-    # Base
     "BaseAPI",
     "APIError",
-    # System API
     "SystemAPI",
     "VersionResponse",
     "StatusResponse",
@@ -125,7 +123,6 @@ __all__ = [
     "ResultResponse",
     "SetTimestampRequest",
     "SetTimezoneRequest",
-    # WiFi API
     "WifiAPI",
     "WifiStatusResponse",
     "WifiNetwork",
@@ -135,18 +132,15 @@ __all__ = [
     "TEST_WIFI_SSID",
     "TEST_WIFI_PASSWORD",
     "TEST_WIFI_SECURITY",
-    # Storage API
     "StorageAPI",
     "StorageStatusResponse",
     "StorageItem",
     "StorageListResponse",
     "StorageResultResponse",
-    # Assets API
     "AssetsAPI",
     "AssetResultResponse",
     "DisplayElement",
     "DisplayDrawRequest",
-    # Account API
     "AccountAPI",
     "AccountInfoResponse",
     "AccountStatusResponse",
@@ -154,10 +148,8 @@ __all__ = [
     "AccountLinkResponse",
     "AccountResultResponse",
     "MQTTProfiles",
-    # BLE API
     "BleAPI",
     "BleStatusResponse",
-    # Settings API
     "SettingsAPI",
     "NameResponse",
     "AccessResponse",
@@ -165,13 +157,10 @@ __all__ = [
     "VolumeResponse",
     "SettingsResultResponse",
     "SetNameRequest",
-    # Input API
     "InputAPI",
     "InputKeyRequest",
     "InputErrorResponse",
-    # Streaming API
     "StreamingAPI",
-    # Update API
     "UpdateAPI",
     "UpdateStatusResponse",
     "UpdateResultResponse",
