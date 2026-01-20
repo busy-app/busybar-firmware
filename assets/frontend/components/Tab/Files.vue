@@ -1,5 +1,12 @@
 <template>
-  <SectionCard data-id="files-section-primary">
+  <SectionCard
+    data-id="files-section-primary"
+    :class="isDragging ? 'border-dashed border-1 border-muted' : ''"
+    @dragenter.prevent="onDragEnter"
+    @dragleave.prevent="onDragLeave"
+    @dragover.prevent
+    @drop.prevent="onDrop"
+  >
     <div class="w-full grid grid-cols-[32px_1fr_auto] gap-2 items-center pr-1">
       <div>
         <UTooltip
@@ -477,6 +484,35 @@ async function uploadFiles () {
 
 const showMkdirModal = ref(false);
 const mkdirNameModel = ref('');
+
+const isDragging = ref(false);
+const dragCounter = ref(0);
+
+function onDragEnter () {
+  dragCounter.value++;
+  isDragging.value = true;
+}
+
+function onDragLeave () {
+  dragCounter.value--;
+  if (dragCounter.value <= 0) {
+    isDragging.value = false;
+    dragCounter.value = 0;
+  }
+}
+
+function onDrop (e: DragEvent) {
+  isDragging.value = false;
+  dragCounter.value = 0;
+  if (e.dataTransfer?.files) {
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) {
+      filesModel.value = files;
+      filesToUpload.value = [];
+      showUploadModal.value = true;
+    }
+  }
+}
 
 async function mkdir () {
   if (!mkdirNameModel.value.trim().length) {
