@@ -144,3 +144,15 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
 
     busy_timer_send_message(instance, &message);
 }
+
+void busy_timer_set_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
+    furi_check(instance);
+    furi_check(profile_id < BusyTimerProfileIdMax);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeSetProfile,
+        .data.profile_id = profile_id,
+    };
+
+    busy_timer_send_message(instance, &message);
+}

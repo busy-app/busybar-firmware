@@ -19,17 +19,6 @@ typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMess
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
 
-static const BusyTimerConfig busy_timer_config_default = {
-    .mode = BusyTimerModeInterval,
-    .time_mn = TIME_DEFAULT_MN,
-    .work_time_mn = WORK_TIME_DEFAULT_MN,
-    .rest_time_mn = REST_TIME_DEFAULT_MN,
-    .cycle_count = CYCLE_COUNT_DEFAULT,
-    .enable_intervals = ENABLE_INTERVALS_DEFAULT,
-    .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
-    .enable_demo_mode = ENABLE_DEMO_MODE_DEFAULT,
-};
-
 static const char* busy_timer_mode_names[BusyTimerModeMax] = {
     [BusyTimerModeInfinite] = "Off",
     [BusyTimerModeSimple] = "Simple",
@@ -501,10 +490,12 @@ static void busy_timer_schedule_notify_user_interacted(BusyTimer* instance) {
 static void busy_timer_load_settings(BusyTimer* instance) {
     BusyTimerSettings settings;
 
-    if(!busy_timer_settings_load(&settings)) {
+    const BusyTimerProfileId profile_id = instance->profile_id;
+
+    if(!busy_timer_settings_load(&settings, profile_id)) {
         FURI_LOG_W(TAG, "Loading default settings");
-        settings.timer_config = busy_timer_config_default;
-        busy_timer_settings_save(&settings);
+        busy_timer_settings_set_default(&settings, profile_id);
+        busy_timer_settings_save(&settings, profile_id);
     }
 
     instance->config = settings.timer_config;
@@ -598,7 +589,7 @@ static void
         .timer_config = instance->config,
     };
 
-    busy_timer_settings_save(&settings);
+    busy_timer_settings_save(&settings, instance->profile_id);
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -704,6 +695,14 @@ static void
     busy_timer_apply_snapshot(instance, data->snapshot_c);
 }
 
+static void
+    busy_timer_set_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    if(instance->profile_id != data->profile_id) {
+        instance->profile_id = data->profile_id;
+        busy_timer_load_settings(instance);
+    }
+}
+
 // Service
 
 static BusyTimer* busy_timer_alloc(void) {
@@ -759,4 +758,5 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
     [BusyTimerMessageTypeGetSnapshot] = busy_timer_get_snapshot_message_handler,
     [BusyTimerMessageTypeSetSnapshot] = busy_timer_set_snapshot_message_handler,
+    [BusyTimerMessageTypeSetProfile] = busy_timer_set_profile_message_handler,
 };

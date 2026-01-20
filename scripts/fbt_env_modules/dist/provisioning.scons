@@ -14,6 +14,7 @@ mqtt_provision = distenv.PhonyTarget(
     ],
     source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/mqtt/signing-ca.crt"),
 )
+AlwaysBuild(mqtt_provision)
 
 
 mqtt_wipe = distenv.PhonyTarget(
@@ -29,6 +30,7 @@ mqtt_wipe = distenv.PhonyTarget(
     ],
     source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/mqtt/signing-ca.crt"),
 )
+AlwaysBuild(mqtt_wipe)
 
 matter_provision = distenv.PhonyTarget(
     "matter_provision",
@@ -40,8 +42,9 @@ matter_provision = distenv.PhonyTarget(
     ],
     source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/provision.py"),
 )
+AlwaysBuild(matter_provision)
 
-Depends(matter_provision, mqtt_provision)
+Depends(mqtt_provision, matter_provision)
 
 
 firmware_env.Alias("crypto_provision", [mqtt_provision, matter_provision])

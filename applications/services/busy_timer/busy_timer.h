@@ -36,6 +36,12 @@ typedef enum {
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
+typedef enum {
+    BusyTimerProfileIdBusy,
+    BusyTimerProfileIdCustom,
+    BusyTimerProfileIdMax,
+} BusyTimerProfileId;
+
 typedef struct {
     uint32_t elapsed_s;
     uint32_t remain_s;
@@ -102,6 +108,8 @@ void busy_timer_add_time(BusyTimer* instance, int32_t time_mn);
 void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot);
 
 void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot);
+
+void busy_timer_set_profile(BusyTimer* instance, BusyTimerProfileId profile_id);
 
 const char** busy_timer_get_mode_names(void);
 

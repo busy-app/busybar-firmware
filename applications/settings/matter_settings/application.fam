@@ -5,6 +5,6 @@ App(
     entry_point="matter_settings_entry",
     requires=["gui", "front_display", "back_display"],
     stack_size=4 * 1024,
-    order=5,
+    order=20,
     targets=["f20", "f21", "f22"],
 )

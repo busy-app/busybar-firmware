@@ -8,6 +8,8 @@
 #include <loader/loader.h>
 #include <gui/gui.h>
 
+#include <busy/busy.h>
+
 #define TAG "Desktop"
 
 // Time to wait for the rotary switch steady state.
@@ -428,7 +430,7 @@ int32_t desktop_srv(void* arg) {
 
 static const DesktopDefaultApp desktop_default_apps[] = {
     [InputSwitchPositionBusy] = {"busy", NULL},
-    [InputSwitchPositionStatus] = {"custom", NULL},
+    [InputSwitchPositionStatus] = {"busy", BUSY_APP_CUSTOM_MODE},
     [InputSwitchPositionOff] = {"soft_off", NULL},
     [InputSwitchPositionApps] = {"apps_menu", NULL},
     [InputSwitchPositionSettings] = {"settings_menu", NULL},
