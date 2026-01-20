@@ -237,7 +237,7 @@ MU_TEST(tar_test_gzip) {
         mu_assert_int_eq(1, tar_archive_get_entries_count(tar, true));
         r = tar_archive_unpack_to(tar, GZIP_EXTRACT_PATH, NULL);
         mu_assert(r, "tar_archive_unpack_to");
-        check_file_contnents(storage, GZIP_EXTRACT_PATH "/test.txt", COMPRESSED_MESSAGE);
+        mu_check(check_file_contnents(storage, GZIP_EXTRACT_PATH "/test.txt", COMPRESSED_MESSAGE));
     } while(false);
 
     tar_archive_free(tar);
