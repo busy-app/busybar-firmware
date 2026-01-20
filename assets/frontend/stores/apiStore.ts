@@ -31,6 +31,6 @@ export const useApiStore = defineStore('apiStore', () => {
 }, {
   persist: {
     key: 'apiStore',
-    storage: piniaPluginPersistedstate.localStorage()
+    storage: piniaPluginPersistedstate.sessionStorage()
   }
 });
