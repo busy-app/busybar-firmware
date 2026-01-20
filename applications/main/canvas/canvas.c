@@ -12,7 +12,6 @@
 #include <furi_hal_rtc.h>
 #include "canvas.h"
 #include <gui/modules/front_display_mirror.h>
-#include <sntp/sntp.h>
 
 typedef struct {
     enum {
@@ -53,7 +52,6 @@ struct CanvasApp {
     Gui* gui;
     CanvasWidgetsDict_t widgets;
     DisplayMirror* display_mirror;
-    Sntp* sntp;
     char* app_id;
 };
 
@@ -349,7 +347,7 @@ static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* elemen
         effective_timeout = element->timeout;
     } else if(element->display_until > 0) {
         furi_check(element->timeout == 0);
-        time_t current_stamp = sntp_get_utc_timestamp(canvas->sntp);
+        time_t current_stamp = furi_hal_rtc_get_timestamp();
         effective_timeout = MAX(1, element->display_until - current_stamp);
     }
 
@@ -455,8 +453,6 @@ static CanvasApp* canvas_app_alloc() {
 
     canvas->gui = furi_record_open(RECORD_GUI);
     CanvasWidgetsDict_init(canvas->widgets);
-
-    canvas->sntp = furi_record_open(RECORD_SNTP);
 
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);

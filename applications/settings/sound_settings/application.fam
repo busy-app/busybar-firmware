@@ -5,6 +5,6 @@ App(
     entry_point="sound_settings_entry",
     requires=["gui", "audio"],
     stack_size=4 * 1024,
-    order=2,
+    order=40,
     targets=["f20", "f21", "f22"],
 )

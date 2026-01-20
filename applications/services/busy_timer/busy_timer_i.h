@@ -5,22 +5,12 @@
 
 #include <furi.h>
 
-#include <sntp/sntp.h>
 #include <toolbox/api_lock.h>
 
 #define TAG "BusyTimer"
 
 #define BUSY_TIMER_TIME_MIN_S M_TO_S(BUSY_TIMER_TIME_MIN_MN)
 #define BUSY_TIMER_TIME_MAX_S M_TO_S(BUSY_TIMER_TIME_MAX_MN)
-
-#define TIME_DEFAULT_MN      (20)
-#define WORK_TIME_DEFAULT_MN (20)
-#define REST_TIME_DEFAULT_MN (5)
-#define CYCLE_COUNT_DEFAULT  (3)
-
-#define ENABLE_INTERVALS_DEFAULT (true)
-#define ENABLE_AUTOSTART_DEFAULT (false)
-#define ENABLE_DEMO_MODE_DEFAULT (false)
 
 #define SPEED_MULTIPLIER (60)
 
@@ -37,6 +27,7 @@ typedef enum {
     BusyTimerMessageTypeSkip,
     BusyTimerMessageTypeGetSnapshot,
     BusyTimerMessageTypeSetSnapshot,
+    BusyTimerMessageTypeSetProfile,
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
@@ -50,6 +41,7 @@ typedef union {
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
     const BusyTimerSnapshot* snapshot_c;
+    BusyTimerProfileId profile_id;
 } BusyTimerMessageData;
 
 typedef struct {
@@ -65,13 +57,13 @@ struct BusyTimer {
     FuriEventLoopTimer* debounce_timer;
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
-    Sntp* sntp;
-    uint64_t prev_tick_timestamp_ms;
+    time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
     BusyTimerConfig config;
     BusyTimerTime time;
     BusyTimerMode mode;
     BusyTimerState state;
+    BusyTimerProfileId profile_id;
     BusyTimerSnapshot user_snapshot;
     bool timer_running;
 };

@@ -138,7 +138,7 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
-    busy_settings_save(&instance->settings);
+    busy_save_settings(instance);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);

@@ -3,6 +3,8 @@
 #include <busy/busy.h>
 #include <desktop/desktop.h>
 
+#include <furi_hal_rtc.h>
+
 #ifdef BUSY_TIMER_TICK_DEBUG
 #define TIME_MAX_LEN (14)
 #endif
@@ -16,17 +18,6 @@
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
-
-static const BusyTimerConfig busy_timer_config_default = {
-    .mode = BusyTimerModeInterval,
-    .time_mn = TIME_DEFAULT_MN,
-    .work_time_mn = WORK_TIME_DEFAULT_MN,
-    .rest_time_mn = REST_TIME_DEFAULT_MN,
-    .cycle_count = CYCLE_COUNT_DEFAULT,
-    .enable_intervals = ENABLE_INTERVALS_DEFAULT,
-    .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
-    .enable_demo_mode = ENABLE_DEMO_MODE_DEFAULT,
-};
 
 static const char* busy_timer_mode_names[BusyTimerModeMax] = {
     [BusyTimerModeInfinite] = "Off",
@@ -252,7 +243,7 @@ static void busy_timer_start_timer(BusyTimer* instance) {
         furi_event_loop_timer_start(instance->poll_timer, POLL_TIMER_PERIOD_MS);
     }
 
-    instance->prev_tick_timestamp_ms = sntp_get_utc_timestamp_ms(instance->sntp);
+    instance->prev_tick_timestamp_ms = furi_hal_rtc_get_timestamp_ms();
     instance->timer_running = true;
 }
 
@@ -299,7 +290,7 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
     }
 }
 
-static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
+static void busy_timer_update(BusyTimer* instance, time_t timestamp_ms) {
     do {
         // Got snapshot from a peer with a clock that is ahead of ours
         if(timestamp_ms < instance->prev_tick_timestamp_ms) {
@@ -347,7 +338,7 @@ static void busy_timer_fill_snapshot_common(BusyTimer* instance, BusyTimerSnapsh
 }
 
 static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
-    snapshot->timestamp_ms = sntp_get_utc_timestamp_ms(instance->sntp);
+    snapshot->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
 
     if(instance->state != BusyTimerStateIdle) {
         const BusyTimerMode mode = instance->mode;
@@ -396,7 +387,7 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
 }
 
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
-    const uint64_t snapshot_timestamp_ms = snapshot->timestamp_ms;
+    const time_t snapshot_timestamp_ms = snapshot->timestamp_ms;
 
     if(snapshot_timestamp_ms <= instance->user_snapshot.timestamp_ms) {
         // Ignore snapshots that are older than the last known one
@@ -499,10 +490,12 @@ static void busy_timer_schedule_notify_user_interacted(BusyTimer* instance) {
 static void busy_timer_load_settings(BusyTimer* instance) {
     BusyTimerSettings settings;
 
-    if(!busy_timer_settings_load(&settings)) {
+    const BusyTimerProfileId profile_id = instance->profile_id;
+
+    if(!busy_timer_settings_load(&settings, profile_id)) {
         FURI_LOG_W(TAG, "Loading default settings");
-        settings.timer_config = busy_timer_config_default;
-        busy_timer_settings_save(&settings);
+        busy_timer_settings_set_default(&settings, profile_id);
+        busy_timer_settings_save(&settings, profile_id);
     }
 
     instance->config = settings.timer_config;
@@ -511,7 +504,7 @@ static void busy_timer_load_settings(BusyTimer* instance) {
 static void busy_timer_poll_timer_callback(void* context) {
     furi_assert(context);
     BusyTimer* instance = context;
-    busy_timer_update(instance, sntp_get_utc_timestamp_ms(instance->sntp));
+    busy_timer_update(instance, furi_hal_rtc_get_timestamp_ms());
 }
 
 static void busy_timer_debounce_timer_callback(void* context) {
@@ -596,7 +589,7 @@ static void
         .timer_config = instance->config,
     };
 
-    busy_timer_settings_save(&settings);
+    busy_timer_settings_save(&settings, instance->profile_id);
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -702,6 +695,14 @@ static void
     busy_timer_apply_snapshot(instance, data->snapshot_c);
 }
 
+static void
+    busy_timer_set_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    if(instance->profile_id != data->profile_id) {
+        instance->profile_id = data->profile_id;
+        busy_timer_load_settings(instance);
+    }
+}
+
 // Service
 
 static BusyTimer* busy_timer_alloc(void) {
@@ -720,7 +721,6 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
     instance->event_pubsub = furi_pubsub_alloc();
-    instance->sntp = furi_record_open(RECORD_SNTP);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -758,4 +758,5 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
     [BusyTimerMessageTypeGetSnapshot] = busy_timer_get_snapshot_message_handler,
     [BusyTimerMessageTypeSetSnapshot] = busy_timer_set_snapshot_message_handler,
+    [BusyTimerMessageTypeSetProfile] = busy_timer_set_profile_message_handler,
 };

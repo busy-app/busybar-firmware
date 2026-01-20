@@ -46,7 +46,7 @@ static void busy_scene_start_on_enter(void* context) {
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
 
         data->front_logo = anim_play_alloc(flex_layout_get_base(data->front_layout));
-        anim_play_set_source(data->front_logo, BUSY_ANIM_PATH("start_logo_41x16.anim"));
+        anim_play_set_source(data->front_logo, busy_get_global_preset(instance)->start_anim_path);
 
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);
