@@ -15,22 +15,24 @@ typedef struct Storage Storage;
 /** Tar archive open mode 
  */
 typedef enum {
-    TarOpenModeRead = 'r',
-    TarOpenModeWrite = 'w',
-    /* read-only heatshrink compressed tar */
-    TarOpenModeReadHeatshrink = 'h',
+    TarOpenModeRead = 'r', ///< read-only uncompressed tar
+    TarOpenModeWrite = 'w', ///< write-only uncompressed tar
+    TarOpenModeReadHeatshrink = 'h', ///< read-only heatshrink-compressed tar
+    TarOpenModeReadGzip = 'g', ///< read-only gzip-compressed tar
+    TarOpenModeReadAuto = 'a', ///< read-only tar, auto-detect compression
 } TarOpenMode;
 
-/** Get expected open mode for archive at the path.
- * Used for automatic mode detection based on the file extension.
+/** Tar archive constructor.
  *
- * @param[in]   path          Path to the archive
+ * Warning: Not all tar files are supported by underlying microtar library.
+ * Unsupported files will cause access functions (tar_archive_unpack_to, tar_archive_get_entries_count, etc.) to fail.
+ * Guaranteed to be supported: Files created by python's tarfile module (python 3.11.9).
  *
- * @return open mode from TarOpenMode enum
- */
-TarOpenMode tar_archive_get_mode_for_path(const char* path);
-
-/** Tar archive constructor
+ * Explanation:
+ * Octal values in tar headers can be encoded differently:
+ *  - macos tar inserts a space at the end: "000644 ",
+ *  - python's tarfile zero-pads the number: "0000644".
+ * Microtar fails when it encounters anything but an octal digit in the string.
  *
  * @param storage             Storage API pointer
  *
@@ -99,10 +101,11 @@ bool tar_archive_add_dir(TarArchive* archive, const char* fs_full_path, const ch
 /** Get number of entries in the archive
  *
  * @param archive Tar archive object
+ * @param no_special Only count regular files and directories
  *
  * @return number of entries. -1 on error
  */
-int32_t tar_archive_get_entries_count(TarArchive* archive);
+int32_t tar_archive_get_entries_count(TarArchive* archive, bool no_special);
 
 /** Get read progress
  *

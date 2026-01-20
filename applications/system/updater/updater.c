@@ -470,7 +470,7 @@ static UpdaterStatus do_unpack(Updater* instance, UpdaterMessage* message) {
             break;
         }
 
-        if(!tar_archive_open(tar_archive, tar_path, TarOpenModeRead)) {
+        if(!tar_archive_open(tar_archive, tar_path, TarOpenModeReadAuto)) {
             FURI_LOG_E(TAG, "Failed to open %s as .tar archive", tar_path);
             update_status = UpdaterStatusUnpackArchiveOpenFailure;
             break;
