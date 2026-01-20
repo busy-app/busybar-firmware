@@ -322,6 +322,9 @@ export const useDeviceStore = defineStore('device', () => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    if (useApiStore().apiKey) {
+      xhr.setRequestHeader('X-API-Key', useApiStore().apiKey!);
+    }
 
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
