@@ -190,19 +190,6 @@ static void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_repor
 }
 
 /*==============================================*/
-/**
- * @fn         ble_worker_on_connect_event
- * @brief      invoked when connection complete event is received
- * @param[out] resp_conn, connected remote device information
- * @return     none.
- * @section description
- * This callback function indicates the status of the connection
- */
-static void ble_worker_on_connect_event(rsi_ble_event_conn_status_t* resp_conn) {
-    memcpy(ble_worker_instance->remote_dev_address, resp_conn->dev_addr, 6);
-    rsi_6byte_dev_address_to_ascii(ble_worker_instance->str_remote_address, resp_conn->dev_addr);
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnected);
-}
 
 /**
  * @fn         ble_worker_on_disconnect_event
@@ -539,6 +526,9 @@ static void ble_hw_config() {
     static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
     uint8_t local_dev_addr[BLE_WORKER_LOCAL_DEV_ADDR_LEN] = {0};
 
+    ble_worker_instance->pairing_info_available =
+        ble_security_init(ble_worker_instance->security_data);
+
     //! get the local device MAC address.
     status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
@@ -553,7 +543,7 @@ static void ble_hw_config() {
     // //! registering the GAP callback functions
     rsi_ble_gap_register_callbacks(
         ble_worker_on_adv_report_event,
-        ble_worker_on_connect_event,
+        NULL,
         ble_worker_on_disconnect_event,
         NULL,
         ble_worker_phy_update_complete_event,
@@ -615,9 +605,6 @@ static void ble_hw_config() {
 
     // ble_adjust_gap_service_data();
 
-    ble_worker_instance->pairing_info_available =
-        ble_security_init(ble_worker_instance->security_data);
-
     status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to set address: %08lX", status);
@@ -648,12 +635,7 @@ static int32_t ble_worker_thread_callback(void* context) {
             // } else {
             //     BLE_LOG_I("MTU sent");
             // }
-
             ble_worker_instance->connected = true;
-            ble_worker_instance->on_connection_changed_cb(
-                ble_worker_instance->on_connection_changed_ctx,
-                ble_worker_instance->connected,
-                ble_worker_instance->str_remote_address);
         }
 
         if(events & BLEWorkerEvtDisconnected) {
@@ -876,6 +858,10 @@ static int32_t ble_worker_thread_callback(void* context) {
                     BLE_LOG_W("ltk req reply cmd failed with reason = %lx", status);
                 }
                 BLE_LOG_I("Paired device");
+                ble_worker_instance->on_connection_changed_cb(
+                    ble_worker_instance->on_connection_changed_ctx,
+                    ble_worker_instance->connected,
+                    ble_worker_instance->str_remote_address);
             } else {
                 BLE_LOG_I("Not paired device");
                 rsi_ble_ltk_req_reply(ble_worker_instance->remote_dev_address, 0, NULL);
@@ -894,6 +880,11 @@ static int32_t ble_worker_thread_callback(void* context) {
                     BLE_LOG_W("Failed to save Security");
                     break;
                 }
+
+                ble_worker_instance->on_connection_changed_cb(
+                    ble_worker_instance->on_connection_changed_ctx,
+                    ble_worker_instance->connected,
+                    ble_worker_instance->str_remote_address);
                 BLE_LOG_I("Security data saved");
             } while(false);
         }
