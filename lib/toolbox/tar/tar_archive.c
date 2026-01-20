@@ -63,7 +63,7 @@ typedef struct {
 /* HSDS 'heatshrink data stream' header magic */
 static const uint32_t HEATSHRINK_MAGIC = 0x53445348;
 static const uint32_t GZIP_MAGIC = 0x088b1f;
-static const uint64_t TAR_MAGIC = 0x3030007261747375;
+static const uint64_t USTAR_MAGIC = 0x3030007261747375;
 
 typedef struct {
     uint32_t magic;
@@ -138,7 +138,7 @@ static bool try_gzip_magic(File* f) {
     }
 }
 
-static bool try_tar_magic(File* f) {
+static bool try_ustar_magic(File* f) {
     if(!storage_file_seek(f, 257, true)) {
         return false;
     }
@@ -148,7 +148,7 @@ static bool try_tar_magic(File* f) {
     if(r < sizeof(buf)) {
         return false;
     } else {
-        return buf == TAR_MAGIC;
+        return buf == USTAR_MAGIC;
     }
 }
 /**
@@ -161,6 +161,7 @@ static bool detect_archive_mode(Storage* storage, const char* path, TarOpenMode*
     bool result = false;
     do {
         if(!storage_file_open(f, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(TAG, "Cannot open file: %s", path);
             break;
         }
 
@@ -172,8 +173,12 @@ static bool detect_archive_mode(Storage* storage, const char* path, TarOpenMode*
             FURI_LOG_D(TAG, "Gzip detected");
             *out_mode = TarOpenModeReadGzip;
             result = true;
-        } else if(try_tar_magic(f)) {
+        } else if(try_ustar_magic(f)) {
             FURI_LOG_D(TAG, "Tarball detected");
+            *out_mode = TarOpenModeRead;
+            result = true;
+        } else {
+            FURI_LOG_W(TAG, "File format cannot be recognized, assuming TAR");
             *out_mode = TarOpenModeRead;
             result = true;
         }
