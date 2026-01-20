@@ -109,8 +109,7 @@ bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
         if(!instance->file) break;
 
         AnimFileInfo info = anim_file_info(instance->file);
-        size_t buffer_size = info.width * info.height * BYTES_PER_PIXEL;
-        instance->canvas_buf = realloc(instance->canvas_buf, buffer_size);
+        instance->canvas_buf = realloc(instance->canvas_buf, info.out_buffer_size);
         anim_file_set_out_buf(instance->file, instance->canvas_buf);
 
         lv_canvas_set_buffer(
@@ -128,7 +127,10 @@ bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
     bool loaded_successfully = !!instance->file;
 
     if(path_given && !loaded_successfully) {
-        // TODO: placeholder
+        const lv_image_header_t* header = &I_load_error_9x9.header;
+        void* data = (void*)I_load_error_9x9.data;
+        lv_canvas_set_buffer(instance->canvas, data, header->w, header->h, header->cf);
+        lv_obj_invalidate(instance->canvas);
     }
 
     return loaded_successfully;

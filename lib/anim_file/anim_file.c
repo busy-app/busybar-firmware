@@ -36,6 +36,8 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
                             .width = header.width,
                             .height = header.height,
                             .frames = header.display_frame_count,
+                            .out_buffer_size =
+                                header.width * header.height * ANIM_FILE_OUT_BYTES_PER_PIXEL,
                         },
                     .color_format = header.color_format,
                     .sections = sections_chunk,
