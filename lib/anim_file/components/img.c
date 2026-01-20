@@ -169,7 +169,7 @@ bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_
     const uint8_t* packed_source = decoded_dst;
     uint8_t* unpacked_dst = img->color_buffer;
     if(packed_source != unpacked_dst) {
-        if(!anim_file_img_unpack(anim, encoded_source, decoded_dst_size, decoded_dst))
+        if(!anim_file_img_unpack(anim, packed_source, decoded_dst_size, unpacked_dst))
             return false;
     }
 
