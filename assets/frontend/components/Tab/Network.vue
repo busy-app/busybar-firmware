@@ -18,7 +18,7 @@
         :ui="{
           base: 'p-3 rounded-full'
         }"
-        @click="networks = []"
+        @click="handleReturnFromNetworksList"
       />
     </template>
 
@@ -615,6 +615,14 @@ async function listWifiNetworks () {
 }
 
 const scanTimeout = ref<NodeJS.Timeout | null>(null);
+
+function handleReturnFromNetworksList () {
+  networks.value = [];
+  if (scanTimeout.value) {
+    clearTimeout(scanTimeout.value);
+    scanTimeout.value = null;
+  }
+}
 
 const showConnectModal = ref(false);
 const showPassword = ref(false);
