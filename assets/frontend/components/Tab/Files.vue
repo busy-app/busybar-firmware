@@ -71,56 +71,46 @@
     </div>
 
     <div class="w-full flex flex-col">
-      <div
+      <UContextMenu
         v-for="item in currentDir"
         :key="`${item.name}_${item.type}`"
-        class="min-h-10 grid grid-cols-[1fr_auto] gap-2 items-center py-1 pl-2 pr-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded break-all"
+        :items="[
+          {
+            label: item.type === 'dir' ? 'Open directory' : 'Download file',
+            icon: item.type === 'dir' ? 'i-ri-arrow-right-line' : 'i-bi-download',
+            onClick: () => { item.type === 'dir' ? list(`${currentPath}/${item.name}`) : read(item.name); }
+          },
+          {
+            label: 'Delete',
+            icon: 'i-bi-trash',
+            color: 'error',
+            onClick: () => { itemToDelete = { ...item, fullPath: `${currentPath}/${item.name}` }; showDeleteModal = true; }
+          }
+        ]"
       >
         <div
-          class="grid grid-cols-[24px_1fr] gap-4 items-center"
-          :class="item.type === 'dir' ? 'cursor-pointer hover:underline' : ''"
+          class="min-h-10 grid grid-cols-[1fr_auto] items-center py-1 px-2 gap-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded break-all"
+          :class="item.type === 'dir' ? 'cursor-pointer' : ''"
           @click="item.type === 'dir' ? list(`${currentPath}/${item.name}`) : ''"
         >
-          <UIcon
-            class="size-5"
-            :name="item.type === 'dir' ? 'i-bi-folder' : 'i-bi-file'"
-          />
-
-          <div>{{ item.name }}</div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2">
-          <template v-if="item.type === 'file'">
-            <span class="text-sm text-muted">{{ bytesToSize((item as StorageFileElement).size) }}</span>
-            <UTooltip
-              :delay-duration="0"
-              text="Download"
-            >
-              <UButton
-                icon="i-bi-download"
-                variant="ghost"
-                color="neutral"
-                square
-                :loading="loading.read"
-                @click="read(item.name)"
-              />
-            </UTooltip>
-          </template>
-          <UTooltip
-            :delay-duration="0"
-            text="Delete"
+          <div
+            class="grid grid-cols-[24px_1fr] gap-4 items-center"
           >
-            <UButton
-              icon="i-bi-trash"
-              variant="ghost"
-              color="error"
-              square
-              :loading="loading.read"
-              @click="itemToDelete = { ...item, fullPath: `${currentPath}/${item.name}` }; showDeleteModal = true;"
+            <UIcon
+              class="size-5"
+              :name="item.type === 'dir' ? 'i-bi-folder' : 'i-bi-file'"
             />
-          </UTooltip>
+
+            <div>{{ item.name }}</div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2">
+            <template v-if="item.type === 'file'">
+              <span class="text-sm text-muted">{{ bytesToSize((item as StorageFileElement).size) }}</span>
+            </template>
+          </div>
         </div>
-      </div>
+      </UContextMenu>
 
       <div
         v-if="currentDir.length === 0"
