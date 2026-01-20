@@ -29,7 +29,7 @@
         snprintf(target, sizeof(target), "f%u", furi_hal_version_get_hw_target()); \
         target;                                                                    \
     })
-#define UPDATE_PARSER_BRANCH_FILE_NAME_FW_FOUND "update_tar"
+#define UPDATE_PARSER_BRANCH_FILE_NAME_FW_FOUND "update_tgz"
 
 static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMetadata* metadata) {
     bool is_success = false;
