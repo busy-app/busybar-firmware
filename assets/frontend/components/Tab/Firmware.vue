@@ -32,8 +32,7 @@
             onClick: startFirmwareUpdateFromFile
           } : stage === 'uploading' ? {
             label: 'Cancel',
-            color: 'neutral',
-            onClick: reload
+            color: 'neutral'
           } : stage === 'error' ? {
             class: 'hidden'
           } : {}
@@ -46,7 +45,6 @@
             class: 'hidden'
           } : {}
         "
-        @close:prevent="stage === 'success' ? reload() : null"
       >
         <template #body>
           <template v-if="stage === 'idle'">
@@ -289,10 +287,6 @@ const firmwareFileModel = ref<File | null>(null);
 
 const indeterminateProgressModel = ref(75);
 
-function reload () {
-  location.reload();
-}
-
 function initFirmwareUpdateFromFile () {
   deviceStore.firmwareUpdate.stage = 'idle' as UpdateStage;
   deviceStore.firmwareUpdate.progress = 0;
@@ -340,7 +334,7 @@ watch(() => deviceStore.firmwareUpdate.stage, newStage => {
       return;
     }
     loading.value.systemStatus = true;
-    deviceStore.fetchSystemStatus(true) // throw the error to avoid exiting the polling
+    deviceStore.fetchDeviceName(true) // throw the error to avoid exiting the polling
       .then(() => {
         clearInterval(updatePollingInterval.value!);
         deviceStore.firmwareUpdate.stage = 'success';
