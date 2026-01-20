@@ -4,7 +4,7 @@ export async function handleHTTPError (error: any, title: string, shouldCheckFor
 
   if (error?.status === 403) {
     await navigateTo('/login');
-    return undefined;
+    return;
   }
 
   console.error(title, error);

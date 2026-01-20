@@ -39,7 +39,15 @@ export const useDeviceStore = defineStore('device', () => {
       isConnected.value = true;
 
       toast.remove('device-disconnected');
-    } catch {
+    } catch (error) {
+      // if the request was aborted/cancelled, don't treat it as disconnection
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const e = error as any;
+      if (e?.name === 'AbortError' || e?.message?.toLowerCase().includes('abort') || e?.code === 'ECONNABORTED') {
+        checkingConnection.value = false;
+        return;
+      }
+
       isConnected.value = false;
       if (firmwareUpdate.value.stage === 'idle' || firmwareUpdate.value.stage === 'error') {
         toast.add({
