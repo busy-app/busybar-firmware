@@ -21,9 +21,11 @@ typedef struct {
 #endif
 
 typedef enum {
-    BleEventTypeIncomingMessage = (1 << 0),
-    BleEventTypeFrameReceived = (1 << 1),
-    BleEventTypeDeviceNameChanged = (1 << 2),
+    BleEventTypeInitOnStart = (1 << 0),
+    BleEventTypeEnableOnStart = (1 << 1),
+    BleEventTypeIncomingMessage = (1 << 2),
+    BleEventTypeFrameReceived = (1 << 3),
+    BleEventTypeDeviceNameChanged = (1 << 4),
 } BleEventType;
 
 typedef void (
