@@ -106,7 +106,7 @@ async function attemptUnlock () {
 
 onMounted(async () => {
   try {
-    await deviceStore.fetchDeviceName();
+    await deviceStore.fetchDeviceName(true);
     // If we successfully fetched the system status, navigate to the main page
     await navigateTo('/');
   } catch {
