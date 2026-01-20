@@ -88,7 +88,6 @@ static bool do_set_settings(Sntp* instance, SntpMessage* message) {
         furi_event_loop_pend_callback(instance->event_loop, time_update_timer_callback, instance);
     } else {
         furi_event_loop_timer_stop(instance->timer);
-        instance->state = SntpStateRetry;
     }
 
     return true;
