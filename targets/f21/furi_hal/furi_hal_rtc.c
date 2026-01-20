@@ -97,8 +97,13 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
     furi_check(datetime);
 
     FURI_CRITICAL_ENTER();
+    while(!LL_RTC_IsActiveFlag_RS(RTC)) {
+    }
+
     uint32_t time = LL_RTC_TIME_Get(RTC); // 0x00HHMMSS
     uint32_t date = LL_RTC_DATE_Get(RTC); // 0xWWDDMMYY
+
+    LL_RTC_ClearFlag_RS(RTC);
     FURI_CRITICAL_EXIT();
 
     datetime->second = __LL_RTC_CONVERT_BCD2BIN((time >> 0) & 0xFF);
