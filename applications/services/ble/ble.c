@@ -58,6 +58,16 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
                 instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
         }
 
+        if(events & BleEventTypeInitOnStart) {
+            ble_invoke_retry_command_on_internal_event(
+                instance, BleCommandInit, BleEventTypeInitOnStart, 100);
+        }
+
+        if(events & BleEventTypeEnableOnStart) {
+            ble_invoke_retry_command_on_internal_event(
+                instance, BleCommandEnable, BleEventTypeEnableOnStart, 100);
+        }
+
         if((events & BleEventTypeFrameReceived) || (events & BleEventTypeIncomingMessage)) {
             BleIntercomFrameGeneric* frame = ble_command_preprocess(instance, events);
             ble_command_engine_run(instance->engine, frame, instance);
@@ -91,13 +101,6 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
         ble_service_process_mailbox(service, frame);
     }
 }
-
-#if !defined(BSB_MCU_SI917)
-static void ble_startup_callback(void* context) {
-    Ble* instance = context;
-    ble_init(instance);
-}
-#endif
 
 static Ble* ble_alloc() {
     Ble* instance = malloc(sizeof(Ble));
@@ -139,7 +142,7 @@ static Ble* ble_alloc() {
     instance->current_command_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
     instance->current_command = malloc(instance->current_command_size);
 
-    furi_event_loop_pend_callback(instance->event_loop, ble_startup_callback, instance);
+    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
 #endif
 
     furi_record_create(RECORD_BLE, instance);

@@ -1,3 +1,4 @@
+#include "settings/settings.h"
 #include "ble_command_engine.h"
 #include "ble_system_command.h"
 #include "ble/service/ble_service.h"
@@ -21,6 +22,21 @@ void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallba
     furi_assert(ble);
     if(callback) BLE_LOG_I("Subscribe for post process");
     ble->service_post_process_callback = callback;
+}
+
+static void ble_restore_state_on_start(const Ble* instance) {
+    BleSettings settings;
+    ble_settings_load(&settings);
+    if(settings.enabled) {
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeEnableOnStart);
+    }
+}
+
+static void ble_save_enabled_state(bool enabled) {
+    BleSettings settings;
+    ble_settings_load(&settings);
+    settings.enabled = enabled;
+    ble_settings_save(&settings);
 }
 
 static void ble_on_name_change_callback(const void* message, void* context) {
@@ -95,6 +111,9 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
         ble_subscribe_on_name_change(instance);
 
         ble_set_service_post_process_callback(instance, NULL);
+
+        ble_restore_state_on_start(instance);
+
         api_lock_unlock(instance->current_command_api_lock);
     }
 }
@@ -168,6 +187,14 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     instance->current_command->header.result = frame->header.result;
     instance->state = frame->header.result ? BleServiceStateAdvertising : BleServiceStateError;
 
+    ble_save_enabled_state(true);
+
+    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_command_lock);
+    const FuriThreadId current_id = furi_thread_get_current_id();
+    if(owner_id == current_id) {
+        furi_mutex_release(instance->current_command_lock);
+    }
+
     api_lock_unlock(instance->current_command_api_lock);
     ble_http_repeater_start(instance);
     return true;
@@ -199,6 +226,8 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
 
     instance->current_command->header.result = frame->header.result;
     instance->state = frame->header.result ? BleServiceStateReady : BleServiceStateError;
+
+    ble_save_enabled_state(false);
 
     api_lock_unlock(instance->current_command_api_lock);
     ble_http_repeater_stop();
