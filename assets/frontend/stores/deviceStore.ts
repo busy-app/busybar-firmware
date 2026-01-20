@@ -41,7 +41,7 @@ export const useDeviceStore = defineStore('device', () => {
       toast.remove('device-disconnected');
     } catch {
       isConnected.value = false;
-      if (firmwareUpdate.value.stage === 'updating') {
+      if (firmwareUpdate.value.stage !== 'idle' && firmwareUpdate.value.stage !== 'error') {
         // during firmware update, the device will be disconnected, so don't show the toast
         return;
       }
