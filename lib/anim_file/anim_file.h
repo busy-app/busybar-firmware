@@ -160,6 +160,44 @@ bool FURI_WARN_UNUSED
  */
 #define ANIM_FILE_WHOLE_SECTION_NAME "whole"
 
+/**
+ * @brief Universal animation section selector
+ */
+typedef struct {
+    AnimFilePlayFlag flags;
+    enum {
+        AnimFileSectionSelectorManual,
+        AnimFileSectionSelectorIndexed,
+        AnimFileSectionSelectorNamed,
+    } type;
+    union {
+        struct {
+            size_t start;
+            size_t end;
+        } manual;
+        size_t index;
+        const char* name;
+    };
+} AnimFileSectionSelector;
+
+/**
+ * @brief Calls one of the `anim_file_set_section_*` variants depending on the
+ *        provided descriptor
+ * 
+ * @param[in] anim `AnimFile` instance
+ * @param[in] selector `AnimFileSectionSelector`
+ * 
+ * @returns Whether the operation was successful.
+ */
+bool FURI_WARN_UNUSED
+    anim_file_set_section(AnimFile* anim, const AnimFileSectionSelector* selector);
+
+/**
+ * @brief The selector that when provided to `anim_file_set_section` specifies
+ *        the entire animation file
+ */
+extern const AnimFileSectionSelector anim_file_whole_selector;
+
 #ifdef __cplusplus
 }
 #endif

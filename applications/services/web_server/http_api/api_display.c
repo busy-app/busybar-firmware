@@ -193,37 +193,44 @@ static bool api_display_draw_parse_anim_play_element(
     bool result = false;
 
     do {
-        canvas_element->type = CanvasElementTypeAnimPlay;
         if(!api_display_draw_parse_image_path(
-               &canvas_element->image.file_path, app_id, json_element, canvas_element->type))
+               &canvas_element->image.file_path, app_id, json_element, CanvasElementTypeAnimPlay))
             break;
 
-        double num;
-        if(mg_json_get_num(json_element, "$.range_start", &num)) {
-            canvas_element->anim_play.range_start = num;
-        } else {
-            canvas_element->anim_play.range_start = 0;
-        }
-
-        if(mg_json_get_num(json_element, "$.range_end", &num)) {
-            canvas_element->anim_play.range_end = num;
-        } else {
-            canvas_element->anim_play.range_end = UINT32_MAX;
-        }
-
         bool json_bool;
+        char* json_str;
+        double json_num;
+        AnimFileSectionSelector* section = &canvas_element->anim_play.section;
+
+        if(mg_json_get(json_element, "$.manual_range", NULL) >= 0) {
+            section->type = AnimFileSectionSelectorManual;
+            if(!mg_json_get_num(json_element, "$.manual_range.start", &json_num)) break;
+            section->manual.start = json_num;
+            if(!mg_json_get_num(json_element, "$.manual_range.end", &json_num)) break;
+            section->manual.end = json_num;
+
+        } else if(mg_json_get_num(json_element, "$.section_index", &json_num)) {
+            section->type = AnimFileSectionSelectorIndexed;
+            section->index = json_num;
+
+        } else if((json_str = mg_json_get_str(json_element, "$.section_name"))) {
+            section->type = AnimFileSectionSelectorNamed;
+            section->name = json_str;
+
+        } else {
+            break;
+        }
+
+        section->flags = AnimFilePlayFlagNone;
+
         if(mg_json_get_bool(json_element, "$.loop", &json_bool)) {
-            canvas_element->anim_play.loop = json_bool;
-        } else {
-            canvas_element->anim_play.loop = false;
+            if(json_bool) section->flags |= AnimFilePlayFlagLoop;
+        }
+        if(mg_json_get_bool(json_element, "$.await_previous_end", &json_bool)) {
+            if(json_bool) section->flags |= AnimFilePlayFlagFinishCurrentSection;
         }
 
-        if(mg_json_get_bool(json_element, "$.wait_end", &json_bool)) {
-            canvas_element->anim_play.wait_end = json_bool;
-        } else {
-            canvas_element->anim_play.wait_end = false;
-        }
-
+        canvas_element->type = CanvasElementTypeAnimPlay;
         result = true;
     } while(0);
 

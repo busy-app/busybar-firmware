@@ -143,3 +143,26 @@ bool FURI_WARN_UNUSED
     }
     return false;
 }
+
+bool FURI_WARN_UNUSED
+    anim_file_set_section(AnimFile* anim, const AnimFileSectionSelector* selector) {
+    furi_check(anim);
+    furi_check(selector);
+
+    switch(selector->type) {
+    case AnimFileSectionSelectorManual:
+        return anim_file_set_section_manual(
+            anim, selector->flags, selector->manual.start, selector->manual.end);
+    case AnimFileSectionSelectorIndexed:
+        return anim_file_set_section_indexed(anim, selector->flags, selector->index);
+    case AnimFileSectionSelectorNamed:
+        return anim_file_set_section_named(anim, selector->flags, selector->name);
+    }
+
+    furi_crash("unreachable");
+}
+
+const AnimFileSectionSelector anim_file_whole_selector = {
+    .type = AnimFileSectionSelectorIndexed,
+    .index = ANIM_FILE_WHOLE_SECTION_INDEX,
+};

@@ -4,6 +4,7 @@
 #include <m-array.h>
 #include <gui/gui.h>
 #include <gui/modules/countdown.h>
+#include <gui/modules/anim_play.h>
 #include <time.h>
 
 #define RECORD_CANVAS "CANVAS"
@@ -34,10 +35,7 @@ typedef struct {
 
         struct {
             FuriString* file_path;
-            uint32_t range_start;
-            uint32_t range_end;
-            bool loop;
-            bool wait_end;
+            AnimFileSectionSelector section;
         } anim_play;
 
         struct {
@@ -66,6 +64,10 @@ static inline void canvas_element_clear(CanvasElement* obj) {
         if(obj->image.file_path) furi_string_free(obj->image.file_path);
     } else if(obj->type == CanvasElementTypeText) {
         if(obj->text.text_str) free(obj->text.text_str);
+    } else if(obj->type == CanvasElementTypeAnimPlay) {
+        if(obj->anim_play.section.type == AnimFileSectionSelectorNamed) {
+            free((char*)obj->anim_play.section.name);
+        }
     }
 }
 
@@ -79,6 +81,10 @@ static inline void canvas_element_clone(CanvasElement* obj, const CanvasElement*
     } else if(src->type == CanvasElementTypeText) {
         if(src->text.text_str) {
             obj->text.text_str = strdup(src->text.text_str);
+        }
+    } else if(src->type == CanvasElementTypeAnimPlay) {
+        if(obj->anim_play.section.type == AnimFileSectionSelectorNamed) {
+            obj->anim_play.section.name = strdup(src->anim_play.section.name);
         }
     }
 }

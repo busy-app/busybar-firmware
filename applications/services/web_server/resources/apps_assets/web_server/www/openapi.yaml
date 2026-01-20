@@ -1728,10 +1728,8 @@ components:
       allOf:
         - $ref: "#/components/schemas/DisplayElement"
         - type: object
-          required:
-            - path
           allOf:
-            oneOf:
+            - oneOf:
               - properties:
                   path:
                     type: string
@@ -1742,23 +1740,33 @@ components:
                     type: string
                     pattern: "^[a-z_]+/[a-z0-9_]+$"
                     description: Identifier of builtin animation
-            properties:
-              range_start:
-                type: number
-                description: Index of the first frame of the requested part of the animation. Clamped to the frame count.
-                default: 0
-              range_end:
-                type: number
-                description: Index of the last frame of the requested part of the animation. Clamped to the frame count.
-                default: 0xffff_ffff
-              loop:
-                type: bool
-                description: Whether to loop the requested part of the animation
-                default: false
-              wait_end:
-                type: bool
-                description: If the element has been created before and this flag is true, the previous range will finish before the requested one starts.
-                default: false
+            - oneOf:
+              - properties:
+                  manual_range:
+                    type: object
+                    description: Manually specified range of frame indices, both ends inclusive
+                    properties:
+                      start:
+                        type: integer
+                      end:
+                        type: integer
+              - properties:
+                  section_index:
+                    type: integer
+                    description: Index of the section to play back. Specifying 0 selects the entire animation.
+              - properties:
+                  section_name:
+                    type: string
+                    description: Name of the section to play back. Specifying \"whole\" selects the entire animation.
+            - properties:
+                loop:
+                  type: bool
+                  description: Whether to loop the requested part of the animation
+                  default: false
+                await_previous_end:
+                  type: bool
+                  description: If the element has been created before and this flag is true, the previous range will finish before the requested one starts.
+                  default: false
 
     CountdownElement:
       allOf:
