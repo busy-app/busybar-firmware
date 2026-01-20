@@ -178,7 +178,7 @@ const tabStore = useTabStore();
 
 const colorMode = useColorMode();
 
-const httpApiAccess = ref(await deviceStore.getHttpAPIAccess());
+const httpApiAccess = ref();
 
 const passwordSetItems = [
   {
@@ -323,6 +323,8 @@ function onLogoClick () {
 }
 
 onMounted(async () => {
+  httpApiAccess.value = await deviceStore.getHttpAPIAccess();
+
   await deviceStore.detectConnectionType();
   if (deviceStore.connectionType === 'usb') {
     passwordSetItems.splice(0, 1);
