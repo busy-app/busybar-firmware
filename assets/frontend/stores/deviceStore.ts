@@ -366,6 +366,19 @@ export const useDeviceStore = defineStore('device', () => {
       }
     };
 
+    xhr.onerror = () => {
+      console.error('Upload error');
+      firmwareUpdate.value.stage = 'error';
+      toast.add({
+        title: 'Update failed',
+        description: 'An error occurred during the upload.',
+        icon: 'i-bi-alert',
+        color: 'error',
+        duration: 10000
+      });
+      firmwareUpdate.value.error = 'An error occurred during the upload.';
+    };
+
     firmwareUpdate.value.stage = 'uploading' as UpdateStage;
     firmwareUpdate.value.progress = 0;
     xhr.send(firmwareUpdate.value.firmwareFile);
