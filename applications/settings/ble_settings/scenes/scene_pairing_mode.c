@@ -21,6 +21,7 @@ typedef enum {
 } SceneEvent;
 
 typedef struct {
+    bool paired;
     FlexLayout* front_flex;
     AnimImage* front_anim;
     Label* front_label;
@@ -68,7 +69,6 @@ static void scene_pairing_mode_on_enter(void* context) {
     data->name_label_text = furi_string_alloc();
     device_name_get(instance->device_name, data->name_label_text);
 
-    ///TODO: Rework this to enable BLE on start according to previous state, and move it out of here
     ble_start(instance->ble);
 
     with_gui(instance->gui, {
@@ -135,6 +135,10 @@ static void scene_pairing_mode_on_exit(void* context) {
     BleSettingsPairingSceneData* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
 
+    if(!data->paired) {
+        ble_stop(instance->ble);
+    }
+
     furi_pubsub_unsubscribe(ble_get_pubsub(instance->ble), data->ble_pubsub);
     furi_pubsub_unsubscribe(
         device_name_get_pubsub(instance->device_name), data->device_name_pubsub);
@@ -164,14 +168,16 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
     BleSettings* instance = context;
 
     bool consumed = false;
+    BleSettingsPairingSceneData* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventBlePairingEvent) {
-            if(ble_settings_is_device_paired(instance->ble))
+            data->paired = ble_settings_is_device_paired(instance->ble);
+            if(data->paired) {
                 scene_manager_next_scene(instance->scene_manager, SceneIdConnected);
+            }
         } else if(event->event == SceneEventDeviceNameChangedEvent) {
-            BleSettingsPairingSceneData* data =
-                scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
             device_name_get(instance->device_name, data->name_label_text);
             with_gui(instance->gui, {
                 label_set_text(data->name_label, furi_string_get_cstr(data->name_label_text));
@@ -179,8 +185,6 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
             furi_delay_ms(DEVICE_NAME_UPDATE_LAYOUT_DELAY_MS);
             ble_settings_send_custom_event(instance, SceneEventUpdateLayoutEvent);
         } else if(event->event == SceneEventUpdateLayoutEvent) {
-            BleSettingsPairingSceneData* data =
-                scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
             with_gui(instance->gui, {
                 int32_t scene_win_w = widget_get_width(instance->back_scene_window);
                 int32_t name_flex_w = widget_get_width(flex_layout_get_base(data->name_flex));
