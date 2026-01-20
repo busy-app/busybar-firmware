@@ -23,7 +23,7 @@
         <div class="w-screen h-screen absolute top-0 left-0 flex items-center justify-center">
           <UIcon
             name="i-busy-loader"
-            class="size-12 animation-spin"
+            class="size-12 animate-spin text-muted"
           />
         </div>
       </template>
