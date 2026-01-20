@@ -188,8 +188,9 @@ static void transition_overlay_reset(TransitionOverlay* instance) {
     anim_play_pause(instance->mask);
     AnimFile* file = anim_play_get_file(instance->mask);
     if(file) {
-        furi_assert(anim_file_set_section_indexed(
-            file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX));
+        bool success = anim_file_set_section_indexed(
+            file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX);
+        furi_assert(success);
     }
 
     if(instance->press_widget) {
