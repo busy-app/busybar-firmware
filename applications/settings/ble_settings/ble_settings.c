@@ -56,7 +56,6 @@ static bool ble_settings_gui_input_callback(const InputEvent* event, void* conte
 bool ble_settings_is_device_paired(Ble* ble) {
     BleStatus status = {0};
     ble_get_status(ble, &status);
-    FURI_LOG_I("BleSettings", "Pair status: %d", status.pairing);
     return status.pairing == BlePairingStatePaired;
 }
 
@@ -186,12 +185,6 @@ int32_t ble_settings_entry(void* arg) {
         BleStatus status = {0};
         bool result = ble_get_status(ble, &status);
         furi_check(result);
-        ///TODO: rework this part when proper init sequence will be done for BLE
-        if(status.state == BleServiceStateReset) {
-            ble_stop(ble);
-            result = ble_get_status(ble, &status);
-            furi_check(result);
-        }
 
         ble_settings_set_icon_by_status(descriptor, &status);
         furi_record_close(RECORD_BLE);
