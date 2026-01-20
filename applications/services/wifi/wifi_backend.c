@@ -359,11 +359,8 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
 
     if(state_code == STATE_CODE_ASSOCIATED) {
         if(instance->state == WifiBackendStateReconnecting) {
-            if(wifi_net_tcpip_netif_up(instance)) {
-                wifi_set_state(instance, WifiBackendStateConnected);
-            } else {
-                wifi_set_state(instance, WifiBackendStateDisconnected);
-            }
+            wifi_net_tcpip_netif_up(instance);
+            wifi_set_state(instance, WifiBackendStateConnected);
 
         } else if(instance->state == WifiBackendStateDisconnected) {
             FURI_LOG_W(TAG, "Association while disconnected");
@@ -564,7 +561,7 @@ static Wifi* wifi_alloc(void) {
     instance->info_timer = furi_event_loop_timer_alloc(
         instance->event_loop, wifi_backend_info_callback, FuriEventLoopTimerTypePeriodic, instance);
     instance->tcpip_lock = furi_semaphore_alloc(1, 0);
-    instance->ip6_addr_valid = furi_semaphore_alloc(1, 0);
+    instance->ipv6_ready_semaphore = furi_semaphore_alloc(1, 0);
 
     furi_record_open(RECORD_NETWORK);
 
