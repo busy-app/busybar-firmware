@@ -90,7 +90,7 @@ async function attemptUnlock () {
   try {
     apiStore.apiKey = pms.passwordModel.current;
     deviceStore.busyBar.setApiKey(apiStore.apiKey);
-    await deviceStore.fetchSystemStatus(true);
+    await deviceStore.fetchDeviceName(true);
     await navigateTo('/');
   } catch (error: unknown) {
     if ((error as { status?: number })?.status === 403) {
@@ -106,7 +106,7 @@ async function attemptUnlock () {
 
 onMounted(async () => {
   try {
-    await deviceStore.fetchSystemStatus();
+    await deviceStore.fetchDeviceName();
     // If we successfully fetched the system status, navigate to the main page
     await navigateTo('/');
   } catch {

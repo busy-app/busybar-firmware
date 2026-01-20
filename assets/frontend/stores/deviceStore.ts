@@ -138,12 +138,9 @@ export const useDeviceStore = defineStore('device', () => {
     }
     return deviceStatus.value;
   }
-  async function fetchSystemStatus (throwError: boolean = false): Promise<StatusSystem | undefined> {
+  async function fetchSystemStatus (): Promise<StatusSystem | undefined> {
     const systemStatus = await busyBar.systemStatus()
       .catch(async error => {
-        if (throwError) {
-          throw error;
-        }
         await handleHTTPError(error, 'Couldn\'t get system status');
         return undefined;
       });
@@ -163,13 +160,16 @@ export const useDeviceStore = defineStore('device', () => {
   // Device name
   const DEFAULT_DEVICE_NAME = 'BUSY Bar';
   const deviceName = ref<string | undefined>(undefined);
-  async function fetchDeviceName (): Promise<string> {
+  async function fetchDeviceName (throwError: boolean = false): Promise<string> {
     const name = await busyBar.getName()
       .then(response => {
         deviceName.value = response.name;
         return response.name;
       })
       .catch(async error => {
+        if (throwError) {
+          throw error;
+        }
         await handleHTTPError(error, 'Couldn\'t get device name');
         return DEFAULT_DEVICE_NAME;
       });
