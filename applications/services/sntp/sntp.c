@@ -88,7 +88,6 @@ static bool do_set_settings(Sntp* instance, SntpMessage* message) {
         furi_event_loop_pend_callback(instance->event_loop, time_update_timer_callback, instance);
     } else {
         furi_event_loop_timer_stop(instance->timer);
-        instance->state = SntpStateRetry;
     }
 
     return true;
@@ -187,6 +186,7 @@ void sntp_get_settings(const Sntp* instance, SntpSettings* settings) {
     const SntpMessage message = {
         .type = SntpMessageTypeGetSettings,
         .lock = api_lock_alloc_locked(),
+        .is_success = NULL,
 
         .get_settings = settings,
     };
@@ -215,12 +215,11 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
 time_t sntp_get_local_timestamp(Sntp* instance) {
     furi_check(instance);
 
-    bool is_success;
     time_t timestamp;
     const SntpMessage message = {
-        .type = SntpMessageTypeSetSettings,
+        .type = SntpMessageTypeGetLocalTimestamp,
         .lock = api_lock_alloc_locked(),
-        .is_success = &is_success,
+        .is_success = NULL,
 
         .get_local_timestamp = &timestamp,
     };

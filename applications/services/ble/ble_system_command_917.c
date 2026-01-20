@@ -39,9 +39,30 @@ static void
     furi_mutex_release(instance->ble_lock);
 }
 
+static void ble_service_init_wait_callback(BleServiceObject* service, bool result, void* ctx) {
+    UNUSED(service);
+    UNUSED(result);
+    BLE_LOG_D("ble_service_init_wait_callback");
+    Ble* instance = ctx;
+
+    uint8_t total_ready;
+    for(total_ready = 0; total_ready < BLE_SERVICES_COUNT; total_ready++) {
+        if(!ble_service_is_ready(instance->services[total_ready])) break;
+    }
+
+    if(total_ready == BLE_SERVICES_COUNT) {
+        instance->state = BleServiceStateReady;
+        ble_set_service_post_process_callback(instance, NULL);
+    }
+}
+
 static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandInit request");
     ble_worker_init(ble_connection_changed_callback, context);
+
+    Ble* instance = context;
+    ble_set_service_post_process_callback(instance, ble_service_init_wait_callback);
+
     return ble_command_response_process(frame, context);
 }
 
