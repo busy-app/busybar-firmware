@@ -515,7 +515,13 @@ async function mkdir () {
   await list(currentPath.value);
 }
 
-onMounted(async () => {
+async function init () {
   await list(currentPath.value);
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>

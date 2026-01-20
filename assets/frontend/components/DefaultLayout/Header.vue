@@ -322,7 +322,7 @@ function onLogoClick () {
   }
 }
 
-onMounted(async () => {
+async function init () {
   httpApiAccess.value = await deviceStore.getHttpAPIAccess();
 
   await deviceStore.detectConnectionType();
@@ -331,5 +331,11 @@ onMounted(async () => {
   }
 
   nameModel.value = await deviceStore.getDeviceName();
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>

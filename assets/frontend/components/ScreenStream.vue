@@ -35,21 +35,15 @@ const originalDimensions = computed(() => {
 });
 
 const windowWidth = ref(window.innerWidth);
-onMounted(() => {
-  const handleResize = () => {
-    windowWidth.value = window.innerWidth;
-    if (windowWidth.value > 640 && scaleFactor.value !== 5) {
-      scaleFactor.value = 5;
-    } else if (windowWidth.value <= 640 && scaleFactor.value !== 4) {
-      scaleFactor.value = 4;
-    }
-  };
-  window.addEventListener('resize', handleResize);
-  // Clean up on unmount
-  onBeforeUnmount(() => {
-    window.removeEventListener('resize', handleResize);
-  });
-});
+function handleResize () {
+  windowWidth.value = window.innerWidth;
+  if (windowWidth.value > 640 && scaleFactor.value !== 5) {
+    scaleFactor.value = 5;
+  } else if (windowWidth.value <= 640 && scaleFactor.value !== 4) {
+    scaleFactor.value = 4;
+  }
+}
+
 // scale the canvas
 const scaleFactor = ref(windowWidth.value > 640 ? 5 : 4);
 const canvasWidth = computed(() => originalDimensions.value.width * scaleFactor.value);
@@ -171,7 +165,11 @@ function stopCallback () {
   }
 }
 
-onMounted(() => {
+async function init () {
+  if (deviceScreenStreamStore.isConnected) {
+    await deviceScreenStreamStore.stopScreenStream();
+  }
+
   if (canvasRef.value) {
     canvasCtx.value = canvasRef.value.getContext('2d', { willReadFrequently: true });
 
@@ -191,10 +189,18 @@ onMounted(() => {
         duration: 5000
       });
     });
-});
+}
 
-onBeforeUnmount(() => {
-  deviceScreenStreamStore.stopScreenStream();
+onMounted(async () => {
+  window.addEventListener('resize', handleResize);
+
+  await init();
+  window.addEventListener('device-reconnected', init);
+});
+onBeforeUnmount(async () => {
+  window.removeEventListener('resize', handleResize);
+  await deviceScreenStreamStore.stopScreenStream();
+  window.removeEventListener('device-reconnected', init);
 });
 </script>
 

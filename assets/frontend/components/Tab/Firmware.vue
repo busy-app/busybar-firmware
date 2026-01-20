@@ -32,7 +32,8 @@
             onClick: startFirmwareUpdateFromFile
           } : stage === 'uploading' ? {
             label: 'Cancel',
-            color: 'neutral'
+            color: 'neutral',
+            onClick: onFirmwareUploadAbort
           } : stage === 'error' ? {
             class: 'hidden'
           } : {}
@@ -347,8 +348,18 @@ watch(() => deviceStore.firmwareUpdate.stage, newStage => {
   }, 3000);
 });
 
-onMounted(async () => {
+function onFirmwareUploadAbort () {
+  window.location.reload();
+}
+
+async function init () {
   await deviceStore.getApiVersion();
   await deviceStore.getDeviceStatus();
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>
