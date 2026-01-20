@@ -41,11 +41,14 @@ export const useDeviceStore = defineStore('device', () => {
       toast.remove('device-disconnected');
     } catch (error) {
       // if the request was aborted/cancelled, don't treat it as disconnection
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const e = error as any;
-      if (e?.name === 'AbortError' || e?.message?.toLowerCase().includes('abort') || e?.code === 'ECONNABORTED') {
-        checkingConnection.value = false;
-        return;
+      if (!refreshInterval.value) {
+        console.debug('conncheck request aborted, ignoring because refresh interval is cleared');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e = error as any;
+        if (e?.name === 'AbortError' || e?.message?.toLowerCase().includes('abort') || e?.code === 'ECONNABORTED') {
+          checkingConnection.value = false;
+          return;
+        }
       }
 
       isConnected.value = false;
