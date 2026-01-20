@@ -112,6 +112,7 @@
         "lvgl_addons",
         "network",
         "mongoose",
+        "zlib",
         "toolbox",
         "formatters",
         "flipper_format",
@@ -147,7 +148,7 @@
         "cli",
         "upload_resources",
         "u5_updater",
-        "mqtt"
+        "provisioning"
     ],
     "extra_target_meta": {
         "debug_tags": [

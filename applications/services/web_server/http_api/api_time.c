@@ -18,20 +18,22 @@ static bool api_time_get_timestamp_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    DateTime datetime;
-    furi_hal_rtc_get_datetime(&datetime);
-
     Sntp* sntp = furi_record_open(RECORD_SNTP);
+    time_t timestamp = sntp_get_local_timestamp(sntp);
+
     SntpSettings settings;
     sntp_get_settings(sntp, &settings);
-    int timezone_offset = settings.timezone_offset;
     furi_record_close(RECORD_SNTP);
 
-    /* ISO 8601 timestamp: YYYY-MM-DDTHH:MM:SS±HH:MM */
-    char timezone_offset_sign = (timezone_offset > 0) ? '+' : '-';
-    unsigned int timezone_offset_abs = abs(timezone_offset);
+    DateTime datetime;
+    datetime_timestamp_to_datetime(timestamp, &datetime);
+
+    char timezone_offset_sign = (settings.timezone_offset > 0) ? '+' : '-';
+    unsigned int timezone_offset_abs = abs(settings.timezone_offset);
     unsigned int timezone_offset_hours = timezone_offset_abs / 60;
     unsigned int timezone_offset_minutes = timezone_offset_abs % 60;
+
+    /* ISO 8601 timestamp: YYYY-MM-DDTHH:MM:SS±HH:MM */
     MG_REPLY_OK_BODY(
         conn,
         "{\"timestamp\":\"%04u-%02u-%02uT%02u:%02u:%02u%c%02u:%02u\"}\n",
@@ -57,7 +59,7 @@ static bool api_time_set_timestamp_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    bool success = false;
+    bool is_success = false;
     do {
         if(msg->query.len == 0) {
             break;
@@ -69,7 +71,7 @@ static bool api_time_set_timestamp_callback(
             break;
         }
 
-        bool is_utc = (timestamp_str[len - 1] == 'Z');
+        bool is_local_time = (timestamp_str[len - 1] != 'Z');
 
         /* Parse ISO 8601: YYYY-MM-DDTHH:MM:SS or YYYY-MM-DDTHH:MM:SSZ */
         unsigned int year, month, day, hour, minute, second;
@@ -88,27 +90,26 @@ static bool api_time_set_timestamp_callback(
             .second = second,
         };
 
-        uint32_t timestamp = datetime_datetime_to_timestamp(&datetime);
+        time_t timestamp = datetime_datetime_to_timestamp(&datetime);
 
-        if(is_utc) {
+        if(is_local_time) {
             Sntp* sntp = furi_record_open(RECORD_SNTP);
             SntpSettings settings;
             sntp_get_settings(sntp, &settings);
-            int timezone_offset = settings.timezone_offset;
             furi_record_close(RECORD_SNTP);
 
-            timestamp += API_TIME_M_TO_S(timezone_offset);
+            timestamp -= API_TIME_M_TO_S(settings.timezone_offset);
         }
 
         datetime_timestamp_to_datetime(timestamp, &datetime);
 
         if(datetime_validate_datetime(&datetime)) {
             furi_hal_rtc_set_datetime(&datetime);
-            success = true;
+            is_success = true;
         }
     } while(false);
 
-    if(success) {
+    if(is_success) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_BAD_REQUEST(conn);
@@ -126,7 +127,7 @@ static bool api_time_set_timezone_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    bool success = false;
+    bool is_success = false;
     do {
         if(msg->query.len == 0) {
             break;
@@ -147,20 +148,15 @@ static bool api_time_set_timezone_callback(
             API_TIME_H_TO_M(timezone_offset_hours) +
             (timezone_offset_hours > 0 ? timezone_offset_minutes : -timezone_offset_minutes);
 
-        if(timezone_offset < SNTP_TIMEZONE_OFFSET_MIN ||
-           timezone_offset > SNTP_TIMEZONE_OFFSET_MAX) {
-            break;
-        }
-
         Sntp* sntp = furi_record_open(RECORD_SNTP);
         SntpSettings settings;
         sntp_get_settings(sntp, &settings);
         settings.timezone_offset = timezone_offset;
-        success = sntp_set_settings(sntp, &settings);
+        is_success = sntp_set_settings(sntp, &settings);
         furi_record_close(RECORD_SNTP);
     } while(false);
 
-    if(success) {
+    if(is_success) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_BAD_REQUEST(conn);

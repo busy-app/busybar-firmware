@@ -10,10 +10,15 @@
 
 #define FURI_HAL_RTC_HEADER_MAGIC 0x10F1
 
-uint32_t furi_hal_rtc_get_timestamp(void) {
-    DateTime datetime = {0};
+time_t furi_hal_rtc_get_timestamp(void) {
+    DateTime datetime;
     furi_hal_rtc_get_datetime(&datetime);
+
     return datetime_datetime_to_timestamp(&datetime);
+}
+
+time_t furi_hal_rtc_get_timestamp_ms(void) {
+    return furi_hal_rtc_get_timestamp() * 1000;
 }
 
 static void furi_hal_rtc_start_clock_and_switch(void) {

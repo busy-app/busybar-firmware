@@ -3,7 +3,7 @@
 #include "wifi.h"
 
 #include "wifi_common_i.h"
-#include "wifi_settings.h"
+#include "settings/settings.h"
 
 #include <api_lock.h>
 

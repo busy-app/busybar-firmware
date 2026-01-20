@@ -31,11 +31,8 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
 
         } else if(current_state == WifiStateConnecting) {
             if(new_state == WifiStateConnected) {
-                const WifiCredentials* credentials = va_arg(args, const WifiCredentials*);
                 const WifiIpConfig* ip_config = va_arg(args, const WifiIpConfig*);
 
-                strncpy(info->ssid, credentials->ssid, SSID_MAX_LEN);
-                info->security_mode = credentials->security_mode;
                 info->ip_config = *ip_config;
 
             } else if(new_state == WifiStateDisconnected) {

@@ -24,4 +24,5 @@ todo.md
 .env
 .env.*
 .env.development
+!.env.development.example
 !.env.example

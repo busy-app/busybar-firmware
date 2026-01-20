@@ -4,6 +4,7 @@
 #include <json_helper.h>
 #include <furi_hal_random.h>
 #include <furi_hal_version.h>
+#include <toolbox/hex.h>
 
 #define TAG "MqttClient"
 
@@ -535,7 +536,7 @@ int32_t mqtt_client_start(void* p) {
     mqtt_client_load_profile(mqtt, mqtt->profile_id);
 
     mqtt->device_serial = furi_string_alloc();
-    furi_hal_version_get_uid_str(mqtt->device_serial);
+    hex_bytes_to_string(furi_hal_version_uid(), furi_hal_version_uid_size(), mqtt->device_serial);
 
     mqtt->client_id = furi_string_alloc();
     mqtt->session_id = furi_string_alloc();

@@ -78,9 +78,9 @@ void ble_service_prepare_send_intercom_frame(
     BLE_LOG_D(
         "%s - TX frame t: %d c: %d ds: %d fs: %d",
         instance->config->name,
-        header->frame_type,
-        header->command,
-        header->data_size,
+        frame->header.frame_type,
+        frame->header.command,
+        frame->header.data_size,
         frame_size);
 
     size_t tx =

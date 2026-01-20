@@ -21,9 +21,11 @@ typedef struct {
 #endif
 
 typedef enum {
-    BleEventTypeIncomingMessage = (1 << 0),
-    BleEventTypeFrameReceived = (1 << 1),
-    BleEventTypeDeviceNameChanged = (1 << 2),
+    BleEventTypeInitOnStart = (1 << 0),
+    BleEventTypeEnableOnStart = (1 << 1),
+    BleEventTypeIncomingMessage = (1 << 2),
+    BleEventTypeFrameReceived = (1 << 3),
+    BleEventTypeDeviceNameChanged = (1 << 4),
 } BleEventType;
 
 typedef void (
@@ -50,13 +52,8 @@ struct Ble {
     FuriMutex* current_command_lock;
     BleCommand* current_command;
     size_t current_command_size;
-
-    BleServicePostProcessCallback service_post_process_callback;
 #endif
+    BleServicePostProcessCallback service_post_process_callback;
 };
 
-bool ble_init(Ble* ble);
-
-#if !defined(BSB_MCU_SI917)
 void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback);
-#endif

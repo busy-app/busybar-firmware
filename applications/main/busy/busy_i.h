@@ -12,14 +12,17 @@
 #include <busy_timer/busy_timer.h>
 
 #include "busy.h"
+#include "busy_theme.h"
+#include "busy_presets.h"
+#include "busy_settings.h"
 
 #include "storage_macros.h"
 
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "widgets/timer_bar.h"
 #include "widgets/timer_card.h"
+#include "widgets/timer_label.h"
 #include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
 
@@ -34,7 +37,8 @@ typedef enum {
 } BusyAppRunMode;
 
 typedef enum {
-    BusyCustomEventTimerTick = 100,
+    BusyCustomEventIndexMax = 0x80,
+    BusyCustomEventTimerTick,
     BusyCustomEventTimerModeChanged,
     BusyCustomEventTimerStateChanged,
     BusyCustomEventTimerIntervalEnded,
@@ -45,34 +49,11 @@ typedef enum {
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
+    BusyCustomEventOkShortPressed,
     BusyCustomEventReturnToStart,
+    BusyCustomEventAnimationCompleted,
     BusyCustomEventMax,
 } BusyCustomEvent;
-
-typedef enum {
-    BusyTransitionTypeDefault,
-    BusyTransitionTypeAutomatic,
-    BusyTransitionTypeSkip,
-    BusyTransitionTypeSelect,
-    BusyTransitionTypeWork,
-    BusyTransitionTypeRest,
-    BusyTransitionTypeWorkDone,
-    BusyTransitionTypeRestDone,
-    BusyTransitionTypeMax,
-} BusyTransitionType;
-
-typedef enum {
-    BusyStatusLightsTypeOff,
-    BusyStatusLightsTypeWork,
-    BusyStatusLightsTypeRest,
-    BusyStatusLightsTypeMax,
-} BusyStatusLightsType;
-
-typedef enum {
-    BusyTimerBarTypeWork,
-    BusyTimerBarTypeRest,
-    BusyTimerBarTypeMax,
-} BusyTimerBarType;
 
 typedef enum {
     BusyApiMessageTypeShowTimer,
@@ -105,7 +86,10 @@ struct BusyApp {
     TimerCard* timer_card;
     NavBar* nav_bar;
     // Misc state
+    BusyTheme* theme;
+    BusySettings settings;
     BusyAppRunMode run_mode;
+    BusyAppGlobalPresetId global_preset_id;
     bool show_timer_requested;
 };
 
@@ -123,8 +107,16 @@ void busy_push_location(BusyApp* instance, const char* location_name);
 
 void busy_pop_location(BusyApp* instance);
 
+void busy_go_to_initial_scene(BusyApp* instance);
+
 void busy_go_to_show_timer_scene(BusyApp* instance);
 
 bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);
+
+void busy_load_settings(BusyApp* instance);
+
+void busy_save_settings(BusyApp* instance);
+
+const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);
