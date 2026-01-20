@@ -6,6 +6,7 @@
     @dragleave.prevent="onDragLeave"
     @dragover.prevent
     @drop.prevent="onDrop"
+    @mouseup="stopSelection"
   >
     <div class="w-full grid grid-cols-[32px_1fr_auto] gap-2 items-center pr-1">
       <div>
@@ -77,28 +78,24 @@
       </div>
     </div>
 
-    <div class="w-full flex flex-col">
+    <div
+      ref="fileListContainer"
+      class="w-full flex flex-col"
+    >
       <UContextMenu
-        v-for="item in currentDir"
+        v-for="(item, index) in currentDir"
         :key="`${item.name}_${item.type}`"
-        :items="[
-          {
-            label: item.type === 'dir' ? 'Open directory' : 'Download file',
-            icon: item.type === 'dir' ? 'i-ri-arrow-right-line' : 'i-bi-download',
-            onClick: () => { item.type === 'dir' ? list(`${currentPath}/${item.name}`) : read(item.name); }
-          },
-          {
-            label: 'Delete',
-            icon: 'i-bi-trash',
-            color: 'error',
-            onClick: () => { itemToDelete = { ...item, fullPath: `${currentPath}/${item.name}` }; showDeleteModal = true; }
-          }
-        ]"
+        :items="getContextMenuItems(item)"
       >
         <div
-          class="min-h-10 grid grid-cols-[1fr_auto] items-center py-1 px-2 gap-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded break-all"
-          :class="item.type === 'dir' ? 'cursor-pointer' : ''"
-          @click="item.type === 'dir' ? list(`${currentPath}/${item.name}`) : ''"
+          class="fm-item relative min-h-10 grid grid-cols-[1fr_auto] items-center py-1 px-2 gap-2 rounded break-all select-none"
+          :class="[
+            item.type === 'dir' ? 'cursor-pointer' : '',
+            getItemClass(item, index)
+          ]"
+          @click="onClickItem(item, $event)"
+          @mousedown="onMouseDown(item, index, $event)"
+          @mouseenter="onMouseEnter(index)"
         >
           <div
             class="grid grid-cols-[24px_1fr] gap-4 items-center"
@@ -290,13 +287,13 @@
       <ModalGeneric
         v-model:open="showDeleteModal"
         data-id="modal-storage-delete"
-        :title="`Delete ${itemToDelete?.name}?`"
+        :title="itemToDelete ? `Delete ${itemToDelete.name}?` : `Delete ${selectedItems.size} items?`"
         description="This action is irreversible"
         :primary-action-props="{
           label: 'Delete',
           color: 'error',
           loading: loading.remove,
-          disabled: isAnythingLoading || !itemToDelete,
+          disabled: isAnythingLoading || (!itemToDelete && selectedItems.size === 0),
           onClick: remove
         }"
         :secondary-action-props="{
@@ -312,6 +309,7 @@
 
 <script setup lang="ts">
 import type { StorageListElement, StorageFileElement } from '@busy-app/busy-lib';
+import type { ContextMenuItem } from '@nuxt/ui';
 
 const deviceStore = useDeviceStore();
 
@@ -326,8 +324,12 @@ const isAnythingLoading = computed(() => !!Object.values(loading.value).some(e =
 
 const currentPath = ref('/ext');
 const currentDir = ref<StorageListElement[]>([]);
+const selectedItems = ref<Set<string>>(new Set());
+const isSelecting = ref(false);
+const selectStartIndex = ref(-1);
 
 async function list (path: string) {
+  selectedItems.value.clear();
   loading.value.list = true;
   currentDir.value = await deviceStore.busyBar.readDirectory({ path })
     .then(result => {
@@ -391,9 +393,208 @@ function createObjectUrl (file: File | Blob): string {
   return URL.createObjectURL(file);
 }
 
+const wasDraggingSelection = ref(false);
+const selectionMode = ref<'replace' | 'add'>('replace');
+const initialSelection = ref<Set<string>>(new Set());
+
+function onMouseDown (item: StorageListElement, index: number, event: MouseEvent) {
+  if (event.button === 0) {
+    if (event.shiftKey && selectStartIndex.value !== -1) {
+      selectionMode.value = 'replace';
+      isSelecting.value = true;
+      wasDraggingSelection.value = false;
+      initialSelection.value = new Set();
+
+      const start = selectStartIndex.value;
+      const end = index;
+      const min = Math.min(start, end);
+      const max = Math.max(start, end);
+
+      selectedItems.value.clear();
+      for (let i = min; i <= max; i++) {
+        const it = currentDir.value[i];
+        if (it) {
+          selectedItems.value.add(it.name);
+        }
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      selectionMode.value = 'add';
+      initialSelection.value = new Set(selectedItems.value);
+      isSelecting.value = true;
+      wasDraggingSelection.value = false;
+      selectStartIndex.value = index;
+
+      if (selectedItems.value.has(item.name)) {
+        selectedItems.value.delete(item.name);
+      } else {
+        selectedItems.value.add(item.name);
+      }
+    } else {
+      selectionMode.value = 'replace';
+      isSelecting.value = true;
+      wasDraggingSelection.value = false;
+      selectStartIndex.value = index;
+      initialSelection.value = new Set();
+    }
+  } else if (event.button === 2) {
+    if (!selectedItems.value.has(item.name)) {
+      selectedItems.value.clear();
+      selectedItems.value.add(item.name);
+    }
+  }
+}
+
+function onMouseEnter (index: number) {
+  if (isSelecting.value) {
+    wasDraggingSelection.value = true;
+    const start = selectStartIndex.value;
+    const end = index;
+
+    const min = Math.min(start, end);
+    const max = Math.max(start, end);
+
+    if (selectionMode.value === 'add') {
+      selectedItems.value = new Set(initialSelection.value);
+      for (let i = min; i <= max; i++) {
+        const it = currentDir.value[i];
+        if (it) {
+          selectedItems.value.add(it.name);
+        }
+      }
+    } else {
+      selectedItems.value.clear();
+      for (let i = min; i <= max; i++) {
+        const it = currentDir.value[i];
+        if (it) {
+          selectedItems.value.add(it.name);
+        }
+      }
+    }
+  }
+}
+
+function stopSelection () {
+  isSelecting.value = false;
+}
+
+function onClickItem (item: StorageListElement, event: MouseEvent) {
+  if (wasDraggingSelection.value || event.shiftKey) {
+    return;
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    return;
+  }
+
+  selectedItems.value.clear();
+  if (item.type === 'dir') {
+    list(`${currentPath.value}/${item.name}`);
+  }
+}
+
+function getItemClass (item: StorageListElement, index: number) {
+  if (!selectedItems.value.has(item.name)) {
+    return '';
+  }
+
+  const isPrevSelected = index > 0 && selectedItems.value.has(currentDir.value[index - 1].name);
+  const isNextSelected = index < currentDir.value.length - 1 && selectedItems.value.has(currentDir.value[index + 1].name);
+
+  let classes = 'bg-neutral-200 dark:bg-neutral-700';
+
+  if (isPrevSelected && isNextSelected) {
+    classes += ' rounded-none';
+  } else if (isPrevSelected) {
+    classes += ' rounded-b-md rounded-t-none';
+  } else if (isNextSelected) {
+    classes += ' rounded-t-md rounded-b-none';
+  } else {
+    classes += ' rounded-md';
+  }
+
+  return classes;
+}
+
+function getContextMenuItems (item: StorageListElement): ContextMenuItem[] {
+  const isSelected = selectedItems.value.has(item.name);
+  if (selectedItems.value.size > 1 && isSelected) {
+    const allFiles = Array.from(selectedItems.value).every(name => {
+      const el = currentDir.value.find(e => e.name === name);
+      return el && el.type === 'file';
+    });
+
+    const items = [];
+    const itemString = allFiles ? 'files' : 'items';
+    if (allFiles) {
+      items.push({
+        label: `Download ${selectedItems.value.size} files`,
+        icon: 'i-bi-download',
+        onClick: batchDownload
+      });
+    }
+
+    items.push({
+      label: `Delete ${selectedItems.value.size} ${itemString}`,
+      icon: 'i-bi-trash',
+      color: 'error',
+      onClick: confirmBatchDelete
+    });
+
+    return items as ContextMenuItem[];
+  }
+
+  return [
+    {
+      label: item.type === 'dir' ? 'Open directory' : 'Download file',
+      icon: item.type === 'dir' ? 'i-ri-arrow-right-line' : 'i-bi-download',
+      onClick: () => item.type === 'dir' ? list(`${currentPath.value}/${item.name}`) : read(item.name)
+    },
+    {
+      label: 'Delete',
+      icon: 'i-bi-trash',
+      color: 'error',
+      onClick: () => {
+        itemToDelete.value = { ...item, fullPath: `${currentPath.value}/${item.name}` };
+        showDeleteModal.value = true;
+      }
+    }
+  ];
+}
+
+async function batchDownload () {
+  const items = new Set(selectedItems.value);
+  for (const name of items) {
+    const item = currentDir.value.find(e => e.name === name);
+    if (item && item.type === 'file') {
+      await read(item.name);
+    }
+  }
+}
+
+function confirmBatchDelete () {
+  itemToDelete.value = null; // Clear single
+  showDeleteModal.value = true;
+}
+
 const showDeleteModal = ref(false);
 const itemToDelete = ref<StorageListElement & { fullPath: string } | null>(null);
 async function remove () {
+  if (selectedItems.value.size > 0 && !itemToDelete.value) {
+    loading.value.remove = true;
+    const items = new Set(selectedItems.value);
+    for (const name of items) {
+      const fullPath = `${currentPath.value}/${name}`;
+      await deviceStore.busyBar.removeResource({ path: fullPath })
+        .catch(async error => {
+          await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
+        });
+    }
+    loading.value.remove = false;
+    showDeleteModal.value = false;
+    selectedItems.value.clear();
+    return list(currentPath.value);
+  }
+
   if (!itemToDelete.value?.fullPath) {
     toast.add({
       id: 'storage-delete-error',
@@ -541,13 +742,55 @@ async function mkdir () {
   await list(currentPath.value);
 }
 
+const fileListContainer = ref<HTMLElement | null>(null);
+
 async function init () {
   await list(currentPath.value);
+}
+
+function onGlobalClick (event: MouseEvent) {
+  if (selectedItems.value.size === 0) {
+    return;
+  }
+
+  const target = event.target as HTMLElement;
+  // Don't clear if clicking inside the list
+  if (fileListContainer.value && fileListContainer.value.contains(target)) {
+    return;
+  }
+  // Don't clear if clicking context menu items (usually in a separate portal with role="menu")
+  if (target.closest('[role="menu"]')) {
+    return;
+  }
+  // Don't clear if a modal is open (e.g. delete confirmation)
+  if (showDeleteModal.value || showMkdirModal.value || showUploadModal.value) {
+    return;
+  }
+
+  selectedItems.value.clear();
 }
 
 onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
+  window.addEventListener('click', onGlobalClick);
 });
-onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
+onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', init);
+  window.removeEventListener('click', onGlobalClick);
+});
 </script>
+
+<style scoped>
+.fm-item:hover:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  backdrop-filter: brightness(1.5);
+}
+</style>
