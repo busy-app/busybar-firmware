@@ -4,11 +4,15 @@
 
 #define TAG "BleAPI"
 
-static void ble_send_message_no_wait(
+static void ble_send_message(
     Ble* instance,
     const BleSystemCommand command,
     void* data,
-    size_t data_size) {
+    size_t data_size,
+    bool* result) {
+    furi_mutex_acquire(instance->current_command_lock, FuriWaitForever);
+    api_lock_relock(instance->current_command_api_lock);
+
     const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + data_size + sizeof(bool);
     if(new_msg_size > instance->current_command_size) {
         free(instance->current_command);
@@ -26,18 +30,6 @@ static void ble_send_message_no_wait(
     if(data_size > 0) memcpy(instance->current_command->data, data, data_size);
 
     furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIncomingMessage);
-}
-
-static void ble_send_message(
-    Ble* instance,
-    const BleSystemCommand command,
-    void* data,
-    size_t data_size,
-    bool* result) {
-    furi_mutex_acquire(instance->current_command_lock, FuriWaitForever);
-    api_lock_relock(instance->current_command_api_lock);
-
-    ble_send_message_no_wait(instance, command, data, data_size);
 
     api_lock_wait_unlock(instance->current_command_api_lock);
 
@@ -47,12 +39,6 @@ static void ble_send_message(
     }
     memset(instance->current_command, 0, instance->current_command_size);
     furi_mutex_release(instance->current_command_lock);
-}
-
-void ble_init(Ble* ble) {
-    furi_assert(ble);
-
-    ble_send_message_no_wait(ble, BleCommandInit, NULL, 0);
 }
 
 bool ble_get_status(Ble* ble, BleStatus* const output) {

@@ -55,8 +55,6 @@ struct Ble {
 #endif
 };
 
-void ble_init(Ble* ble);
-
 #if !defined(BSB_MCU_SI917)
 void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback);
 #endif
