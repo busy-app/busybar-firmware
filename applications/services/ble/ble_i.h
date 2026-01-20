@@ -52,11 +52,8 @@ struct Ble {
     FuriMutex* current_command_lock;
     BleCommand* current_command;
     size_t current_command_size;
-
-    BleServicePostProcessCallback service_post_process_callback;
 #endif
+    BleServicePostProcessCallback service_post_process_callback;
 };
 
-#if !defined(BSB_MCU_SI917)
 void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback);
-#endif

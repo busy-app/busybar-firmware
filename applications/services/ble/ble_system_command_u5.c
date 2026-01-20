@@ -18,12 +18,6 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     }
 }
 
-void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
-    furi_assert(ble);
-    if(callback) BLE_LOG_I("Subscribe for post process");
-    ble->service_post_process_callback = callback;
-}
-
 static void ble_restore_state_on_start(const Ble* instance) {
     BleSettings settings;
     ble_settings_load(&settings);

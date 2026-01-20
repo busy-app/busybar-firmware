@@ -7,6 +7,11 @@
 
 #define TAG "BLE"
 
+void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
+    furi_assert(ble);
+    ble->service_post_process_callback = callback;
+}
+
 static void
     ble_check_invoke_service_process_result(Ble* instance, BleServiceObject* service, bool result) {
     UNUSED(instance);
@@ -31,6 +36,10 @@ static void
             api_lock_unlock(instance->current_command_api_lock);
         }
     } else if(instance->service_post_process_callback) {
+        instance->service_post_process_callback(service, result, instance);
+    }
+#else
+    if(instance->service_post_process_callback) {
         instance->service_post_process_callback(service, result, instance);
     }
 #endif
