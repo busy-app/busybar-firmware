@@ -1,4 +1,5 @@
 #include "busy_presets.h"
+#include "storage_macros.h"
 
 #define FRAMES_TO_MS(x) ((x) * 1000 / 60)
 
@@ -196,5 +197,23 @@ const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax] = {
                     .base = COLOR_MAKE_HEX(0x3EC287),
                     .blink = COLOR_MAKE_HEX(0x1D6344),
                 },
+        },
+};
+
+const BusyAppGlobalPreset busy_app_global_presets[BusyAppGlobalPresetIdMax] = {
+    [BusyAppGlobalPresetIdBusy] =
+        {
+            .header_img_path = BUSY_IMG_PATH("header_busy_41x16.bin"),
+            .start_anim_path = BUSY_ANIM_PATH("start_logo_busy_41x16.anim"),
+            .timer_profile_id = BusyTimerProfileIdBusy,
+            .settings_profile_id = BusySettingsProfileIdBusy,
+        },
+
+    [BusyAppGlobalPresetIdCustom] =
+        {
+            .header_img_path = BUSY_IMG_PATH("header_custom_41x16.bin"),
+            .start_anim_path = BUSY_ANIM_PATH("start_logo_custom_41x16.anim"),
+            .timer_profile_id = BusyTimerProfileIdCustom,
+            .settings_profile_id = BusySettingsProfileIdCustom,
         },
 };

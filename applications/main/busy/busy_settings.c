@@ -6,12 +6,20 @@
 
 #define TAG "BusySettings"
 
-#define BUSY_SETTINGS_FILE APP_DATA_PATH("settings.json")
-
 #define BUSY_SETTINGS_CURRENT_VERSION (0)
 
 #define VERSION_KEY "version"
 #define THEME_KEY   "theme"
+
+static const char* busy_settings_file_paths[BusySettingsProfileIdMax] = {
+    [BusySettingsProfileIdBusy] = APP_DATA_PATH("settings_busy.json"),
+    [BusySettingsProfileIdCustom] = APP_DATA_PATH("settings_custom.json"),
+};
+
+static const char* busy_settings_default_theme_names[BusySettingsProfileIdMax] = {
+    [BusySettingsProfileIdBusy] = "default",
+    [BusySettingsProfileIdCustom] = "keep_out",
+};
 
 static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
     bool success = false;
@@ -54,8 +62,9 @@ static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
     return success;
 }
 
-bool busy_settings_load(BusySettings* settings) {
+bool busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id) {
     furi_check(settings);
+    furi_check(profile_id < BusySettingsProfileIdMax);
 
     bool success = false;
 
@@ -63,7 +72,9 @@ bool busy_settings_load(BusySettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_SETTINGS_FILE, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        const char* file_path = busy_settings_file_paths[profile_id];
+
+        if(!storage_file_open(file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
             break;
         }
 
@@ -94,8 +105,9 @@ bool busy_settings_load(BusySettings* settings) {
     return success;
 }
 
-bool busy_settings_save(const BusySettings* settings) {
+bool busy_settings_save(const BusySettings* settings, BusySettingsProfileId profile_id) {
     furi_check(settings);
+    furi_check(profile_id < BusySettingsProfileIdMax);
 
     bool success = false;
 
@@ -103,7 +115,9 @@ bool busy_settings_save(const BusySettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_SETTINGS_FILE, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        const char* file_path = busy_settings_file_paths[profile_id];
+
+        if(!storage_file_open(file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
             break;
         }
 
@@ -128,4 +142,11 @@ bool busy_settings_save(const BusySettings* settings) {
     furi_record_close(RECORD_STORAGE);
 
     return success;
+}
+
+void busy_settings_set_default(BusySettings* settings, BusySettingsProfileId profile_id) {
+    furi_check(settings);
+    furi_check(profile_id < BusySettingsProfileIdMax);
+
+    strcpy(settings->theme_name, busy_settings_default_theme_names[profile_id]);
 }

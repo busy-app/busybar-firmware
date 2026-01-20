@@ -4,8 +4,10 @@
 
 /*
  * Variable arguments:
+ * - WifiStateDisconnected -> WifiStateConnecting
+ *   - const WifiCredentials*
  * - WifiStateConnecting -> WifiStateConnected:
- *   - const WifiCredentials*, const WifiIpConfig*
+ *   - const WifiIpConfig*
  * - WifiStateReconnecting -> WifiStateConnected:
  *   - const WifiIpConfig*
  * no variable arguments for any other state transition

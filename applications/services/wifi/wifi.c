@@ -63,7 +63,7 @@ static void wifi_process_request(Wifi* instance) {
             WifiConnectRequest* connect_request = &request->connect_request;
             connect_request->credentials = *credentials;
 
-            wifi_state_transition(instance, WifiStateConnecting);
+            wifi_state_transition(instance, WifiStateConnecting, credentials);
 
             FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
@@ -119,7 +119,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 WifiIpConfig new_ip_config;
                 wifi_net_get_ip_config(instance, &new_ip_config);
 
-                wifi_state_transition(instance, WifiStateConnected, credentials, &new_ip_config);
+                wifi_state_transition(instance, WifiStateConnected, &new_ip_config);
                 wifi_settings_save(&(WifiSettings){
                     .credentials = *credentials,
                     .ip_config = *ip_config,

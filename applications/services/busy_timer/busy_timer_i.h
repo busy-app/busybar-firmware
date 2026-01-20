@@ -12,15 +12,6 @@
 #define BUSY_TIMER_TIME_MIN_S M_TO_S(BUSY_TIMER_TIME_MIN_MN)
 #define BUSY_TIMER_TIME_MAX_S M_TO_S(BUSY_TIMER_TIME_MAX_MN)
 
-#define TIME_DEFAULT_MN      (20)
-#define WORK_TIME_DEFAULT_MN (20)
-#define REST_TIME_DEFAULT_MN (5)
-#define CYCLE_COUNT_DEFAULT  (3)
-
-#define ENABLE_INTERVALS_DEFAULT (true)
-#define ENABLE_AUTOSTART_DEFAULT (false)
-#define ENABLE_DEMO_MODE_DEFAULT (false)
-
 #define SPEED_MULTIPLIER (60)
 
 typedef enum {
@@ -36,6 +27,7 @@ typedef enum {
     BusyTimerMessageTypeSkip,
     BusyTimerMessageTypeGetSnapshot,
     BusyTimerMessageTypeSetSnapshot,
+    BusyTimerMessageTypeSetProfile,
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
@@ -49,6 +41,7 @@ typedef union {
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
     const BusyTimerSnapshot* snapshot_c;
+    BusyTimerProfileId profile_id;
 } BusyTimerMessageData;
 
 typedef struct {
@@ -70,6 +63,7 @@ struct BusyTimer {
     BusyTimerTime time;
     BusyTimerMode mode;
     BusyTimerState state;
+    BusyTimerProfileId profile_id;
     BusyTimerSnapshot user_snapshot;
     bool timer_running;
 };
