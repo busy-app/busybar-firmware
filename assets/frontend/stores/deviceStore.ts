@@ -41,20 +41,18 @@ export const useDeviceStore = defineStore('device', () => {
       toast.remove('device-disconnected');
     } catch {
       isConnected.value = false;
-      if (firmwareUpdate.value.stage !== 'idle' && firmwareUpdate.value.stage !== 'error') {
-        // during firmware update, the device will be disconnected, so don't show the toast
-        return;
+      if (firmwareUpdate.value.stage === 'idle' || firmwareUpdate.value.stage === 'error') {
+        toast.add({
+          id: 'device-disconnected',
+          title: 'Device disconnected',
+          description: 'Device lost. Please check the connection.',
+          icon: 'i-bi-alert',
+          color: 'error',
+          duration: 0,
+          close: true,
+          closeIcon: 'i-bi-cross'
+        });
       }
-      toast.add({
-        id: 'device-disconnected',
-        title: 'Device disconnected',
-        description: 'Device lost. Please check the connection.',
-        icon: 'i-bi-alert',
-        color: 'error',
-        duration: 0,
-        close: true,
-        closeIcon: 'i-bi-cross'
-      });
     }
     checkingConnection.value = false;
   }
