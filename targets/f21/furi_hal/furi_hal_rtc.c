@@ -116,10 +116,8 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
 }
 
 void furi_hal_rtc_sync_shadow(void) {
-    if(!LL_RTC_IsShadowRegBypassEnabled(RTC)) {
-        LL_RTC_ClearFlag_RS(RTC);
-        while(!LL_RTC_IsActiveFlag_RS(RTC)) {
-        };
+    LL_RTC_ClearFlag_RS(RTC);
+    while(!LL_RTC_IsActiveFlag_RS(RTC)) {
     }
 }
 
