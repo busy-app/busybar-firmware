@@ -4,12 +4,7 @@ const SettingProviderSetting ble_v1_settings[] = {
     [BleSettingsV1IdxEnabled] =
         {
             .name = "enabled",
-            .interface =
-                &(const SettingProviderStructureInterface){
-                    .is_valid_callback = NULL,
-                    .inner_settings = NULL,
-                    .inner_settings_count = 0,
-                },
+            .interface = &(const SettingProviderBoolInterface){.default_value = false},
             .field_offset = offsetof(BleSettingsV1, enabled),
             .type = SettingProviderSettingTypeBool,
         },
