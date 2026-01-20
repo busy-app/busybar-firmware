@@ -17,9 +17,8 @@ static void anim_play_timer_cb(lv_timer_t* timer) {
     AnimPlay* instance = lv_timer_get_user_data(timer);
     furi_check(instance);
     furi_check(instance->file);
-    furi_check(instance->canvas_buf);
 
-    AnimFileFrameInfo info = anim_file_frame(instance->file, instance->canvas_buf);
+    AnimFileFrameInfo info = anim_file_frame(instance->file);
     lv_obj_invalidate(instance->canvas);
 
     if(instance->frame_cb) instance->frame_cb(instance, &info, instance->frame_cb_context);
@@ -112,6 +111,7 @@ bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
         AnimFileInfo info = anim_file_info(instance->file);
         size_t buffer_size = info.width * info.height * BYTES_PER_PIXEL;
         instance->canvas_buf = realloc(instance->canvas_buf, buffer_size);
+        anim_file_set_out_buf(instance->file, instance->canvas_buf);
 
         lv_canvas_set_buffer(
             instance->canvas,

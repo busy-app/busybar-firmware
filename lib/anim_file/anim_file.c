@@ -19,17 +19,12 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
         }
 
         AnimFileHeader header;
-        if(!anim_file_read_header(&header, file)) break;
+        if(!anim_file_load_header(&header, file)) break;
 
-        if(!anim_file_read_sections(&header, &sections_chunk, file)) break;
+        sections_chunk = anim_file_load_sections(&header, file);
+        if(!sections_chunk) break;
 
-        size_t section_count = anim_file_count_sections(&header, sections_chunk);
-        if(section_count == 0) break;
-
-        size_t frame_count = anim_file_count_display_frames(&header, file);
-        if(frame_count == 0) break;
-
-        if(!anim_file_validate_section_0(&header, sections_chunk, frame_count)) break;
+        if(!anim_file_load_validate_section_0(&header, sections_chunk)) break;
 
         AnimFile anim = {
             .file = file,
@@ -40,19 +35,13 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
                             .fps = header.fps,
                             .width = header.width,
                             .height = header.height,
-                            .frames = frame_count,
+                            .frames = header.display_frame_count,
                         },
                     .color_format = header.color_format,
-                    .section_count = section_count,
                     .sections = sections_chunk,
                     .header = header,
                 },
         };
-
-        if(header.max_encoded_length) {
-            anim.playback.encoded_buffer = malloc(header.max_encoded_length);
-        }
-        anim.playback.packed_buffer = malloc(anim_file_packed_length(&header));
 
         if(!anim_file_set_section_indexed(
                &anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX)) {
@@ -74,10 +63,9 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
 
 void anim_file_free(AnimFile* anim) {
     furi_check(anim);
-    if(anim->playback.encoded_buffer) free(anim->playback.encoded_buffer);
-    free(anim->playback.packed_buffer);
-    free(anim->meta.sections);
+    anim_file_img_deinit(anim);
     storage_file_free(anim->file);
+    if(anim->meta.sections) free(anim->meta.sections);
     free(anim);
 }
 
@@ -86,39 +74,25 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
     return anim->meta.info;
 }
 
-AnimFileFrameInfo anim_file_frame(AnimFile* anim, void* buffer) {
+void anim_file_set_out_buf(AnimFile* anim, void* buffer) {
     furi_check(anim);
     furi_check(buffer);
+    anim_file_img_init(anim, buffer);
+}
+
+AnimFileFrameInfo anim_file_frame(AnimFile* anim) {
+    furi_check(anim);
 
     AnimFileFrameInfo info;
-
-    do {
-        if(!anim_file_load_current_frame(anim)) {
-            info.flags = AnimFileFrameFlagError;
-            break;
-        }
-
-        if(!anim->playback.did_display_frame) {
-            if(!anim_file_decode_frame(anim, buffer)) {
-                info.flags = AnimFileFrameFlagError;
-                break;
-            }
-            anim->playback.did_display_frame = true;
-        }
-
-        info.flags = anim_file_frame_flags(anim) | anim->playback.forced_flags;
-        info.index = anim->playback.disp_frame_idx;
-
-        anim->playback.forced_flags = 0;
-    } while(0);
-
+    info.index = anim_file_seq_disp_frame_idx(anim);
+    info.flags = anim_file_seq_load_current_frame(anim);
     return info;
 }
 
 bool FURI_WARN_UNUSED
     anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t start, size_t end) {
     furi_check(anim);
-    if(!anim_file_compute_start(anim, flags, start, end)) return false;
+    if(!anim_file_start_compute(anim, flags, start, end)) return false;
     return true;
 }
 
@@ -135,10 +109,10 @@ bool FURI_WARN_UNUSED
         if(cur_index == index) section = cur_section;
     }
 
-    anim_file_iterate_sections(header, sections, callback, &section);
+    if(!anim_file_load_iterate_sections(header, sections, callback, &section)) return false;
 
     if(section) {
-        anim_file_set_precomputed_start(anim, flags, section);
+        anim_file_start_set_precomputed(anim, flags, section);
         return true;
     }
     return false;
@@ -159,10 +133,10 @@ bool FURI_WARN_UNUSED
         if(strcmp(cur_section->name, name) == 0) section = cur_section;
     }
 
-    anim_file_iterate_sections(header, sections, callback, &section);
+    if(!anim_file_load_iterate_sections(header, sections, callback, &section)) return false;
 
     if(section) {
-        anim_file_set_precomputed_start(anim, flags, section);
+        anim_file_start_set_precomputed(anim, flags, section);
         return true;
     }
     return false;

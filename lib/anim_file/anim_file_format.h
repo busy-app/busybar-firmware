@@ -90,6 +90,10 @@ typedef struct FURI_PACKED {
 
     uint32_t sections_chunk_length;
     uint32_t frames_chunk_length;
+
+    uint32_t section_count;
+    uint32_t file_frame_count;
+    uint32_t display_frame_count;
 } AnimFileHeader;
 
 // Busybar Image Container speciallY Crafted for file Length Eradication, ver. 0

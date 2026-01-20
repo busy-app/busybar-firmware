@@ -9,6 +9,10 @@ env.Append(
     ],
     SDK_HEADERS=[
         File("anim_file.h"),
+        File("components/img.h"),
+        File("components/load.h"),
+        File("components/seq.h"),
+        File("components/start.h"),
     ],
 )
 

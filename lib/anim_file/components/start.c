@@ -1,20 +1,42 @@
-/**
- * @brief Computation and loading of precomputed start parameters
- */
+#include <anim_file_i.h>
 
-#include "anim_file_i.h"
-
-static void anim_file_set_requested_range(AnimFile* anim, const AnimFileRange* requested) {
+static void anim_file_start_set_requested(AnimFile* anim, const AnimFileRange* requested) {
     furi_assert(anim);
     furi_assert(requested);
 
-    anim->pending_range = *requested;
-    anim->is_pending_range = true;
+    bool wait_for_last = requested->flags & AnimFilePlayFlagFinishCurrentSection;
+    bool on_last_frame = anim_file_seq_disp_frame_idx(anim) == anim->start.active.end;
 
-    anim_file_set_new_active(anim);
+    if(wait_for_last && !on_last_frame) {
+        anim->start.pending = *requested;
+        anim->start.is_pending = true;
+    } else {
+        anim->start.active = *requested;
+        anim_file_seq_new_active(anim, requested, AnimFileFrameFlagSwitchToRequested);
+        anim->start.is_pending = false;
+    }
 }
 
-bool anim_file_compute_start(
+bool anim_file_start_last_frame(AnimFile* anim) {
+    furi_assert(anim);
+
+    const AnimFileRange* pending = &anim->start.pending;
+
+    if(anim->start.is_pending) {
+        anim->start.active = *pending;
+        anim_file_seq_new_active(anim, pending, AnimFileFrameFlagSwitchToRequested);
+        anim->start.is_pending = false;
+        return true;
+    } else if(anim->start.active.flags & AnimFilePlayFlagLoop) {
+        anim_file_seq_new_active(anim, &anim->start.active, AnimFileFrameFlagLooping);
+        return true;
+    } else {
+        anim_file_seq_new_active(anim, NULL, AnimFileFrameFlagFinished);
+        return false;
+    }
+}
+
+bool anim_file_start_compute(
     AnimFile* anim,
     AnimFilePlayFlag flags,
     size_t start_frame,
@@ -56,12 +78,12 @@ bool anim_file_compute_start(
         .start_offset = frame_offset,
         .start_duration_override = frame_hdr.duration - (start_frame - disp_frame_idx),
     };
-    anim_file_set_requested_range(anim, &range);
+    anim_file_start_set_requested(anim, &range);
 
     return true;
 }
 
-void anim_file_set_precomputed_start(
+void anim_file_start_set_precomputed(
     AnimFile* anim,
     AnimFilePlayFlag flags,
     const AnimFileSection* section) {
@@ -74,5 +96,5 @@ void anim_file_set_precomputed_start(
         .start_offset = section->frame_offs,
         .start_duration_override = section->duration_override,
     };
-    anim_file_set_requested_range(anim, &range);
+    anim_file_start_set_requested(anim, &range);
 }

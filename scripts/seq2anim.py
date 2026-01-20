@@ -19,7 +19,7 @@ def number_in_str(input: str) -> int:
 
 @dataclass
 class Header:
-    FORMAT = "<8s BBBB BHB II"
+    FORMAT = "<8s BBBB BHB II III"
     flags: int
     width: int
     height: int
@@ -28,6 +28,9 @@ class Header:
     max_encoded_len: int
     sections_chunk_len: int
     frames_chunk_len: int
+    section_count: int
+    file_frame_count: int
+    display_frame_count: int
 
     @staticmethod
     def length() -> int:
@@ -49,6 +52,10 @@ class Header:
 
             self.sections_chunk_len,
             self.frames_chunk_len,
+
+            self.section_count,
+            self.file_frame_count,
+            self.display_frame_count,
         )
 
 @dataclass
@@ -204,6 +211,9 @@ class BSBAnimConverter:
             max_encoded_len=max_encoded_len,
             sections_chunk_len=sections_chunk_len,
             frames_chunk_len=frames_chunk_len,
+            section_count=len(encoded_sections),
+            file_frame_count=len(encoded_frames),
+            display_frame_count=len(frames),
         )
         output.write(header.to_bytes())
         for section in encoded_sections:

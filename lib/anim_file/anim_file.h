@@ -13,6 +13,8 @@ extern "C" {
 
 typedef struct AnimFile AnimFile;
 
+#define ANIM_FILE_OUT_BYTES_PER_PIXEL 3
+
 /**
  * @brief Loads an `AnimFile` from the specified path
  * 
@@ -37,6 +39,7 @@ typedef struct {
     size_t height;
     size_t fps;
     size_t frames;
+    size_t out_buffer_size; //<! Always `width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL`
 } AnimFileInfo;
 
 /**
@@ -52,12 +55,14 @@ AnimFileInfo anim_file_info(const AnimFile* anim);
  * @brief Flags related to a just-shown frame
  */
 typedef enum {
+    AnimFileFrameFlagNone = 0,
     AnimFileFrameFlagError =
         (1 << 0), //<! Operation failed. Enable `ANIM_FILE_DETAILED_ERRORS` and look in the logs.
     AnimFileFrameFlagLast = (1 << 1), //<! The frame is the last one in the section
     AnimFileFrameFlagFinished = (1 << 2), //<! No more sections to play and looping disabled
     AnimFileFrameFlagLooping = (1 << 3), //<! Looping the active section
     AnimFileFrameFlagSwitchToRequested = (1 << 4), //<! Switched to the requested section
+    AnimFileFrameFlagNoChange = (1 << 5), //<! Output buffer hadn't changed
 } AnimFileFrameFlag;
 
 /**
@@ -70,18 +75,29 @@ typedef struct {
 } AnimFileFrameInfo;
 
 /**
+ * @brief Sets the output canvas buffer
+ * 
+ * @warning Once set, cannot be changed
+ * 
+ * @param[in] anim `AnimFile` instance
+ * @param[out] buffer RGB888 buffer of size `info.out_buffer_size`
+ */
+void anim_file_set_out_buf(AnimFile* anim, void* buffer);
+
+/**
  * @brief Draws the next frame of the animation onto a canvas buffer
+ * 
  * @note This function is advised to be called with a rate specified by
  *       `anim_file_info(anim).fps`
  * 
+ * Draws onto the buffer set by `anim_file_set_out_buf`. The contents of that
+ * buffer must not change in between calls to this function.
+ * 
  * @param[in] anim `AnimFile` instance
- * @param[out] buffer RGB888 buffer of size `info.width * info.height * 3`. The
- *                    contents of the provided buffer must not change in between
- *                    calls to this function.
  * 
  * @returns Information about the just-shown frame
  */
-AnimFileFrameInfo anim_file_frame(AnimFile* anim, void* buffer);
+AnimFileFrameInfo anim_file_frame(AnimFile* anim);
 
 /**
  * @brief Flags for the `anim_file_set_section_*` family
