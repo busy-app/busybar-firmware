@@ -7,6 +7,11 @@
 
 #define TAG "BLE"
 
+void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
+    furi_assert(ble);
+    ble->service_post_process_callback = callback;
+}
+
 static void
     ble_check_invoke_service_process_result(Ble* instance, BleServiceObject* service, bool result) {
     UNUSED(instance);
@@ -33,6 +38,10 @@ static void
     } else if(instance->service_post_process_callback) {
         instance->service_post_process_callback(service, result, instance);
     }
+#else
+    if(instance->service_post_process_callback) {
+        instance->service_post_process_callback(service, result, instance);
+    }
 #endif
 }
 
@@ -56,6 +65,16 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
         if(events & BleEventTypeDeviceNameChanged) {
             ble_invoke_retry_command_on_internal_event(
                 instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
+        }
+
+        if(events & BleEventTypeInitOnStart) {
+            ble_invoke_retry_command_on_internal_event(
+                instance, BleCommandInit, BleEventTypeInitOnStart, 100);
+        }
+
+        if(events & BleEventTypeEnableOnStart) {
+            ble_invoke_retry_command_on_internal_event(
+                instance, BleCommandEnable, BleEventTypeEnableOnStart, 100);
         }
 
         if((events & BleEventTypeFrameReceived) || (events & BleEventTypeIncomingMessage)) {
@@ -131,6 +150,8 @@ static Ble* ble_alloc() {
     instance->current_command_api_lock = api_lock_alloc_locked();
     instance->current_command_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
     instance->current_command = malloc(instance->current_command_size);
+
+    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
 #endif
 
     furi_record_create(RECORD_BLE, instance);
