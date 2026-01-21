@@ -1,10 +1,13 @@
 #pragma once
 
-#include <furi.h>
-#include <toolbox/api_lock.h>
-#include <mongoose.h>
-#include <wifi/wifi.h>
 #include "mqtt_client.h"
+
+#include <furi.h>
+#include <api_lock.h>
+
+#include <mongoose.h>
+
+#include <wifi/wifi.h>
 
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
@@ -51,45 +54,73 @@ struct MqttClient {
     char* screen_stream_buf;
 };
 
+typedef enum {
+    MqttApiMessageTypeGetStatus,
+    MqttApiMessageTypeUnlink,
+    MqttApiMessageTypeRequestPin,
+    MqttApiMessageTypeGetSessionInfo,
+    MqttApiMessageTypeGetProfile,
+    MqttApiMessageTypeSetProfile,
+    MqttApiMessageTypePublish,
+    MqttApiMessageTypeWifiState,
+    MqttApiMessageTypeMax,
+} MqttApiMessageType;
+
+typedef struct {
+    MqttClientStatus* status;
+} MqttApiMessageGetStatus;
+
+typedef struct {
+    bool* is_success;
+} MqttApiMessageRequestPin;
+
+typedef struct {
+    MqttClientProfile* profile_id;
+    FuriString* custom_url;
+} MqttApiMessageGetProfile;
+
+typedef struct {
+    MqttClientProfile profile_id;
+    const char* custom_url;
+} MqttApiMessageSetProfile;
+
+typedef struct {
+    FuriString* id;
+    FuriString* email;
+    FuriString* user_id;
+} MqttApiMessageGetSessionInfo;
+
 typedef struct {
     const char* topic;
     const void* data;
     size_t data_size;
     MqttQos qos;
-} MqttClientPublish;
+} MqttApiMessagePublish;
 
 typedef struct {
-    enum {
-        MqttClientMessageWifiStateChange,
-        MqttClientMessageGetStatus,
-        MqttClientMessageUnlink,
-        MqttClientMessageRequestPin,
-        MqttClientMessageGetSessionInfo,
-        MqttClientMessageGetProfile,
-        MqttClientMessageSetProfile,
-        MqttClientMessagePublish,
-    } type;
-    FuriApiLock lock;
-    union {
-        MqttClientStatus* status;
-        bool* bool_param;
-        struct {
-            MqttClientProfile* id;
-            FuriString* custom_url;
-        } profile;
-        struct {
-            FuriString* id;
-            FuriString* email;
-            FuriString* user_id;
-        } session_info;
+    WifiState state;
+} MqttApiMessageWifiState;
 
-        WifiState wifi_state;
-        MqttClientPublish publish;
-    };
-} MqttClientMessage;
+typedef union {
+    MqttApiMessageGetStatus get_status;
+    MqttApiMessageRequestPin request_pin;
+    MqttApiMessageGetProfile get_profile;
+    MqttApiMessageSetProfile set_profile;
+    MqttApiMessageGetSessionInfo get_session_info;
+    MqttApiMessagePublish publish;
+    MqttApiMessageWifiState wifi_state;
+} MqttApiMessageData;
+
+typedef struct {
+    MqttApiMessageType type;
+    MqttApiMessageData data;
+    FuriApiLock lock;
+} MqttApiMessage;
 
 void mqtt_topics_subscribe(MqttClient* mqtt);
+
 void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+
 void mqtt_topics_on_close(MqttClient* mqtt);
 
 void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
@@ -98,6 +129,7 @@ void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
     FuriString* topic_str,
     struct mg_mqtt_message* msg);
+
 void mqtt_screen_streaming_on_close(MqttClient* mqtt);
 
 bool mqtt_tls_init(
@@ -105,6 +137,7 @@ bool mqtt_tls_init(
     struct mg_str name,
     struct mg_str ca,
     bool custom_certs);
+
 void mqtt_tls_free_ca(struct mg_connection* conn);
 
 // BusyTimer api

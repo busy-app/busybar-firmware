@@ -1,108 +1,138 @@
 #include "mqtt_client_i.h"
 
-static void mqtt_client_send_message(MqttClient* mqtt, MqttClientMessage* msg) {
-    msg->lock = api_lock_alloc_locked();
-    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, msg, sizeof(MqttClientMessage));
-    api_lock_wait_unlock_and_free(msg->lock);
+static void mqtt_client_send_message(MqttClient* instance, MqttApiMessage* message) {
+    message->lock = api_lock_alloc_locked();
+    mg_wakeup(&instance->mgr, instance->wakeup_conn_id, message, sizeof(MqttApiMessage));
+    api_lock_wait_unlock_and_free(message->lock);
 }
 
-MqttClientStatus mqtt_client_get_status(MqttClient* mqtt) {
-    furi_assert(mqtt);
+MqttClientStatus mqtt_client_get_status(MqttClient* instance) {
+    furi_check(instance);
 
     MqttClientStatus status;
 
-    MqttClientMessage msg = {.type = MqttClientMessageGetStatus, .status = &status};
-    mqtt_client_send_message(mqtt, &msg);
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeGetStatus,
+        .data.get_status =
+            {
+                .status = &status,
+            },
+    };
 
+    mqtt_client_send_message(instance, &message);
     return status;
 }
 
-bool mqtt_client_request_link_pin(MqttClient* mqtt) {
-    furi_assert(mqtt);
+bool mqtt_client_request_link_pin(MqttClient* instance) {
+    furi_check(instance);
 
     bool success = false;
 
-    MqttClientMessage msg = {.type = MqttClientMessageRequestPin, .bool_param = &success};
-    mqtt_client_send_message(mqtt, &msg);
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeRequestPin,
+        .data.request_pin =
+            {
+                .is_success = &success,
+            },
+    };
 
+    mqtt_client_send_message(instance, &message);
     return success;
 }
 
-void mqtt_client_unlink(MqttClient* mqtt) {
-    furi_assert(mqtt);
+void mqtt_client_unlink(MqttClient* instance) {
+    furi_check(instance);
 
-    MqttClientMessage msg = {.type = MqttClientMessageUnlink};
-    mqtt_client_send_message(mqtt, &msg);
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeUnlink,
+    };
+
+    mqtt_client_send_message(instance, &message);
 }
 
 void mqtt_client_get_session_info(
-    MqttClient* mqtt,
+    MqttClient* instance,
     FuriString* id,
     FuriString* email,
     FuriString* user_id) {
-    furi_assert(mqtt);
+    furi_check(instance);
 
-    MqttClientMessage msg = {
-        .type = MqttClientMessageGetSessionInfo,
-        .session_info = {.id = id, .email = email, .user_id = user_id},
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeGetSessionInfo,
+        .data.get_session_info =
+            {
+                .id = id,
+                .email = email,
+                .user_id = user_id,
+            },
     };
-    mqtt_client_send_message(mqtt, &msg);
+
+    mqtt_client_send_message(instance, &message);
 }
 
-MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url) {
-    furi_assert(mqtt);
+MqttClientProfile mqtt_client_get_profile(MqttClient* instance, FuriString* custom_url) {
+    furi_check(instance);
+
     MqttClientProfile profile;
 
-    MqttClientMessage msg = {
-        .type = MqttClientMessageGetProfile,
-        .profile = {.id = &profile, .custom_url = custom_url},
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeGetProfile,
+        .data.get_profile =
+            {
+                .profile_id = &profile,
+                .custom_url = custom_url,
+            },
     };
-    mqtt_client_send_message(mqtt, &msg);
 
+    mqtt_client_send_message(instance, &message);
     return profile;
 }
 
-void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, char* custom_url) {
-    furi_assert(mqtt);
+void mqtt_client_set_profile(
+    MqttClient* instance,
+    MqttClientProfile profile,
+    const char* custom_url) {
+    furi_check(instance);
 
-    FuriString* url = furi_string_alloc_set(custom_url);
-    MqttClientMessage msg = {
-        .type = MqttClientMessageSetProfile,
-        .profile = {.id = &profile, .custom_url = url},
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeSetProfile,
+        .data.set_profile =
+            {
+                .profile_id = profile,
+                .custom_url = custom_url,
+            },
     };
-    mqtt_client_send_message(mqtt, &msg);
-    furi_string_free(url);
+
+    mqtt_client_send_message(instance, &message);
 }
 
 void mqtt_client_publish(
-    MqttClient* mqtt,
+    MqttClient* instance,
     MqttQos qos,
     const char* topic,
     const void* data,
     size_t data_size) {
-    furi_check(mqtt);
+    furi_check(instance);
     furi_check(topic);
     furi_check(data);
     furi_check(data_size);
     furi_check(qos < MqttQosMax);
 
-    const MqttClientMessage msg = {
-        .type = MqttClientMessagePublish,
-        .publish =
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypePublish,
+        .data.publish =
             {
                 .topic = topic,
                 .data = data,
                 .data_size = data_size,
                 .qos = qos,
             },
-        .lock = api_lock_alloc_locked(),
     };
 
-    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
-    api_lock_wait_unlock_and_free(msg.lock);
+    mqtt_client_send_message(instance, &message);
 }
 
-FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt) {
-    furi_assert(mqtt);
-    return mqtt->event_pubsub;
+FuriPubSub* mqtt_client_get_pubsub(MqttClient* instance) {
+    furi_check(instance);
+    return instance->event_pubsub;
 }

@@ -1,4 +1,5 @@
 #include "mqtt_client_i.h"
+
 #include <network/network.h>
 #include <storage/storage.h>
 #include <json_helper.h>
@@ -15,33 +16,35 @@
 
 #define MQTT_PING_PERIOD (10 * 60 * 1000)
 
-static struct {
-    char* url;
+typedef struct {
+    const char* url;
     bool use_tls;
-} server_profiles[MqttClientProfileMax] = {
-    [MqttClientProfileDev] = {.url = "mqtts://mqtt.cloud.dev.busy.app:8883", .use_tls = true},
-    [MqttClientProfileProd] =
-        {.url = "mqtts://mqtt.cloud.dev.busy.app:8883", .use_tls = true}, // TODO: prod server
-    [MqttClientProfileLocal] = {.url = "mqtt://10.0.4.21:1883", .use_tls = false},
-    [MqttClientProfileCustom] = {.url = "", .use_tls = false},
-};
+} MqttProfile;
+
+static const MqttProfile mqtt_profiles[MqttClientProfileMax];
+
+typedef void (*MqttApiMessageHandler)(MqttClient* instance, const MqttApiMessageData* data);
+
+static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeMax];
 
 static void mqtt_connect_callback(void* data);
 static bool mqtt_client_load_ca_bundle(MqttClient* mqtt);
 
 static void mqtt_wifi_event_callback(const void* state, void* context) {
-    MqttClient* mqtt = context;
-    furi_assert(mqtt);
+    MqttClient* instance = context;
+    furi_assert(instance);
 
     const WifiInfo* info = state;
 
-    MqttClientMessage msg = {
-        .type = MqttClientMessageWifiStateChange,
-        .wifi_state = info->state,
-        .lock = NULL,
+    const MqttApiMessage msg = {
+        .type = MqttApiMessageTypeWifiState,
+        .data.wifi_state =
+            {
+                .state = info->state,
+            },
     };
 
-    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
+    mg_wakeup(&instance->mgr, instance->wakeup_conn_id, &msg, sizeof(MqttApiMessage));
 }
 
 static void mqtt_ping_timer_callback(void* data) {
@@ -388,129 +391,190 @@ static void mqtt_client_load_profile(MqttClient* mqtt, MqttClientProfile profile
             mqtt->use_tls = false;
         }
     } else {
-        furi_string_set(mqtt->server_addr, server_profiles[mqtt->profile_id].url);
-        mqtt->use_tls = server_profiles[mqtt->profile_id].use_tls;
-    }
-}
-
-static void mqtt_client_do_publish(MqttClient* mqtt, const MqttClientPublish* pub) {
-    if(mqtt->conn) {
-        FuriString* full_topic = furi_string_alloc_printf(
-            "%s/%s/up/%s/%s",
-            MQTT_API_ROOT_TOPIC,
-            furi_string_get_cstr(mqtt->session_id),
-            MQTT_API_VERSION,
-            pub->topic);
-
-        const struct mg_str message = {
-            .buf = (char*)pub->data,
-            .len = pub->data_size,
-        };
-
-        const struct mg_mqtt_opts opts = {
-            .topic = mg_str(furi_string_get_cstr(full_topic)),
-            .message = message,
-            .qos = pub->qos,
-            .retain = false,
-            .props = NULL,
-            .num_props = 0,
-        };
-
-        // TODO: Implement proper QoS handling
-        mg_mqtt_pub(mqtt->conn, &opts);
-
-        furi_string_free(full_topic);
+        furi_string_set(mqtt->server_addr, mqtt_profiles[mqtt->profile_id].url);
+        mqtt->use_tls = mqtt_profiles[mqtt->profile_id].use_tls;
     }
 }
 
 static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* ev_data) {
-    if(ev != MG_EV_WAKEUP) return;
-    MqttClient* mqtt = conn->fn_data;
-    furi_assert(mqtt);
-
-    struct mg_str* msg_data = ev_data;
-
-    furi_assert(msg_data->buf);
-    furi_assert(msg_data->len == sizeof(MqttClientMessage));
-
-    MqttClientMessage* msg = (MqttClientMessage*)(msg_data->buf);
-
-    switch(msg->type) {
-    case MqttClientMessageWifiStateChange:
-        if(msg->wifi_state == WifiStateConnected) {
-            if((!mqtt->is_wifi_up) && (mqtt->conn == NULL)) {
-                mqtt_connect_callback(mqtt);
-            }
-            mqtt->is_wifi_up = true;
-        } else {
-            mqtt->is_wifi_up = false;
-        }
-        break;
-    case MqttClientMessageGetStatus:
-        *(msg->status) = mqtt->status;
-        break;
-    case MqttClientMessageRequestPin:
-        if(mqtt->status == MqttClientStatusConnectedNotLinked) {
-            mqtt_device_request_pin(mqtt);
-            *(msg->bool_param) = true;
-        } else {
-            *(msg->bool_param) = false;
-        }
-        break;
-    case MqttClientMessageUnlink:
-        if(mqtt->conn) {
-            mqtt->conn->is_draining = 1;
-            mqtt->fast_reconnect = true;
-        }
-        Storage* storage = furi_record_open(RECORD_STORAGE);
-        storage_common_remove(storage, SESSION_FILE);
-        furi_record_close(RECORD_STORAGE);
-
-        mqtt_client_load_session(mqtt);
-
-        break;
-    case MqttClientMessageGetSessionInfo:
-        if(msg->session_info.id) {
-            furi_string_set(msg->session_info.id, mqtt->session_id);
-        }
-        if(msg->session_info.email) {
-            json_config_read_single_str(SESSION_FILE, "email", msg->session_info.email, "");
-        }
-        if(msg->session_info.user_id) {
-            json_config_read_single_str(SESSION_FILE, "user_id", msg->session_info.user_id, "");
-        }
-        break;
-    case MqttClientMessageGetProfile:
-        furi_assert(msg->profile.id);
-        *msg->profile.id = mqtt->profile_id;
-        if(msg->profile.custom_url) {
-            json_config_read_single_str(CONFIG_FILE, "custom_url", msg->profile.custom_url, "");
-        }
-        break;
-    case MqttClientMessageSetProfile:
-        furi_assert(msg->profile.id);
-        furi_assert(*msg->profile.id < MqttClientProfileMax);
-        json_config_write_single_int(CONFIG_FILE, "profile", *msg->profile.id);
-        if((msg->profile.custom_url) && (*msg->profile.id == MqttClientProfileCustom)) {
-            json_config_write_single_str(
-                CONFIG_FILE, "custom_url", furi_string_get_cstr(msg->profile.custom_url));
-        }
-        mqtt->profile_id = *msg->profile.id;
-        mqtt_client_load_profile(mqtt, mqtt->profile_id);
-        if(mqtt->conn) {
-            mqtt->conn->is_draining = 1;
-        }
-        break;
-    case MqttClientMessagePublish:
-        mqtt_client_do_publish(mqtt, &msg->publish);
-        break;
-    default:
-        furi_crash();
-        break;
+    if(ev != MG_EV_WAKEUP) {
+        return;
     }
 
-    if(msg->lock) {
-        api_lock_unlock(msg->lock);
+    MqttClient* instance = conn->fn_data;
+    furi_assert(instance);
+
+    const struct mg_str* msg_data = ev_data;
+    furi_assert(msg_data);
+    furi_assert(msg_data->buf);
+    furi_assert(msg_data->len == sizeof(MqttApiMessage));
+
+    const MqttApiMessage* message = (MqttApiMessage*)(msg_data->buf);
+    const MqttApiMessageType message_type = message->type;
+    furi_assert(message_type < MqttApiMessageTypeMax);
+
+    mqtt_api_message_handlers[message_type](instance, &message->data);
+
+    if(message->lock) {
+        api_lock_unlock(message->lock);
+    }
+}
+
+static void
+    mqtt_get_status_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageGetStatus* get_status = &data->get_status;
+    *(get_status->status) = instance->status;
+}
+
+static void mqtt_unlink_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    if(instance->conn) {
+        instance->conn->is_draining = 1;
+        instance->fast_reconnect = true;
+    }
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    storage_common_remove(storage, SESSION_FILE);
+    furi_record_close(RECORD_STORAGE);
+
+    mqtt_client_load_session(instance);
+}
+
+static void
+    mqtt_request_pin_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageRequestPin* request_pin = &data->request_pin;
+
+    bool is_success = false;
+
+    if(instance->status == MqttClientStatusConnectedNotLinked) {
+        mqtt_device_request_pin(instance);
+        is_success = true;
+    }
+
+    *(request_pin->is_success) = is_success;
+}
+
+static void mqtt_get_session_info_api_message_handler(
+    MqttClient* instance,
+    const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageGetSessionInfo* get_session_info = &data->get_session_info;
+
+    if(get_session_info->id) {
+        furi_string_set(get_session_info->id, instance->session_id);
+    }
+
+    if(get_session_info->email) {
+        json_config_read_single_str(SESSION_FILE, "email", get_session_info->email, "");
+    }
+
+    if(get_session_info->user_id) {
+        json_config_read_single_str(SESSION_FILE, "user_id", get_session_info->user_id, "");
+    }
+}
+
+static void
+    mqtt_get_profile_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageGetProfile* get_profile = &data->get_profile;
+    furi_assert(get_profile->profile_id);
+
+    *get_profile->profile_id = instance->profile_id;
+
+    if(get_profile->custom_url) {
+        json_config_read_single_str(CONFIG_FILE, "custom_url", get_profile->custom_url, "");
+    }
+}
+
+static void
+    mqtt_set_profile_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageSetProfile* set_profile = &data->set_profile;
+
+    const MqttClientProfile profile_id = set_profile->profile_id;
+    furi_assert(profile_id < MqttClientProfileMax);
+
+    json_config_write_single_int(CONFIG_FILE, "profile", profile_id);
+
+    const char* custom_url = set_profile->custom_url;
+
+    if((custom_url) && (profile_id == MqttClientProfileCustom)) {
+        json_config_write_single_str(CONFIG_FILE, "custom_url", custom_url);
+    }
+
+    instance->profile_id = profile_id;
+
+    mqtt_client_load_profile(instance, profile_id);
+
+    if(instance->conn) {
+        instance->conn->is_draining = 1;
+    }
+}
+
+static void mqtt_publish_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    if(!instance->conn) {
+        // TODO: What to do with messages published before the connection has established?
+        return;
+    }
+
+    const MqttApiMessagePublish* publish = &data->publish;
+
+    FuriString* full_topic = furi_string_alloc_printf(
+        "%s/%s/up/%s/%s",
+        MQTT_API_ROOT_TOPIC,
+        furi_string_get_cstr(instance->session_id),
+        MQTT_API_VERSION,
+        publish->topic);
+
+    const struct mg_str message = mg_str_n(publish->data, publish->data_size);
+
+    const struct mg_mqtt_opts opts = {
+        .topic = mg_str(furi_string_get_cstr(full_topic)),
+        .message = message,
+        .qos = publish->qos,
+        .retain = false,
+        .props = NULL,
+        .num_props = 0,
+    };
+
+    // TODO: Implement proper QoS handling
+    mg_mqtt_pub(instance->conn, &opts);
+
+    furi_string_free(full_topic);
+}
+
+static void mqtt_wifi_state_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageWifiState* wifi_state = &data->wifi_state;
+
+    if(wifi_state->state == WifiStateConnected) {
+        if((!instance->is_wifi_up) && (instance->conn == NULL)) {
+            mqtt_connect_callback(instance);
+        }
+
+        instance->is_wifi_up = true;
+
+    } else {
+        instance->is_wifi_up = false;
     }
 }
 
@@ -582,3 +646,37 @@ int32_t mqtt_client_start(void* p) {
     }
     return 0;
 }
+
+static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeMax] = {
+    [MqttApiMessageTypeGetStatus] = mqtt_get_status_api_message_handler,
+    [MqttApiMessageTypeUnlink] = mqtt_unlink_api_message_handler,
+    [MqttApiMessageTypeRequestPin] = mqtt_request_pin_api_message_handler,
+    [MqttApiMessageTypeGetSessionInfo] = mqtt_get_session_info_api_message_handler,
+    [MqttApiMessageTypeGetProfile] = mqtt_get_profile_api_message_handler,
+    [MqttApiMessageTypeSetProfile] = mqtt_set_profile_api_message_handler,
+    [MqttApiMessageTypePublish] = mqtt_publish_message_handler,
+    [MqttApiMessageTypeWifiState] = mqtt_wifi_state_message_handler,
+};
+
+static const MqttProfile mqtt_profiles[MqttClientProfileMax] = {
+    [MqttClientProfileDev] =
+        {
+            .url = "mqtts://mqtt.cloud.dev.busy.app:8883",
+            .use_tls = true,
+        },
+    [MqttClientProfileProd] =
+        {
+            .url = "mqtts://mqtt.cloud.dev.busy.app:8883",
+            .use_tls = true,
+        },
+    [MqttClientProfileLocal] =
+        {
+            .url = "mqtt://10.0.4.21:1883",
+            .use_tls = false,
+        },
+    [MqttClientProfileCustom] =
+        {
+            .url = "",
+            .use_tls = false,
+        },
+};

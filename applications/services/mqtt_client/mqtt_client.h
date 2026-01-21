@@ -2,7 +2,7 @@
 
 #include <furi.h>
 
-#define RECORD_MQTT "MQTT"
+#define RECORD_MQTT "mqtt"
 
 #define MQTT_LINK_PIN_LEN (4)
 
@@ -49,15 +49,20 @@ typedef struct MqttClient MqttClient;
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt);
 
 MqttClientStatus mqtt_client_get_status(MqttClient* mqtt);
+
 bool mqtt_client_request_link_pin(MqttClient* mqtt);
+
 void mqtt_client_unlink(MqttClient* mqtt);
+
 void mqtt_client_get_session_info(
     MqttClient* mqtt,
     FuriString* id,
     FuriString* email,
     FuriString* user_id);
+
 MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url);
-void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, char* custom_url);
+
+void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, const char* custom_url);
 
 void mqtt_client_publish(
     MqttClient* mqtt,
