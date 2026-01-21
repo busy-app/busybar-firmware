@@ -58,12 +58,12 @@
               nameModel = '';
               showRenameModal = true;
             }
-          },
-          {
+          }
+          /* {
             label: 'Restart',
             icon: 'i-ri-restart-line',
             onSelect: () => { showRestartModal = true; }
-          }
+          } */
         ]"
         :content="{
           align: 'start',
@@ -111,7 +111,8 @@
             size="xl"
             variant="soft"
             :ui="{ base: 'ring-1 ring-glass' }"
-            @keyup.enter="loading.rename ? null : updateDeviceName"
+            :disabled="loading.rename"
+            @keyup.enter="updateDeviceName"
           />
         </template>
       </ModalGeneric>
@@ -145,6 +146,7 @@
           sideOffset: 8
         }"
         :ui="{
+          itemLabelExternalIcon: 'hidden'
         }"
       >
         <UButton
@@ -156,9 +158,10 @@
           variant="ghost"
           class="rounded-full"
         />
+
         <template #signin-trailing>
           <UIcon
-            name="i-ri-external-link-line"
+            name="i-bi-open-in-new"
             class="shrink-0 size-5 ml-4"
           />
         </template>
@@ -175,7 +178,7 @@ const tabStore = useTabStore();
 
 const colorMode = useColorMode();
 
-const httpApiAccess = ref(await deviceStore.getHttpAPIAccess());
+const httpApiAccess = ref();
 
 const passwordSetItems = [
   {
@@ -231,7 +234,8 @@ const userDropdownItems = computed(() => {
         icon: 'i-ri-account-circle-fill',
         slot: 'signin' as const,
         type: 'link',
-        href: 'https://cloud.busy.app'
+        href: 'https://cloud.busy.app',
+        target: '_blank'
       }
     ],
     [
@@ -277,6 +281,7 @@ const loading = ref({
 async function updateDeviceName () {
   loading.value.rename = true;
   await deviceStore.setDeviceName(nameModel.value.trim());
+  showRenameModal.value = false;
   loading.value.rename = false;
 }
 
@@ -294,6 +299,7 @@ async function restartDevice () {
 
 async function lockDown () {
   apiStore.apiKey = null;
+  deviceStore.busyBar.setApiKey('');
   await navigateTo('/login');
 }
 
@@ -317,6 +323,8 @@ function onLogoClick () {
 }
 
 onMounted(async () => {
+  httpApiAccess.value = await deviceStore.getHttpAPIAccess();
+
   await deviceStore.detectConnectionType();
   if (deviceStore.connectionType === 'usb') {
     passwordSetItems.splice(0, 1);

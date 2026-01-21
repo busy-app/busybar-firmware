@@ -1,5 +1,16 @@
 <template>
-  <UIcon :name="iconName" />
+  <div class="relative">
+    <UIcon
+      v-bind="$attrs"
+      :name="iconName"
+    />
+    <UIcon
+      v-if="state === 'charging'"
+      v-bind="$attrs"
+      name="i-busy-charging-lightning"
+      class="absolute top-0 left-0"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

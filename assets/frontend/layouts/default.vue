@@ -4,42 +4,56 @@
     class="w-screen min-h-screen px-4 sm:px-6 py-4"
   >
     <UContainer>
-      <DefaultLayoutHeader />
-      <DefaultLayoutPreview class="pb-10" />
+      <template v-if="shouldLoadDefaultPage">
+        <DefaultLayoutHeader />
+        <DefaultLayoutPreview class="pb-10" />
 
-      <PasswordSetModal />
-      <PasswordUpdateModal />
-      <PasswordRemoveModal />
+        <PasswordSetModal />
+        <PasswordUpdateModal />
+        <PasswordRemoveModal />
 
-      <div class="w-full relative flex flex-col items-center gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
-        <DefaultLayoutTabs />
-        <div class="w-full max-w-[688px] mx-auto">
-          <slot />
+        <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
+          <DefaultLayoutTabs />
+          <div class="w-full max-w-[688px] mx-auto">
+            <slot />
+          </div>
         </div>
-      </div>
+      </template>
+      <template v-else>
+        <div class="w-screen h-screen absolute top-0 left-0 flex items-center justify-center">
+          <UIcon
+            name="i-busy-loader"
+            class="size-12 animate-spin text-muted"
+          />
+        </div>
+      </template>
     </UContainer>
   </div>
 </template>
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
-const wifiStore = useWifiStore();
 
-async function refreshDeviceData () {
-  await deviceStore.checkConnection();
-  if (!deviceStore.isConnected) {
-    return;
-  }
-  toast.remove('device-disconnected');
-
-  await deviceStore.fetchDeviceStatus();
-  await wifiStore.fetchWifiState();
-  await deviceStore.fetchHttpAPIAccess();
+if (!useRuntimeConfig().public.disablePolling) {
+  deviceStore.setRefreshInterval();
+} else {
+  console.log('Polling disabled');
 }
 
-const refreshInterval = setInterval(refreshDeviceData, 5000);
+const shouldLoadDefaultPage = ref(false);
+onMounted(async () => {
+  // early access check
+  try {
+    await deviceStore.fetchDeviceName(true);
+  } catch (error) {
+    if ((error as { status: number }).status === 403) {
+      return await navigateTo('/login');
+    }
+  }
+  shouldLoadDefaultPage.value = true;
+});
 
 onBeforeUnmount(() => {
-  clearInterval(refreshInterval);
+  deviceStore.clearRefreshInterval();
 });
 </script>

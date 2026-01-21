@@ -8,6 +8,7 @@
     <TabSettings v-if="tabStore.currentTab === 'settings'" />
 
     <template v-if="tabStore.showHiddenTabs">
+      <TabFiles v-if="tabStore.currentTab === 'files'" />
       <TabAnimations v-if="tabStore.currentTab === 'animations'" />
     </template>
   </div>

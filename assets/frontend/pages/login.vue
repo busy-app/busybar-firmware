@@ -89,26 +89,16 @@ async function attemptUnlock () {
 
   try {
     apiStore.apiKey = pms.passwordModel.current;
-    await deviceStore.fetchSystemStatus(true);
+    deviceStore.busyBar.setApiKey(apiStore.apiKey);
+    await deviceStore.fetchDeviceName(true);
     await navigateTo('/');
   } catch (error: unknown) {
-    // Type guard for error with data property
-    const errorWithData = (err: unknown): err is { data?: { error: string } } => typeof err === 'object' && err !== null && 'data' in err;
-
-    if (errorWithData(error) && error.data?.error === 'Forbidden') {
+    if ((error as { status?: number })?.status === 403) {
       apiStore.apiKey = null;
       pms.passwordModel.current = '';
       pms.passwordModel.currentWrong = true;
     } else {
-      console.error('Error fetching system status:', error);
-      toast.add({
-        id: 'system-status-error',
-        title: 'Failed to fetch system status',
-        description: errorWithData(error) ? error.data?.error || String(error) || genericErrorMessage : genericErrorMessage,
-        icon: 'i-bi-alert',
-        color: 'error',
-        duration: 10000
-      });
+      await handleHTTPError(error, 'Failed to unlock Virtual LAN');
     }
   }
   loading.value = false;
@@ -116,11 +106,10 @@ async function attemptUnlock () {
 
 onMounted(async () => {
   try {
-    await deviceStore.fetchSystemStatus();
-    // If we successfully fetched the system status, navigate to the main page
+    await deviceStore.fetchDeviceName(true);
     await navigateTo('/');
   } catch {
-    // If fetching the system status fails, stay on the locked page
+    // If fetching name fails, stay on the locked page
   }
   setTimeout(() => {
     initialLoading.value = false;

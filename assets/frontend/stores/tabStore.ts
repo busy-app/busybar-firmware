@@ -29,6 +29,12 @@ export const useTabStore = defineStore('tabs', () => {
       value: 'settings'
     },
     {
+      label: 'Files',
+      icon: 'i-bi-folder',
+      value: 'files',
+      hidden: true
+    },
+    {
       label: 'Animations',
       icon: 'i-bi-control-play',
       value: 'animations',
