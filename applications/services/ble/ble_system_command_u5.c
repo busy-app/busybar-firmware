@@ -303,7 +303,7 @@ static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void*
         response->remote_device_address,
         BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
 
-    furi_pubsub_publish(instance->on_status_change, NULL);
+    furi_pubsub_publish(instance->on_status_change, (void*)response);
 
     return result;
 }
