@@ -26,11 +26,50 @@
         </UTooltip>
       </div>
 
-      <div
-        ref="pathEl"
-        class="bg-neutral-200 dark:bg-neutral-900 rounded py-1 px-2 overflow-auto"
-      >
-        {{ currentPath }}
+      <div class="flex-1 min-w-0 relative">
+        <UInputMenu
+          ref="filesInputMenu"
+          v-model="inputMenuModel"
+          v-model:search-term="inputMenuSearchTerm"
+          :open-on-focus="true"
+          :items="inputMenuItems"
+          label-key="path"
+          trailing-icon=""
+          selected-icon=""
+          class="w-full"
+          @update:search-term="onInputMenuChange"
+          @update:model-value="onInputMenuUpdate"
+          @keydown.enter.prevent="onInputMenuEnter"
+          @keydown.tab.prevent
+          @keyup.tab.prevent="onInputMenuTab"
+        >
+          <template #leading><span class="text-sm">/ext</span></template>
+          <template #item="{ item }">
+            <div class="flex items-center gap-1.5">
+              <UIcon
+                v-if="item.icon"
+                :name="item.icon"
+                class="size-5"
+              />
+              <span
+                :data-id="`files-autocomplete-${item.path}`"
+                class="truncate"
+              >{{ item.name }}</span>
+            </div>
+          </template>
+          <template #trailing>
+            <UKbd>/</UKbd>
+          </template>
+        </UInputMenu>
+        <!-- <div class="absolute text-sm top-1.5 left-2.5 text-red-500">
+          <span>/</span><span class="cursor-pointer hover:underline">ext</span>
+          <template
+            v-for="part in inputMenuSearchTerm.slice(0, inputMenuSearchTerm.lastIndexOf('/')).split('/').filter(p => p.length > 0)"
+            :key="part"
+          >
+            <span>/</span><span class="cursor-pointer hover:underline">{{ part }}</span>
+          </template>
+        </div> -->
       </div>
 
       <div class="flex justify-end gap-4 pl-2">
@@ -318,12 +357,105 @@ const loading = ref({
   read: false,
   remove: false,
   write: false,
-  mkdir: false
+  mkdir: false,
+  suggestions: false
 });
 const isAnythingLoading = computed(() => !!Object.values(loading.value).some(e => !!e));
 
 const currentPath = ref('/ext');
 const currentDir = ref<StorageListElement[]>([]);
+
+const filesInputMenu = useTemplateRef('filesInputMenu');
+defineShortcuts({
+  '/': () => {
+    filesInputMenu.value?.inputRef?.$el?.focus();
+  }
+});
+const inputMenuModel = ref({ path: '', name: '' });
+const inputMenuSearchTerm = ref('');
+interface InputMenuItem {
+  path: string;
+  name: string;
+  icon?: string;
+}
+const inputMenuItems = ref<InputMenuItem[]>([]);
+
+const rootItem: InputMenuItem = { path: '/', name: '/ext', icon: 'i-bi-busy-bar' };
+
+async function onInputMenuChange (newValue: string) {
+  if (!newValue.length) {
+    return;
+    /* if (didInputResetAfterSelect.value) {
+      newValue = '/';
+    } else {
+      console.debug('empty input, resetting to:', inputMenuModel.value.path);
+      inputMenuSearchTerm.value = inputMenuModel.value.path;
+      didInputResetAfterSelect.value = true;
+      return;
+    } */
+  }
+  if (!newValue.startsWith('/')) {
+    inputMenuSearchTerm.value = `/${newValue}`;
+    newValue = `/${newValue}`;
+  }
+
+  const dir = newValue.slice(0, newValue.lastIndexOf('/') + 1);
+  let filter = newValue.slice(newValue.lastIndexOf('/') + 1);
+  if (filter === '/') {
+    filter = '';
+  }
+
+  const options = await deviceStore.busyBar.readDirectory({ path: `/ext${dir}` })
+    .then(result => {
+      if (!result.list) {
+        throw new Error('Empty response');
+      }
+      const dirs = result.list.filter(e => e.type === 'dir').sort((a, b) => b.name < a.name ? 1 : -1);
+      return dirs
+        .map(d => ({ path: `${dir}${d.name}`, name: d.name }))
+        .filter(d => d.name.toLowerCase().startsWith(filter.toLowerCase()));
+    })
+    .catch(async error => {
+      await handleHTTPError(error, `Couldn't list directory ${currentPath.value}`);
+      return [];
+    }) as InputMenuItem[];
+
+  if (dir === '/' && filter === '') {
+    options.unshift(rootItem);
+  }
+
+  inputMenuItems.value = options;
+}
+
+async function onInputMenuUpdate (model: InputMenuItem | null) {
+  if (model) {
+    await list(`/ext${model.path}`);
+    if (!filesInputMenu?.value?.inputRef) {
+      return;
+    }
+    filesInputMenu.value.inputRef.$el.value = model.path;
+  }
+}
+async function onInputMenuEnter () {
+  const path = inputMenuSearchTerm.value.startsWith('/') ? inputMenuSearchTerm.value : `/${inputMenuSearchTerm.value}`;
+  if (currentPath.value !== `/ext${path}`) {
+    await list(`/ext${path}`);
+    if (!filesInputMenu?.value?.inputRef) {
+      return;
+    }
+    filesInputMenu.value.inputRef.$el.value = path;
+  }
+}
+async function onInputMenuTab () {
+  const option = inputMenuItems.value.find(i => i.path.startsWith(inputMenuSearchTerm.value));
+  if (option) {
+    if (!filesInputMenu?.value?.inputRef) {
+      return;
+    }
+    filesInputMenu.value.inputRef.$el.value = option.path;
+  }
+}
+
 const selectedItems = ref<Set<string>>(new Set());
 const isSelecting = ref(false);
 const selectStartIndex = ref(-1);
@@ -331,17 +463,17 @@ const selectStartIndex = ref(-1);
 async function list (path: string) {
   selectedItems.value.clear();
   loading.value.list = true;
-  currentDir.value = await deviceStore.busyBar.readDirectory({ path })
+  await deviceStore.busyBar.readDirectory({ path })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
       }
-
-      updatePath(path);
-
       const files = result.list.filter(e => e.type === 'file').sort((a, b) => b.name < a.name ? 1 : -1);
       const dirs = result.list.filter(e => e.type === 'dir').sort((a, b) => b.name < a.name ? 1 : -1);
-      return [...dirs, ...files];
+      currentDir.value = [...dirs, ...files];
+    })
+    .then(() => {
+      updatePath(path);
     })
     .catch(async error => {
       await handleHTTPError(error, `Couldn't list directory ${currentPath.value}`);
@@ -350,14 +482,20 @@ async function list (path: string) {
     .finally(() => loading.value.list = false);
 }
 
-const pathEl = ref<HTMLElement | null>(null);
 function updatePath (newValue: string) {
   currentPath.value = newValue;
-  setTimeout(() => {
-    if (pathEl.value && pathEl.value.scrollWidth > pathEl.value.clientWidth) {
-      pathEl.value.scroll(pathEl.value.scrollWidth, 0);
-    }
-  }, 50);
+
+  let slicedPath = newValue.startsWith('/ext') ? newValue.slice(4) : newValue;
+  slicedPath = slicedPath.replaceAll(/^\/+|\/+$/g, '/');
+  inputMenuModel.value = { path: slicedPath, name: slicedPath.slice(slicedPath.lastIndexOf('/') + 1) };
+  inputMenuSearchTerm.value = slicedPath;
+  inputMenuItems.value = currentDir.value
+    .filter(e => e.type === 'dir')
+    .map(d => ({ path: `${slicedPath.slice(0, slicedPath.lastIndexOf('/') + 1)}${d.name}`, name: d.name }));
+
+  if (slicedPath === '' || slicedPath === '/') {
+    inputMenuItems.value.unshift(rootItem);
+  }
 }
 
 async function toParentDir () {
@@ -744,10 +882,6 @@ async function mkdir () {
 
 const fileListContainer = ref<HTMLElement | null>(null);
 
-async function init () {
-  await list(currentPath.value);
-}
-
 function onGlobalClick (event: MouseEvent) {
   if (selectedItems.value.size === 0) {
     return;
@@ -768,6 +902,10 @@ function onGlobalClick (event: MouseEvent) {
   }
 
   selectedItems.value.clear();
+}
+
+async function init () {
+  await list(currentPath.value);
 }
 
 onMounted(async () => {
