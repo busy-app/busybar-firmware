@@ -163,7 +163,7 @@ static void ble_settings_set_icon_by_status(
         icon.back = paired ? "ble_back_paired_12x12.bin" : "ble_back_12x12.bin";
     } else if(status->state == BleServiceStateConnected) {
         icon.front = "ble_front_checkmark_8x8.bin";
-        icon.back = "ble_back_paired_12x12.bin";
+        icon.back = "ble_back_paired_11x11.bin";
     } else {
         FURI_LOG_W(TAG, "Wrong state!");
         icon.front = "ble_front_gray_8x8.bin";
