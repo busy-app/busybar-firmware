@@ -1,6 +1,7 @@
 <template>
   <SectionCard
     data-id="files-section-primary"
+    class="overflow-visible"
     :class="isDragging ? 'border-dashed border-1 border-muted' : ''"
     @dragenter.prevent="onDragEnter"
     @dragleave.prevent="onDragLeave"
@@ -27,25 +28,33 @@
       </div>
 
       <div class="flex-1 min-w-0 relative">
-        <UInputMenu
+        <UInput
           ref="filesInputMenu"
           v-model="inputMenuModel"
-          v-model:search-term="inputMenuSearchTerm"
-          :open-on-focus="true"
-          :items="inputMenuItems"
-          label-key="path"
-          trailing-icon=""
-          selected-icon=""
-          class="w-full"
-          @update:search-term="onInputMenuChange"
-          @update:model-value="onInputMenuUpdate"
-          @keydown.enter.prevent="onInputMenuEnter"
-          @keydown.tab.prevent
-          @keyup.tab.prevent="onInputMenuTab"
+          class="fim"
+          :ui="{
+            base: 'rounded-md pl-[62px]'
+          }"
+          @update:model-value="onInputMenuModelUpdate"
+          @keydown.enter.prevent="onEnter"
+          @keyup.tab.prevent
+          @keydown.tab.prevent="onTab"
+          @keydown.arrow-down.prevent="onArrowDown"
+          @keydown.arrow-up.prevent="onArrowUp"
         >
-          <template #leading><span class="text-sm">/ext</span></template>
-          <template #item="{ item }">
-            <div class="flex items-center gap-1.5">
+          <div
+            v-if="inputMenuModel.length > 0 && inputMenuItems.length > 0"
+            class="fim-focus-visible
+              w-full absolute top-8 flex flex-col gap-0.5 p-1.5
+              rounded-md text-sm bg-white dark:bg-neutral-900 ring ring-inset ring-accented z-30"
+          >
+            <div
+              v-for="(item, index) in inputMenuItems"
+              :key="item.path"
+              class="flex items-center gap-1.5 p-1.5 px-2 rounded-md cursor-pointer hover:bg-elevated/50"
+              :class="highlightedItemIndex === index ? 'bg-elevated/85' : ''"
+              @mousedown="inputMenuList(item)"
+            >
               <UIcon
                 v-if="item.icon"
                 :name="item.icon"
@@ -56,20 +65,43 @@
                 class="truncate"
               >{{ item.name }}</span>
             </div>
+            <!-- <div
+              v-if="inputMenuItems.length === 0"
+              class="flex items-center gap-1.5 p-1 rounded"
+            >
+              <span class="truncate">Nothing found</span>
+            </div> -->
+          </div>
+
+          <template #leading>
+            <div class="flex items-center gap-1.5 text-sm">
+              <UIcon
+                name="i-bi-busy-bar"
+                class="size-5"
+              />
+              <span>/ext</span>
+            </div>
           </template>
           <template #trailing>
-            <UKbd>/</UKbd>
+            <UKbd class="fim-focus-hidden">/</UKbd>
           </template>
-        </UInputMenu>
-        <!-- <div class="absolute text-sm top-1.5 left-2.5 text-red-500">
-          <span>/</span><span class="cursor-pointer hover:underline">ext</span>
+        </UInput>
+
+        <div class="absolute text-sm top-1.5 left-[36px]">
+          <span>/</span><span
+            class="cursor-pointer hover:underline mr-[0.5px]"
+            @click="list('/ext')"
+          >ext</span>
           <template
-            v-for="part in inputMenuSearchTerm.slice(0, inputMenuSearchTerm.lastIndexOf('/')).split('/').filter(p => p.length > 0)"
+            v-for="part in inputMenuModel.slice(0, inputMenuModel.lastIndexOf('/')).split('/').filter(p => p.length > 0)"
             :key="part"
           >
-            <span>/</span><span class="cursor-pointer hover:underline">{{ part }}</span>
+            <span>/</span><span
+              class="cursor-pointer hover:underline"
+              @click="list(`/ext/${inputMenuModel.slice(0, inputMenuModel.indexOf(part) + part.length)}`)"
+            >{{ part }}</span>
           </template>
-        </div> -->
+        </div>
       </div>
 
       <div class="flex justify-end gap-4 pl-2">
@@ -368,42 +400,37 @@ const currentDir = ref<StorageListElement[]>([]);
 const filesInputMenu = useTemplateRef('filesInputMenu');
 defineShortcuts({
   '/': () => {
-    filesInputMenu.value?.inputRef?.$el?.focus();
+    filesInputMenu.value?.inputRef?.focus();
   }
 });
-const inputMenuModel = ref({ path: '', name: '' });
-const inputMenuSearchTerm = ref('');
+const inputMenuModel = ref('');
 interface InputMenuItem {
   path: string;
   name: string;
   icon?: string;
 }
 const inputMenuItems = ref<InputMenuItem[]>([]);
+const highlightedItemIndex = ref(0);
 
-const rootItem: InputMenuItem = { path: '/', name: '/ext', icon: 'i-bi-busy-bar' };
+function normalizePath (path: string): string {
+  if (path.startsWith('/ext')) {
+    path = path.slice(4);
+  }
+  if (path.length > 1 && !path.startsWith('/')) {
+    path = `/${path}`;
+  }
+  return path.replaceAll(/^\/+|\/+$/g, '/');
+}
 
-async function onInputMenuChange (newValue: string) {
-  if (!newValue.length) {
-    return;
-    /* if (didInputResetAfterSelect.value) {
-      newValue = '/';
-    } else {
-      console.debug('empty input, resetting to:', inputMenuModel.value.path);
-      inputMenuSearchTerm.value = inputMenuModel.value.path;
-      didInputResetAfterSelect.value = true;
-      return;
-    } */
-  }
-  if (!newValue.startsWith('/')) {
-    inputMenuSearchTerm.value = `/${newValue}`;
-    newValue = `/${newValue}`;
-  }
+async function onInputMenuModelUpdate (newValue: string) {
+  inputMenuModel.value = normalizePath(newValue);
 
   const dir = newValue.slice(0, newValue.lastIndexOf('/') + 1);
   let filter = newValue.slice(newValue.lastIndexOf('/') + 1);
   if (filter === '/') {
     filter = '';
   }
+  console.log([dir, filter]);
 
   const options = await deviceStore.busyBar.readDirectory({ path: `/ext${dir}` })
     .then(result => {
@@ -416,43 +443,38 @@ async function onInputMenuChange (newValue: string) {
         .filter(d => d.name.toLowerCase().startsWith(filter.toLowerCase()));
     })
     .catch(async error => {
-      await handleHTTPError(error, `Couldn't list directory ${currentPath.value}`);
+      await handleHTTPError(error, `Couldn't list directory /ext${dir}`);
       return [];
     }) as InputMenuItem[];
 
-  if (dir === '/' && filter === '') {
-    options.unshift(rootItem);
-  }
-
   inputMenuItems.value = options;
 }
-
-async function onInputMenuUpdate (model: InputMenuItem | null) {
-  if (model) {
-    await list(`/ext${model.path}`);
-    if (!filesInputMenu?.value?.inputRef) {
-      return;
-    }
-    filesInputMenu.value.inputRef.$el.value = model.path;
-  }
+async function inputMenuList (model: InputMenuItem | null) {
+  await list(`/ext${normalizePath(model?.path || inputMenuModel.value)}`);
 }
-async function onInputMenuEnter () {
-  const path = inputMenuSearchTerm.value.startsWith('/') ? inputMenuSearchTerm.value : `/${inputMenuSearchTerm.value}`;
-  if (currentPath.value !== `/ext${path}`) {
-    await list(`/ext${path}`);
-    if (!filesInputMenu?.value?.inputRef) {
-      return;
-    }
-    filesInputMenu.value.inputRef.$el.value = path;
-  }
+function onArrowUp () {
+  highlightedItemIndex.value = (highlightedItemIndex.value - 1 + inputMenuItems.value.length) % inputMenuItems.value.length;
 }
-async function onInputMenuTab () {
-  const option = inputMenuItems.value.find(i => i.path.startsWith(inputMenuSearchTerm.value));
-  if (option) {
-    if (!filesInputMenu?.value?.inputRef) {
-      return;
+function onArrowDown () {
+  highlightedItemIndex.value = (highlightedItemIndex.value + 1) % inputMenuItems.value.length;
+}
+async function onTab () {
+  if (inputMenuItems.value.length === 0) {
+    return;
+  } else if (inputMenuItems.value.length === 1) {
+    await inputMenuList(inputMenuItems.value[0]);
+  }
+  return onArrowDown();
+}
+async function onEnter () {
+  if (inputMenuItems.value.length === 0) {
+    return;
+  } else {
+    if (inputMenuModel.value.length > 0) {
+      await inputMenuList(inputMenuItems.value[highlightedItemIndex.value] || null);
+    } else {
+      await inputMenuList(null);
     }
-    filesInputMenu.value.inputRef.$el.value = option.path;
   }
 }
 
@@ -485,17 +507,12 @@ async function list (path: string) {
 function updatePath (newValue: string) {
   currentPath.value = newValue;
 
-  let slicedPath = newValue.startsWith('/ext') ? newValue.slice(4) : newValue;
-  slicedPath = slicedPath.replaceAll(/^\/+|\/+$/g, '/');
-  inputMenuModel.value = { path: slicedPath, name: slicedPath.slice(slicedPath.lastIndexOf('/') + 1) };
-  inputMenuSearchTerm.value = slicedPath;
+  const slicedPath = normalizePath(newValue);
+
+  inputMenuModel.value = slicedPath;
   inputMenuItems.value = currentDir.value
     .filter(e => e.type === 'dir')
-    .map(d => ({ path: `${slicedPath.slice(0, slicedPath.lastIndexOf('/') + 1)}${d.name}`, name: d.name }));
-
-  if (slicedPath === '' || slicedPath === '/') {
-    inputMenuItems.value.unshift(rootItem);
-  }
+    .map(d => ({ path: `${slicedPath}${slicedPath.endsWith('/') ? '' : '/'}${d.name}`, name: d.name }));
 }
 
 async function toParentDir () {
@@ -920,6 +937,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.fim-focus-visible {
+  display: none;
+}
+.fim:focus-within .fim-focus-visible {
+  display: block;
+}
+.fim:focus-within .fim-focus-hidden {
+  display: none;
+}
+
 .fm-item:hover:after {
   content: '';
   display: block;
