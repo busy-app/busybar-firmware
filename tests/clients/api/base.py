@@ -16,7 +16,7 @@ from typing import Any, Type, TypeVar
 
 import allure
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -185,7 +185,12 @@ class BaseAPI:
             except json.JSONDecodeError as e:
                 raise APIError(response, f"Invalid JSON response: {e}")
 
-            return model.model_validate(data)
+            try:
+                return model.model_validate(data)
+            except ValidationError as e:
+                raise AssertionError(
+                    f"Response validation failed for {model.__name__}:\n{e}"
+                ) from e
 
     def _attach_request(self, method: str, url: str, **kwargs) -> None:
         """Attach request details to Allure report."""
