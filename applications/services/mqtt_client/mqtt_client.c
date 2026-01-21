@@ -578,72 +578,89 @@ static void mqtt_wifi_state_message_handler(MqttClient* instance, const MqttApiM
     }
 }
 
-int32_t mqtt_client_start(void* p) {
-    UNUSED(p);
-    MqttClient* mqtt = malloc(sizeof(MqttClient));
-    mqtt->conn = NULL;
-    mqtt->status = MqttClientStatusNotConnected;
-    mqtt->ping_enabled = false;
+static void mqtt_init_device_uid(MqttClient* instance) {
+    hex_bytes_to_string(
+        furi_hal_version_uid(), furi_hal_version_uid_size(), instance->device_serial);
+}
 
-    mqtt->server_addr = furi_string_alloc();
-    int default_profile = MqttClientProfileDev;
+static void mqtt_load_settings(MqttClient* instance) {
+    int profile_id = MqttClientProfileDev;
+
     JsonConfigStatus res =
-        json_config_read_single_int(CONFIG_FILE, "profile", &mqtt->profile_id, &default_profile);
+        json_config_read_single_int(CONFIG_FILE, "profile", &instance->profile_id, &profile_id);
     furi_assert(res != JsonConfigStatusError);
-    if(mqtt->profile_id >= MqttClientProfileMax) {
-        JsonConfigStatus res =
-            json_config_write_single_int(CONFIG_FILE, "profile", default_profile);
+
+    if(instance->profile_id >= MqttClientProfileMax) {
+        JsonConfigStatus res = json_config_write_single_int(CONFIG_FILE, "profile", profile_id);
         furi_assert(res != JsonConfigStatusError);
 
-        mqtt->profile_id = default_profile;
+        instance->profile_id = profile_id;
     }
-    mqtt_client_load_profile(mqtt, mqtt->profile_id);
 
-    mqtt->device_serial = furi_string_alloc();
-    hex_bytes_to_string(furi_hal_version_uid(), furi_hal_version_uid_size(), mqtt->device_serial);
+    mqtt_client_load_profile(instance, instance->profile_id);
+}
 
-    mqtt->client_id = furi_string_alloc();
-    mqtt->session_id = furi_string_alloc();
-    mqtt->link_token = furi_string_alloc();
+static void mqtt_api_init(MqttClient* instance) {
+    // Create a dummy connection only for wakeup event
+    const struct mg_connection* dummy_conn =
+        mg_wrapfd(&instance->mgr, MG_INVALID_SOCKET, mqtt_conn_wakeup_callback, instance);
+    instance->wakeup_conn_id = dummy_conn->id;
+}
 
-    // TODO: check certs + key on 917?
+static MqttClient* mqtt_client_alloc(void) {
+    MqttClient* instance = malloc(sizeof(MqttClient));
 
-    mqtt_client_load_session(mqtt);
+    instance->status = MqttClientStatusNotConnected;
+    instance->server_addr = furi_string_alloc();
+    instance->device_serial = furi_string_alloc();
+    instance->client_id = furi_string_alloc();
+    instance->session_id = furi_string_alloc();
+    instance->link_token = furi_string_alloc();
+    instance->event_pubsub = furi_pubsub_alloc();
+
+    mqtt_init_device_uid(instance);
+
+    mqtt_load_settings(instance);
+    mqtt_client_load_session(instance);
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
 
-    mg_mgr_init(&mqtt->mgr); // Initialise event manager
+    mg_mgr_init(&instance->mgr);
+    mg_wakeup_init(&instance->mgr);
 
-    mg_wakeup_init(&mqtt->mgr);
-    // Create a dummy connection only for wakeup event
-    struct mg_connection* dummy_conn =
-        mg_wrapfd(&mqtt->mgr, MG_INVALID_SOCKET, mqtt_conn_wakeup_callback, mqtt);
-    mqtt->wakeup_conn_id = dummy_conn->id;
-
-    mqtt->event_pubsub = furi_pubsub_alloc();
-    furi_record_create(RECORD_MQTT, mqtt);
+    mqtt_api_init(instance);
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
-    furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, mqtt);
+    furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, instance);
 
     // Start listening for BusyTimer events
-    mqtt_busy_timer_init(mqtt);
+    mqtt_busy_timer_init(instance);
 
-    mqtt->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
+    instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
 
     mg_timer_init(
-        &mqtt->mgr.timers,
-        &mqtt->reconnect_delay_timer,
-        mqtt->reconnect_delay,
+        &instance->mgr.timers,
+        &instance->reconnect_delay_timer,
+        instance->reconnect_delay,
         MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
         mqtt_connect_callback,
-        mqtt);
+        instance);
 
-    // Event loop
+    furi_record_create(RECORD_MQTT, instance);
+
+    return instance;
+}
+
+int32_t mqtt_client_start(void* arg) {
+    UNUSED(arg);
+
+    MqttClient* instance = mqtt_client_alloc();
+
     while(1) {
-        mg_mgr_poll(&mqtt->mgr, MQTT_POLL_PERIOD);
+        mg_mgr_poll(&instance->mgr, MQTT_POLL_PERIOD);
     }
+
     return 0;
 }
 
