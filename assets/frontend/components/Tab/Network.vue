@@ -1,12 +1,12 @@
 <template>
   <SectionCard
-    :key="title"
+    :key="title + (connected ? '-connected' : '') + (showNetworksList ? '-networks-list' : '')"
     data-id="network-section-wifi"
     :title="title"
-    :icon="networks.length ? undefined : (connected || wifiStore.wifi?.state === 'connecting') ? 'i-bi-wifi-4' : 'i-bi-wifi-off'"
+    :icon="showNetworksList ? undefined : (connected || wifiStore.wifi?.state === 'connecting') ? 'i-bi-wifi-4' : 'i-bi-wifi-off'"
   >
     <template
-      v-if="!connected && networks.length"
+      v-if="!connected && showNetworksList"
       #leading-actions
     >
       <UButton
@@ -18,12 +18,12 @@
         :ui="{
           base: 'p-3 rounded-full'
         }"
-        @click="networks = []"
+        @click="handleReturnFromNetworksList"
       />
     </template>
 
     <template
-      v-if="!networks.length"
+      v-if="!showNetworksList"
       #subtitle
     >
       <div
@@ -50,7 +50,7 @@
 
     <template #actions>
       <UButton
-        v-if="!connected && !networks.length"
+        v-if="!connected && !showNetworksList"
         data-id="network-section-wifi-select-button"
         :label="wifiStore.wifi?.state === 'connecting' ? 'Connecting...' : 'Select network'"
         :ui="{
@@ -61,7 +61,7 @@
         @click="listWifiNetworks"
       />
       <UButton
-        v-if="connected && !networks.length"
+        v-if="connected && !showNetworksList"
         data-id="network-section-wifi-forget-button"
         label="Forget network"
         variant="soft"
@@ -74,7 +74,7 @@
         @click="forgetNetwork"
       />
       <UTooltip
-        v-if="!connected && networks.length"
+        v-if="!connected && showNetworksList"
         text="Add network"
         :delay-duration="0"
       >
@@ -96,7 +96,7 @@
         />
       </UTooltip>
       <UTooltip
-        v-if="!connected && networks.length"
+        v-if="!connected && showNetworksList"
         text="Refresh networks"
         :delay-duration="0"
       >
@@ -168,7 +168,7 @@
     </div>
 
     <template
-      v-if="!connected && networks.length"
+      v-if="!connected && showNetworksList"
       #raw-body
     >
       <div
@@ -220,6 +220,16 @@
               />
             </UTooltip>
           </template>
+        </div>
+        <div
+          v-if="networks.length === 0"
+          class="flex gap-2 items-center px-2.5 py-2.5 rounded-xl"
+        >
+          <UIcon
+            name="i-bi-wifi-no-connection"
+            class="size-6 text-muted"
+          />
+          <div class="grow">Wi-Fi networks not found</div>
         </div>
       </div>
     </template>
@@ -401,7 +411,7 @@
       >
         <span class="underline">http://10.0.4.20/docs</span>
         <UIcon
-          name="i-busy-open-in-new"
+          name="i-bi-open-in-new"
           class="size-4"
         />
       </UButton>
@@ -418,7 +428,7 @@
         >
           <span class="underline">http://{{ wifiStore.wifi?.ip_config?.address }}/docs</span>
           <UIcon
-            name="i-busy-open-in-new"
+            name="i-bi-open-in-new"
             class="size-4"
           />
         </UButton>
@@ -597,11 +607,12 @@ async function refreshWifiState () {
 }
 
 const networks = ref<WifiNetwork[]>([]);
-
+const showNetworksList = ref(false);
 async function listWifiNetworks () {
   loading.value.list = true;
   networks.value = await wifiStore.listWifiNetworks();
   loading.value.list = false;
+  showNetworksList.value = true;
 
   if (!scanTimeout.value) {
     scanTimeout.value = setTimeout(async () => {
@@ -615,6 +626,15 @@ async function listWifiNetworks () {
 }
 
 const scanTimeout = ref<NodeJS.Timeout | null>(null);
+
+function handleReturnFromNetworksList () {
+  showNetworksList.value = false;
+  networks.value = [];
+  if (scanTimeout.value) {
+    clearTimeout(scanTimeout.value);
+    scanTimeout.value = null;
+  }
+}
 
 const showConnectModal = ref(false);
 const showPassword = ref(false);
@@ -654,7 +674,7 @@ async function connectToNetwork () {
   await wifiStore.connectToWifiNetwork(connectModel.value);
   await new Promise(resolve => setTimeout(resolve, 1000));
   await refreshWifiState();
-  networks.value = [];
+  handleReturnFromNetworksList();
   loading.value.connect = false;
   showConnectModal.value = false;
 }

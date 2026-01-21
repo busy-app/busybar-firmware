@@ -15,9 +15,10 @@ export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'suc
 
 export const useDeviceStore = defineStore('device', () => {
   const apiRequest = useApiStore().apiRequest;
+  const wifiStore = useWifiStore();
 
   const busyBar = new BusyBar({
-    addr: useRuntimeConfig().public.barUrl
+    addr: useRuntimeConfig().public.barUrl || window.location.origin
   });
 
   // Assume device is connected unless the screenstream stops.
@@ -38,20 +39,55 @@ export const useDeviceStore = defineStore('device', () => {
       isConnected.value = true;
 
       toast.remove('device-disconnected');
-    } catch {
+    } catch (error) {
+      // if the request was aborted/cancelled, don't treat it as disconnection
+      if (!refreshInterval.value) {
+        console.debug('conncheck request aborted, ignoring because refresh interval is cleared');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e = error as any;
+        if (e?.name === 'AbortError' || e?.message?.toLowerCase().includes('abort') || e?.code === 'ECONNABORTED') {
+          checkingConnection.value = false;
+          return;
+        }
+      }
+
       isConnected.value = false;
-      toast.add({
-        id: 'device-disconnected',
-        title: 'Device disconnected',
-        description: 'Device lost. Please check the connection.',
-        icon: 'i-bi-alert',
-        color: 'error',
-        duration: 0,
-        close: true,
-        closeIcon: 'i-bi-cross'
-      });
+      if (firmwareUpdate.value.stage === 'idle' || firmwareUpdate.value.stage === 'error') {
+        toast.add({
+          id: 'device-disconnected',
+          title: 'Device disconnected',
+          description: 'Device lost. Please check the connection.',
+          icon: 'i-bi-alert',
+          color: 'error',
+          duration: 0,
+          close: true,
+          closeIcon: 'i-bi-cross'
+        });
+      }
     }
     checkingConnection.value = false;
+  }
+
+  const refreshInterval = ref<NodeJS.Timeout>();
+  async function refreshDeviceData () {
+    await checkConnection();
+    if (!isConnected.value) {
+      return;
+    }
+    toast.remove('device-disconnected');
+
+    await fetchDeviceStatus();
+    await wifiStore.fetchWifiState();
+    await fetchHttpAPIAccess();
+  }
+  function setRefreshInterval () {
+    refreshInterval.value = setInterval(refreshDeviceData, 5000);
+  }
+  function clearRefreshInterval () {
+    if (refreshInterval.value) {
+      clearInterval(refreshInterval.value);
+      refreshInterval.value = undefined;
+    }
   }
 
   // Connection type
@@ -111,12 +147,9 @@ export const useDeviceStore = defineStore('device', () => {
     }
     return deviceStatus.value;
   }
-  async function fetchSystemStatus (throwError: boolean = false): Promise<StatusSystem | undefined> {
+  async function fetchSystemStatus (): Promise<StatusSystem | undefined> {
     const systemStatus = await busyBar.systemStatus()
       .catch(async error => {
-        if (throwError) {
-          throw error;
-        }
         await handleHTTPError(error, 'Couldn\'t get system status');
         return undefined;
       });
@@ -136,13 +169,16 @@ export const useDeviceStore = defineStore('device', () => {
   // Device name
   const DEFAULT_DEVICE_NAME = 'BUSY Bar';
   const deviceName = ref<string | undefined>(undefined);
-  async function fetchDeviceName (): Promise<string> {
+  async function fetchDeviceName (throwError: boolean = false): Promise<string> {
     const name = await busyBar.getName()
       .then(response => {
         deviceName.value = response.name;
         return response.name;
       })
       .catch(async error => {
+        if (throwError) {
+          throw error;
+        }
         await handleHTTPError(error, 'Couldn\'t get device name');
         return DEFAULT_DEVICE_NAME;
       });
@@ -295,6 +331,9 @@ export const useDeviceStore = defineStore('device', () => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    if (useApiStore().apiKey) {
+      xhr.setRequestHeader('X-API-Key', useApiStore().apiKey!);
+    }
 
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
@@ -330,6 +369,19 @@ export const useDeviceStore = defineStore('device', () => {
       }
     };
 
+    xhr.onerror = () => {
+      console.error('Upload error');
+      firmwareUpdate.value.stage = 'error';
+      toast.add({
+        title: 'Update failed',
+        description: 'An error occurred during the upload.',
+        icon: 'i-bi-alert',
+        color: 'error',
+        duration: 10000
+      });
+      firmwareUpdate.value.error = 'An error occurred during the upload.';
+    };
+
     firmwareUpdate.value.stage = 'uploading' as UpdateStage;
     firmwareUpdate.value.progress = 0;
     xhr.send(firmwareUpdate.value.firmwareFile);
@@ -354,6 +406,8 @@ export const useDeviceStore = defineStore('device', () => {
     checkConnection,
     connectionType,
     detectConnectionType,
+    setRefreshInterval,
+    clearRefreshInterval,
 
     apiVersion,
     fetchApiVersion,

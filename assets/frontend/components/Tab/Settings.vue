@@ -76,7 +76,7 @@
               data-id="brightness-percentage"
               class="text-muted"
             >
-              {{ brightnessNumber }}%
+              {{ nextBrightnessNumber || brightnessNumber }}%
             </div>
             <div
               v-else

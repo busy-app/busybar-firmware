@@ -56,3 +56,6 @@
 [submodule "lib/matter_zap"]
 	path = lib/matter_zap
 	url = https://github.com/flipperdevices/bsb-matter-zap.git
+[submodule "lib/zlib"]
+	path = lib/zlib
+	url = https://github.com/madler/zlib.git

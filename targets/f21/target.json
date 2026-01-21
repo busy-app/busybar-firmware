@@ -112,6 +112,7 @@
         "lvgl_addons",
         "network",
         "mongoose",
+        "zlib",
         "toolbox",
         "formatters",
         "flipper_format",

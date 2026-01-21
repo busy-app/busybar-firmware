@@ -17,7 +17,7 @@
 #define LWIP_FRAME_ALIGNMENT (60U)
 #define ETHERTYPE_IPV6       (0xDD86)
 #define MAX_TRANSFER_UNIT    (1500U)
-#define IP_VALIDITY_AWAIT_MS (5000U)
+#define IP6_READY_TIMEOUT_MS (5000U)
 
 static Wifi* instance;
 
@@ -104,12 +104,20 @@ static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
 }
 
 static void wifi_net_tcpip_netif_status_callback(struct netif* netif) {
-    uint8_t addr_state = netif_ip6_addr_state(netif, 0);
-    FURI_LOG_D(TAG, "netif ipv6 addr status changed: 0x%02x", addr_state);
+    furi_assert(netif);
+
+    const uint8_t addr_state = netif_ip6_addr_state(netif, 0);
+    FURI_LOG_D(TAG, "Netif ipv6 addr status changed: 0x%02x", addr_state);
 
     if(ip6_addr_isvalid(addr_state)) {
-        furi_check(furi_semaphore_release(instance->ip6_addr_valid) == FuriStatusOk);
+        FURI_LOG_D(TAG, "IPv6 address is valid");
+    } else if(ip6_addr_isduplicated(addr_state)) {
+        FURI_LOG_W(TAG, "Duplicate IPv6 address detected (possible false positive)");
+    } else {
+        return;
     }
+
+    furi_semaphore_release(instance->ipv6_ready_semaphore);
 }
 
 static void wifi_net_tcpip_netif_up_callback(void* context) {
@@ -161,40 +169,30 @@ void wifi_net_tcpip_init(Wifi* wifi, sl_mac_address_t* mac_addr) {
     wifi_net_tcpip_callback(wifi_net_tcpip_add_netif_callback, mac_addr);
 }
 
-bool wifi_net_tcpip_netif_up(Wifi* instance) {
-    bool success = false;
+void wifi_net_tcpip_netif_up(Wifi* instance) {
+    struct netif* netif = &instance->netif;
 
-    do {
-        wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, NULL);
+    LOCK_TCPIP_CORE();
+    netif_set_status_callback(netif, wifi_net_tcpip_netif_status_callback);
+    UNLOCK_TCPIP_CORE();
 
-        struct netif* netif = &instance->netif;
+    wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, NULL);
 
-        LOCK_TCPIP_CORE();
-        netif_set_status_callback(netif, wifi_net_tcpip_netif_status_callback);
-        UNLOCK_TCPIP_CORE();
+    const FuriStatus status = furi_semaphore_acquire(
+        instance->ipv6_ready_semaphore, furi_ms_to_ticks(IP6_READY_TIMEOUT_MS));
 
-        const FuriStatus status = furi_semaphore_acquire(
-            instance->ip6_addr_valid, furi_ms_to_ticks(IP_VALIDITY_AWAIT_MS));
+    LOCK_TCPIP_CORE();
+    netif_set_status_callback(netif, NULL);
+    UNLOCK_TCPIP_CORE();
 
-        LOCK_TCPIP_CORE();
-        netif_set_status_callback(netif, NULL);
-        UNLOCK_TCPIP_CORE();
+    if(status == FuriStatusErrorTimeout) {
+        FURI_LOG_W(
+            TAG, "IPv6 configuration failed in %d ms, continuing anyway", IP6_READY_TIMEOUT_MS);
+    } else if(status != FuriStatusOk) {
+        furi_crash();
+    }
 
-        if(status == FuriStatusErrorTimeout) {
-            FURI_LOG_E(TAG, "IPv6 DAD resolution failed in %d ms", IP_VALIDITY_AWAIT_MS);
-            break;
-
-        } else if(status != FuriStatusOk) {
-            furi_crash();
-        }
-
-        FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
-
-        success = true;
-
-    } while(false);
-
-    return success;
+    FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
 }
 
 void wifi_net_tcpip_netif_down(Wifi* instance) {
@@ -269,10 +267,7 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
             break;
         }
 
-        if(!wifi_net_tcpip_netif_up(instance)) {
-            status = SL_STATUS_TIMEOUT;
-            break;
-        }
+        wifi_net_tcpip_netif_up(instance);
 
     } while(false);
 

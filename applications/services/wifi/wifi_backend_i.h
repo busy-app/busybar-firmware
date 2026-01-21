@@ -20,7 +20,7 @@ struct Wifi {
     IntercomChannel* intercom_ch_control;
     IntercomChannel* intercom_ch_data;
     FuriSemaphore* tcpip_lock;
-    FuriSemaphore* ip6_addr_valid;
+    FuriSemaphore* ipv6_ready_semaphore;
     struct netif netif;
     WifiBackendState state;
     bool scan_in_progress;
@@ -28,6 +28,6 @@ struct Wifi {
 
 void wifi_net_tcpip_init(Wifi* instance, sl_mac_address_t* mac_addr);
 
-bool wifi_net_tcpip_netif_up(Wifi* instance);
+void wifi_net_tcpip_netif_up(Wifi* instance);
 
 void wifi_net_tcpip_netif_down(Wifi* instance);
