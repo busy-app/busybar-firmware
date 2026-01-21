@@ -6,7 +6,7 @@
 
 #include <furi.h>
 
-#include <ble/ble.h>
+#include "models/ble_model.h"
 #include <device_name/device_name.h>
 #include <desktop/desktop.h>
 #include <gui/gui.h>
@@ -35,12 +35,11 @@ typedef enum {
 #define ANIM_PATH(path)   ASSETS_PATH("animations") "/" path
 
 typedef struct {
-    Ble* ble;
+    BleModel* model;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
-    DeviceName* device_name;
 
     StatusLights* status_lights;
     Desktop* desktop;
@@ -57,7 +56,6 @@ typedef struct {
 } BleSettings;
 
 void ble_settings_send_custom_event(BleSettings* instance, uint32_t event);
-bool ble_settings_is_device_paired(Ble* ble);
 
 #ifdef __cplusplus
 }

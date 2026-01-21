@@ -59,11 +59,10 @@ static bool scene_forget_device_confirm_on_event(const SceneManagerEvent* event,
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventRemovePairingConfirm) {
-            if(ble_forget(instance->ble)) {
-                ble_stop(instance->ble);
-                consumed = desktop_replace_current_app(
-                    instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
-            }
+            ble_model_forget(instance->model);
+            ble_model_stop(instance->model);
+            consumed = desktop_replace_current_app(
+                instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
         } else if(event->event == SceneEventRemovePairingCancel) {
             consumed = scene_manager_previous_scene(instance->scene_manager);
         }

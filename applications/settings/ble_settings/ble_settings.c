@@ -53,16 +53,9 @@ static bool ble_settings_gui_input_callback(const InputEvent* event, void* conte
     return consumed;
 }
 
-bool ble_settings_is_device_paired(Ble* ble) {
-    BleStatus status = {0};
-    ble_get_status(ble, &status);
-    return status.pairing == BlePairingStatePaired;
-}
-
 static BleSettings* ble_settings_alloc() {
     BleSettings* instance = malloc(sizeof(BleSettings));
-    instance->ble = furi_record_open(RECORD_BLE);
-    instance->device_name = furi_record_open(RECORD_DEVICE_NAME);
+    instance->model = ble_model_alloc();
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(4, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(4, sizeof(uint32_t));
@@ -110,7 +103,7 @@ static BleSettings* ble_settings_alloc() {
         ble_settings_event_queue_callback,
         instance);
 
-    const bool not_paired = !ble_settings_is_device_paired(instance->ble);
+    const bool not_paired = !ble_model_is_device_paired(instance->model);
     scene_manager_next_scene(
         instance->scene_manager, not_paired ? SceneIdPairingMode : SceneIdForgetDevice);
     return instance;
@@ -134,8 +127,6 @@ static void ble_settings_free(BleSettings* instance) {
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_STATUS_LIGHTS);
-    furi_record_close(RECORD_DEVICE_NAME);
-    furi_record_close(RECORD_BLE);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
@@ -143,6 +134,7 @@ static void ble_settings_free(BleSettings* instance) {
     furi_message_queue_free(instance->event_queue);
 
     furi_event_loop_free(instance->event_loop);
+    ble_model_free(instance->model);
     free(instance);
 }
 
@@ -180,14 +172,11 @@ int32_t ble_settings_entry(void* arg) {
         furi_string_set_str(descriptor->front_title, "Bluetooth");
         furi_string_set_str(descriptor->back_title, "Bluetooth");
 
-        Ble* ble = furi_record_open(RECORD_BLE);
-
+        BleModel* model = ble_model_alloc();
         BleStatus status = {0};
-        bool result = ble_get_status(ble, &status);
-        furi_check(result);
-
+        ble_model_get_status(model, &status);
         ble_settings_set_icon_by_status(descriptor, &status);
-        furi_record_close(RECORD_BLE);
+        ble_model_free(model);
 
         return 0;
     }
