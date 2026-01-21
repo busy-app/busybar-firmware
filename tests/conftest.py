@@ -78,10 +78,13 @@ def web_session() -> requests.Session:
     session = requests.Session()
     session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
 
-    # Add response logging
+    # Add response logging and default timeout
     original_request = session.request
 
     def logged_request(*args, **kwargs):
+        # Set default timeout if not provided (prevent infinite hang)
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = 30
         start_time = time.time()
         response = original_request(*args, **kwargs)
         duration = time.time() - start_time

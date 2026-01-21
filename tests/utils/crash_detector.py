@@ -16,9 +16,9 @@ import allure
 if TYPE_CHECKING:
     from .device_flasher import DeviceFlasher
 
-logger = logging.getLogger("bsb_automation.crash_detector")
+from config.config import Config
 
-CRASH_FLAG_PATH = "/tmp/crash_detected.flag"
+logger = logging.getLogger("bsb_automation.crash_detector")
 TRACE_FILE_WAIT_TIMEOUT = 15.0
 TRACE_FILE_POLL_INTERVAL = 1
 
@@ -54,8 +54,8 @@ class CrashDetector:
             # handle crash (attach report, flash firmware, etc.)
     """
 
-    def __init__(self, crash_flag_path: str = CRASH_FLAG_PATH):
-        self.crash_flag_path = Path(crash_flag_path)
+    def __init__(self, crash_flag_path: str = None):
+        self.crash_flag_path = Path(crash_flag_path or Config.CRASH_FLAG_PATH)
         self._initial_state: Optional[dict] = None
         self._initial_mtime: Optional[float] = None
 
@@ -177,7 +177,8 @@ class CrashDetector:
             logger.warning("No trace file specified in crash info")
             return
 
-        trace_path = Path("/tmp") / trace_filename
+        # Trace file is in same directory as crash flag
+        trace_path = self.crash_flag_path.parent / trace_filename
 
         start_time = time.time()
         while time.time() - start_time < timeout:

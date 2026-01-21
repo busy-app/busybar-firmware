@@ -39,8 +39,12 @@ class Config:
     OPENOCD_INTERFACE: str = "interface/cmsis-dap.cfg"
     OPENOCD_TARGET: str = "scripts/debug/platforms/stm32u5/stm32u5x.cfg"
 
-    # Crash detection
-    CRASH_FLAG_PATH: str = os.getenv("CRASH_FLAG_PATH", "/tmp/crash_detected.flag")
+    # Crash detection - derive from RUNNER_LOG_DIR if available
+    RUNNER_LOG_DIR: str = os.getenv("RUNNER_LOG_DIR", "")
+    CRASH_FLAG_PATH: str = os.getenv(
+        "CRASH_FLAG_PATH",
+        os.path.join(RUNNER_LOG_DIR, "crash_detected.flag") if RUNNER_LOG_DIR else "/tmp/crash_detected.flag"
+    )
 
     @classmethod
     def validate_paths(cls) -> None:
