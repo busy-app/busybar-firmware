@@ -1,0 +1,206 @@
+name: 'Local API tests'
+
+on:
+  push:
+    branches:
+      - dev
+      - ssecsd/smoke-tests # temporary branch for smoke tests debugging
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      firmware_branch:
+        description: 'Firmware branch (e.g., dev, 0.6.0-rc). Will auto-detect latest build.'
+        required: false
+        type: string
+        default: "dev"
+      update_url:
+        description: 'Explicit firmware path (overrides firmware_branch if set)'
+        required: false
+        type: string
+        default: ""
+      target:
+        description: 'Hardware target'
+        required: false
+        type: string
+        default: '21'
+
+permissions:
+  contents: write
+  checks: write
+
+env:
+  U5_HW_TARGET: ${{ github.event.inputs.target || '21' }}
+
+jobs:
+  integration-tests:
+    runs-on: BusyBarTest
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Configure Git and LFS for submodules'
+        run: |
+          git lfs install --skip-smudge
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+          git config lfs.transfer.maxretries 3
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+
+      - name: 'Resolve firmware URLs'
+        id: resolve_firmware
+        run: |
+          set -euo pipefail
+          BASE_URL="https://update.flipperzero.one/builds/busybar-firmware"
+          TARGET="f${{ env.U5_HW_TARGET }}"
+
+          if [ -n "${{ github.event.inputs.update_url }}" ]; then
+            # Explicit URL provided - use it directly
+            UPDATE_PATH="${{ github.event.inputs.update_url }}"
+            echo "Using explicit path: $UPDATE_PATH"
+          else
+            # Auto-detect latest build from branch
+            BRANCH="${{ github.event.inputs.firmware_branch || 'dev' }}"
+            echo "Resolving latest build for branch: $BRANCH"
+
+            # Fetch directory listing and find latest update file
+            LISTING=$(curl -sL "${BASE_URL}/${BRANCH}/")
+            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.tgz" | sort -V | tail -1)
+
+            if [ -z "$UPDATE_FILE" ]; then
+              echo "ERROR: Could not find update file for branch $BRANCH"
+              exit 1
+            fi
+
+            UPDATE_PATH="${BRANCH}/${UPDATE_FILE}"
+            echo "Found latest: $UPDATE_PATH"
+          fi
+
+          # Derive ELF path from update path
+          ELF_PATH="${UPDATE_PATH/-update-/-firmware-}"
+          ELF_PATH="${ELF_PATH%.tgz}.elf"
+
+          echo "update_url=${BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
+          echo "elf_url=${BASE_URL}/${ELF_PATH}" >> $GITHUB_OUTPUT
+          echo "Update URL: ${BASE_URL}/${UPDATE_PATH}"
+          echo "ELF URL: ${BASE_URL}/${ELF_PATH}"
+
+      - name: 'Download update package'
+        run: |
+          set -euo pipefail
+          echo "Downloading: ${{ steps.resolve_firmware.outputs.update_url }}"
+          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tgz "${{ steps.resolve_firmware.outputs.update_url }}"
+
+      - name: 'Download firmware ELF'
+        run: |
+          set -euo pipefail
+          echo "Downloading: ${{ steps.resolve_firmware.outputs.elf_url }}"
+          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-firmware.elf "${{ steps.resolve_firmware.outputs.elf_url }}"
+
+      - name: 'Flash firmware'
+        id: flashing
+        if: ${{ github.event.inputs.update_url != '' }}
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py format --no-confirm
+          python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tgz -r 3 --connect-timeout 10
+          python3 scripts/testops.py wait -t 260
+
+      - name: 'Sanity check after flashing'
+        if: ${{ github.event.inputs.update_url != '' && steps.flashing.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py sanity
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install test dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r tests/requirements.txt
+
+      - name: Run smoke tests
+        id: smoke_tests
+        run: |
+          cd tests
+          export BSB_FIRMWARE_PATH=${{ github.workspace }}
+          # python debug_reset_test.py
+          python3 -m pytest . -v \
+            --alluredir=allure-results \
+            --clean-alluredir \
+            --ignore=playwright-automation \
+            --junitxml=test-results.xml
+
+        continue-on-error: false
+        env:
+          CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
+          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
+          LOG_LEVEL: INFO
+          LOG_TO_FILE: true
+
+      - name: Setup allurectl
+        if: always()
+        continue-on-error: true
+        uses: allure-framework/setup-allurectl@v1
+        with:
+          allure-endpoint: ${{ secrets.ALLURE_TESTOPS_URL }}
+          allure-token: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
+          allure-project-id: ${{ secrets.ALLURE_PROJECT_ID }}
+
+      - name: Upload test results to Allure TestOps
+        id: allure_upload
+        if: always()
+        continue-on-error: true
+        run: |
+          cd tests
+          allurectl upload allure-results \
+            --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
+            --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
+            --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
+            --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
+
+      - name: 'Upload runner logs'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-logs-unit-tests
+          path: /opt/logs/${{ runner.name }}/latest/runlog.log
+          if-no-files-found: warn
+
+      - name: Create Job Summary
+        if: always()
+        run: |
+          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+
+          echo "# BSB Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** $RUN_ID | **Branch:** $BRANCH_NAME | **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "**Firmware:** ${{ steps.resolve_firmware.outputs.update_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## 📊 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Smoke Tests:** ${{ steps.smoke_tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Playwright UI Tests:** ${{ steps.playwright_tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## 📋 Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- [Allure TestOps](${{ secrets.ALLURE_TESTOPS_URL }}/project/${{ secrets.ALLURE_PROJECT_ID }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [This Run Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Latest Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY
