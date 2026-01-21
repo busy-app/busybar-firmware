@@ -112,35 +112,37 @@ class CrashDetector:
         # Check if file was created or updated
         crash_detected = False
 
-        if self._initial_state is None:
-            # File was created during test
-            crash_detected = True
-            logger.error("Crash flag file was created during test!")
-        elif current_mtime != self._initial_mtime:
-            # File was updated during test
-            crash_detected = True
-            logger.error("Crash flag file was updated during test!")
-        elif current_state.get("timestamp") != self._initial_state.get("timestamp"):
-            # Timestamp changed (extra safety check)
-            crash_detected = True
-            logger.error("Crash timestamp changed during test!")
+        with allure.step("Checking for device crash"):
+            if self._initial_state is None:
+                # File was created during test
+                crash_detected = True
+                logger.error("Crash flag file was created during test!")
+            elif current_mtime != self._initial_mtime:
+                # File was updated during test
+                crash_detected = True
+                logger.error("Crash flag file was updated during test!")
+            elif current_state.get("timestamp") != self._initial_state.get("timestamp"):
+                # Timestamp changed (extra safety check)
+                crash_detected = True
+                logger.error("Crash timestamp changed during test!")
 
         if not crash_detected:
             return None
 
-        crash_info = CrashInfo.from_dict(current_state)
-        logger.error(
-            f"CRASH DETECTED! Processor: {crash_info.processor}, "
-            f"Line: {crash_info.crash_line}"
-        )
-        self._attach_crash_info(crash_info)
+        with allure.step("Processing crash information"):
+            crash_info = CrashInfo.from_dict(current_state)
+            logger.error(
+                f"CRASH DETECTED! Processor: {crash_info.processor}, "
+                f"Line: {crash_info.crash_line}"
+            )
+            self._attach_crash_info(crash_info)
 
-        self._attach_trace_file(crash_info.trace_file)
+            self._attach_trace_file(crash_info.trace_file)
 
-        if flasher:
-            flasher.reset_and_wait()
+            if flasher:
+                flasher.reset_and_wait()
 
-        return crash_info
+            return crash_info
 
     def _attach_crash_info(self, crash_info: CrashInfo) -> None:
         """Attach crash information to allure report."""
@@ -177,7 +179,6 @@ class CrashDetector:
 
         trace_path = Path("/tmp") / trace_filename
 
-        # Poll for trace file existence
         start_time = time.time()
         while time.time() - start_time < timeout:
             if trace_path.exists():
@@ -193,7 +194,6 @@ class CrashDetector:
             )
             return
 
-        # Give a small delay for file to be fully written
         time.sleep(0.2)
 
         try:

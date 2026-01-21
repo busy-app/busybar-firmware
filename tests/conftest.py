@@ -20,6 +20,7 @@ from clients.api import (
     SystemAPI, WifiAPI, StorageAPI, AssetsAPI, AccountAPI,
     BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI
 )
+from config.config import Config
 
 load_dotenv()
 
@@ -126,6 +127,14 @@ def api_auth_session(web_session) -> requests.Session:
 def pytest_configure(config):
     """Pytest configuration"""
     logger.info("Configuring pytest")
+
+    # Validate required file paths exist before running tests
+    try:
+        Config.validate_paths()
+        logger.info("All required paths validated successfully")
+    except FileNotFoundError as e:
+        logger.error(f"Path validation failed: {e}")
+        raise pytest.UsageError(str(e))
 
     # Allure TestOps integration
     allure_testops_url = os.getenv("ALLURE_TESTOPS_URL")
@@ -434,56 +443,85 @@ def pytest_runtest_setup(item):
 
 @pytest.fixture(scope="session")
 def device_flasher():
-    """Session-scoped device flasher for firmware recovery."""
+    """Session-scoped device flasher for on-demand resets."""
     from config.config import config
-    device_flasher =  DeviceFlasher(
+    flasher = DeviceFlasher(
         device_ip=config.BUSYBAR_IP,
         firmware_dir=config.BSB_FIRMWARE_PATH,
-        serial=config.DAPLINK_U5_ID or "auto",
+        serial=config.DAPLINK_U5_ID,
     )
-    device_flasher.reset_and_wait()
-    return device_flasher
+    return flasher
+
 
 def pytest_runtest_teardown(item, nextitem):
     """Test teardown"""
     logger.info(f"Test completed: {item.name}")
 
+
 @pytest.fixture(autouse=True)
-def crash_detector(request, device_flasher):
+def device_health_monitor(request, device_flasher):
     """
-    Auto-use fixture that monitors for device crashes during tests.
+    Auto-use fixture that monitors device health and recovers from failures.
 
-    Before each test: captures the initial state of /tmp/crash_detected.flag
-    After each test: checks if the crash flag was updated
+    Before test:
+    - Check if device is reachable
+    - If not reachable, reset and wait for recovery
 
-    If a crash is detected:
-    1. Attaches crash info and trace file to the allure report
-    2. Resets device to recover
-    3. Waits for device to become available again
-    4. Marks test as failed via pytest hook
+    After test:
+    - Check for crash flag
+    - Check if test failed with ConnectionError
+    - If either, reset device for next test
     """
+    # Pre-test: ensure device is reachable
+    if not device_flasher.check_device_available():
+        logger.warning("Device unreachable before test, resetting...")
+        with allure.step("Resetting unreachable device before test"):
+            if not device_flasher.reset_and_wait():
+                pytest.fail("Device not recoverable - check hardware connection")
+
+    # Capture crash detector state
     detector = CrashDetector()
     detector.capture_initial_state()
 
     yield detector
 
-    # Check for crash in teardown - store on node for hook to process
+    # Post-test: check for crash or connection failure
     crash_info = detector.check_for_crash(flasher=device_flasher)
     if crash_info:
         request.node._crash_info = crash_info
+
+    # Check if test failed with connection error
+    if hasattr(request.node, "_connection_error"):
+        logger.warning("Test failed with connection error, resetting device...")
+        with allure.step("Resetting device after connection error"):
+            device_flasher.reset_and_wait()
 
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    Hook to mark test as failed if device crash was detected.
-
-    This ensures crash appears as test failure, not just teardown error.
+    Hook to:
+    1. Detect connection errors and mark for device reset
+    2. Mark test as failed if device crash was detected
     """
     outcome = yield
     report = outcome.get_result()
 
-    # Check for crash info stored by crash_detector fixture
+    # Check for connection errors during test execution
+    if report.when == "call" and report.failed:
+        if call.excinfo is not None:
+            exc_type = call.excinfo.type
+            exc_value = str(call.excinfo.value)
+            # Check for requests connection errors
+            if "ConnectionError" in exc_type.__name__ or "ConnectTimeout" in exc_type.__name__:
+                item._connection_error = True
+                logger.warning(f"Connection error detected in test: {exc_value[:100]}")
+            # Also check the exception message for connection issues
+            elif "Connection" in exc_value or "No route to host" in exc_value:
+                item._connection_error = True
+                logger.warning(f"Connection issue detected in test: {exc_value[:100]}")
+
+    # Check for crash info stored by device_health_monitor fixture
     crash_info = getattr(item, "_crash_info", None)
 
     if crash_info and report.when == "call":
