@@ -280,7 +280,7 @@ class Main(App):
         converter = BSBAnimConverter()
         try:
             info = converter.convert_zip(args.input, args.output)
-            self.logger.info(info)
+            self.logger.debug(info)
             return 0
         except ConversionError as e:
             self.logger.error(f"Failed to convert {args.input}: {str(e)}")
