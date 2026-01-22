@@ -18,7 +18,10 @@ void mqtt_topics_subscribe(MqttClient* mqtt) {
     furi_string_free(topic);
 }
 
-void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg) {
+void mqtt_topics_on_message(
+    MqttClient* mqtt,
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg) {
     if(furi_string_end_with(topic_str, "http-request")) {
         mqtt_http_api_on_message(mqtt, topic_str, msg);
     } else if(furi_string_end_with(topic_str, "stream-request")) {

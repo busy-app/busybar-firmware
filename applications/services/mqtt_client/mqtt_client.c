@@ -119,7 +119,7 @@ static void mqtt_device_request_pin(MqttClient* mqtt) {
 }
 
 static void
-    mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message) {
+    mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, const struct mg_str* message) {
     if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
         char* pin = mg_json_get_str(*message, "$.code");
         int32_t pin_expires_at = mg_json_get_long(*message, "$.expires_at", -1);
@@ -167,147 +167,207 @@ static void
     }
 }
 
-static void mqtt_on_message(MqttClient* mqtt, struct mg_mqtt_message* msg) {
-    furi_assert(mqtt);
-    furi_assert(msg);
+// Mongoose event handlers
 
-    FuriString* topic_str = furi_string_alloc_printf("%.*s", msg->topic.len, msg->topic.buf);
+static void mqtt_connect_mg_event_handler(
+    MqttClient* instance,
+    struct mg_connection* connection,
+    const void* event_data) {
+    UNUSED(event_data);
+
+    if(!mqtt_client_load_ca_bundle(instance)) {
+        connection->is_draining = 1;
+        instance->status = MqttClientStatusError;
+        return;
+    }
+
+    if(mqtt_is_tls_enabled(instance)) {
+        const struct mg_str name = mg_url_host(mqtt_get_server_url(instance));
+        const bool has_custom_certs = (instance->settings.profile_id == MqttProfileIdCustom);
+
+        if(!mqtt_tls_init(connection, name, mg_str(instance->ca_bundle), has_custom_certs)) {
+            connection->is_draining = 1;
+            instance->status = MqttClientStatusError;
+        }
+    }
+}
+
+static void mqtt_tls_handshake_mg_event_handler(
+    MqttClient* instance,
+    struct mg_connection* connection,
+    const void* event_data) {
+    UNUSED(event_data);
+
+    FURI_LOG_D(TAG, "TLS handshake done!");
+    // Free CA bundle data
+    mqtt_tls_free_ca(connection);
+    free(instance->ca_bundle);
+    instance->ca_bundle = NULL;
+}
+
+static void mqtt_open_mg_event_handler(
+    MqttClient* instance,
+    struct mg_connection* connection,
+    int* status_code_p) {
+    UNUSED(connection);
+
+    const int status_code = *status_code_p;
+
+    if(status_code == 0) {
+        FURI_LOG_I(TAG, "MQTT Connected");
+
+        if(instance->is_linked) {
+            mqtt_topics_subscribe(instance);
+        } else {
+            mqtt_device_subscribe(instance);
+        }
+
+        if(!instance->ping_enabled) {
+            mg_timer_init(
+                &instance->mgr.timers,
+                &instance->ping_timer,
+                MQTT_PING_PERIOD,
+                MG_TIMER_REPEAT,
+                mqtt_ping_timer_callback,
+                instance);
+            instance->ping_enabled = true;
+        }
+
+    } else {
+        FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", status_code);
+    }
+}
+
+static void mqtt_close_mg_event_handler(
+    MqttClient* instance,
+    struct mg_connection* connection,
+    const void* event_data) {
+    UNUSED(connection);
+    UNUSED(event_data);
+
+    FURI_LOG_W(TAG, "MQTT Connection close");
+    mqtt_status_change_event(instance, MqttClientStatusNotConnected);
+
+    if(instance->ping_enabled) {
+        mg_timer_free(&instance->mgr.timers, &instance->ping_timer);
+        instance->ping_enabled = false;
+    }
+
+    instance->conn = NULL;
+
+    if(instance->ca_bundle) {
+        free(instance->ca_bundle);
+        instance->ca_bundle = NULL;
+    }
+
+    mqtt_topics_on_close(instance);
+
+    if(instance->is_wifi_up) {
+        if(instance->fast_reconnect) {
+            instance->fast_reconnect = false;
+            mqtt_connect_callback(instance);
+
+        } else {
+            mg_timer_init(
+                &instance->mgr.timers,
+                &instance->reconnect_delay_timer,
+                instance->reconnect_delay,
+                MG_TIMER_ONCE,
+                mqtt_connect_callback,
+                instance);
+            instance->reconnect_delay *= 2;
+
+            if(instance->reconnect_delay > MQTT_RECONNECT_DELAY_MAX) {
+                instance->reconnect_delay = MQTT_RECONNECT_DELAY_MAX;
+            }
+        }
+    }
+}
+
+static void mqtt_mqtt_cmd_mg_event_handler(
+    MqttClient* instance,
+    struct mg_connection* connection,
+    const struct mg_mqtt_message* message) {
+    const uint8_t cmd = message->cmd;
+
+    if(cmd == MQTT_CMD_SUBACK) {
+        const size_t packet_len = message->dgram.len;
+        const uint8_t sub_reason = message->dgram.buf[packet_len - 1];
+
+        FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
+
+        if(sub_reason == MQTT_QOS) {
+            if(!instance->is_linked) {
+                mqtt_status_change_event(instance, MqttClientStatusConnectedNotLinked);
+            } else {
+                mqtt_status_change_event(instance, MqttClientStatusConnectedLinked);
+            }
+
+            instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
+
+        } else {
+            FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
+            connection->is_draining = 1;
+        }
+
+    } else if(cmd == MQTT_CMD_PINGRESP) {
+        FURI_LOG_D(TAG, "<- PONG");
+
+    } else if(cmd == MQTT_CMD_PINGREQ) {
+        FURI_LOG_D(TAG, "PING request received");
+        mg_mqtt_pong(connection);
+
+    } else {
+        FURI_LOG_D(TAG, "MQTT CMD: %u", cmd);
+    }
+}
+
+static void mqtt_mqtt_msg_mg_event_handler(
+    MqttClient* instance,
+    struct mg_connection* connection,
+    const struct mg_mqtt_message* message) {
+    UNUSED(connection);
+
+    FuriString* topic_str =
+        furi_string_alloc_printf("%.*s", message->topic.len, message->topic.buf);
 
     if(furi_string_start_with(topic_str, MQTT_DEVICE_ROOT_TOPIC)) {
-        mqtt_device_on_message(mqtt, topic_str, &msg->data);
+        mqtt_device_on_message(instance, topic_str, &message->data);
     } else if(furi_string_start_with(topic_str, MQTT_API_ROOT_TOPIC)) {
-        mqtt_topics_on_message(mqtt, topic_str, msg);
+        mqtt_topics_on_message(instance, topic_str, message);
     }
 
     furi_string_free(topic_str);
+
+    FURI_LOG_D(
+        TAG,
+        "MQTT MSG QOS%u %.*s : %.*s",
+        message->qos,
+        message->topic.len,
+        message->topic.buf,
+        message->data.len,
+        message->data.buf);
 }
 
-static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data) {
-    MqttClient* instance = conn->fn_data;
+static void mqtt_mg_connection_event_callback(
+    struct mg_connection* connection,
+    int event,
+    void* event_data) {
+    MqttClient* instance = connection->fn_data;
     furi_assert(instance);
 
-    if(ev == MG_EV_CONNECT) {
-        if(!mqtt_client_load_ca_bundle(instance)) {
-            conn->is_draining = 1;
-            instance->status = MqttClientStatusError;
-            return;
-        }
-
-        if(mqtt_is_tls_enabled(instance)) {
-            const struct mg_str name = mg_url_host(mqtt_get_server_url(instance));
-            bool custom_certs = (instance->settings.profile_id == MqttProfileIdCustom);
-            if(!mqtt_tls_init(conn, name, mg_str(instance->ca_bundle), custom_certs)) {
-                conn->is_draining = 1;
-                instance->status = MqttClientStatusError;
-                return;
-            }
-        }
-
-    } else if(ev == MG_EV_TLS_HS) {
-        FURI_LOG_D(TAG, "TLS handshake done!");
-        // Free CA bundle data
-        mqtt_tls_free_ca(conn);
-        free(instance->ca_bundle);
-        instance->ca_bundle = NULL;
-
-    } else if(ev == MG_EV_MQTT_OPEN) {
-        int* conn_code = (int*)ev_data;
-        if(*conn_code == 0) {
-            FURI_LOG_I(TAG, "MQTT Connected");
-            if(instance->is_linked) {
-                mqtt_topics_subscribe(instance);
-            } else {
-                mqtt_device_subscribe(instance);
-            }
-            if(!instance->ping_enabled) {
-                mg_timer_init(
-                    &instance->mgr.timers,
-                    &instance->ping_timer,
-                    MQTT_PING_PERIOD,
-                    MG_TIMER_REPEAT,
-                    mqtt_ping_timer_callback,
-                    instance);
-                instance->ping_enabled = true;
-            }
-        } else {
-            FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", *conn_code);
-        }
-
-    } else if(ev == MG_EV_CLOSE) {
-        FURI_LOG_W(TAG, "MQTT Connection close");
-        mqtt_status_change_event(instance, MqttClientStatusNotConnected);
-
-        if(instance->ping_enabled) {
-            mg_timer_free(&instance->mgr.timers, &instance->ping_timer);
-            instance->ping_enabled = false;
-        }
-
-        instance->conn = NULL;
-        if(instance->ca_bundle) {
-            free(instance->ca_bundle);
-            instance->ca_bundle = NULL;
-        }
-        mqtt_topics_on_close(instance);
-        if(instance->is_wifi_up) {
-            if(instance->fast_reconnect) {
-                instance->fast_reconnect = false;
-                mqtt_connect_callback(instance);
-            } else {
-                mg_timer_init(
-                    &instance->mgr.timers,
-                    &instance->reconnect_delay_timer,
-                    instance->reconnect_delay,
-                    MG_TIMER_ONCE,
-                    mqtt_connect_callback,
-                    instance);
-                instance->reconnect_delay *= 2;
-                if(instance->reconnect_delay > MQTT_RECONNECT_DELAY_MAX) {
-                    instance->reconnect_delay = MQTT_RECONNECT_DELAY_MAX;
-                }
-            }
-        }
-
-    } else if(ev == MG_EV_MQTT_CMD) {
-        struct mg_mqtt_message* msg = (struct mg_mqtt_message*)ev_data;
-        if(msg->cmd == MQTT_CMD_SUBACK) {
-            // Get SUBACK Reason Code from MQTT packet
-            size_t packet_len = msg->dgram.len;
-            uint8_t sub_reason = msg->dgram.buf[packet_len - 1];
-            FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
-
-            if(sub_reason == MQTT_QOS) {
-                if(!instance->is_linked) {
-                    mqtt_status_change_event(instance, MqttClientStatusConnectedNotLinked);
-                } else {
-                    mqtt_status_change_event(instance, MqttClientStatusConnectedLinked);
-                }
-                instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
-            } else {
-                FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
-                conn->is_draining = 1;
-            }
-        } else if(msg->cmd == MQTT_CMD_PINGRESP) {
-            FURI_LOG_D(TAG, "<- PONG");
-        } else if(msg->cmd == MQTT_CMD_PINGREQ) {
-            FURI_LOG_D(TAG, "PING request received");
-            mg_mqtt_pong(conn);
-        } else {
-            FURI_LOG_D(TAG, "MQTT CMD: %u", msg->cmd);
-        }
-
-    } else if(ev == MG_EV_MQTT_MSG) {
-        struct mg_mqtt_message* msg = (struct mg_mqtt_message*)ev_data;
-
-        mqtt_on_message(instance, msg);
-
-        FURI_LOG_D(
-            TAG,
-            "MQTT MSG QOS%u %.*s : %.*s",
-            msg->qos,
-            msg->topic.len,
-            msg->topic.buf,
-            msg->data.len,
-            msg->data.buf);
+    if(event == MG_EV_CONNECT) {
+        mqtt_connect_mg_event_handler(instance, connection, event_data);
+    } else if(event == MG_EV_TLS_HS) {
+        mqtt_tls_handshake_mg_event_handler(instance, connection, event_data);
+    } else if(event == MG_EV_MQTT_OPEN) {
+        mqtt_open_mg_event_handler(instance, connection, event_data);
+    } else if(event == MG_EV_CLOSE) {
+        mqtt_close_mg_event_handler(instance, connection, event_data);
+    } else if(event == MG_EV_MQTT_CMD) {
+        mqtt_mqtt_cmd_mg_event_handler(instance, connection, event_data);
+    } else if(event == MG_EV_MQTT_MSG) {
+        mqtt_mqtt_msg_mg_event_handler(instance, connection, event_data);
     }
 }
 
@@ -333,8 +393,8 @@ static void mqtt_connect_callback(void* data) {
 
     FURI_LOG_D(TAG, "Connecting to %s ...", server_url);
 
-    instance->conn =
-        mg_mqtt_connect(&instance->mgr, server_url, &opts, mqtt_event_handler, instance);
+    instance->conn = mg_mqtt_connect(
+        &instance->mgr, server_url, &opts, mqtt_mg_connection_event_callback, instance);
 
     if(!instance->conn) {
         instance->status = MqttClientStatusError;
@@ -435,6 +495,8 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
         api_lock_unlock(message->lock);
     }
 }
+
+// API message handlers
 
 static void
     mqtt_get_status_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
@@ -613,6 +675,8 @@ static void mqtt_api_init(MqttClient* instance) {
     instance->wakeup_conn_id = dummy_conn->id;
 }
 
+// Constructor
+
 static MqttClient* mqtt_client_alloc(void) {
     MqttClient* instance = malloc(sizeof(MqttClient));
 
@@ -636,26 +700,20 @@ static MqttClient* mqtt_client_alloc(void) {
 
     mqtt_api_init(instance);
 
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, instance);
-
     // Start listening for BusyTimer events
     mqtt_busy_timer_init(instance);
 
     instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
 
-    mg_timer_init(
-        &instance->mgr.timers,
-        &instance->reconnect_delay_timer,
-        instance->reconnect_delay,
-        MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
-        mqtt_connect_callback,
-        instance);
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, instance);
 
     furi_record_create(RECORD_MQTT, instance);
 
     return instance;
 }
+
+// Service thread
 
 int32_t mqtt_client_start(void* arg) {
     UNUSED(arg);
@@ -668,6 +726,8 @@ int32_t mqtt_client_start(void* arg) {
 
     return 0;
 }
+
+// Static lookup tables
 
 static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeMax] = {
     [MqttApiMessageTypeGetStatus] = mqtt_get_status_api_message_handler,

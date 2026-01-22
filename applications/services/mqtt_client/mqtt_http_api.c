@@ -28,7 +28,7 @@ static const struct {
     {"update", MethodPost},
 };
 
-static bool mqtt_api_http_check_request(struct mg_str* msg) {
+static bool mqtt_api_http_check_request(const struct mg_str* msg) {
     // Try parsing HTTP message
     struct mg_http_message http_msg;
     if(mg_http_parse(msg->buf, msg->len, &http_msg) < 0) {
@@ -158,7 +158,10 @@ void mqtt_http_api_respond_error(MqttClient* mqtt, FuriString* resp_topic, FuriS
     }
 }
 
-void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg) {
+void mqtt_http_api_on_message(
+    MqttClient* mqtt,
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg) {
     UNUSED(topic_str);
 
     FuriString* cor_data = furi_string_alloc();
@@ -167,7 +170,8 @@ void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg
     size_t prop_ofs = 0;
     do {
         memset(&prop, 0, sizeof(struct mg_mqtt_prop));
-        prop_ofs = mg_mqtt_next_prop(msg, &prop, prop_ofs);
+        // NOTE: mg_mqtt_next_prop() does NOT mutate data pointed to by *msg
+        prop_ofs = mg_mqtt_next_prop((struct mg_mqtt_message*)msg, &prop, prop_ofs);
         if(prop_ofs <= 0) break;
 
         if(prop.id == MQTT_PROP_RESPONSE_TOPIC) {

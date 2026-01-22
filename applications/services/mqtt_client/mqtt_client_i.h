@@ -119,16 +119,22 @@ typedef struct {
 
 void mqtt_topics_subscribe(MqttClient* mqtt);
 
-void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+void mqtt_topics_on_message(
+    MqttClient* mqtt,
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg);
 
 void mqtt_topics_on_close(MqttClient* mqtt);
 
-void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+void mqtt_http_api_on_message(
+    MqttClient* mqtt,
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg);
 
 void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
-    FuriString* topic_str,
-    struct mg_mqtt_message* msg);
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg);
 
 void mqtt_screen_streaming_on_close(MqttClient* mqtt);
 
@@ -145,5 +151,5 @@ void mqtt_busy_timer_init(MqttClient* mqtt);
 
 void mqtt_busy_timer_on_message(
     MqttClient* mqtt,
-    FuriString* topic_str,
-    struct mg_mqtt_message* msg);
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg);

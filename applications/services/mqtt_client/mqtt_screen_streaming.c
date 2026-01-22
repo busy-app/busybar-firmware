@@ -71,8 +71,8 @@ static void mqtt_screen_streaming_stop(MqttClient* mqtt) {
 
 void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
-    FuriString* topic_str,
-    struct mg_mqtt_message* msg) {
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg) {
     UNUSED(topic_str);
 
     if(msg->data.len == 0) {
@@ -83,7 +83,8 @@ void mqtt_screen_streaming_on_message(
         size_t prop_ofs = 0;
         do {
             memset(&prop, 0, sizeof(struct mg_mqtt_prop));
-            prop_ofs = mg_mqtt_next_prop(msg, &prop, prop_ofs);
+            // NOTE: mg_mqtt_next_prop() does NOT mutate data pointed to by *msg
+            prop_ofs = mg_mqtt_next_prop((struct mg_mqtt_message*)msg, &prop, prop_ofs);
             if(prop_ofs <= 0) break;
 
             if((prop.id == MQTT_PROP_RESPONSE_TOPIC) && (prop.val.len > 0)) {

@@ -34,8 +34,8 @@ void mqtt_busy_timer_init(MqttClient* mqtt) {
 
 void mqtt_busy_timer_on_message(
     MqttClient* mqtt,
-    FuriString* topic_str,
-    struct mg_mqtt_message* msg) {
+    const FuriString* topic_str,
+    const struct mg_mqtt_message* msg) {
     UNUSED(mqtt);
     UNUSED(topic_str);
 
