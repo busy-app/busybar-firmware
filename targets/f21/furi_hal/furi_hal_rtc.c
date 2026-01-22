@@ -10,17 +10,6 @@
 
 #define FURI_HAL_RTC_HEADER_MAGIC 0x10F1
 
-time_t furi_hal_rtc_get_timestamp(void) {
-    DateTime datetime;
-    furi_hal_rtc_get_datetime(&datetime);
-
-    return datetime_datetime_to_timestamp(&datetime);
-}
-
-time_t furi_hal_rtc_get_timestamp_ms(void) {
-    return furi_hal_rtc_get_timestamp() * 1000;
-}
-
 static void furi_hal_rtc_start_clock_and_switch(void) {
     // Check if the RTC clock source is already LSE
     if(LL_RCC_GetRTCClockSource() != LL_RCC_RTC_CLKSOURCE_LSE) {
@@ -100,8 +89,10 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
     while(!LL_RTC_IsActiveFlag_RS(RTC)) {
     }
 
-    uint32_t time = LL_RTC_TIME_Get(RTC); // 0x00HHMMSS
-    uint32_t date = LL_RTC_DATE_Get(RTC); // 0xWWDDMMYY
+    uint32_t prescaler = LL_RTC_GetSynchPrescaler(RTC);
+    uint32_t sub_second = LL_RTC_TIME_GetSubSecond(RTC);
+    uint32_t time = LL_RTC_TIME_Get(RTC); /* xx-HH-MM-SS */
+    uint32_t date = LL_RTC_DATE_Get(RTC); /* WW-DD-MM-YY */
 
     LL_RTC_ClearFlag_RS(RTC);
     FURI_CRITICAL_EXIT();
@@ -113,12 +104,29 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
     datetime->month = __LL_RTC_CONVERT_BCD2BIN((date >> 8) & 0xFF);
     datetime->day = __LL_RTC_CONVERT_BCD2BIN((date >> 16) & 0xFF);
     datetime->weekday = __LL_RTC_CONVERT_BCD2BIN((date >> 24) & 0xFF);
+
+    if(sub_second > prescaler) {
+        time_t timestamp = datetime_datetime_to_timestamp(datetime);
+        datetime_timestamp_to_datetime(timestamp - 1, datetime);
+
+        sub_second %= (prescaler + 1);
+    }
+
+    datetime->millis = 1000 * (prescaler - sub_second) / (prescaler + 1);
 }
 
-void furi_hal_rtc_sync_shadow(void) {
-    LL_RTC_ClearFlag_RS(RTC);
-    while(!LL_RTC_IsActiveFlag_RS(RTC)) {
-    }
+time_t furi_hal_rtc_get_timestamp(void) {
+    DateTime datetime;
+    furi_hal_rtc_get_datetime(&datetime);
+
+    return datetime_datetime_to_timestamp(&datetime);
+}
+
+time_t furi_hal_rtc_get_timestamp_ms(void) {
+    DateTime datetime;
+    furi_hal_rtc_get_datetime(&datetime);
+
+    return datetime_datetime_to_timestamp_ms(&datetime);
 }
 
 void furi_hal_rtc_set_datetime(DateTime* datetime) {
@@ -152,8 +160,12 @@ void furi_hal_rtc_set_datetime(DateTime* datetime) {
 
     /* Exit Initialization mode */
     LL_RTC_DisableInitMode(RTC);
+    while(!LL_RTC_IsActiveFlag_RS(RTC)) {
+    }
 
-    furi_hal_rtc_sync_shadow();
+    uint32_t prescaler = LL_RTC_GetSynchPrescaler(RTC);
+    uint32_t shift = prescaler - datetime->millis * (prescaler + 1) / 1000;
+    LL_RTC_TIME_Synchronize(RTC, LL_RTC_SHIFT_SECOND_ADVANCE, shift);
 
     /* Enable write protection */
     LL_RTC_EnableWriteProtection(RTC);
