@@ -46,7 +46,7 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
 /**
  * @brief Get local Unix seconds timestamp
  * 
- * @param[in] instance
+ * @param[in] instance pointer to the SNTP service instance
  * @return 64-bit local Unix seconds timestamp
  */
 time_t sntp_get_local_timestamp(Sntp* instance);
@@ -54,7 +54,7 @@ time_t sntp_get_local_timestamp(Sntp* instance);
 /**
  * @brief Get local Unix milliseconds timestamp
  *
- * @param[in] instance
+ * @param[in] instance pointer to the SNTP service instance
  * @return 64-bit local Unix milliseconds timestamp
  */
 time_t sntp_get_local_timestamp_ms(Sntp* instance);

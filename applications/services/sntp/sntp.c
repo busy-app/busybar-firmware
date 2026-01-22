@@ -22,6 +22,7 @@ typedef enum {
     SntpMessageTypeGetSettings,
     SntpMessageTypeSetSettings,
     SntpMessageTypeGetLocalTimestamp,
+    SntpMessageTypeGetLocalTimestampMs,
 
     SntpMessageTypesCount,
 } SntpMessageType;
@@ -41,6 +42,7 @@ typedef struct {
         SntpSettings* get_settings;
         const SntpSettings* set_settings;
         time_t* get_local_timestamp;
+        time_t* get_local_timestamp_ms;
     };
 } SntpMessage;
 
@@ -98,6 +100,15 @@ static bool do_get_local_timestamp(Sntp* instance, SntpMessage* message) {
     timestamp += SNTP_M_TO_S(instance->settings.timezone_offset);
 
     *message->get_local_timestamp = timestamp;
+
+    return true;
+}
+
+static bool do_get_local_timestamp_ms(Sntp* instance, SntpMessage* message) {
+    time_t timestamp_ms = furi_hal_rtc_get_timestamp_ms();
+    timestamp_ms += SNTP_S_TO_MS(SNTP_M_TO_S(instance->settings.timezone_offset));
+
+    *message->get_local_timestamp_ms = timestamp_ms;
 
     return true;
 }
@@ -230,7 +241,20 @@ time_t sntp_get_local_timestamp(Sntp* instance) {
 }
 
 time_t sntp_get_local_timestamp_ms(Sntp* instance) {
-    return sntp_get_local_timestamp(instance) * 1000;
+    furi_check(instance);
+
+    time_t timestamp_ms;
+    const SntpMessage message = {
+        .type = SntpMessageTypeGetLocalTimestampMs,
+        .lock = api_lock_alloc_locked(),
+        .is_success = NULL,
+
+        .get_local_timestamp_ms = &timestamp_ms,
+    };
+
+    sntp_send_message(instance, &message);
+
+    return timestamp_ms;
 }
 
 int32_t sntp_srv(void* p) {
@@ -248,6 +272,7 @@ static const SntpMessageHandler message_handlers[] = {
     [SntpMessageTypeGetSettings] = do_get_settings,
     [SntpMessageTypeSetSettings] = do_set_settings,
     [SntpMessageTypeGetLocalTimestamp] = do_get_local_timestamp,
+    [SntpMessageTypeGetLocalTimestampMs] = do_get_local_timestamp_ms,
 };
 
 static_assert(COUNT_OF(message_handlers) == SntpMessageTypesCount);
