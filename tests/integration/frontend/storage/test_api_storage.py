@@ -53,9 +53,7 @@ class TestStorageAPI:
         """Test POST /api/storage/mkdir endpoint"""
         test_dir = f"/ext/test_mkdir_{int(time.time())}"
 
-        response = storage_api.mkdir(test_dir)
-
-        assert response.result
+        storage_api.mkdir(test_dir)
 
     @allure.id("2650")
     @allure.title(
@@ -79,7 +77,7 @@ class TestStorageAPI:
             allure.attach(read_response.content.decode(), name="File Content", attachment_type=allure.attachment_type.TEXT)
 
         with allure.step(f"Remove test file: {test_file}"):
-            remove_response = storage_api.remove(test_file)
+            remove_response = storage_api.remove_raw(test_file)
             assert remove_response.status_code == 200
 
     @allure.id("2675")
@@ -95,7 +93,7 @@ class TestStorageAPI:
             check_response = storage_api.read(test_file_path)
             if check_response.status_code == 200:
                 allure.attach(f"File {test_file_path} already exists, attempting cleanup", name="Pre-cleanup", attachment_type=allure.attachment_type.TEXT)
-                delete_response = storage_api.remove(test_file_path)
+                delete_response = storage_api.remove_raw(test_file_path)
                 if delete_response.status_code != 200:
                     pytest.fail(f"Failed to delete existing test file {test_file_path}")
                 allure.attach("Successfully cleaned up existing file", name="Pre-cleanup Success", attachment_type=allure.attachment_type.TEXT)
@@ -134,7 +132,7 @@ class TestStorageAPI:
         finally:
             if upload_successful:
                 with allure.step(f"Clean up test file: {test_file_path}"):
-                    cleanup_response = storage_api.remove(test_file_path)
+                    cleanup_response = storage_api.remove_raw(test_file_path)
                     if cleanup_response.status_code == 200:
                         allure.attach("Large test file cleaned up successfully", name="Cleanup Success", attachment_type=allure.attachment_type.TEXT)
                     else:

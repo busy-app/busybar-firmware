@@ -171,6 +171,15 @@ class BaseAPI:
             self._attach_response(response)
             return response
 
+    def delete_raw(self, endpoint: str, **kwargs) -> requests.Response:
+        """Make DELETE request and return raw Response (for error testing)."""
+        url = f"{self.base_url}{endpoint}"
+        with allure.step(f"DELETE {endpoint} (raw)"):
+            self._attach_request("DELETE", url, **kwargs)
+            response = self.session.delete(url, **kwargs)
+            self._attach_response(response)
+            return response
+
     def _validate(self, response: requests.Response, model: Type[T]) -> T:
         """Validate response against Pydantic model."""
         with allure.step(f"Validate response as {model.__name__}"):

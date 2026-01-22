@@ -64,9 +64,7 @@ class TestUpdateAPI:
     @pytest.mark.frontend
     def test_api_update_check_post(self, update_api: UpdateAPI):
         """Test POST /api/update/check endpoint starts update check"""
-        response = update_api.check()
-
-        assert response.result
+        update_api.check()
 
     @allure.id("3531")
     @allure.title("GET /api/update/changelog (missing version)")
@@ -114,9 +112,7 @@ class TestUpdateAPI:
     @pytest.mark.frontend
     def test_api_update_abort_download(self, update_api: UpdateAPI):
         """Test POST /api/update/abort_download endpoint"""
-        response = update_api.abort_download()
-
-        assert response.result
+        update_api.abort_download()
 
 
 @allure.feature("5. Web Frontend")
@@ -135,14 +131,14 @@ class TestUpdateStatusFlow:
             initial = update_api.get_status()
             attach_status_json({
                 "check.event": initial.check.event,
-                "check.status": initial.check.status,
+                "check.result": initial.check.result,
                 "check.is_checking": initial.check.is_checking,
                 "check.is_available": initial.check.is_available,
                 "check.available_version": initial.check.available_version,
             }, "Initial Status")
 
         with allure.step("2. Trigger update check"):
-            response = update_api.check()
+            response = update_api.check_raw()
             allure.attach(
                 f"Status code: {response.status_code}\nResponse: {response.text}",
                 name="Check Response",
@@ -154,7 +150,7 @@ class TestUpdateStatusFlow:
             status = update_api.get_status()
             attach_status_json({
                 "check.event": status.check.event,
-                "check.status": status.check.status,
+                "check.result": status.check.result,
                 "check.is_checking": status.check.is_checking,
             }, "Status After Check Trigger")
             assert status.check.event in ["start", "stop"]
@@ -163,7 +159,7 @@ class TestUpdateStatusFlow:
             check_result = update_api.wait_for_check_complete(timeout=30)
             attach_status_json({
                 "event": check_result.event,
-                "status": check_result.status,
+                "result": check_result.result,
                 "available_version": check_result.available_version,
                 "is_available": check_result.is_available,
                 "is_up_to_date": check_result.is_up_to_date,
@@ -217,8 +213,7 @@ class TestUpdateStatusFlow:
             assert status.install.is_in_progress or status.install.event == "session_start"
 
         with allure.step("4. Abort download"):
-            abort_result = update_api.abort_download()
-            assert abort_result.result
+            update_api.abort_download()
 
         with allure.step("5. Wait for abort to complete"):
             # Poll for abort to complete (may take a few seconds)
@@ -268,4 +263,4 @@ class TestUpdateStatusFlow:
             # If not checking, check result should be definitive
             if not status.check.is_checking:
                 # status should be one of the terminal states
-                assert status.check.status in ["available", "not_available", "failure", "none"]
+                assert status.check.result in ["available", "not_available", "failure", "none"]

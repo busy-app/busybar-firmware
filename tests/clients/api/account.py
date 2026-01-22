@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from .base import BaseAPI
 
@@ -50,13 +50,13 @@ class AccountInfoResponse(BaseModel):
 class AccountStatusResponse(BaseModel):
     """Response from GET /api/account/status."""
 
-    status: Literal["error", "disconnected", "connected"]
+    state: Literal["error", "disconnected", "connected"]
 
 
 class AccountProfileResponse(BaseModel):
     """Response from GET /api/account/profile."""
 
-    profile: Literal["dev", "prod", "local", "custom"]
+    state: Literal["dev", "prod", "local", "custom"]
     custom_url: str | None = None
 
 
@@ -71,6 +71,13 @@ class AccountResultResponse(BaseModel):
     """Generic account operation result."""
 
     result: str
+
+    @field_validator("result")
+    @classmethod
+    def validate_result(cls, v: str) -> str:
+        """Validate result indicates success."""
+        assert v, "Expected non-empty result"
+        return v
 
 
 # === API Client ===

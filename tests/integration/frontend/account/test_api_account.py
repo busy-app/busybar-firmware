@@ -42,7 +42,7 @@ class TestAccountStatusAPI:
         """Test GET /api/account/status endpoint"""
         response = account_api.get_status()
 
-        assert response.status in ["error", "disconnected", "connected"]
+        assert response.state in ["error", "disconnected", "connected"]
 
 
 @allure.feature("5. Web Frontend")
@@ -58,9 +58,9 @@ class TestAccountProfileAPI:
         """Test GET /api/account/profile endpoint"""
         response = account_api.get_profile()
 
-        assert response.profile in ["dev", "prod", "local", "custom"]
+        assert response.state in ["dev", "prod", "local", "custom"]
 
-        if response.profile == "custom":
+        if response.state == "custom":
             assert response.custom_url
 
     @allure.id("3487")
@@ -73,22 +73,21 @@ class TestAccountProfileAPI:
         with allure.step("Get current profile to restore later"):
             original = account_api.get_profile()
             allure.attach(
-                json.dumps({"profile": original.profile, "custom_url": original.custom_url}, indent=2),
+                json.dumps({"state": original.state, "custom_url": original.custom_url}, indent=2),
                 name="Original Profile",
                 attachment_type=allure.attachment_type.JSON
             )
 
-        response = account_api.set_profile(profile)
-        assert response.result
+        account_api.set_profile(profile)
 
         with allure.step("Verify profile was updated"):
             verify = account_api.get_profile()
-            assert verify.profile == profile
+            assert verify.state == profile
 
         # Restore original profile
-        if original.profile != profile:
-            with allure.step(f"Restore original profile: {original.profile}"):
-                account_api.set_profile(original.profile, original.custom_url)
+        if original.state != profile:
+            with allure.step(f"Restore original profile: {original.state}"):
+                account_api.set_profile(original.state, original.custom_url)
 
     @allure.id("3487")
     @allure.title("POST /api/account/profile (custom)")
@@ -101,18 +100,17 @@ class TestAccountProfileAPI:
         with allure.step("Get current profile to restore later"):
             original = account_api.get_profile()
 
-        response = account_api.set_profile("custom", custom_url)
-        assert response.result
+        account_api.set_profile("custom", custom_url)
 
         with allure.step("Verify custom profile was set"):
             verify = account_api.get_profile()
-            assert verify.profile == "custom"
+            assert verify.state == "custom"
             assert verify.custom_url == custom_url
 
         # Restore original profile
-        if original.profile:
-            with allure.step(f"Restore original profile: {original.profile}"):
-                account_api.set_profile(original.profile, original.custom_url)
+        if original.state:
+            with allure.step(f"Restore original profile: {original.state}"):
+                account_api.set_profile(original.state, original.custom_url)
 
     @allure.id("3486")
     @allure.title("POST /api/account/profile (invalid)")
@@ -146,10 +144,10 @@ class TestAccountLinkAPI:
 
         with allure.step("Check MQTT status before linking"):
             status = account_api.get_status()
-            allure.attach(json.dumps({"status": status.status}, indent=2), name="MQTT Status Before Link", attachment_type=allure.attachment_type.JSON)
+            allure.attach(json.dumps({"state": status.state}, indent=2), name="MQTT Status Before Link", attachment_type=allure.attachment_type.JSON)
 
-            if status.status != "connected":
-                pytest.skip(f"MQTT is not connected (state: {status.status})")
+            if status.state != "connected":
+                pytest.skip(f"MQTT is not connected (state: {status.state})")
 
         response = account_api.link()
 
@@ -168,11 +166,9 @@ class TestAccountUnlinkAPI:
     @allure.title("DELETE /api/account")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.skip(reason="Destructive test - unlinks account")
     def test_api_account_delete(self, account_api: AccountAPI):
         """Test DELETE /api/account endpoint (unlink)"""
-        response = account_api.unlink()
-        assert response.result
+        account_api.unlink()
 
         with allure.step("Verify account is unlinked"):
             verify = account_api.get_info()

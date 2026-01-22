@@ -102,8 +102,7 @@ class TestWifiAPI:
             if status.state not in ["connected", "connecting"]:
                 wifi_api.connect_to_test_network()
 
-        response = wifi_api.disconnect()
-        assert response.result
+        wifi_api.disconnect()
         sleep(2)  # Wait for state to update
         status = wifi_api.get_status()
         assert status.state == "disconnected"

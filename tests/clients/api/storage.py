@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from .base import BaseAPI
 
@@ -48,6 +48,13 @@ class StorageResultResponse(BaseModel):
     """Generic storage operation result."""
 
     result: str
+
+    @field_validator("result")
+    @classmethod
+    def validate_result(cls, v: str) -> str:
+        """Validate result indicates success."""
+        assert v, "Expected non-empty result"
+        return v
 
 
 # === API Client ===
@@ -128,6 +135,18 @@ class StorageAPI(BaseAPI):
             path: Path to remove
 
         Returns:
-            Raw response (for cleanup operations)
+            Dict response (for cleanup operations)
         """
         return self.delete("/api/storage/remove", params={"path": path})
+
+    def remove_raw(self, path: str):
+        """
+        Remove a file or directory and return raw response.
+
+        Args:
+            path: Path to remove
+
+        Returns:
+            Raw response (for status code checking)
+        """
+        return self.delete_raw("/api/storage/remove", params={"path": path})

@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from .base import BaseAPI
 
@@ -57,6 +57,13 @@ class WifiResultResponse(BaseModel):
     """Generic WiFi operation result."""
 
     result: str
+
+    @field_validator("result")
+    @classmethod
+    def validate_result(cls, v: str) -> str:
+        """Validate result indicates success."""
+        assert v, "Expected non-empty result"
+        return v
 
 
 # === Request Models ===

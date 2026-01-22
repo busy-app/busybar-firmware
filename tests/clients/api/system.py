@@ -91,6 +91,13 @@ class ResultResponse(BaseModel):
 
     result: str
 
+    @field_validator("result")
+    @classmethod
+    def validate_result(cls, v: str) -> str:
+        """Validate result indicates success."""
+        assert v, "Expected non-empty result"
+        return v
+
 
 # === Request Models ===
 

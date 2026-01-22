@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from .base import BaseAPI
 
@@ -26,6 +26,13 @@ class AssetResultResponse(BaseModel):
     """Generic asset/display/audio operation result."""
 
     result: str
+
+    @field_validator("result")
+    @classmethod
+    def validate_result(cls, v: str) -> str:
+        """Validate result indicates success."""
+        assert v, "Expected non-empty result"
+        return v
 
 
 # === Request Models ===

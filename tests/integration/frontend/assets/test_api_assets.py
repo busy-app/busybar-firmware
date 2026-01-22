@@ -25,9 +25,7 @@ class TestAssetsAPI:
         test_filename = "test_asset.txt"
         test_content = b"Test asset content"
 
-        response = assets_api.upload_asset(test_app_id, test_filename, test_content)
-
-        assert response.result
+        assets_api.upload_asset(test_app_id, test_filename, test_content)
 
     @allure.id("2652")
     @allure.title("DELETE /api/assets/upload")
@@ -37,9 +35,7 @@ class TestAssetsAPI:
         """Test DELETE /api/assets/upload endpoint"""
         test_app_id = "test_app"
 
-        response = assets_api.delete_assets(test_app_id)
-
-        assert response.result
+        assets_api.delete_assets(test_app_id)
 
     @allure.id("2653")
     @allure.title("POST /api/display/draw")
@@ -62,15 +58,13 @@ class TestAssetsAPI:
             }
         ]
 
-        response = assets_api.draw("test_app", elements)
-
-        assert response.result
+        assets_api.draw("test_app", elements)
 
     @allure.id("2690")
     @allure.title("POST /api/display/draw (image)")
     @pytest.mark.api
     @pytest.mark.frontend
-    # @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-505")
+    @pytest.mark.xfail(reason="Test image asset (img.png) not present in repository")
     def test_api_display_draw_image(self, assets_api: AssetsAPI):
         """Test POST /api/display/draw endpoint with image element"""
         test_app_id = "test_display_img"
@@ -83,10 +77,9 @@ class TestAssetsAPI:
             with open(image_path, "rb") as f:
                 image_content = f.read()
 
-            upload_response = assets_api.upload_asset(
+            assets_api.upload_asset(
                 test_app_id, test_image_file, image_content, timeout=5
             )
-            assert upload_response.result
 
         try:
             sleep(5)
@@ -101,9 +94,7 @@ class TestAssetsAPI:
                 }
             ]
 
-            response = assets_api.draw(test_app_id, elements)
-
-            assert response.result
+            assets_api.draw(test_app_id, elements)
         finally:
             assets_api.delete_assets(test_app_id)
 
@@ -111,18 +102,14 @@ class TestAssetsAPI:
     @allure.title("DELETE /api/display/draw")
     @pytest.mark.api
     @pytest.mark.frontend
-    # @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-500")
     def test_api_display_clear(self, assets_api: AssetsAPI):
         """Test DELETE /api/display/draw endpoint"""
-        response = assets_api.clear_display()
-
-        assert response.result
+        assets_api.clear_display()
 
     @allure.id("2655")
     @allure.title("POST /api/audio/play")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-505")
     def test_api_audio_play(self, assets_api: AssetsAPI):
         """Test POST /api/audio/play endpoint"""
         test_app_id = "test_audio_play"
@@ -135,14 +122,12 @@ class TestAssetsAPI:
             with open(audio_path, "rb") as f:
                 audio_content = f.read()
 
-            upload_response = assets_api.upload_asset(
+            assets_api.upload_asset(
                 test_app_id, test_audio_file, audio_content
             )
-            assert upload_response.result
 
         try:
-            response = assets_api.play_audio(test_app_id, test_audio_file)
-            assert response.result
+            assets_api.play_audio(test_app_id, test_audio_file)
         finally:
             assets_api.delete_assets(test_app_id)
 
@@ -150,12 +135,9 @@ class TestAssetsAPI:
     @allure.title("DELETE /api/audio/play")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.skip(reason="https://flipper.atlassian.net/browse/FW-505")
     def test_api_audio_stop(self, assets_api: AssetsAPI):
         """Test DELETE /api/audio/play endpoint"""
-        response = assets_api.stop_audio()
-
-        assert response.result
+        assets_api.stop_audio()
 
     @allure.id("2672")
     @allure.title("POST /api/display/draw (malformed JSON)")

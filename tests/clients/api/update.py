@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from .base import BaseAPI
 
@@ -108,7 +108,7 @@ class CheckStatus(BaseModel):
 
     available_version: str | None = None
     event: Literal["start", "stop", "none"]
-    status: Literal["available", "not_available", "failure", "none"]
+    result: Literal["available", "not_available", "failure", "none"]
 
     # === Status Check Properties ===
 
@@ -120,17 +120,17 @@ class CheckStatus(BaseModel):
     @property
     def is_available(self) -> bool:
         """Check if update is available."""
-        return self.status == "available" and bool(self.available_version)
+        return self.result == "available" and bool(self.available_version)
 
     @property
     def is_up_to_date(self) -> bool:
         """Check if firmware is up to date (no update available)."""
-        return self.status == "not_available"
+        return self.result == "not_available"
 
     @property
     def has_failed(self) -> bool:
         """Check if update check failed."""
-        return self.status == "failure"
+        return self.result == "failure"
 
 
 class UpdateStatusResponse(BaseModel):
@@ -144,6 +144,13 @@ class UpdateResultResponse(BaseModel):
     """Generic update operation result."""
 
     result: str
+
+    @field_validator("result")
+    @classmethod
+    def validate_result(cls, v: str) -> str:
+        """Validate result indicates success."""
+        assert v, "Expected non-empty result"
+        return v
 
 
 # === API Client ===
@@ -187,6 +194,10 @@ class UpdateAPI(BaseAPI):
     def check(self) -> UpdateResultResponse:
         """Start update check."""
         return self.post("/api/update/check", UpdateResultResponse)
+
+    def check_raw(self):
+        """Start update check and return raw response (for status code checking)."""
+        return self.post_raw("/api/update/check")
 
     def get_changelog(self, version: str):
         """

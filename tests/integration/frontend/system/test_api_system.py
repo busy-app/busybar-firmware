@@ -90,9 +90,7 @@ class TestTimeAPI:
         """Test POST /api/time/timestamp endpoint"""
         test_timestamp = "2025-06-15T12:30:45"
 
-        response = system_api.set_timestamp(test_timestamp)
-
-        assert response.result
+        system_api.set_timestamp(test_timestamp)
 
     @allure.id("2682")
     @allure.title("POST /api/time/timestamp (invalid)")
@@ -130,9 +128,7 @@ class TestTimeAPI:
     )
     def test_api_time_timezone_post(self, system_api: SystemAPI, test_tz):
         """Test POST /api/time/timezone endpoint"""
-        response = system_api.set_timezone(test_tz)
-
-        assert response.result
+        system_api.set_timezone(test_tz)
 
     @allure.id("2684")
     @allure.title("POST /api/time/timezone (invalid)")
