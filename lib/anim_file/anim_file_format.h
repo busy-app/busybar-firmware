@@ -43,7 +43,7 @@
  * |                |                 | Encoded frame data  |
  * +----------------+-----------------+---------------------+
  * 
- * There must always be a section named "whole", covering the entire range of
+ * There must always be a section named "default", covering the entire range of
  * Display Frames.
  */
 
