@@ -49,8 +49,8 @@ static bool mqtt_settings_v1_custom_url_is_valid_cb(
     const SettingProviderSetting* setting,
     const FuriString* value) {
     UNUSED(setting);
-    return furi_string_equal(value, MQTT_URL_TLS_PREFIX) ||
-           furi_string_equal(value, MQTT_URL_PREFIX);
+    return furi_string_empty(value) || furi_string_start_with(value, MQTT_URL_TLS_PREFIX) ||
+           furi_string_start_with(value, MQTT_URL_PREFIX);
 }
 
 static const SettingProviderCustomInterface mqtt_settings_v1_profile_interface = {
