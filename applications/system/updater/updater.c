@@ -215,11 +215,9 @@ static void autoupdate_timer_callback(void* context) {
     }
 
     Sntp* sntp = furi_record_open(RECORD_SNTP);
-    time_t timestamp = sntp_get_local_timestamp(sntp);
-    furi_record_close(RECORD_SNTP);
-
     DateTime datetime;
-    datetime_timestamp_to_datetime(timestamp, &datetime);
+    sntp_get_local_datetime(sntp, &datetime);
+    furi_record_close(RECORD_SNTP);
 
     int time_minutes = datetime.hour * 60 + datetime.minute;
     int interval_start = instance->settings.autoupdate_interval_start;
