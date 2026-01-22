@@ -62,20 +62,20 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
             size_t current_idx = instance->current_idx;
             if(current_idx == previous_idx) break;
 
-            AnimFile* file = anim_player_get_file(&instance->base);
-            if(!file) break;
-
             snprintf(
                 section_name,
                 sizeof(section_name),
                 "transition-%zu-to-%zu",
                 previous_idx,
                 current_idx);
-            if(!anim_file_set_section(file, AnimFilePlayFlagNone, section_name)) break;
+            if(!anim_player_set_section(&instance->base, AnimFilePlayFlagNone, section_name))
+                break;
 
             snprintf(section_name, sizeof(section_name), "item-%zu", current_idx);
-            if(!anim_file_set_section(
-                   file, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, section_name))
+            if(!anim_player_set_section(
+                   &instance->base,
+                   AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop,
+                   section_name))
                 break;
         } while(0);
     }
@@ -132,10 +132,8 @@ bool anim_menu_set_source(AnimMenu* instance, const char* file_path, size_t opti
     if(!anim_player_set_source(&instance->base, file_path)) return false;
 
     instance->option_count = options;
-    AnimFile* file = anim_player_get_file(&instance->base);
-    furi_assert(file);
 
-    if(!anim_file_set_section(file, AnimFilePlayFlagLoop, "item-0")) return false;
+    if(!anim_player_set_section(&instance->base, AnimFilePlayFlagLoop, "item-0")) return false;
 
     return true;
 }

@@ -100,7 +100,7 @@ static void theme_picker_update_image(ThemePicker* instance) {
         widget_set_visible((Widget*)instance->anim_player, true);
 
         if(anim_player_set_source(instance->anim_player, bg_path)) {
-            anim_player_loop_whole(instance->anim_player);
+            anim_player_loop_default(instance->anim_player);
         }
     }
 }

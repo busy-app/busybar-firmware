@@ -91,11 +91,7 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
             instance->is_pressed = true;
 
             AnimPlayer* anim_player = &instance->base;
-            AnimFile* file = anim_player_get_file(anim_player);
-            if(file) {
-                bool success = anim_file_set_section(file, AnimFilePlayFlagNone, "idle");
-                UNUSED(success);
-            }
+            anim_player_set_section(anim_player, AnimFilePlayFlagNone, "idle");
 
             lv_obj_t* obj = TO_LV_OBJ(instance);
             lv_anim_delete(obj, prompt_overlay_lvgl_anim_callback);
@@ -119,14 +115,7 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
 
 static void prompt_overlay_start_animation(PromptOverlay* instance) {
     AnimPlayer* anim_player = &instance->base;
-
-    AnimFile* file = anim_player_get_file(anim_player);
-    if(file) {
-        bool success =
-            anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
-        UNUSED(success);
-        anim_player_pause(anim_player);
-    }
+    anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
 
     anim_player_set_frame_callback(anim_player, prompt_overlay_frame_callback, NULL);
 

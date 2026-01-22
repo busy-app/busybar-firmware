@@ -69,7 +69,7 @@ static void busy_scene_finish_on_enter(void* context) {
         data->front_anim = anim_player_alloc(instance->front_window);
         if(anim_player_set_source(
                data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"))) {
-            anim_player_loop_whole(data->front_anim);
+            anim_player_loop_default(data->front_anim);
         }
 
         data->front_summary = summary_label_alloc(instance->front_window);

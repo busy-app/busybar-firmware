@@ -198,12 +198,10 @@ static Widget* canvas_element_update_specific(
         }
         if(anim_player_set_source(
                widget->anim_player, furi_string_get_cstr(element->anim_player.file_path))) {
-            AnimFile* file = anim_player_get_file(widget->anim_player);
-            bool success = anim_file_set_section(
-                file,
+            anim_player_set_section(
+                widget->anim_player,
                 element->anim_player.flags,
                 furi_string_get_cstr(element->anim_player.section));
-            UNUSED(success);
         }
         return anim_player_get_base(widget->anim_player);
 

@@ -186,12 +186,7 @@ static void transition_overlay_reset(TransitionOverlay* instance) {
     lv_anim_delete(instance, NULL);
 
     anim_player_pause(instance->mask);
-    AnimFile* file = anim_player_get_file(instance->mask);
-    if(file) {
-        bool success =
-            anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
-        furi_assert(success);
-    }
+    anim_player_set_section(instance->mask, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
 
     if(instance->press_widget) {
         widget_set_pos(instance->press_widget, 0, 0);

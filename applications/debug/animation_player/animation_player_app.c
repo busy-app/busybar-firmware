@@ -76,8 +76,7 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
         instance->anim_player = anim_player_alloc(root);
 
         if(anim_player_set_source(instance->anim_player, path_arg)) {
-            anim_player_get_file(instance->anim_player);
-            anim_player_loop_whole(instance->anim_player);
+            anim_player_loop_default(instance->anim_player);
         }
     });
 

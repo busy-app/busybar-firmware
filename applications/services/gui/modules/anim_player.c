@@ -141,12 +141,15 @@ AnimFile* anim_player_get_file(AnimPlayer* instance) {
     return instance->file;
 }
 
-void anim_player_loop_whole(AnimPlayer* instance) {
+bool anim_player_set_section(AnimPlayer* instance, AnimFilePlayFlag flags, const char* name) {
     furi_check(instance);
-    furi_check(instance->file);
-    bool success =
-        anim_file_set_section(instance->file, AnimFilePlayFlagLoop, ANIM_FILE_DEFAULT_SECTION);
-    furi_assert(success);
+    if(!instance->file) return false;
+    return anim_file_set_section(instance->file, flags, name);
+}
+
+bool anim_player_loop_default(AnimPlayer* instance) {
+    furi_check(instance);
+    return anim_player_set_section(instance, AnimFilePlayFlagLoop, ANIM_FILE_DEFAULT_SECTION);
 }
 
 void anim_player_start(AnimPlayer* instance) {

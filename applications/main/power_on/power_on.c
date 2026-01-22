@@ -133,11 +133,8 @@ static AnimPlayer* power_on_animation_alloc(Widget* widget, const char* anim_pat
 
     do {
         if(!anim_player_set_source(anim, anim_path)) break;
-        AnimFile* file = anim_player_get_file(anim);
-        furi_assert(file);
-
-        if(!anim_file_set_section(
-               file, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, POWER_ON_LOOP_SECTION))
+        if(!anim_player_set_section(
+               anim, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, POWER_ON_LOOP_SECTION))
             break;
     } while(0);
 

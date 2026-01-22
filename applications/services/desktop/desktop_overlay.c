@@ -99,11 +99,8 @@ void desktop_overlay_hide(DesktopOverlay* instance, DesktopOverlayTransitionType
                                                                              MASK_L_TO_R;
             widget_set_visible(anim_player_get_base(instance->mask_anim), true);
 
-            AnimFile* file = anim_player_get_file(instance->mask_anim);
-            if(file) {
-                if(anim_file_set_section(file, AnimFilePlayFlagNone, section)) {
-                    anim_player_start(instance->mask_anim);
-                }
+            if(anim_player_set_section(instance->mask_anim, AnimFilePlayFlagNone, section)) {
+                anim_player_start(instance->mask_anim);
             }
         }
     });

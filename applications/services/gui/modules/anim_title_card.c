@@ -132,25 +132,20 @@ void anim_title_card_run_background_anim(AnimTitleCard* instance) {
 
     lv_obj_remove_flag(TO_LV_OBJ(instance->background_anim), LV_OBJ_FLAG_HIDDEN);
 
-    AnimFile* file = anim_player_get_file(instance->background_anim);
-    if(file) {
-        if(!anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION)) {
-            FURI_LOG_E(TAG, "failed to reset icon animation");
-        }
-        anim_player_start(instance->background_anim);
+    if(!anim_player_set_section(
+           instance->background_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION)) {
+        FURI_LOG_E(TAG, "failed to reset icon animation");
     }
+    anim_player_start(instance->background_anim);
 }
 
 void anim_title_card_run_icon_anim(AnimTitleCard* instance, const char* section) {
     furi_check(instance);
 
-    AnimFile* file = anim_player_get_file(instance->icon_anim);
-    if(file) {
-        if(!anim_file_set_section(file, AnimFilePlayFlagNone, section)) {
-            FURI_LOG_E(TAG, "icon doesn't have \"%s\" section", section);
-        }
-        anim_player_start(instance->icon_anim);
+    if(!anim_player_set_section(instance->icon_anim, AnimFilePlayFlagNone, section)) {
+        FURI_LOG_E(TAG, "icon doesn't have \"%s\" section", section);
     }
+    anim_player_start(instance->icon_anim);
 }
 
 void anim_title_card_run_title_anim(

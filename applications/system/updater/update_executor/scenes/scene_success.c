@@ -34,7 +34,7 @@ static void success_scene_on_enter(void* context) {
             anim_player_alloc(flex_layout_get_base(data->back_flex));
         if(anim_player_set_source(
                back_spinner_anim_player, GUI_ANIM_PATH("spinner_back_16x16.anim"))) {
-            anim_player_loop_whole(back_spinner_anim_player);
+            anim_player_loop_default(back_spinner_anim_player);
         }
         widget_set_size_content(anim_player_get_base(back_spinner_anim_player));
 
@@ -53,7 +53,7 @@ static void success_scene_on_enter(void* context) {
             anim_player_alloc(flex_layout_get_base(data->front_flex));
         if(anim_player_set_source(
                front_spinner_anim_player, GUI_ANIM_PATH("spinner_front_8x8.anim"))) {
-            anim_player_loop_whole(front_spinner_anim_player);
+            anim_player_loop_default(front_spinner_anim_player);
         }
         widget_set_size_content(anim_player_get_base(front_spinner_anim_player));
 

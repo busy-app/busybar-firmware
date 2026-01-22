@@ -78,7 +78,7 @@ static void timer_indicator_start_transition(
 
     instance->bg_anim = anim_player_alloc(&instance->base);
     if(anim_player_set_source(instance->bg_anim, transition->anim_path)) {
-        anim_player_loop_whole(instance->bg_anim);
+        anim_player_loop_default(instance->bg_anim);
     }
 
     lv_anim_t anim;
@@ -108,7 +108,7 @@ static void timer_indicator_apply_bg_animation(TimerIndicator* instance) {
     if(config->anim_path) {
         instance->bg_anim = anim_player_alloc(&instance->base);
         if(anim_player_set_source(instance->bg_anim, config->anim_path)) {
-            anim_player_loop_whole(instance->bg_anim);
+            anim_player_loop_default(instance->bg_anim);
         }
     }
 }

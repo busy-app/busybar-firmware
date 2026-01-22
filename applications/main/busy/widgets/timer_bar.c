@@ -73,13 +73,8 @@ void timer_bar_set_value(TimerBar* instance, float value) {
         lv_obj_set_x((lv_obj_t*)instance->bar, -offset);
     }
 
-    AnimFile* file = anim_player_get_file(instance->bar);
-    if(file) {
-        bool success =
-            anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
-        furi_assert(success);
-        anim_player_start(instance->bar);
-    }
+    anim_player_set_section(instance->bar, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
+    anim_player_start(instance->bar);
 }
 
 // LVGL class descriptor

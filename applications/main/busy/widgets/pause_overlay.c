@@ -124,13 +124,8 @@ static void pause_overlay_animate_show(PauseOverlay* instance) {
 
     lv_obj_set_style_opa(TO_LV_OBJ(instance), LV_OPA_COVER, LV_PART_MAIN);
 
-    AnimFile* file = anim_player_get_file(instance->mask);
-    if(file) {
-        bool success =
-            anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
-        furi_assert(success);
-        anim_player_start(instance->mask);
-    }
+    anim_player_set_section(instance->mask, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
+    anim_player_start(instance->mask);
 
     widget_set_visible((Widget*)instance->layout, false);
     widget_set_visible((Widget*)instance, true);

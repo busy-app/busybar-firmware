@@ -49,23 +49,22 @@ Widget* anim_player_get_base(AnimPlayer* instance);
 bool anim_player_set_source(AnimPlayer* instance, const char* path);
 
 /**
- * @brief Gets the underlying `AnimFile` object. Useful for setting animation
- * parameters.
+ * @brief Sets the current section to be played back, using a section name
  * 
- * @param[inout] instance Widget instance
+ * @param[in] anim `AnimPlayer` instance
+ * @param[in] flags See `AnimFilePlayFlag`
+ * @param[in] name Name of the section (also see: `ANIM_FILE_DEFAULT_SECTION`)
  * 
- * @returns `AnimFile` handle that can be used to set animation parameters. Will
- *          be `NULL` if and only if `anim_player_set_source` was never called or
- *          returned `false`.
+ * @returns Whether the operation was successful.
  */
-AnimFile* anim_player_get_file(AnimPlayer* instance);
+bool anim_player_set_section(AnimPlayer* instance, AnimFilePlayFlag flags, const char* name);
 
 /**
  * @brief Helpher function to loop the entire animation.
  * 
  * @param[inout] instance Widget instance
  */
-void anim_player_loop_whole(AnimPlayer* instance);
+bool anim_player_loop_default(AnimPlayer* instance);
 
 /**
  * @brief Starts or resumes playback of the animation
