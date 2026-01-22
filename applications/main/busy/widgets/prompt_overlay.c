@@ -1,6 +1,6 @@
 #include "prompt_overlay.h"
 
-#include <gui/modules/anim_play_i.h>
+#include <gui/modules/anim_player_i.h>
 #include <gui/storage_macros.h>
 
 #define MY_CLASS (&prompt_overlay_lvgl_class)
@@ -18,7 +18,7 @@ typedef enum {
 } PromptOverlayState;
 
 struct PromptOverlay {
-    AnimPlay base;
+    AnimPlayer base;
     lv_obj_t* target;
     uint32_t frame_idx;
     PromptOverlayCallback callback;
@@ -44,7 +44,7 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
 static void prompt_overlay_start_animation(PromptOverlay* instance);
 static void prompt_overlay_set_target_y_offset(PromptOverlay* instance, int32_t offset);
 static void prompt_overlay_frame_callback(
-    AnimPlay* anim_play,
+    AnimPlayer* anim_player,
     const AnimFileFrameInfo* frame,
     void* context);
 
@@ -57,7 +57,7 @@ static void prompt_overlay_lvgl_anim_callback(void* context, int32_t value) {
 
     if(value == PromptOverlayStateAnimBegin) {
         instance->frame_idx = 0;
-        anim_play_start(&instance->base);
+        anim_player_start(&instance->base);
 
     } else if(value == PromptOverlayStateAnimEnd) {
         if(instance->callback) {
@@ -73,8 +73,8 @@ static void prompt_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
 
     widget_set_input_feed_callback((Widget*)obj, prompt_overlay_input_callback);
 
-    AnimPlay* anim_play = (AnimPlay*)obj;
-    anim_play_set_source(anim_play, GUI_ANIM_PATH("wave_invitation_72x16.anim"));
+    AnimPlayer* anim_player = (AnimPlayer*)obj;
+    anim_player_set_source(anim_player, GUI_ANIM_PATH("wave_invitation_72x16.anim"));
 
     prompt_overlay_start_animation((PromptOverlay*)obj);
 }
@@ -90,8 +90,8 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
         if(event->type == InputTypePress) {
             instance->is_pressed = true;
 
-            AnimPlay* anim_play = &instance->base;
-            AnimFile* file = anim_play_get_file(anim_play);
+            AnimPlayer* anim_player = &instance->base;
+            AnimFile* file = anim_player_get_file(anim_player);
             if(file) {
                 bool success = anim_file_set_section(file, AnimFilePlayFlagNone, "idle");
                 UNUSED(success);
@@ -118,17 +118,17 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
 }
 
 static void prompt_overlay_start_animation(PromptOverlay* instance) {
-    AnimPlay* anim_play = &instance->base;
+    AnimPlayer* anim_player = &instance->base;
 
-    AnimFile* file = anim_play_get_file(anim_play);
+    AnimFile* file = anim_player_get_file(anim_player);
     if(file) {
         bool success =
             anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
         UNUSED(success);
-        anim_play_pause(anim_play);
+        anim_player_pause(anim_player);
     }
 
-    anim_play_set_frame_callback(anim_play, prompt_overlay_frame_callback, NULL);
+    anim_player_set_frame_callback(anim_player, prompt_overlay_frame_callback, NULL);
 
     instance->frame_idx = 0;
 
@@ -151,10 +151,10 @@ static void prompt_overlay_set_target_y_offset(PromptOverlay* instance, int32_t 
 }
 
 static void prompt_overlay_frame_callback(
-    AnimPlay* anim_play,
+    AnimPlayer* anim_player,
     const AnimFileFrameInfo* frame,
     void* context) {
-    furi_assert(anim_play);
+    furi_assert(anim_player);
     UNUSED(context);
 
     if(frame->flags & FuriFlagError) return;
@@ -164,7 +164,7 @@ static void prompt_overlay_frame_callback(
         offset = overlay_offset_animation[frame->index];
     }
 
-    PromptOverlay* instance = (PromptOverlay*)anim_play;
+    PromptOverlay* instance = (PromptOverlay*)anim_player;
 
     if(!instance->is_pressed) {
         prompt_overlay_set_target_y_offset(instance, offset);
@@ -213,7 +213,7 @@ void prompt_overlay_set_callback(
 // LVGL class descriptor
 
 const lv_obj_class_t prompt_overlay_lvgl_class = {
-    .base_class = &anim_play_lvgl_class,
+    .base_class = &anim_player_lvgl_class,
     .constructor_cb = prompt_overlay_lvgl_constructor,
     .name = "widget-prompt-overlay",
     .width_def = LV_SIZE_CONTENT,

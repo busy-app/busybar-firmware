@@ -121,8 +121,8 @@ static bool api_display_draw_parse_image_path(
     const char* app_id,
     struct mg_str json_element,
     CanvasElementType type) {
-    furi_check((type == CanvasElementTypeImage) || (type == CanvasElementTypeAnimPlay));
-    bool is_animated = type == CanvasElementTypeAnimPlay;
+    furi_check((type == CanvasElementTypeImage) || (type == CanvasElementTypeAnimPlayer));
+    bool is_animated = type == CanvasElementTypeAnimPlayer;
 
     bool result = false;
 
@@ -186,7 +186,7 @@ static bool api_display_draw_parse_image_element(
     return result;
 }
 
-static bool api_display_draw_parse_anim_play_element(
+static bool api_display_draw_parse_anim_player_element(
     CanvasElement* canvas_element,
     const char* app_id,
     struct mg_str json_element) {
@@ -194,32 +194,32 @@ static bool api_display_draw_parse_anim_play_element(
 
     do {
         if(!api_display_draw_parse_image_path(
-               &canvas_element->anim_play.file_path,
+               &canvas_element->anim_player.file_path,
                app_id,
                json_element,
-               CanvasElementTypeAnimPlay))
+               CanvasElementTypeAnimPlayer))
             break;
 
         bool json_bool;
         char* json_str;
 
         if((json_str = mg_json_get_str(json_element, "$.section"))) {
-            canvas_element->anim_play.file_path = furi_string_alloc_set_str(json_str);
+            canvas_element->anim_player.file_path = furi_string_alloc_set_str(json_str);
         } else {
-            canvas_element->anim_play.file_path =
+            canvas_element->anim_player.file_path =
                 furi_string_alloc_set_str(ANIM_FILE_DEFAULT_SECTION);
         }
 
-        canvas_element->anim_play.flags = AnimFilePlayFlagNone;
+        canvas_element->anim_player.flags = AnimFilePlayFlagNone;
 
         if(mg_json_get_bool(json_element, "$.loop", &json_bool)) {
-            if(json_bool) canvas_element->anim_play.flags |= AnimFilePlayFlagLoop;
+            if(json_bool) canvas_element->anim_player.flags |= AnimFilePlayFlagLoop;
         }
         if(mg_json_get_bool(json_element, "$.await_previous_end", &json_bool)) {
-            if(json_bool) canvas_element->anim_play.flags |= AnimFilePlayFlagFinishCurrent;
+            if(json_bool) canvas_element->anim_player.flags |= AnimFilePlayFlagFinishCurrent;
         }
 
-        canvas_element->type = CanvasElementTypeAnimPlay;
+        canvas_element->type = CanvasElementTypeAnimPlayer;
         result = true;
     } while(0);
 
@@ -301,7 +301,7 @@ static bool api_display_draw_parse_element(
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
             {"text", api_display_draw_parse_text_element},
             {"image", api_display_draw_parse_image_element},
-            {"anim", api_display_draw_parse_anim_play_element},
+            {"anim", api_display_draw_parse_anim_player_element},
             {"countdown", api_display_draw_parse_countdown_element},
         };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {

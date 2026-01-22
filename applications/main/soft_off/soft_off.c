@@ -3,7 +3,7 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 
 #include <back_display/back_display.h>
 
@@ -37,19 +37,19 @@ int32_t soft_off_app(void* arg) {
     FuriThread* thread = furi_thread_get_current();
     furi_thread_set_signal_callback(thread, soft_off_signal_callback, thread);
 
-    AnimPlay* anim_play;
+    AnimPlayer* anim_player;
     with_gui(gui, {
         GuiLayer* layer = gui_get_layer(gui, GuiLayerIdMain);
         Widget* root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
 
-        anim_play = anim_play_alloc(root);
-        anim_play_set_source(anim_play, SOFT_OFF_ANIM_PATH("turn_off_72x16.anim"));
+        anim_player = anim_player_alloc(root);
+        anim_player_set_source(anim_player, SOFT_OFF_ANIM_PATH("turn_off_72x16.anim"));
     });
 
     furi_thread_flags_wait(SoftOffThreadFlagExit, FuriFlagWaitAny, FuriWaitForever);
     furi_thread_set_signal_callback(thread, NULL, NULL);
 
-    with_gui(gui, { anim_play_free(anim_play); });
+    with_gui(gui, { anim_player_free(anim_player); });
 
     back_display_sleep_mode(back_display, false);
 

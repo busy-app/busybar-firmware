@@ -4,7 +4,7 @@
 #include <furi.h>
 #include <lvgl.h>
 
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 
 #define TAG "DesktopOverlay"
 
@@ -18,7 +18,7 @@ typedef struct {
 struct DesktopOverlay {
     Gui* gui;
     Widget* fade_out_widget;
-    AnimPlay* mask_anim;
+    AnimPlayer* mask_anim;
     bool show_requested;
 };
 
@@ -26,12 +26,12 @@ struct DesktopOverlay {
 #define MASK_R_TO_L "right_to_left"
 
 static void
-    desktop_overlay_mask_frame(AnimPlay* anim, const AnimFileFrameInfo* frame, void* context) {
+    desktop_overlay_mask_frame(AnimPlayer* anim, const AnimFileFrameInfo* frame, void* context) {
     UNUSED(context);
     if(frame->flags & FuriFlagError) return;
 
     if(frame->flags & AnimFileFrameFlagFinished) {
-        widget_set_visible(anim_play_get_base(anim), false);
+        widget_set_visible(anim_player_get_base(anim), false);
     }
 }
 
@@ -52,13 +52,13 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
         lv_obj_set_style_bg_color(
             (lv_obj_t*)instance->fade_out_widget, lv_color_black(), LV_PART_MAIN);
 
-        instance->mask_anim = anim_play_alloc(root);
-        widget_set_visible(anim_play_get_base(instance->mask_anim), false);
-        widget_set_blend_mode(anim_play_get_base(instance->mask_anim), WidgetBlendModeMultiply);
-        anim_play_set_source(
+        instance->mask_anim = anim_player_alloc(root);
+        widget_set_visible(anim_player_get_base(instance->mask_anim), false);
+        widget_set_blend_mode(anim_player_get_base(instance->mask_anim), WidgetBlendModeMultiply);
+        anim_player_set_source(
             instance->mask_anim, DESKTOP_ANIM_PATH("hosizontal_mask_transition_72x16.anim"));
-        anim_play_set_frame_callback(instance->mask_anim, desktop_overlay_mask_frame, instance);
-        anim_play_pause(instance->mask_anim);
+        anim_player_set_frame_callback(instance->mask_anim, desktop_overlay_mask_frame, instance);
+        anim_player_pause(instance->mask_anim);
     });
 
     instance->show_requested = false;
@@ -97,12 +97,12 @@ void desktop_overlay_hide(DesktopOverlay* instance, DesktopOverlayTransitionType
         if(type != DesktopOverlayTransitionTypeNone) {
             const char* section = (type == DesktopOverlayTransitionTypeUp) ? MASK_R_TO_L :
                                                                              MASK_L_TO_R;
-            widget_set_visible(anim_play_get_base(instance->mask_anim), true);
+            widget_set_visible(anim_player_get_base(instance->mask_anim), true);
 
-            AnimFile* file = anim_play_get_file(instance->mask_anim);
+            AnimFile* file = anim_player_get_file(instance->mask_anim);
             if(file) {
                 if(anim_file_set_section(file, AnimFilePlayFlagNone, section)) {
-                    anim_play_start(instance->mask_anim);
+                    anim_player_start(instance->mask_anim);
                 }
             }
         }

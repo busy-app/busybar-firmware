@@ -1740,33 +1740,18 @@ components:
                     type: string
                     pattern: "^[a-z_]+/[a-z0-9_]+$"
                     description: Identifier of builtin animation
-            - oneOf:
-              - properties:
-                  manual_range:
-                    type: object
-                    description: Manually specified range of frame indices, both ends inclusive
-                    properties:
-                      start:
-                        type: integer
-                      end:
-                        type: integer
-              - properties:
-                  section_index:
-                    type: integer
-                    description: Index of the section to play back. Specifying 0 selects the entire animation.
-              - properties:
-                  section_name:
-                    type: string
-                    description: Name of the section to play back. Specifying \"whole\" selects the entire animation.
             - properties:
                 loop:
-                  type: bool
+                  type: boolean
                   description: Whether to loop the requested part of the animation
                   default: false
                 await_previous_end:
-                  type: bool
+                  type: boolean
                   description: If the element has been created before and this flag is true, the previous range will finish before the requested one starts.
                   default: false
+                section_name:
+                  type: string
+                  description: Name of the section to play back. Specifying \"default\" selects the entire animation.
 
     CountdownElement:
       allOf:

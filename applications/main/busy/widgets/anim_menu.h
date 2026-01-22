@@ -7,7 +7,7 @@
 #pragma once
 
 #include <furi.h>
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,14 +51,14 @@ void anim_menu_free(AnimMenu* instance);
 Widget* anim_menu_get_base(AnimMenu* instance);
 
 /**
- * @brief Get a pointer to the underlying AnimPlay instance.
+ * @brief Get a pointer to the underlying AnimPlayer instance.
  *
- * The return value can be used in all AnimPlay methods.
+ * The return value can be used in all AnimPlayer methods.
  *
  * @param[in,out] instance pointer to the AnimMenu instance to be queried
- * @returns pointer to the AnimPlay instance
+ * @returns pointer to the AnimPlayer instance
  */
-AnimPlay* anim_menu_get_anim_play(AnimMenu* instance);
+AnimPlayer* anim_menu_get_anim_player(AnimMenu* instance);
 
 /**
  * @brief Set the animation file for the AnimMenu instance.

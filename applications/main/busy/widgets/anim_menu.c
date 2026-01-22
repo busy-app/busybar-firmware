@@ -1,6 +1,6 @@
 #include "anim_menu.h"
 
-#include <gui/modules/anim_play_i.h>
+#include <gui/modules/anim_player_i.h>
 
 #include <storage/storage.h>
 
@@ -9,7 +9,7 @@
 #define MY_CLASS (&anim_menu_lvgl_class)
 
 struct AnimMenu {
-    AnimPlay base;
+    AnimPlayer base;
     AnimMenuCallback callback;
     void* context;
     size_t option_count;
@@ -62,7 +62,7 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
             size_t current_idx = instance->current_idx;
             if(current_idx == previous_idx) break;
 
-            AnimFile* file = anim_play_get_file(&instance->base);
+            AnimFile* file = anim_player_get_file(&instance->base);
             if(!file) break;
 
             snprintf(
@@ -119,9 +119,9 @@ Widget* anim_menu_get_base(AnimMenu* instance) {
     return (Widget*)instance;
 }
 
-AnimPlay* anim_menu_get_anim_play(AnimMenu* instance) {
+AnimPlayer* anim_menu_get_anim_player(AnimMenu* instance) {
     furi_check(instance);
-    return (AnimPlay*)instance;
+    return (AnimPlayer*)instance;
 }
 
 bool anim_menu_set_source(AnimMenu* instance, const char* file_path, size_t options) {
@@ -129,10 +129,10 @@ bool anim_menu_set_source(AnimMenu* instance, const char* file_path, size_t opti
     furi_check(file_path);
     furi_check(options > 0);
 
-    if(!anim_play_set_source(&instance->base, file_path)) return false;
+    if(!anim_player_set_source(&instance->base, file_path)) return false;
 
     instance->option_count = options;
-    AnimFile* file = anim_play_get_file(&instance->base);
+    AnimFile* file = anim_player_get_file(&instance->base);
     furi_assert(file);
 
     if(!anim_file_set_section(file, AnimFilePlayFlagLoop, "item-0")) return false;
@@ -150,7 +150,7 @@ void anim_menu_set_callback(AnimMenu* instance, AnimMenuCallback callback, void*
 // LVGL class descriptors
 
 const lv_obj_class_t anim_menu_lvgl_class = {
-    .base_class = &anim_play_lvgl_class,
+    .base_class = &anim_player_lvgl_class,
     .constructor_cb = anim_menu_lvgl_constructor,
     .destructor_cb = anim_menu_lvgl_destructor,
     .name = "widget-anim-menu",

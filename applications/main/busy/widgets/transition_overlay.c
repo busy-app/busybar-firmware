@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 #include <gui/modules/snap_image.h>
 
 #define MY_CLASS (&transition_overlay_lvgl_class)
@@ -16,7 +16,7 @@
 struct TransitionOverlay {
     Widget base;
     SnapImage* snap;
-    AnimPlay* mask;
+    AnimPlayer* mask;
     lv_obj_t* color;
     Widget* press_widget;
     TransitionOverlayPreset preset;
@@ -76,7 +76,7 @@ static void transition_overlay_lvgl_constructor(const lv_obj_class_t* class_p, l
     TransitionOverlay* instance = (TransitionOverlay*)obj;
     instance->snap = snap_image_alloc((Widget*)obj);
     instance->color = lv_obj_create(obj);
-    instance->mask = anim_play_alloc((Widget*)obj);
+    instance->mask = anim_player_alloc((Widget*)obj);
 
     lv_obj_set_size(instance->color, LV_PCT(100), LV_PCT(100));
 
@@ -89,7 +89,7 @@ static void transition_overlay_lvgl_destructor(const lv_obj_class_t* class_p, lv
     TransitionOverlay* instance = (TransitionOverlay*)obj;
     snap_image_free(instance->snap);
     lv_obj_del(obj);
-    anim_play_free(instance->mask);
+    anim_player_free(instance->mask);
 }
 
 // Implementation
@@ -160,7 +160,7 @@ static void transition_overlay_animate_mask(TransitionOverlay* instance) {
 
     lv_anim_start(&anim);
 
-    anim_play_start(instance->mask);
+    anim_player_start(instance->mask);
 
     widget_set_visible((Widget*)instance->mask, true);
 }
@@ -185,8 +185,8 @@ static void transition_overlay_animate_press(TransitionOverlay* instance) {
 static void transition_overlay_reset(TransitionOverlay* instance) {
     lv_anim_delete(instance, NULL);
 
-    anim_play_pause(instance->mask);
-    AnimFile* file = anim_play_get_file(instance->mask);
+    anim_player_pause(instance->mask);
+    AnimFile* file = anim_player_get_file(instance->mask);
     if(file) {
         bool success =
             anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
@@ -234,8 +234,8 @@ void transition_overlay_set_preset(
         lv_obj_set_style_bg_color(instance->color, TO_LV_COLOR(preset->mask.color), LV_PART_MAIN);
 
     } else if(preset->type == TransitionOverlayTypeMask) {
-        anim_play_set_source(instance->mask, preset->mask.file_path);
-        anim_play_pause(instance->mask);
+        anim_player_set_source(instance->mask, preset->mask.file_path);
+        anim_player_pause(instance->mask);
     }
 }
 

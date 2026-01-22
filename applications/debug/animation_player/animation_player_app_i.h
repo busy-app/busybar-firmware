@@ -4,7 +4,7 @@
 
 #include <gui/gui.h>
 #include <gui/modules/label.h>
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 
 #include <storage/storage.h>
 
@@ -17,5 +17,5 @@ typedef struct {
     FuriMessageQueue* event_queue;
     Gui* gui;
 
-    AnimPlay* anim_play;
+    AnimPlayer* anim_player;
 } AnimationPlayerApp;

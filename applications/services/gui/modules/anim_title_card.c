@@ -1,7 +1,7 @@
 #include "anim_title_card.h"
 #include "../storage_macros.h"
 #include "../widget_i.h"
-#include "anim_play.h"
+#include "anim_player.h"
 
 #define TAG            "AnimTitleCard"
 #define MY_CLASS       (&anim_title_card_lvgl_class)
@@ -12,8 +12,8 @@
 struct AnimTitleCard {
     Widget base;
 
-    AnimPlay* background_anim;
-    AnimPlay* icon_anim;
+    AnimPlayer* background_anim;
+    AnimPlayer* icon_anim;
     lv_obj_t* title_label;
 };
 
@@ -30,7 +30,7 @@ static const int8_t card_offset_animation[] = {
 };
 
 static void
-    anim_title_card_frame(AnimPlay* instance, const AnimFileFrameInfo* info, void* context) {
+    anim_title_card_frame(AnimPlayer* instance, const AnimFileFrameInfo* info, void* context) {
     furi_assert(instance);
     furi_assert(context);
     AnimTitleCard* card = context;
@@ -49,7 +49,7 @@ static void
 
     if(info->flags & AnimFileFrameFlagFinished) {
         lv_obj_add_flag(TO_LV_OBJ(card->background_anim), LV_OBJ_FLAG_HIDDEN);
-        anim_play_pause(card->background_anim);
+        anim_player_pause(card->background_anim);
     }
 }
 
@@ -64,22 +64,22 @@ static void anim_title_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
     lv_obj_set_flex_align(
         TO_LV_OBJ(obj), LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    instance->icon_anim = anim_play_alloc(&instance->base);
+    instance->icon_anim = anim_player_alloc(&instance->base);
 
     instance->title_label = lv_obj_class_create_obj(MY_LABEL_CLASS, obj);
     lv_obj_class_init_obj(instance->title_label);
     lv_obj_set_style_text_color(instance->title_label, lv_color_white(), LV_PART_MAIN);
 
-    instance->background_anim = anim_play_alloc(&instance->base);
+    instance->background_anim = anim_player_alloc(&instance->base);
     lv_obj_add_flag(TO_LV_OBJ(instance->background_anim), LV_OBJ_FLAG_IGNORE_LAYOUT);
     lv_obj_add_flag(TO_LV_OBJ(instance->background_anim), LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_style_blend_mode(
         TO_LV_OBJ(instance->background_anim), LV_BLEND_MODE_ADDITIVE, LV_PART_MAIN);
 
-    anim_play_set_frame_callback(instance->background_anim, anim_title_card_frame, instance);
-    if(anim_play_set_source(
+    anim_player_set_frame_callback(instance->background_anim, anim_title_card_frame, instance);
+    if(anim_player_set_source(
            instance->background_anim, GUI_ANIM_PATH("wave_invitation_72x16.anim"))) {
-        anim_play_pause(instance->background_anim);
+        anim_player_pause(instance->background_anim);
     }
 }
 
@@ -116,8 +116,8 @@ void anim_title_card_set_icon(AnimTitleCard* instance, const char* file_path) {
     furi_check(instance);
     furi_check(file_path);
 
-    anim_play_set_source(instance->icon_anim, file_path);
-    anim_play_pause(instance->icon_anim);
+    anim_player_set_source(instance->icon_anim, file_path);
+    anim_player_pause(instance->icon_anim);
 }
 
 void anim_title_card_set_title(AnimTitleCard* instance, const char* title) {
@@ -132,24 +132,24 @@ void anim_title_card_run_background_anim(AnimTitleCard* instance) {
 
     lv_obj_remove_flag(TO_LV_OBJ(instance->background_anim), LV_OBJ_FLAG_HIDDEN);
 
-    AnimFile* file = anim_play_get_file(instance->background_anim);
+    AnimFile* file = anim_player_get_file(instance->background_anim);
     if(file) {
         if(!anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION)) {
             FURI_LOG_E(TAG, "failed to reset icon animation");
         }
-        anim_play_start(instance->background_anim);
+        anim_player_start(instance->background_anim);
     }
 }
 
 void anim_title_card_run_icon_anim(AnimTitleCard* instance, const char* section) {
     furi_check(instance);
 
-    AnimFile* file = anim_play_get_file(instance->icon_anim);
+    AnimFile* file = anim_player_get_file(instance->icon_anim);
     if(file) {
         if(!anim_file_set_section(file, AnimFilePlayFlagNone, section)) {
             FURI_LOG_E(TAG, "icon doesn't have \"%s\" section", section);
         }
-        anim_play_start(instance->icon_anim);
+        anim_player_start(instance->icon_anim);
     }
 }
 

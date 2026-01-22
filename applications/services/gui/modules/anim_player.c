@@ -1,20 +1,20 @@
-#include "anim_play_i.h"
+#include "anim_player_i.h"
 
 #include <furi/furi.h>
 #include <string.h>
 #include <storage/storage.h>
 #include <assets_images.h>
 
-#define TAG             "AnimPlay"
-#define MY_CLASS        (&anim_play_lvgl_class)
+#define TAG             "AnimPlayer"
+#define MY_CLASS        (&anim_player_lvgl_class)
 #define BYTES_PER_PIXEL 3
 
 // ==================
 // Internal functions
 // ==================
 
-static void anim_play_timer_cb(lv_timer_t* timer) {
-    AnimPlay* instance = lv_timer_get_user_data(timer);
+static void anim_player_timer_cb(lv_timer_t* timer) {
+    AnimPlayer* instance = lv_timer_get_user_data(timer);
     furi_check(instance);
     furi_check(instance->file);
 
@@ -28,23 +28,23 @@ static void anim_play_timer_cb(lv_timer_t* timer) {
 // LVGL class
 // ==========
 
-static void anim_play_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void anim_player_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    AnimPlay* instance = (AnimPlay*)obj;
+    AnimPlayer* instance = (AnimPlayer*)obj;
     instance->canvas = lv_canvas_create(obj);
     instance->storage = furi_record_open(RECORD_STORAGE);
 
-    instance->timer = lv_timer_create(anim_play_timer_cb, UINT32_MAX, obj);
+    instance->timer = lv_timer_create(anim_player_timer_cb, UINT32_MAX, obj);
     lv_timer_set_user_data(instance->timer, instance);
     lv_timer_set_repeat_count(instance->timer, -1);
     lv_timer_pause(instance->timer);
 }
 
-static void anim_play_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void anim_player_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    AnimPlay* instance = (AnimPlay*)obj;
+    AnimPlayer* instance = (AnimPlayer*)obj;
     lv_timer_delete(instance->timer);
 
     if(instance->canvas_buf) free(instance->canvas_buf);
@@ -54,41 +54,41 @@ static void anim_play_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* o
     furi_record_close(RECORD_STORAGE);
 }
 
-const lv_obj_class_t anim_play_lvgl_class = {
+const lv_obj_class_t anim_player_lvgl_class = {
     .base_class = &widget_lvgl_class,
-    .constructor_cb = anim_play_lvgl_constructor,
-    .destructor_cb = anim_play_lvgl_destructor,
+    .constructor_cb = anim_player_lvgl_constructor,
+    .destructor_cb = anim_player_lvgl_destructor,
     .name = "widget-anim-play",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
-    .instance_size = sizeof(AnimPlay),
+    .instance_size = sizeof(AnimPlayer),
 };
 
 // ==========
 // Public API
 // ==========
 
-AnimPlay* anim_play_alloc(Widget* parent) {
+AnimPlayer* anim_player_alloc(Widget* parent) {
     furi_check(parent);
 
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
-    AnimPlay* instance = (AnimPlay*)obj;
+    AnimPlayer* instance = (AnimPlayer*)obj;
     return instance;
 }
 
-void anim_play_free(AnimPlay* instance) {
+void anim_player_free(AnimPlayer* instance) {
     furi_check(instance);
     lv_obj_delete((lv_obj_t*)instance);
 }
 
-Widget* anim_play_get_base(AnimPlay* instance) {
+Widget* anim_player_get_base(AnimPlayer* instance) {
     furi_check(instance);
     return (Widget*)instance;
 }
 
-bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
+bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
     furi_check(instance);
 
     bool path_given = !!file_path;
@@ -121,7 +121,7 @@ bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
 
         size_t period = 1000 / info.fps;
         lv_timer_set_period(instance->timer, period);
-        anim_play_start(instance);
+        anim_player_start(instance);
     } while(0);
 
     bool loaded_successfully = !!instance->file;
@@ -136,12 +136,12 @@ bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
     return loaded_successfully;
 }
 
-AnimFile* anim_play_get_file(AnimPlay* instance) {
+AnimFile* anim_player_get_file(AnimPlayer* instance) {
     furi_check(instance);
     return instance->file;
 }
 
-void anim_play_loop_whole(AnimPlay* instance) {
+void anim_player_loop_whole(AnimPlayer* instance) {
     furi_check(instance);
     furi_check(instance->file);
     bool success =
@@ -149,20 +149,20 @@ void anim_play_loop_whole(AnimPlay* instance) {
     furi_assert(success);
 }
 
-void anim_play_start(AnimPlay* instance) {
+void anim_player_start(AnimPlayer* instance) {
     furi_check(instance);
     furi_check(instance->file);
     lv_timer_resume(instance->timer);
 }
 
-void anim_play_pause(AnimPlay* instance) {
+void anim_player_pause(AnimPlayer* instance) {
     furi_check(instance);
     lv_timer_pause(instance->timer);
 }
 
-void anim_play_set_frame_callback(
-    AnimPlay* instance,
-    AnimPlayFrameCallback callback,
+void anim_player_set_frame_callback(
+    AnimPlayer* instance,
+    AnimPlayerFrameCallback callback,
     void* context) {
     furi_check(instance);
     if(!callback) furi_check(!context);

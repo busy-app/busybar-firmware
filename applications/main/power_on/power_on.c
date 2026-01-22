@@ -1,7 +1,7 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 #include <gui/modules/label.h>
 
 #include <storage/storage.h>
@@ -128,12 +128,12 @@ static inline void power_on_done_flag_create(PowerOnApp* instance) {
     storage_file_free(file);
 }
 
-static AnimPlay* power_on_animation_alloc(Widget* widget, const char* anim_path) {
-    AnimPlay* anim = anim_play_alloc(widget);
+static AnimPlayer* power_on_animation_alloc(Widget* widget, const char* anim_path) {
+    AnimPlayer* anim = anim_player_alloc(widget);
 
     do {
-        if(!anim_play_set_source(anim, anim_path)) break;
-        AnimFile* file = anim_play_get_file(anim);
+        if(!anim_player_set_source(anim, anim_path)) break;
+        AnimFile* file = anim_player_get_file(anim);
         furi_assert(file);
 
         if(!anim_file_set_section(
@@ -153,8 +153,8 @@ int32_t power_on_app(void* arg) {
     Widget* front_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdFront);
     Widget* back_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdBack);
 
-    AnimPlay* front_anim = NULL;
-    AnimPlay* back_anim = NULL;
+    AnimPlayer* front_anim = NULL;
+    AnimPlayer* back_anim = NULL;
 
     Label* front_label = NULL;
     Label* back_label = NULL;
@@ -211,8 +211,8 @@ int32_t power_on_app(void* arg) {
     } while(0);
 
     with_gui(instance->gui, {
-        if(front_anim) anim_play_free(front_anim);
-        if(back_anim) anim_play_free(back_anim);
+        if(front_anim) anim_player_free(front_anim);
+        if(back_anim) anim_player_free(back_anim);
 
         if(front_label) label_free(front_label);
         if(back_label) label_free(back_label);

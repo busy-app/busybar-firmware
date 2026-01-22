@@ -2,7 +2,7 @@
 
 #include <gui/modules/label.h>
 #include <gui/modules/flex_box.h>
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 
 #include "../widgets/progress_view.h"
 #include "../widgets/prompt_overlay.h"
@@ -122,9 +122,9 @@ static void busy_scene_next_on_enter(void* context) {
         const BusySceneNextPreset* preset = busy_scene_next_get_preset(timer_state);
 
         if(preset->arrow_anim_path) {
-            AnimPlay* anim = anim_play_alloc(flex_box_get_base(data->front_flex));
-            anim_play_set_source(anim, preset->arrow_anim_path);
-            anim_play_loop_whole(anim);
+            AnimPlayer* anim = anim_player_alloc(flex_box_get_base(data->front_flex));
+            anim_player_set_source(anim, preset->arrow_anim_path);
+            anim_player_loop_whole(anim);
         }
 
         Label* message_label = label_alloc(flex_box_get_base(data->front_flex));

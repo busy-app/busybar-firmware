@@ -17,12 +17,12 @@ extern "C" {
 
 #define TAG "AnimFile"
 
-#define ANIM_FILE_DETAILED_ERRORS
+// #define ANIM_FILE_DETAILED_ERRORS
 
 #ifdef ANIM_FILE_DETAILED_ERRORS
 #define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, __VA_ARGS__)
 #else
-#define ANIM_FILE_ERR(...) FURI_LOF_E(TAG, "Load error")
+#define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, "Load error")
 #endif
 
 // =====

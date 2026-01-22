@@ -73,11 +73,11 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
         gui_layer_add_input_callback(main_layer, animation_player_app_input_callback, instance);
 
         Widget* root = gui_layer_get_root_widget(main_layer, display_arg);
-        instance->anim_play = anim_play_alloc(root);
+        instance->anim_player = anim_player_alloc(root);
 
-        if(anim_play_set_source(instance->anim_play, path_arg)) {
-            anim_play_get_file(instance->anim_play);
-            anim_play_loop_whole(instance->anim_play);
+        if(anim_player_set_source(instance->anim_player, path_arg)) {
+            anim_player_get_file(instance->anim_player);
+            anim_player_loop_whole(instance->anim_player);
         }
     });
 
@@ -93,7 +93,7 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, animation_player_app_input_callback);
 
-        anim_play_free(instance->anim_play);
+        anim_player_free(instance->anim_player);
     });
 
     furi_record_close(RECORD_GUI);

@@ -3,7 +3,7 @@
 #include <gui/widget_i.h>
 
 #include <gui/modules/image.h>
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 
 #define MY_CLASS (&theme_picker_lvgl_class)
 
@@ -15,7 +15,7 @@
 struct ThemePicker {
     Widget base;
     Image* image;
-    AnimPlay* anim_play;
+    AnimPlayer* anim_player;
 
     const ThemePickerModel* model;
     uint32_t current_idx;
@@ -68,7 +68,7 @@ static void theme_picker_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
     widget_set_input_feed_callback((Widget*)instance, theme_picker_input_callback);
 
     instance->image = image_alloc((Widget*)obj);
-    instance->anim_play = anim_play_alloc((Widget*)obj);
+    instance->anim_player = anim_player_alloc((Widget*)obj);
 
     lv_obj_t* deco_left = theme_picker_create_decoration(obj, false);
     lv_obj_set_style_align(deco_left, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
@@ -90,17 +90,17 @@ static void theme_picker_update_image(ThemePicker* instance) {
 
     if(bg_type == BusyThemeFileTypeImage) {
         widget_set_visible((Widget*)instance->image, true);
-        widget_set_visible((Widget*)instance->anim_play, false);
+        widget_set_visible((Widget*)instance->anim_player, false);
 
-        anim_play_pause(instance->anim_play);
+        anim_player_pause(instance->anim_player);
         image_set_source(instance->image, bg_path);
 
     } else if(bg_type == BusyThemeFileTypeAnim) {
         widget_set_visible((Widget*)instance->image, false);
-        widget_set_visible((Widget*)instance->anim_play, true);
+        widget_set_visible((Widget*)instance->anim_player, true);
 
-        if(anim_play_set_source(instance->anim_play, bg_path)) {
-            anim_play_loop_whole(instance->anim_play);
+        if(anim_player_set_source(instance->anim_player, bg_path)) {
+            anim_player_loop_whole(instance->anim_player);
         }
     }
 }

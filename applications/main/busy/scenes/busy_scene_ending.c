@@ -1,6 +1,6 @@
 #include "../busy_i.h"
 
-#include <gui/modules/anim_play.h>
+#include <gui/modules/anim_player.h>
 
 #include "../widgets/summary_view.h"
 
@@ -11,7 +11,7 @@
 
 typedef struct {
     SummaryView* front_summary;
-    AnimPlay* front_anim;
+    AnimPlayer* front_anim;
 } BusySceneEndig;
 
 static bool busy_scene_ending_input_callback(const InputEvent* event, void* context) {
@@ -44,16 +44,16 @@ static void busy_scene_ending_summary_finished_callback(void* context) {
     BusySceneEndig* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdEnding);
 
-    widget_set_visible(anim_play_get_base(data->front_anim), true);
-    anim_play_start(data->front_anim);
+    widget_set_visible(anim_player_get_base(data->front_anim), true);
+    anim_player_start(data->front_anim);
 }
 
 static void busy_scene_ending_anim_frame_callback(
-    AnimPlay* anim_play,
+    AnimPlayer* anim_player,
     const AnimFileFrameInfo* frame,
     void* context) {
     furi_assert(context);
-    UNUSED(anim_play);
+    UNUSED(anim_player);
 
     if(frame->flags & AnimFileFrameFlagError) return;
     if(!(frame->flags & AnimFileFrameFlagFinished)) return;
@@ -100,12 +100,12 @@ static void busy_scene_ending_on_enter(void* context) {
             data->front_summary, busy_scene_ending_summary_finished_callback, instance);
         widget_set_align(summary_view_get_base(data->front_summary), AlignCenter);
 
-        data->front_anim = anim_play_alloc(instance->front_window);
-        anim_play_set_source(data->front_anim, BUSY_ANIM_PATH("busy_ending_72x16.anim"));
-        anim_play_set_frame_callback(
+        data->front_anim = anim_player_alloc(instance->front_window);
+        anim_player_set_source(data->front_anim, BUSY_ANIM_PATH("busy_ending_72x16.anim"));
+        anim_player_set_frame_callback(
             data->front_anim, busy_scene_ending_anim_frame_callback, instance);
-        anim_play_pause(data->front_anim);
-        widget_set_visible(anim_play_get_base(data->front_anim), false);
+        anim_player_pause(data->front_anim);
+        widget_set_visible(anim_player_get_base(data->front_anim), false);
 
         animate_pos_y(
             summary_view_get_base(data->front_summary),
@@ -129,7 +129,7 @@ static void busy_scene_ending_on_exit(void* context) {
         gui_layer_remove_input_callback(layer, busy_scene_ending_input_callback);
 
         summary_view_free(data->front_summary);
-        anim_play_free(data->front_anim);
+        anim_player_free(data->front_anim);
     });
 }
 

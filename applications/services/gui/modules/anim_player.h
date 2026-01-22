@@ -1,5 +1,5 @@
 /**
- * @file anim_play.h
+ * @file anim_player.h
  * @brief A widget that plays an AnimFile.
  */
 #pragma once
@@ -11,23 +11,23 @@
 extern "C" {
 #endif
 
-typedef struct AnimPlay AnimPlay;
+typedef struct AnimPlayer AnimPlayer;
 
 /**
- * @brief Allocates an `AnimPlay` GUI element that plays an animation file
+ * @brief Allocates an `AnimPlayer` GUI element that plays an animation file
  * 
  * @param[in] parent Parent widget
  * 
- * @returns `AnimPlay` GUI element
+ * @returns `AnimPlayer` GUI element
  */
-AnimPlay* anim_play_alloc(Widget* parent);
+AnimPlayer* anim_player_alloc(Widget* parent);
 
 /**
- * @brief Frees an `AnimPlay` GUI element
+ * @brief Frees an `AnimPlayer` GUI element
  * 
  * @param[inout] instance Widget instance
  */
-void anim_play_free(AnimPlay* instance);
+void anim_player_free(AnimPlayer* instance);
 
 /**
  * @brief Base Widget class
@@ -36,7 +36,7 @@ void anim_play_free(AnimPlay* instance);
  * 
  * @returns Base Widget class
  */
-Widget* anim_play_get_base(AnimPlay* instance);
+Widget* anim_player_get_base(AnimPlayer* instance);
 
 /**
  * @brief Loads the animation file at the specified path
@@ -46,7 +46,7 @@ Widget* anim_play_get_base(AnimPlay* instance);
  * 
  * @returns `true` = operation successful
  */
-bool anim_play_set_source(AnimPlay* instance, const char* path);
+bool anim_player_set_source(AnimPlayer* instance, const char* path);
 
 /**
  * @brief Gets the underlying `AnimFile` object. Useful for setting animation
@@ -55,34 +55,34 @@ bool anim_play_set_source(AnimPlay* instance, const char* path);
  * @param[inout] instance Widget instance
  * 
  * @returns `AnimFile` handle that can be used to set animation parameters. Will
- *          be `NULL` if and only if `anim_play_set_source` was never called or
+ *          be `NULL` if and only if `anim_player_set_source` was never called or
  *          returned `false`.
  */
-AnimFile* anim_play_get_file(AnimPlay* instance);
+AnimFile* anim_player_get_file(AnimPlayer* instance);
 
 /**
  * @brief Helpher function to loop the entire animation.
  * 
  * @param[inout] instance Widget instance
  */
-void anim_play_loop_whole(AnimPlay* instance);
+void anim_player_loop_whole(AnimPlayer* instance);
 
 /**
  * @brief Starts or resumes playback of the animation
  * 
- * @note Playback is automatically started in `anim_play_set_source`
+ * @note Playback is automatically started in `anim_player_set_source`
  * 
  * @param[inout] instance Widget instance
  * 
  */
-void anim_play_start(AnimPlay* instance);
+void anim_player_start(AnimPlayer* instance);
 
 /**
  * @brief Pauses playback of the animation
  * 
  * @param[inout] instance Widget instance
  */
-void anim_play_pause(AnimPlay* instance);
+void anim_player_pause(AnimPlayer* instance);
 
 /**
  * @brief Playback frame callback
@@ -92,7 +92,7 @@ void anim_play_pause(AnimPlay* instance);
  * @param[inout] context Custom context
  */
 typedef void (
-    *AnimPlayFrameCallback)(AnimPlay* instance, const AnimFileFrameInfo* info, void* context);
+    *AnimPlayerFrameCallback)(AnimPlayer* instance, const AnimFileFrameInfo* info, void* context);
 
 /**
  * @brief Calls the specified callback every time a frame is played.
@@ -103,9 +103,9 @@ typedef void (
  * @param[in] callback May be `NULL` to disable the callback
  * @param[inout] context Custom context. Must be `NULL` if `callback` is `NULL`.
  */
-void anim_play_set_frame_callback(
-    AnimPlay* instance,
-    AnimPlayFrameCallback callback,
+void anim_player_set_frame_callback(
+    AnimPlayer* instance,
+    AnimPlayerFrameCallback callback,
     void* context);
 
 #ifdef __cplusplus
