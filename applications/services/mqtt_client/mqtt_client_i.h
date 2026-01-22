@@ -9,6 +9,8 @@
 
 #include <wifi/wifi.h>
 
+#include "settings/mqtt_settings.h"
+
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
 #define MQTT_POLL_PERIOD         (100)
@@ -24,10 +26,6 @@ struct MqttClient {
     FuriPubSub* event_pubsub;
     struct mg_mgr mgr;
     struct mg_connection* conn;
-
-    int profile_id;
-    FuriString* server_addr;
-    bool use_tls;
 
     struct mg_timer reconnect_delay_timer;
     uint32_t reconnect_delay;
@@ -52,6 +50,8 @@ struct MqttClient {
     struct mg_timer screen_stream_timer;
     FuriString* screen_stream_topic;
     char* screen_stream_buf;
+
+    MqttSettings settings;
 };
 
 typedef enum {
@@ -75,12 +75,12 @@ typedef struct {
 } MqttApiMessageRequestPin;
 
 typedef struct {
-    MqttClientProfile* profile_id;
+    MqttProfileId* profile_id;
     FuriString* custom_url;
 } MqttApiMessageGetProfile;
 
 typedef struct {
-    MqttClientProfile profile_id;
+    MqttProfileId profile_id;
     const char* custom_url;
 } MqttApiMessageSetProfile;
 

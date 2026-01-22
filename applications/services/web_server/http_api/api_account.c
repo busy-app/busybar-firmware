@@ -225,14 +225,14 @@ static bool http_api_account_mqtt_profile(
     if(mg_match(msg->method, mg_str("GET"), NULL)) {
         FuriString* url = furi_string_alloc();
         MqttClient* mqtt = furi_record_open(RECORD_MQTT);
-        MqttClientProfile profile_id = mqtt_client_get_profile(mqtt, url);
+        const MqttProfileId profile_id = mqtt_client_get_profile(mqtt, url);
         furi_record_close(RECORD_MQTT);
 
-        if(profile_id == MqttClientProfileProd) {
+        if(profile_id == MqttProfileIdProduction) {
             MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "prod");
-        } else if(profile_id == MqttClientProfileDev) {
+        } else if(profile_id == MqttProfileIdDevelopment) {
             MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "dev");
-        } else if(profile_id == MqttClientProfileLocal) {
+        } else if(profile_id == MqttProfileIdLocal) {
             MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "local");
         } else {
             MG_REPLY_OK_BODY(
@@ -253,15 +253,15 @@ static bool http_api_account_mqtt_profile(
             int var_len = mg_http_get_var(&msg->query, "profile", temp_str, sizeof(temp_str));
             if(var_len <= 0) break;
 
-            MqttClientProfile profile_id;
+            MqttProfileId profile_id;
             if(strncmp("prod", temp_str, var_len) == 0) {
-                profile_id = MqttClientProfileProd;
+                profile_id = MqttProfileIdProduction;
             } else if(strncmp("dev", temp_str, var_len) == 0) {
-                profile_id = MqttClientProfileDev;
+                profile_id = MqttProfileIdDevelopment;
             } else if(strncmp("local", temp_str, var_len) == 0) {
-                profile_id = MqttClientProfileLocal;
+                profile_id = MqttProfileIdLocal;
             } else if(strncmp("custom", temp_str, var_len) == 0) {
-                profile_id = MqttClientProfileCustom;
+                profile_id = MqttProfileIdCustom;
                 var_len = mg_http_get_var(&msg->query, "custom_url", temp_str, sizeof(temp_str));
                 if(var_len <= 0) break;
             } else

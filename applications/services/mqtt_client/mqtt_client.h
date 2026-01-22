@@ -1,6 +1,9 @@
 #pragma once
 
-#include <furi.h>
+#include "mqtt_common.h"
+
+#include <core/pubsub.h>
+#include <core/string.h>
 
 #define RECORD_MQTT "mqtt"
 
@@ -12,15 +15,6 @@ typedef enum {
     MqttClientStatusConnectedNotLinked, // Connected to MQTT broker, not linked
     MqttClientStatusConnectedLinked, // Connected to MQTT broker, linked
 } MqttClientStatus;
-
-typedef enum {
-    MqttClientProfileDev = 0,
-    MqttClientProfileProd,
-    MqttClientProfileLocal,
-    MqttClientProfileCustom,
-
-    MqttClientProfileMax
-} MqttClientProfile;
 
 typedef struct {
     enum {
@@ -60,9 +54,9 @@ void mqtt_client_get_session_info(
     FuriString* email,
     FuriString* user_id);
 
-MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url);
+MqttProfileId mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url);
 
-void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, const char* custom_url);
+void mqtt_client_set_profile(MqttClient* mqtt, MqttProfileId profile_id, const char* custom_url);
 
 void mqtt_client_publish(
     MqttClient* mqtt,

@@ -70,35 +70,36 @@ void mqtt_client_get_session_info(
     mqtt_client_send_message(instance, &message);
 }
 
-MqttClientProfile mqtt_client_get_profile(MqttClient* instance, FuriString* custom_url) {
+MqttProfileId mqtt_client_get_profile(MqttClient* instance, FuriString* custom_url) {
     furi_check(instance);
 
-    MqttClientProfile profile;
+    MqttProfileId profile_id;
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeGetProfile,
         .data.get_profile =
             {
-                .profile_id = &profile,
+                .profile_id = &profile_id,
                 .custom_url = custom_url,
             },
     };
 
     mqtt_client_send_message(instance, &message);
-    return profile;
+    return profile_id;
 }
 
 void mqtt_client_set_profile(
     MqttClient* instance,
-    MqttClientProfile profile,
+    MqttProfileId profile_id,
     const char* custom_url) {
     furi_check(instance);
+    furi_check(profile_id < MqttProfileIdMax);
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeSetProfile,
         .data.set_profile =
             {
-                .profile_id = profile,
+                .profile_id = profile_id,
                 .custom_url = custom_url,
             },
     };
