@@ -120,7 +120,7 @@ static void custom_event_callback(uint32_t events, void* context) {
     Sntp* instance = context;
 
     if(events & SntpCustomEventUpdateSuccess) {
-        FURI_LOG_I(TAG, "SNTP time update successful");
+        FURI_LOG_D(TAG, "SNTP time update successful");
 
         instance->is_time_update_ongoing = false;
 
