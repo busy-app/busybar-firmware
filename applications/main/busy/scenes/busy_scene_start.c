@@ -48,6 +48,8 @@ static void busy_scene_start_on_enter(void* context) {
         data->front_logo = anim_player_alloc(flex_layout_get_base(data->front_layout));
         anim_player_set_source(
             data->front_logo, busy_get_global_preset(instance)->start_anim_path);
+        furi_assert(anim_player_set_section(
+            data->front_logo, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
 
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);

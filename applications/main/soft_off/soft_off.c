@@ -44,6 +44,8 @@ int32_t soft_off_app(void* arg) {
 
         anim_player = anim_player_alloc(root);
         anim_player_set_source(anim_player, SOFT_OFF_ANIM_PATH("turn_off_72x16.anim"));
+        furi_assert(
+            anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
     });
 
     furi_thread_flags_wait(SoftOffThreadFlagExit, FuriFlagWaitAny, FuriWaitForever);

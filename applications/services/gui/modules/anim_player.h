@@ -60,13 +60,6 @@ bool anim_player_set_source(AnimPlayer* instance, const char* path);
 bool anim_player_set_section(AnimPlayer* instance, AnimFilePlayFlag flags, const char* name);
 
 /**
- * @brief Helpher function to loop the entire animation.
- * 
- * @param[inout] instance Widget instance
- */
-bool anim_player_loop_default(AnimPlayer* instance);
-
-/**
  * @brief Starts or resumes playback of the animation
  * 
  * @note Playback is automatically started in `anim_player_set_source`

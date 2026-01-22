@@ -119,6 +119,9 @@ bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
             info.height,
             LV_COLOR_FORMAT_RGB888);
 
+        furi_assert(
+            anim_player_set_section(instance, AnimFilePlayFlagLoop, ANIM_FILE_DEFAULT_SECTION));
+
         size_t period = 1000 / info.fps;
         lv_timer_set_period(instance->timer, period);
         anim_player_start(instance);
@@ -145,11 +148,6 @@ bool anim_player_set_section(AnimPlayer* instance, AnimFilePlayFlag flags, const
     furi_check(instance);
     if(!instance->file) return false;
     return anim_file_set_section(instance->file, flags, name);
-}
-
-bool anim_player_loop_default(AnimPlayer* instance) {
-    furi_check(instance);
-    return anim_player_set_section(instance, AnimFilePlayFlagLoop, ANIM_FILE_DEFAULT_SECTION);
 }
 
 void anim_player_start(AnimPlayer* instance) {

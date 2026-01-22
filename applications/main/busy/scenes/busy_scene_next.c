@@ -124,7 +124,6 @@ static void busy_scene_next_on_enter(void* context) {
         if(preset->arrow_anim_path) {
             AnimPlayer* anim = anim_player_alloc(flex_box_get_base(data->front_flex));
             anim_player_set_source(anim, preset->arrow_anim_path);
-            anim_player_loop_default(anim);
         }
 
         Label* message_label = label_alloc(flex_box_get_base(data->front_flex));

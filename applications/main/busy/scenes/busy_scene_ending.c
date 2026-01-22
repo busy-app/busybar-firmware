@@ -102,6 +102,8 @@ static void busy_scene_ending_on_enter(void* context) {
 
         data->front_anim = anim_player_alloc(instance->front_window);
         anim_player_set_source(data->front_anim, BUSY_ANIM_PATH("busy_ending_72x16.anim"));
+        furi_assert(anim_player_set_section(
+            data->front_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
         anim_player_set_frame_callback(
             data->front_anim, busy_scene_ending_anim_frame_callback, instance);
         anim_player_pause(data->front_anim);

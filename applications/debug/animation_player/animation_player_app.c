@@ -75,9 +75,7 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
         Widget* root = gui_layer_get_root_widget(main_layer, display_arg);
         instance->anim_player = anim_player_alloc(root);
 
-        if(anim_player_set_source(instance->anim_player, path_arg)) {
-            anim_player_loop_default(instance->anim_player);
-        }
+        anim_player_set_source(instance->anim_player, path_arg);
     });
 
     furi_string_free(args_str);

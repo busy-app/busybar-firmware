@@ -57,6 +57,8 @@ static void busy_scene_overview_on_enter(void* context) {
 
         data->front_bg_anim = anim_player_alloc(instance->front_window);
         anim_player_set_source(data->front_bg_anim, BUSY_ANIM_PATH("overview_72x16.anim"));
+        furi_assert(anim_player_set_section(
+            data->front_bg_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
 
         data->front_overview_label = overview_label_alloc(instance->front_window);
         overview_label_set_intervals(

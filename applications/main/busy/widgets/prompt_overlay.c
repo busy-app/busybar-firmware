@@ -79,6 +79,8 @@ static void prompt_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
 
     AnimPlayer* anim_player = (AnimPlayer*)obj;
     anim_player_set_source(anim_player, GUI_ANIM_PATH("wave_invitation_72x16.anim"));
+    furi_assert(
+        anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
 
     prompt_overlay_start_animation((PromptOverlay*)obj);
 }

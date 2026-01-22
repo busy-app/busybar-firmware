@@ -67,10 +67,7 @@ static void busy_scene_finish_on_enter(void* context) {
         gui_layer_add_input_callback(layer, busy_scene_finish_input_callback, instance);
 
         data->front_anim = anim_player_alloc(instance->front_window);
-        if(anim_player_set_source(
-               data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"))) {
-            anim_player_loop_default(data->front_anim);
-        }
+        anim_player_set_source(data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"));
 
         data->front_summary = summary_label_alloc(instance->front_window);
         widget_set_pos_y(summary_label_get_base(data->front_summary), 5);
