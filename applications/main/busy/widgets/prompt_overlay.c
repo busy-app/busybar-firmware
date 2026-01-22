@@ -27,6 +27,8 @@ struct PromptOverlay {
     uint32_t time;
 };
 
+static_assert(offsetof(PromptOverlay, base) == 0);
+
 static const int8_t overlay_offset_animation[] = {
     [0 ... 1] = 0,
     [2 ... 5] = TARGET_Y_OFFSET / 2,
@@ -54,9 +56,11 @@ static void prompt_overlay_lvgl_anim_callback(void* context, int32_t value) {
     furi_assert(context);
 
     PromptOverlay* instance = context;
+    AnimPlayer* player = &instance->base;
 
     if(value == PromptOverlayStateAnimBegin) {
         instance->frame_idx = 0;
+        anim_player_set_section(player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
         anim_player_start(&instance->base);
 
     } else if(value == PromptOverlayStateAnimEnd) {
