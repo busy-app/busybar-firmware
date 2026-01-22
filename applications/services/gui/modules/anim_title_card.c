@@ -134,7 +134,7 @@ void anim_title_card_run_background_anim(AnimTitleCard* instance) {
 
     AnimFile* file = anim_play_get_file(instance->background_anim);
     if(file) {
-        if(!anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION)) {
+        if(!anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION)) {
             FURI_LOG_E(TAG, "failed to reset icon animation");
         }
         anim_play_start(instance->background_anim);

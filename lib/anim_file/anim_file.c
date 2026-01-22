@@ -45,7 +45,7 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
                 },
         };
 
-        if(!anim_file_set_section(&anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION)) {
+        if(!anim_file_set_section(&anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION)) {
             ANIM_FILE_ERR("Failed to set section 0");
             break;
         }

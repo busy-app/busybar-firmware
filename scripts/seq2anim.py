@@ -20,10 +20,11 @@ def number_in_str(input: str) -> int:
 @dataclass
 class Header:
     FORMAT = "<8s BBBB BHB II III"
+    SIGNATURE = b"bicycle0" # Busybar Image Container speciallY Crafted for file Length Eradication, ver. 0
     flags: int
     width: int
     height: int
-    color_format: int
+    color_mode: int
     fps: int
     max_encoded_len: int
     sections_chunk_len: int
@@ -39,12 +40,12 @@ class Header:
     def to_bytes(self) -> bytes:
         return struct.pack(
             self.FORMAT,
-            b"bicycle0",
+            self.SIGNATURE,
 
             self.flags,
             self.width,
             self.height,
-            self.color_format,
+            self.color_mode,
 
             self.fps,
             self.max_encoded_len,
@@ -160,8 +161,8 @@ class BSBAnimConverter:
                     continue
 
                 last_frame = frame
-                frame = FileFrame.pack(frame, meta["color"])
-                frame = FileFrame.encode(frame, meta["color"])
+                frame = FileFrame.pack(frame, meta["color_mode"])
+                frame = FileFrame.encode(frame, meta["color_mode"])
 
                 encoded_frames.append(frame)
                 frames_chunk_len += frame.length()
@@ -170,9 +171,18 @@ class BSBAnimConverter:
         # 2. encode sections
         encoded_sections: list[Section] = []
         sections_chunk_len = 0
-        for section in meta["sections"]:
+        sections = [{"name": "default", "start": 0, "end": len(frames) - 1}] + meta["sections"]
+        for i, section in enumerate(sections):
             if set(section.keys()) != {"name", "start", "end"}:
                 raise ConversionError(f"Invalid metadata: 'sections' children must only have 'name', 'start' and 'end' fields")
+            if section["start"] < 0:
+                raise ConversionError(f"Invalid metadata: section '{section['name']}' has start < 0")
+            if section["end"] >= len(frames):
+                raise ConversionError(f"Invalid metadata: section '{section['name']}' has end past the last frame")
+            if section["start"] > section["end"]:
+                raise ConversionError(f"Invalid metadata: section '{section['name']}' has start > end")
+            if i > 0 and section["name"] == "default":
+                raise ConversionError(f"Invalid metadata: section name \"default\" is reserved")
 
             section = Section(
                 start=section["start"],
@@ -206,7 +216,7 @@ class BSBAnimConverter:
             flags=0,
             width=width,
             height=height,
-            color_format=color_fmt_map[meta["color"]],
+            color_mode=color_fmt_map[meta["color_mode"]],
             fps=meta["fps"],
             max_encoded_len=max_encoded_len,
             sections_chunk_len=sections_chunk_len,
@@ -221,7 +231,7 @@ class BSBAnimConverter:
         for frame in encoded_frames:
             output.write(frame.to_bytes())
 
-        # print info about file
+        # 5. assemble info about file
         compression_ratio = (len(frames) * width * height * 3) / frames_chunk_len
         return ConversionInfo(
             disp_frame_idx,
@@ -243,16 +253,12 @@ class BSBAnimConverter:
             
         if "fps" not in meta:
             raise ConversionError(f"Invalid meta.json: must have 'fps'")
-        if "color" not in meta:
-            raise ConversionError(f"Invalid meta.json: must have 'color'")
-        if meta["color"] not in ["rgb888", "gray4"]:
-            raise ConversionError(f"Invalid meta.json: 'color' must be one of: 'rgb888', 'gray4'")
+        if "color_mode" not in meta:
+            raise ConversionError(f"Invalid meta.json: must have 'color_mode' (either 'rgb888' or 'gray4')")
+        if meta["color_mode"] not in ["rgb888", "gray4"]:
+            raise ConversionError(f"Invalid meta.json: 'color_mode' must be one of: 'rgb888', 'gray4'")
         if "sections" not in meta:
-            raise ConversionError(f"Invalid meta.json: must have 'sections'")
-        if not meta["sections"]:
-            raise ConversionError(f"Invalid meta.json: must have 'sections[0]'")
-        if meta["sections"][0] != {"name": "whole", "start": 0, "end": len(frames) - 1}:
-            raise ConversionError(f"Invalid meta.json: 'sections[0]' must be named 'whole' and cover entire range of frames")
+            raise ConversionError(f"Invalid meta.json: must have 'sections' (even an empty array is fine)")
         
         with open(output, "wb") as output_writer:
             return self._do_convert(meta, frames, output_writer)
@@ -277,7 +283,7 @@ class Main(App):
             self.logger.info(info)
             return 0
         except ConversionError as e:
-            self.logger.error(str(e))
+            self.logger.error(f"Failed to convert {args.input}: {str(e)}")
             return 1
 
 if __name__ == "__main__":

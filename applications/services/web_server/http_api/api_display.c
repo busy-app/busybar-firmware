@@ -207,7 +207,7 @@ static bool api_display_draw_parse_anim_play_element(
             canvas_element->anim_play.file_path = furi_string_alloc_set_str(json_str);
         } else {
             canvas_element->anim_play.file_path =
-                furi_string_alloc_set_str(ANIM_FILE_WHOLE_SECTION);
+                furi_string_alloc_set_str(ANIM_FILE_DEFAULT_SECTION);
         }
 
         canvas_element->anim_play.flags = AnimFilePlayFlagNone;

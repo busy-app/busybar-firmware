@@ -145,7 +145,7 @@ void anim_play_loop_whole(AnimPlay* instance) {
     furi_check(instance);
     furi_check(instance->file);
     bool success =
-        anim_file_set_section(instance->file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION);
+        anim_file_set_section(instance->file, AnimFilePlayFlagLoop, ANIM_FILE_DEFAULT_SECTION);
     furi_assert(success);
 }
 

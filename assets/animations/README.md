@@ -44,11 +44,10 @@ _Note: [JSON5](https://json5.org/) is planned to be supported in the future. In 
 trailing commas will result in a build error._
 
 - `fps`: Frames per Second for the entire animation.
-- `color`: Color packing mode. Either mode can be played on either display, but `"rgb888"` is
+- `color_mode`: Color packing mode. Either mode can be played on either display, but `"rgb888"` is
   suggested for the front display and `"gray4"` for the back one.
 - `sections`: List of sections. Frame indices are inclusive on both ends. Sections MAY overlap.
-  Order of elements in this array is preserved when generating the file. Section with index 0 MUST
-  be present, MUST have the name `"whole"` and MUST cover the entire range of frames.
+  Order of elements in this array does not matter, as sections are only referred to by the name.
 
 ### Menu metadata
 In order to use an `.anim` file with the `AnimMenu` widget, specific sections must be described in
@@ -58,7 +57,7 @@ In order to use an `.anim` file with the `AnimMenu` widget, specific sections mu
     between two adjacent items, i.e. you should define `transition-6-to-7`, but
     `transition-7-to-11` will never be used.
 
-The indices of these special sections do not matter, only the name.
+Other sections may be defined too, but they will not be looked up by `AnimMenu`
 
 ### Example archive structure
 

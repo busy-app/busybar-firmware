@@ -114,7 +114,7 @@ typedef enum {
  * 
  * @param[in] anim `AnimFile` instance
  * @param[in] flags See `AnimFilePlayFlag`
- * @param[in] name Name of the section (also see: `ANIM_FILE_WHOLE_SECTION`)
+ * @param[in] name Name of the section (also see: `ANIM_FILE_DEFAULT_SECTION`)
  * 
  * @returns Whether the operation was successful.
  */
@@ -125,7 +125,7 @@ bool FURI_WARN_UNUSED
  * @brief The name that when provided to `anim_file_set_section` specifies the
  *        entire animation file.
  */
-#define ANIM_FILE_WHOLE_SECTION "whole"
+#define ANIM_FILE_DEFAULT_SECTION "default"
 
 #ifdef __cplusplus
 }

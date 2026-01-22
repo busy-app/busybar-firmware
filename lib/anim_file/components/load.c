@@ -111,7 +111,7 @@ bool anim_file_load_validate_section_0(const AnimFileHeader* header, const uint8
 
     const AnimFileSection* section = (const AnimFileSection*)buffer;
 
-    if(strcmp(section->name, ANIM_FILE_WHOLE_SECTION) != 0) {
+    if(strcmp(section->name, ANIM_FILE_DEFAULT_SECTION) != 0) {
         ANIM_FILE_ERR("Invalid section 0 name");
         return false;
     }
