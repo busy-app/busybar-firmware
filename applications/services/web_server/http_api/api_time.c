@@ -19,14 +19,12 @@ static bool api_time_get_timestamp_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     Sntp* sntp = furi_record_open(RECORD_SNTP);
-    time_t timestamp = sntp_get_local_timestamp(sntp);
+    DateTime datetime;
+    sntp_get_local_datetime(sntp, &datetime);
 
     SntpSettings settings;
     sntp_get_settings(sntp, &settings);
     furi_record_close(RECORD_SNTP);
-
-    DateTime datetime;
-    datetime_timestamp_to_datetime(timestamp, &datetime);
 
     char timezone_offset_sign = (settings.timezone_offset > 0) ? '+' : '-';
     unsigned int timezone_offset_abs = abs(settings.timezone_offset);
