@@ -1,5 +1,5 @@
 /**
- * @file img.h
+ * @file anim_file_load.h
  * Animation file initial loading
  */
 

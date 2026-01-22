@@ -50,10 +50,10 @@ typedef struct {
     AnimFilePlayFlag flags;
 } AnimFileRange;
 
-#include "components/img.h"
-#include "components/load.h"
-#include "components/seq.h"
-#include "components/start.h"
+#include "components/anim_file_img.h"
+#include "components/anim_file_load.h"
+#include "components/anim_file_seq.h"
+#include "components/anim_file_start.h"
 
 struct AnimFile {
     File* file;

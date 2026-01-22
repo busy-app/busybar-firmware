@@ -1,5 +1,5 @@
 /**
- * @file img.h
+ * @file anim_file_start.h
  * Animation file start parameters management
  */
 

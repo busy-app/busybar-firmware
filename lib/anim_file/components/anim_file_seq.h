@@ -1,5 +1,5 @@
 /**
- * @file seq.h
+ * @file anim_file_seq.h
  * Animation file image sequencing
  */
 

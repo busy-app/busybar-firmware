@@ -1,5 +1,5 @@
 /**
- * @file img.h
+ * @file anim_file_img.h
  * Animation file image decoding
  */
 
