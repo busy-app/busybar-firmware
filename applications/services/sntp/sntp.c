@@ -223,6 +223,11 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
     return is_success;
 }
 
+void sntp_get_local_datetime(Sntp* instance, DateTime* datetime) {
+    time_t timestamp_ms = sntp_get_local_timestamp_ms(instance);
+    datetime_timestamp_ms_to_datetime(timestamp_ms, datetime);
+}
+
 time_t sntp_get_local_timestamp(Sntp* instance) {
     furi_check(instance);
 
