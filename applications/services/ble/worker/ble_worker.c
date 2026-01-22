@@ -1034,7 +1034,7 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     ble_worker_instance = malloc(sizeof(BleWorker));
     ble_worker_instance->state = BleWorkerStateIdle;
     ble_worker_instance->thread =
-        furi_thread_alloc_ex("BleWorker", 2048, ble_worker_thread_callback, ble_worker_instance);
+        furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, ble_worker_instance);
 
     ble_worker_instance->on_connection_changed_cb = connect_callback;
     ble_worker_instance->on_connection_changed_ctx = ctx;
