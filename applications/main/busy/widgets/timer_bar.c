@@ -75,8 +75,7 @@ void timer_bar_set_value(TimerBar* instance, float value) {
 
     AnimFile* file = anim_play_get_file(instance->bar);
     if(file) {
-        bool success = anim_file_set_section_indexed(
-            file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX);
+        bool success = anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION);
         furi_assert(success);
         anim_play_start(instance->bar);
     }

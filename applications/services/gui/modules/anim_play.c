@@ -144,8 +144,8 @@ AnimFile* anim_play_get_file(AnimPlay* instance) {
 void anim_play_loop_whole(AnimPlay* instance) {
     furi_check(instance);
     furi_check(instance->file);
-    bool success = anim_file_set_section_indexed(
-        instance->file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX);
+    bool success =
+        anim_file_set_section(instance->file, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION);
     furi_assert(success);
 }
 

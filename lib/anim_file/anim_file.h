@@ -100,103 +100,32 @@ void anim_file_set_out_buf(AnimFile* anim, void* buffer);
 AnimFileFrameInfo anim_file_frame(AnimFile* anim);
 
 /**
- * @brief Flags for the `anim_file_set_section_*` family
+ * @brief Flags for `anim_file_set_section`
  */
 typedef enum {
     AnimFilePlayFlagNone = 0,
-    AnimFilePlayFlagFinishCurrentSection =
+    AnimFilePlayFlagFinishCurrent =
         (1 << 0), //<! Finish playing current section, then switch to requested one
     AnimFilePlayFlagLoop = (1 << 1), //<! Play requested section in a loop
 } AnimFilePlayFlag;
-
-/**
- * @brief Sets the current section to be played back, using explicit frame
- *        indices
- * 
- * @param[in] anim `AnimFile` instance
- * @param[in] flags See `AnimFilePlayFlag`
- * @param[in] start Index of the first frame. Inclusive.
- * @param[in] end Index of the last frame. Inclusive, clamped to the highest
- *                frame index.
- * 
- * @returns Whether the operation was successful.
- */
-bool FURI_WARN_UNUSED
-    anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t start, size_t end);
-
-/**
- * @brief Sets the current section to be played back, using a section index
- * 
- * @param[in] anim `AnimFile` instance
- * @param[in] flags See `AnimFilePlayFlag`
- * @param[in] index Index of the section
- * 
- * @returns Whether the operation was successful.
- */
-bool FURI_WARN_UNUSED
-    anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_t index);
-
-/**
- * @brief The index that when provided to `anim_file_set_section_indexed`
- *        specifies the entire animation file
- */
-#define ANIM_FILE_WHOLE_SECTION_INDEX 0
 
 /**
  * @brief Sets the current section to be played back, using a section name
  * 
  * @param[in] anim `AnimFile` instance
  * @param[in] flags See `AnimFilePlayFlag`
- * @param[in] name Name of the section
+ * @param[in] name Name of the section (also see: `ANIM_FILE_WHOLE_SECTION`)
  * 
  * @returns Whether the operation was successful.
  */
 bool FURI_WARN_UNUSED
-    anim_file_set_section_named(AnimFile* anim, AnimFilePlayFlag flags, const char* name);
+    anim_file_set_section(AnimFile* anim, AnimFilePlayFlag flags, const char* name);
 
 /**
- * @brief The name that when provided to `anim_file_set_section_named`
- *        specifies the entire animation file
+ * @brief The name that when provided to `anim_file_set_section` specifies the
+ *        entire animation file.
  */
-#define ANIM_FILE_WHOLE_SECTION_NAME "whole"
-
-/**
- * @brief Universal animation section selector
- */
-typedef struct {
-    AnimFilePlayFlag flags;
-    enum {
-        AnimFileSectionSelectorManual,
-        AnimFileSectionSelectorIndexed,
-        AnimFileSectionSelectorNamed,
-    } type;
-    union {
-        struct {
-            size_t start;
-            size_t end;
-        } manual;
-        size_t index;
-        const char* name;
-    };
-} AnimFileSectionSelector;
-
-/**
- * @brief Calls one of the `anim_file_set_section_*` variants depending on the
- *        provided descriptor
- * 
- * @param[in] anim `AnimFile` instance
- * @param[in] selector `AnimFileSectionSelector`
- * 
- * @returns Whether the operation was successful.
- */
-bool FURI_WARN_UNUSED
-    anim_file_set_section(AnimFile* anim, const AnimFileSectionSelector* selector);
-
-/**
- * @brief The selector that when provided to `anim_file_set_section` specifies
- *        the entire animation file
- */
-extern const AnimFileSectionSelector anim_file_whole_selector;
+#define ANIM_FILE_WHOLE_SECTION "whole"
 
 #ifdef __cplusplus
 }

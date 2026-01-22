@@ -71,11 +71,11 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
                 "transition-%zu-to-%zu",
                 previous_idx,
                 current_idx);
-            if(!anim_file_set_section_named(file, AnimFilePlayFlagNone, section_name)) break;
+            if(!anim_file_set_section(file, AnimFilePlayFlagNone, section_name)) break;
 
             snprintf(section_name, sizeof(section_name), "item-%zu", current_idx);
-            if(!anim_file_set_section_named(
-                   file, AnimFilePlayFlagFinishCurrentSection | AnimFilePlayFlagLoop, section_name))
+            if(!anim_file_set_section(
+                   file, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, section_name))
                 break;
         } while(0);
     }
@@ -135,7 +135,7 @@ bool anim_menu_set_source(AnimMenu* instance, const char* file_path, size_t opti
     AnimFile* file = anim_play_get_file(&instance->base);
     furi_assert(file);
 
-    if(!anim_file_set_section_named(file, AnimFilePlayFlagLoop, "item-0")) return false;
+    if(!anim_file_set_section(file, AnimFilePlayFlagLoop, "item-0")) return false;
 
     return true;
 }

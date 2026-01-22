@@ -7,6 +7,8 @@
 #define MY_CLASS       (&anim_title_card_lvgl_class)
 #define MY_LABEL_CLASS (&anim_title_card_label_lvgl_class)
 
+#define TARGET_Y_OFFSET (2)
+
 struct AnimTitleCard {
     Widget base;
 
@@ -20,11 +22,11 @@ const lv_obj_class_t anim_title_card_label_lvgl_class;
 
 static const int8_t card_offset_animation[] = {
     [0 ... 1] = 0,
-    [2 ... 5] = 1,
-    [6 ... 7] = 2,
-    [8 ... 11] = 1,
+    [2 ... 5] = TARGET_Y_OFFSET / 2,
+    [6 ... 7] = TARGET_Y_OFFSET,
+    [8 ... 11] = TARGET_Y_OFFSET / 2,
     [12 ... 23] = 0,
-    [24 ... 29] = 1,
+    [24 ... 29] = TARGET_Y_OFFSET / 2,
 };
 
 static void
@@ -132,8 +134,7 @@ void anim_title_card_run_background_anim(AnimTitleCard* instance) {
 
     AnimFile* file = anim_play_get_file(instance->background_anim);
     if(file) {
-        if(!anim_file_set_section_indexed(
-               file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX)) {
+        if(!anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION)) {
             FURI_LOG_E(TAG, "failed to reset icon animation");
         }
         anim_play_start(instance->background_anim);
@@ -145,7 +146,7 @@ void anim_title_card_run_icon_anim(AnimTitleCard* instance, const char* section)
 
     AnimFile* file = anim_play_get_file(instance->icon_anim);
     if(file) {
-        if(!anim_file_set_section_named(file, AnimFilePlayFlagNone, section)) {
+        if(!anim_file_set_section(file, AnimFilePlayFlagNone, section)) {
             FURI_LOG_E(TAG, "icon doesn't have \"%s\" section", section);
         }
         anim_play_start(instance->icon_anim);

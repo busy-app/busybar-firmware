@@ -126,8 +126,7 @@ static void pause_overlay_animate_show(PauseOverlay* instance) {
 
     AnimFile* file = anim_play_get_file(instance->mask);
     if(file) {
-        bool success = anim_file_set_section_indexed(
-            file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX);
+        bool success = anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION);
         furi_assert(success);
         anim_play_start(instance->mask);
     }

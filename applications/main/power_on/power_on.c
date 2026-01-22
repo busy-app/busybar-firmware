@@ -136,10 +136,8 @@ static AnimPlay* power_on_animation_alloc(Widget* widget, const char* anim_path)
         AnimFile* file = anim_play_get_file(anim);
         furi_assert(file);
 
-        if(!anim_file_set_section_named(
-               file,
-               AnimFilePlayFlagFinishCurrentSection | AnimFilePlayFlagLoop,
-               POWER_ON_LOOP_SECTION))
+        if(!anim_file_set_section(
+               file, AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop, POWER_ON_LOOP_SECTION))
             break;
     } while(0);
 

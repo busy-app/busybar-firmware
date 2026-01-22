@@ -43,8 +43,8 @@
  * |                |                 | Encoded frame data  |
  * +----------------+-----------------+---------------------+
  * 
- * There must always be at least one section with the an index of 0 named
- * "whole", covering the entire range of Display Frames.
+ * There must always be a section named "whole", covering the entire range of
+ * Display Frames.
  */
 
 #pragma once
@@ -110,13 +110,6 @@ typedef struct FURI_PACKED {
         duration_override; //<! In case the Section starts in the middle of a File Frame that spans multiple Display Frames, this field will indicate the adjusted duration of the affected File Frame
     char name[]; //<! NUL-terminated
 } AnimFileSection;
-
-/*
- * Together, `frame_offs` and `duration_override` are called Start Info because they facilitate a
- * fast start without traversing all frames up to the frame of interest. If those values have been
- * calculated by `seq2anim.py` and written to the file in `AnimFileSection` struct, they're called
- * Precomputed Start Info.
- */
 
 /**
  * @brief Encoding mode of one File Frame

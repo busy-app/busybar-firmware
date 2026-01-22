@@ -93,7 +93,7 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
             AnimPlay* anim_play = &instance->base;
             AnimFile* file = anim_play_get_file(anim_play);
             if(file) {
-                bool success = anim_file_set_section_manual(file, AnimFilePlayFlagNone, 0, 0);
+                bool success = anim_file_set_section(file, AnimFilePlayFlagNone, "idle");
                 UNUSED(success);
             }
 
@@ -122,8 +122,7 @@ static void prompt_overlay_start_animation(PromptOverlay* instance) {
 
     AnimFile* file = anim_play_get_file(anim_play);
     if(file) {
-        bool success = anim_file_set_section_indexed(
-            file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX);
+        bool success = anim_file_set_section(file, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION);
         UNUSED(success);
         anim_play_pause(anim_play);
     }

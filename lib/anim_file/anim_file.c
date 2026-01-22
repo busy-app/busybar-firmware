@@ -45,8 +45,7 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
                 },
         };
 
-        if(!anim_file_set_section_indexed(
-               &anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX)) {
+        if(!anim_file_set_section(&anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION)) {
             ANIM_FILE_ERR("Failed to set section 0");
             break;
         }
@@ -92,36 +91,7 @@ AnimFileFrameInfo anim_file_frame(AnimFile* anim) {
 }
 
 bool FURI_WARN_UNUSED
-    anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t start, size_t end) {
-    furi_check(anim);
-    if(!anim_file_start_compute(anim, flags, start, end)) return false;
-    return true;
-}
-
-bool FURI_WARN_UNUSED
-    anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_t index) {
-    furi_check(anim);
-
-    const AnimFileHeader* header = &anim->meta.header;
-    const uint8_t* sections = anim->meta.sections;
-    const AnimFileSection* section = NULL;
-
-    void callback(size_t cur_index, const AnimFileSection* cur_section, void* context) {
-        UNUSED(context);
-        if(cur_index == index) section = cur_section;
-    }
-
-    if(!anim_file_load_iterate_sections(header, sections, callback, &section)) return false;
-
-    if(section) {
-        anim_file_start_set_precomputed(anim, flags, section);
-        return true;
-    }
-    return false;
-}
-
-bool FURI_WARN_UNUSED
-    anim_file_set_section_named(AnimFile* anim, AnimFilePlayFlag flags, const char* name) {
+    anim_file_set_section(AnimFile* anim, AnimFilePlayFlag flags, const char* name) {
     furi_check(anim);
     furi_check(name);
 
@@ -143,26 +113,3 @@ bool FURI_WARN_UNUSED
     }
     return false;
 }
-
-bool FURI_WARN_UNUSED
-    anim_file_set_section(AnimFile* anim, const AnimFileSectionSelector* selector) {
-    furi_check(anim);
-    furi_check(selector);
-
-    switch(selector->type) {
-    case AnimFileSectionSelectorManual:
-        return anim_file_set_section_manual(
-            anim, selector->flags, selector->manual.start, selector->manual.end);
-    case AnimFileSectionSelectorIndexed:
-        return anim_file_set_section_indexed(anim, selector->flags, selector->index);
-    case AnimFileSectionSelectorNamed:
-        return anim_file_set_section_named(anim, selector->flags, selector->name);
-    }
-
-    furi_crash("unreachable");
-}
-
-const AnimFileSectionSelector anim_file_whole_selector = {
-    .type = AnimFileSectionSelectorIndexed,
-    .index = ANIM_FILE_WHOLE_SECTION_INDEX,
-};

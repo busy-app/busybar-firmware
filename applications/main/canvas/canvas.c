@@ -199,7 +199,8 @@ static Widget* canvas_element_update_specific(
         if(anim_play_set_source(
                widget->anim_play, furi_string_get_cstr(element->anim_play.file_path))) {
             AnimFile* file = anim_play_get_file(widget->anim_play);
-            bool success = anim_file_set_section(file, &element->anim_play.section);
+            bool success = anim_file_set_section(
+                file, element->anim_play.flags, furi_string_get_cstr(element->anim_play.section));
             UNUSED(success);
         }
         return anim_play_get_base(widget->anim_play);

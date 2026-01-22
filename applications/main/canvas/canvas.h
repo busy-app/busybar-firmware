@@ -35,7 +35,8 @@ typedef struct {
 
         struct {
             FuriString* file_path;
-            AnimFileSectionSelector section;
+            FuriString* section;
+            AnimFilePlayFlag flags;
         } anim_play;
 
         struct {
@@ -65,9 +66,8 @@ static inline void canvas_element_clear(CanvasElement* obj) {
     } else if(obj->type == CanvasElementTypeText) {
         if(obj->text.text_str) free(obj->text.text_str);
     } else if(obj->type == CanvasElementTypeAnimPlay) {
-        if(obj->anim_play.section.type == AnimFileSectionSelectorNamed) {
-            free((char*)obj->anim_play.section.name);
-        }
+        if(obj->anim_play.file_path) furi_string_free(obj->anim_play.file_path);
+        if(obj->anim_play.section) furi_string_free(obj->anim_play.section);
     }
 }
 
@@ -83,8 +83,11 @@ static inline void canvas_element_clone(CanvasElement* obj, const CanvasElement*
             obj->text.text_str = strdup(src->text.text_str);
         }
     } else if(src->type == CanvasElementTypeAnimPlay) {
-        if(obj->anim_play.section.type == AnimFileSectionSelectorNamed) {
-            obj->anim_play.section.name = strdup(src->anim_play.section.name);
+        if(src->anim_play.file_path) {
+            obj->anim_play.file_path = furi_string_alloc_set(src->anim_play.file_path);
+        }
+        if(src->anim_play.section) {
+            obj->anim_play.section = furi_string_alloc_set(src->anim_play.section);
         }
     }
 }

@@ -101,7 +101,7 @@ void desktop_overlay_hide(DesktopOverlay* instance, DesktopOverlayTransitionType
 
             AnimFile* file = anim_play_get_file(instance->mask_anim);
             if(file) {
-                if(anim_file_set_section_named(file, AnimFilePlayFlagNone, section)) {
+                if(anim_file_set_section(file, AnimFilePlayFlagNone, section)) {
                     anim_play_start(instance->mask_anim);
                 }
             }

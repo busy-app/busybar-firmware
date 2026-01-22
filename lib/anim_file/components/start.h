@@ -22,12 +22,6 @@ typedef struct {
  */
 bool anim_file_start_last_frame(AnimFile* anim);
 
-bool anim_file_start_compute(
-    AnimFile* anim,
-    AnimFilePlayFlag flags,
-    size_t start_frame,
-    size_t end_frame);
-
 void anim_file_start_set_precomputed(
     AnimFile* anim,
     AnimFilePlayFlag flags,
