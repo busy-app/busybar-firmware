@@ -104,6 +104,7 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
         gui_layer_remove_input_callback(main_layer, animation_player_app_input_callback);
 
         anim_player_free(instance->anim_player);
+        label_free(instance->label);
     });
 
     furi_record_close(RECORD_GUI);
