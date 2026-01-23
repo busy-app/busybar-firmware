@@ -18,8 +18,7 @@ bool mqtt_saved_state_v1_is_valid(const MqttSavedStateV1* saved_state_v1) {
     return !furi_string_empty(saved_state_v1->client_id) &&
            !furi_string_empty(saved_state_v1->session_id) &&
            !furi_string_empty(saved_state_v1->user_id) &&
-           !furi_string_empty(saved_state_v1->email) &&
-           !furi_string_empty(saved_state_v1->token);
+           !furi_string_empty(saved_state_v1->email) && !furi_string_empty(saved_state_v1->token);
 }
 
 static const SettingProviderFuriStringInterface mqtt_saved_state_v1_default_string_interface = {

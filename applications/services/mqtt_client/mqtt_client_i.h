@@ -38,7 +38,6 @@ struct MqttClient {
 
     MqttClientStatus status;
     bool is_wifi_up;
-    bool is_linked;
     bool fast_reconnect;
 
     char* ca_bundle;

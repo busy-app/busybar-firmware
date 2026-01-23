@@ -158,8 +158,6 @@ static void mqtt_device_on_message(
 
             mqtt_saved_state_save(saved_state);
 
-            instance->is_linked = true;
-
             MqttClientEvent pub_event = {
                 .type = MqttClientEventLinkDone,
             };
@@ -235,7 +233,7 @@ static void mqtt_open_mg_event_handler(
     if(status_code == 0) {
         FURI_LOG_I(TAG, "MQTT Connected");
 
-        if(instance->is_linked) {
+        if(mqtt_saved_state_is_valid(&instance->saved_state)) {
             mqtt_topics_subscribe(instance);
         } else {
             mqtt_device_subscribe(instance);
@@ -316,10 +314,10 @@ static void mqtt_mqtt_cmd_mg_event_handler(
         FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
 
         if(sub_reason == MQTT_QOS) {
-            if(!instance->is_linked) {
-                mqtt_status_change_event(instance, MqttClientStatusConnectedNotLinked);
-            } else {
+            if(mqtt_saved_state_is_valid(&instance->saved_state)) {
                 mqtt_status_change_event(instance, MqttClientStatusConnectedLinked);
+            } else {
+                mqtt_status_change_event(instance, MqttClientStatusConnectedNotLinked);
             }
 
             instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
@@ -496,7 +494,6 @@ static void mqtt_unlink_api_message_handler(MqttClient* instance, const MqttApiM
     }
 
     mqtt_reset_saved_state(instance);
-    instance->is_linked = false;
 }
 
 static void
@@ -665,9 +662,7 @@ static void mqtt_load_saved_state(MqttClient* instance) {
     mqtt_saved_state_init(saved_state);
     mqtt_saved_state_load(saved_state);
 
-    instance->is_linked = mqtt_saved_state_is_valid(saved_state);
-
-    if(!instance->is_linked) {
+    if(!mqtt_saved_state_is_valid(saved_state)) {
         FURI_LOG_W(TAG, "Saved state invalid, resetting");
         mqtt_reset_saved_state(instance);
     }
