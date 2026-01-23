@@ -2,28 +2,6 @@
 
 #define TAG "MqttTopics"
 
-void mqtt_topics_subscribe(MqttClient* instance) {
-    furi_assert(instance->conn);
-
-    const MqttSavedState* saved_state = &instance->saved_state;
-
-    FuriString* topic = furi_string_alloc_printf(
-        "%s/%s/down/%s/#",
-        MQTT_API_ROOT_TOPIC,
-        furi_string_get_cstr(saved_state->session_id),
-        MQTT_API_VERSION);
-
-    const struct mg_mqtt_opts opts = {
-        .topic = mg_str(furi_string_get_cstr(topic)),
-        .qos = MQTT_QOS,
-    };
-
-    mg_mqtt_sub(instance->conn, &opts);
-    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic));
-
-    furi_string_free(topic);
-}
-
 void mqtt_topics_on_message(
     MqttClient* mqtt,
     const FuriString* topic_str,

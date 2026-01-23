@@ -19,7 +19,7 @@
 #define MQTT_API_VERSION         "v1"
 
 #define MQTT_DEVICE_ROOT_TOPIC "devices"
-#define MQTT_API_ROOT_TOPIC    "sessions"
+#define MQTT_SESSION_ROOT_TOPIC    "sessions"
 
 #define MQTT_BUSY_TIMER_SNAPSHOT_TOPIC "busy/snapshot"
 
@@ -115,7 +115,23 @@ typedef struct {
     FuriApiLock lock;
 } MqttApiMessage;
 
-void mqtt_topics_subscribe(MqttClient* mqtt);
+typedef enum {
+    MqttScopeDevice,
+    MqttScopeSession,
+    MqttScopeMax,
+} MqttScope;
+
+void mqtt_subscribe_internal(MqttClient* instance, MqttScope scope, MqttQos qos, const char* topic);
+
+uint16_t mqtt_publish_internal(
+    MqttClient* instance,
+    MqttScope scope,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size);
+
+// void mqtt_topics_subscribe(MqttClient* mqtt);
 
 void mqtt_topics_on_message(
     MqttClient* mqtt,

@@ -92,37 +92,6 @@ static bool mqtt_is_tls_enabled(const MqttClient* instance) {
     }
 }
 
-static void mqtt_device_subscribe(MqttClient* mqtt) {
-    FuriString* topic = furi_string_alloc_printf(
-        "%s/%s/down/%s/#",
-        MQTT_DEVICE_ROOT_TOPIC,
-        furi_string_get_cstr(mqtt->device_serial),
-        MQTT_API_VERSION);
-    const struct mg_mqtt_opts sub_opts = {
-        .topic = mg_str(furi_string_get_cstr(topic)), .qos = MQTT_QOS};
-    mg_mqtt_sub(mqtt->conn, &sub_opts);
-    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic));
-
-    furi_string_free(topic);
-}
-
-static void mqtt_device_request_pin(MqttClient* mqtt) {
-    FuriString* topic = furi_string_alloc_printf(
-        "%s/%s/up/%s/link/request",
-        MQTT_DEVICE_ROOT_TOPIC,
-        furi_string_get_cstr(mqtt->device_serial),
-        MQTT_API_VERSION);
-    const struct mg_mqtt_opts pub_opts = {
-        .topic = mg_str(furi_string_get_cstr(topic)),
-        .message = mg_str("{}"),
-        .qos = MQTT_QOS,
-        .retain = false,
-    };
-    mg_mqtt_pub(mqtt->conn, &pub_opts);
-
-    furi_string_free(topic);
-}
-
 static void mqtt_device_on_message(
     MqttClient* instance,
     const FuriString* topic_str,
@@ -239,9 +208,9 @@ static void mqtt_open_mg_event_handler(
         FURI_LOG_I(TAG, "MQTT Connected");
 
         if(mqtt_saved_state_is_valid(&instance->saved_state)) {
-            mqtt_topics_subscribe(instance);
+            mqtt_subscribe_internal(instance, MqttScopeSession, MqttQosExactlyOnce, "#");
         } else {
-            mqtt_device_subscribe(instance);
+            mqtt_subscribe_internal(instance, MqttScopeDevice, MqttQosExactlyOnce, "#");
         }
 
         if(!instance->ping_enabled) {
@@ -355,7 +324,7 @@ static void mqtt_mqtt_msg_mg_event_handler(
 
     if(furi_string_start_with(topic_str, MQTT_DEVICE_ROOT_TOPIC)) {
         mqtt_device_on_message(instance, topic_str, &message->data);
-    } else if(furi_string_start_with(topic_str, MQTT_API_ROOT_TOPIC)) {
+    } else if(furi_string_start_with(topic_str, MQTT_SESSION_ROOT_TOPIC)) {
         mqtt_topics_on_message(instance, topic_str, message);
     }
 
@@ -506,12 +475,14 @@ static void
     furi_assert(instance);
     furi_assert(data);
 
-    const MqttApiMessageRequestPin* request_pin = &data->request_pin;
-
     bool is_success = false;
 
+    const MqttApiMessageRequestPin* request_pin = &data->request_pin;
+
     if(instance->status == MqttClientStatusConnectedNotLinked) {
-        mqtt_device_request_pin(instance);
+        const char* empty = "{}";
+        mqtt_publish_internal(
+            instance, MqttScopeDevice, MqttQosExactlyOnce, "link/request", empty, strlen(empty));
         is_success = true;
     }
 
@@ -586,37 +557,15 @@ static void mqtt_publish_message_handler(MqttClient* instance, const MqttApiMess
     furi_assert(instance);
     furi_assert(data);
 
-    if(!instance->conn) {
-        // TODO: What to do with messages published before the connection has established?
-        return;
-    }
-
-    const MqttSavedState* saved_state = &instance->saved_state;
-
     const MqttApiMessagePublish* publish = &data->publish;
 
-    FuriString* full_topic = furi_string_alloc_printf(
-        "%s/%s/up/%s/%s",
-        MQTT_API_ROOT_TOPIC,
-        furi_string_get_cstr(saved_state->session_id),
-        MQTT_API_VERSION,
-        publish->topic);
-
-    const struct mg_str message = mg_str_n(publish->data, publish->data_size);
-
-    const struct mg_mqtt_opts opts = {
-        .topic = mg_str(furi_string_get_cstr(full_topic)),
-        .message = message,
-        .qos = publish->qos,
-        .retain = false,
-        .props = NULL,
-        .num_props = 0,
-    };
-
-    // TODO: Implement proper QoS handling
-    mg_mqtt_pub(instance->conn, &opts);
-
-    furi_string_free(full_topic);
+    mqtt_publish_internal(
+        instance,
+        MqttScopeSession,
+        publish->qos,
+        publish->topic,
+        publish->data,
+        publish->data_size);
 }
 
 static void mqtt_wifi_state_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
@@ -727,6 +676,75 @@ int32_t mqtt_client_start(void* arg) {
     }
 
     return 0;
+}
+
+// Subscribe & publish internal implementations
+
+static void mqtt_make_topic_path(
+    MqttClient* instance,
+    MqttScope scope,
+    const char* dir,
+    const char* topic,
+    FuriString* out) {
+    const char* root;
+    const char* id;
+
+    if(scope == MqttScopeDevice) {
+        root = MQTT_DEVICE_ROOT_TOPIC;
+        id = furi_string_get_cstr(instance->device_serial);
+
+    } else if(scope == MqttScopeSession) {
+        root = MQTT_SESSION_ROOT_TOPIC;
+        id = furi_string_get_cstr(instance->saved_state.session_id);
+
+    } else {
+        furi_crash("Invalid MqttScope value");
+    }
+
+    furi_string_printf(out, "%s/%s/%s/%s/%s", root, id, dir, MQTT_API_VERSION, topic);
+}
+
+void mqtt_subscribe_internal(MqttClient* instance, MqttScope scope, MqttQos qos, const char* topic) {
+    FuriString* path = furi_string_alloc();
+    mqtt_make_topic_path(instance, scope, "down", topic, path);
+
+    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(path));
+
+    const struct mg_mqtt_opts sub_opts = {
+        .topic = mg_str(furi_string_get_cstr(path)),
+        .qos = qos,
+    };
+
+    mg_mqtt_sub(instance->conn, &sub_opts);
+    furi_string_free(path);
+}
+
+uint16_t mqtt_publish_internal(
+    MqttClient* instance,
+    MqttScope scope,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size) {
+    if(!instance->conn) {
+        // TODO: What to do with messages published before the connection has been established?
+        return 0;
+    }
+
+    FuriString* path = furi_string_alloc();
+    mqtt_make_topic_path(instance, scope, "up", topic, path);
+
+    const struct mg_mqtt_opts opts = {
+        .topic = mg_str(furi_string_get_cstr(path)),
+        .message = mg_str_n(data, data_size),
+        .qos = qos,
+    };
+
+    // TODO: Implement proper QoS handling
+    const uint16_t retransmit_id = mg_mqtt_pub(instance->conn, &opts);
+
+    furi_string_free(path);
+    return retransmit_id;
 }
 
 // Static lookup tables
