@@ -171,7 +171,7 @@ def gen_device_cert(certs_dir: Path, device_uid):
         [
             x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
             x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Delaware"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Flipper Devices Inc"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Flipper FZCO"),
             x509.NameAttribute(NameOID.COMMON_NAME, common_name),
         ]
     )

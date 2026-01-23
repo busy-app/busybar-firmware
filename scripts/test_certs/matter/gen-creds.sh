@@ -41,7 +41,7 @@ chip_cert_tool=$CHIP_CERT
 
 vendor_id="158A"
 product_id="0001"
-device_type_id="10A" # On/Off Plug-in Unit
+device_type_id="100"
 
 pai_key_file="test-PAI-${vendor_id}-key.pem"
 pai_cert_file="test-PAI-${vendor_id}-cert.pem"
