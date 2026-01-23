@@ -159,6 +159,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
     switch(request->type) {
     case MatterApiRequestTypeGetSwitchState: {
         request->switch_state = matter->switch_state;
+        request->success = true;
         break;
     }
 
@@ -225,6 +226,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
 
     case MatterApiRequestTypeGetFabricCount: {
         request->fabric_count = matter->commissioned_fabrics;
+        request->success = true;
         break;
     }
     }

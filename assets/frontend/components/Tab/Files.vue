@@ -1,5 +1,14 @@
 <template>
-  <SectionCard data-id="files-section-primary">
+  <SectionCard
+    data-id="files-section-primary"
+    class="overflow-visible"
+    :class="isDragging ? 'border-dashed border-1 border-muted' : ''"
+    @dragenter.prevent="onDragEnter"
+    @dragleave.prevent="onDragLeave"
+    @dragover.prevent
+    @drop.prevent="onDrop"
+    @mouseup="stopSelection"
+  >
     <div class="w-full grid grid-cols-[32px_1fr_auto] gap-2 items-center pr-1">
       <div>
         <UTooltip
@@ -18,11 +27,81 @@
         </UTooltip>
       </div>
 
-      <div
-        ref="pathEl"
-        class="bg-neutral-200 dark:bg-neutral-900 rounded py-1 px-2 overflow-auto"
-      >
-        {{ currentPath }}
+      <div class="flex-1 min-w-0 relative">
+        <UInput
+          ref="filesInputMenu"
+          v-model="inputMenuModel"
+          class="fim"
+          :ui="{
+            base: 'rounded-md pl-[62px]'
+          }"
+          @update:model-value="onInputMenuModelUpdate"
+          @keydown.enter.prevent="onEnter"
+          @keyup.tab.prevent
+          @keydown.tab.prevent="onTab"
+          @keydown.arrow-down.prevent="onArrowDown"
+          @keydown.arrow-up.prevent="onArrowUp"
+        >
+          <div
+            v-if="inputMenuModel.length > 0 && inputMenuItems.length > 0"
+            class="fim-focus-visible
+              w-full absolute top-8 flex flex-col gap-0.5 p-1.5
+              rounded-md text-sm bg-white dark:bg-neutral-900 ring ring-inset ring-accented z-30"
+          >
+            <div
+              v-for="(item, index) in inputMenuItems"
+              :key="item.path"
+              class="flex items-center gap-1.5 p-1.5 px-2 rounded-md cursor-pointer hover:bg-elevated/50"
+              :class="highlightedItemIndex === index ? 'bg-elevated/85' : ''"
+              @mousedown="inputMenuList(item)"
+            >
+              <UIcon
+                v-if="item.icon"
+                :name="item.icon"
+                class="size-5"
+              />
+              <span
+                :data-id="`files-autocomplete-${item.path}`"
+                class="truncate"
+              >{{ item.name }}</span>
+            </div>
+            <!-- <div
+              v-if="inputMenuItems.length === 0"
+              class="flex items-center gap-1.5 p-1 rounded"
+            >
+              <span class="truncate">Nothing found</span>
+            </div> -->
+          </div>
+
+          <template #leading>
+            <div class="flex items-center gap-1.5 text-sm">
+              <UIcon
+                name="i-bi-busy-bar"
+                class="size-5"
+              />
+              <span>/ext</span>
+            </div>
+          </template>
+          <template #trailing>
+            <UKbd class="fim-focus-hidden">/</UKbd>
+          </template>
+        </UInput>
+
+        <div class="absolute text-sm top-1.5 left-[36px]">
+          <span>/</span><span
+            class="cursor-pointer hover:underline mr-[0.5px]"
+            @click="list('/ext')"
+          >ext</span>
+          <template
+            v-for="part in inputMenuModel.slice(0, inputMenuModel.lastIndexOf('/')).split('/').filter(p => p.length > 0)"
+            :key="part"
+          >
+            <span>/</span><span
+              class="cursor-pointer hover:underline"
+              @click="list(`/ext/${inputMenuModel.slice(0, inputMenuModel.indexOf(part) + part.length)}`)"
+            >{{ part }}</span>
+          </template>
+        </div>
       </div>
 
       <div class="flex justify-end gap-4 pl-2">
@@ -70,57 +149,43 @@
       </div>
     </div>
 
-    <div class="w-full flex flex-col">
-      <div
-        v-for="item in currentDir"
+    <div
+      ref="fileListContainer"
+      class="w-full flex flex-col"
+    >
+      <UContextMenu
+        v-for="(item, index) in currentDir"
         :key="`${item.name}_${item.type}`"
-        class="min-h-10 grid grid-cols-[1fr_auto] gap-2 items-center py-1 pl-2 pr-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded break-all"
+        :items="getContextMenuItems(item)"
       >
         <div
-          class="grid grid-cols-[24px_1fr] gap-4 items-center"
-          :class="item.type === 'dir' ? 'cursor-pointer hover:underline' : ''"
-          @click="item.type === 'dir' ? list(`${currentPath}/${item.name}`) : ''"
+          class="fm-item relative min-h-10 grid grid-cols-[1fr_auto] items-center py-1 px-2 gap-2 rounded break-all select-none"
+          :class="[
+            item.type === 'dir' ? 'cursor-pointer' : '',
+            getItemClass(item, index)
+          ]"
+          @click="onClickItem(item, $event)"
+          @mousedown="onMouseDown(item, index, $event)"
+          @mouseenter="onMouseEnter(index)"
         >
-          <UIcon
-            class="size-5"
-            :name="item.type === 'dir' ? 'i-bi-folder' : 'i-bi-file'"
-          />
-
-          <div>{{ item.name }}</div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2">
-          <template v-if="item.type === 'file'">
-            <span class="text-sm text-muted">{{ bytesToSize((item as StorageFileElement).size) }}</span>
-            <UTooltip
-              :delay-duration="0"
-              text="Download"
-            >
-              <UButton
-                icon="i-bi-download"
-                variant="ghost"
-                color="neutral"
-                square
-                :loading="loading.read"
-                @click="read(item.name)"
-              />
-            </UTooltip>
-          </template>
-          <UTooltip
-            :delay-duration="0"
-            text="Delete"
+          <div
+            class="grid grid-cols-[24px_1fr] gap-4 items-center"
           >
-            <UButton
-              icon="i-bi-trash"
-              variant="ghost"
-              color="error"
-              square
-              :loading="loading.read"
-              @click="itemToDelete = { ...item, fullPath: `${currentPath}/${item.name}` }; showDeleteModal = true;"
+            <UIcon
+              class="size-5"
+              :name="item.type === 'dir' ? 'i-bi-folder' : 'i-bi-file'"
             />
-          </UTooltip>
+
+            <div>{{ item.name }}</div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2">
+            <template v-if="item.type === 'file'">
+              <span class="text-sm text-muted">{{ bytesToSize((item as StorageFileElement).size) }}</span>
+            </template>
+          </div>
         </div>
-      </div>
+      </UContextMenu>
 
       <div
         v-if="currentDir.length === 0"
@@ -293,13 +358,13 @@
       <ModalGeneric
         v-model:open="showDeleteModal"
         data-id="modal-storage-delete"
-        :title="`Delete ${itemToDelete?.name}?`"
+        :title="itemToDelete ? `Delete ${itemToDelete.name}?` : `Delete ${selectedItems.size} items?`"
         description="This action is irreversible"
         :primary-action-props="{
           label: 'Delete',
           color: 'error',
           loading: loading.remove,
-          disabled: isAnythingLoading || !itemToDelete,
+          disabled: isAnythingLoading || (!itemToDelete && selectedItems.size === 0),
           onClick: remove
         }"
         :secondary-action-props="{
@@ -315,6 +380,7 @@
 
 <script setup lang="ts">
 import type { StorageListElement, StorageFileElement } from '@busy-app/busy-lib';
+import type { ContextMenuItem } from '@nuxt/ui';
 
 const deviceStore = useDeviceStore();
 
@@ -323,26 +389,113 @@ const loading = ref({
   read: false,
   remove: false,
   write: false,
-  mkdir: false
+  mkdir: false,
+  suggestions: false
 });
 const isAnythingLoading = computed(() => !!Object.values(loading.value).some(e => !!e));
 
 const currentPath = ref('/ext');
 const currentDir = ref<StorageListElement[]>([]);
 
-async function list (path: string) {
-  loading.value.list = true;
-  currentDir.value = await deviceStore.busyBar.readDirectory({ path })
+const filesInputMenu = useTemplateRef('filesInputMenu');
+defineShortcuts({
+  '/': () => {
+    filesInputMenu.value?.inputRef?.focus();
+  }
+});
+const inputMenuModel = ref('');
+interface InputMenuItem {
+  path: string;
+  name: string;
+  icon?: string;
+}
+const inputMenuItems = ref<InputMenuItem[]>([]);
+const highlightedItemIndex = ref(0);
+
+function normalizePath (path: string): string {
+  if (path.startsWith('/ext')) {
+    path = path.slice(4);
+  }
+  if (path.length > 1 && !path.startsWith('/')) {
+    path = `/${path}`;
+  }
+  return path.replaceAll(/^\/+|\/+$/g, '/');
+}
+
+async function onInputMenuModelUpdate (newValue: string) {
+  inputMenuModel.value = normalizePath(newValue);
+
+  const dir = newValue.slice(0, newValue.lastIndexOf('/') + 1);
+  let filter = newValue.slice(newValue.lastIndexOf('/') + 1);
+  if (filter === '/') {
+    filter = '';
+  }
+  console.log([dir, filter]);
+
+  const options = await deviceStore.busyBar.readDirectory({ path: `/ext${dir}` })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
       }
+      const dirs = result.list.filter(e => e.type === 'dir').sort((a, b) => b.name < a.name ? 1 : -1);
+      return dirs
+        .map(d => ({ path: `${dir}${d.name}`, name: d.name }))
+        .filter(d => d.name.toLowerCase().startsWith(filter.toLowerCase()));
+    })
+    .catch(async error => {
+      await handleHTTPError(error, `Couldn't list directory /ext${dir}`);
+      return [];
+    }) as InputMenuItem[];
 
-      updatePath(path);
+  inputMenuItems.value = options;
+}
+async function inputMenuList (model: InputMenuItem | null) {
+  await list(`/ext${normalizePath(model?.path || inputMenuModel.value)}`);
+}
+function onArrowUp () {
+  highlightedItemIndex.value = (highlightedItemIndex.value - 1 + inputMenuItems.value.length) % inputMenuItems.value.length;
+}
+function onArrowDown () {
+  highlightedItemIndex.value = (highlightedItemIndex.value + 1) % inputMenuItems.value.length;
+}
+async function onTab () {
+  if (inputMenuItems.value.length === 0) {
+    return;
+  } else if (inputMenuItems.value.length === 1) {
+    await inputMenuList(inputMenuItems.value[0]);
+  }
+  return onArrowDown();
+}
+async function onEnter () {
+  if (inputMenuItems.value.length === 0) {
+    return;
+  } else {
+    if (inputMenuModel.value.length > 0) {
+      await inputMenuList(inputMenuItems.value[highlightedItemIndex.value] || null);
+    } else {
+      await inputMenuList(null);
+    }
+  }
+}
 
+const selectedItems = ref<Set<string>>(new Set());
+const isSelecting = ref(false);
+const selectStartIndex = ref(-1);
+
+async function list (path: string) {
+  selectedItems.value.clear();
+  loading.value.list = true;
+  await deviceStore.busyBar.readDirectory({ path })
+    .then(result => {
+      if (!result.list) {
+        throw new Error('Empty response');
+      }
       const files = result.list.filter(e => e.type === 'file').sort((a, b) => b.name < a.name ? 1 : -1);
       const dirs = result.list.filter(e => e.type === 'dir').sort((a, b) => b.name < a.name ? 1 : -1);
-      return [...dirs, ...files];
+      currentDir.value = [...dirs, ...files];
+    })
+    .then(() => {
+      updatePath(path);
     })
     .catch(async error => {
       await handleHTTPError(error, `Couldn't list directory ${currentPath.value}`);
@@ -351,14 +504,15 @@ async function list (path: string) {
     .finally(() => loading.value.list = false);
 }
 
-const pathEl = ref<HTMLElement | null>(null);
 function updatePath (newValue: string) {
   currentPath.value = newValue;
-  setTimeout(() => {
-    if (pathEl.value && pathEl.value.scrollWidth > pathEl.value.clientWidth) {
-      pathEl.value.scroll(pathEl.value.scrollWidth, 0);
-    }
-  }, 50);
+
+  const slicedPath = normalizePath(newValue);
+
+  inputMenuModel.value = slicedPath;
+  inputMenuItems.value = currentDir.value
+    .filter(e => e.type === 'dir')
+    .map(d => ({ path: `${slicedPath}${slicedPath.endsWith('/') ? '' : '/'}${d.name}`, name: d.name }));
 }
 
 async function toParentDir () {
@@ -394,9 +548,208 @@ function createObjectUrl (file: File | Blob): string {
   return URL.createObjectURL(file);
 }
 
+const wasDraggingSelection = ref(false);
+const selectionMode = ref<'replace' | 'add'>('replace');
+const initialSelection = ref<Set<string>>(new Set());
+
+function onMouseDown (item: StorageListElement, index: number, event: MouseEvent) {
+  if (event.button === 0) {
+    if (event.shiftKey && selectStartIndex.value !== -1) {
+      selectionMode.value = 'replace';
+      isSelecting.value = true;
+      wasDraggingSelection.value = false;
+      initialSelection.value = new Set();
+
+      const start = selectStartIndex.value;
+      const end = index;
+      const min = Math.min(start, end);
+      const max = Math.max(start, end);
+
+      selectedItems.value.clear();
+      for (let i = min; i <= max; i++) {
+        const it = currentDir.value[i];
+        if (it) {
+          selectedItems.value.add(it.name);
+        }
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      selectionMode.value = 'add';
+      initialSelection.value = new Set(selectedItems.value);
+      isSelecting.value = true;
+      wasDraggingSelection.value = false;
+      selectStartIndex.value = index;
+
+      if (selectedItems.value.has(item.name)) {
+        selectedItems.value.delete(item.name);
+      } else {
+        selectedItems.value.add(item.name);
+      }
+    } else {
+      selectionMode.value = 'replace';
+      isSelecting.value = true;
+      wasDraggingSelection.value = false;
+      selectStartIndex.value = index;
+      initialSelection.value = new Set();
+    }
+  } else if (event.button === 2) {
+    if (!selectedItems.value.has(item.name)) {
+      selectedItems.value.clear();
+      selectedItems.value.add(item.name);
+    }
+  }
+}
+
+function onMouseEnter (index: number) {
+  if (isSelecting.value) {
+    wasDraggingSelection.value = true;
+    const start = selectStartIndex.value;
+    const end = index;
+
+    const min = Math.min(start, end);
+    const max = Math.max(start, end);
+
+    if (selectionMode.value === 'add') {
+      selectedItems.value = new Set(initialSelection.value);
+      for (let i = min; i <= max; i++) {
+        const it = currentDir.value[i];
+        if (it) {
+          selectedItems.value.add(it.name);
+        }
+      }
+    } else {
+      selectedItems.value.clear();
+      for (let i = min; i <= max; i++) {
+        const it = currentDir.value[i];
+        if (it) {
+          selectedItems.value.add(it.name);
+        }
+      }
+    }
+  }
+}
+
+function stopSelection () {
+  isSelecting.value = false;
+}
+
+function onClickItem (item: StorageListElement, event: MouseEvent) {
+  if (wasDraggingSelection.value || event.shiftKey) {
+    return;
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    return;
+  }
+
+  selectedItems.value.clear();
+  if (item.type === 'dir') {
+    list(`${currentPath.value}/${item.name}`);
+  }
+}
+
+function getItemClass (item: StorageListElement, index: number) {
+  if (!selectedItems.value.has(item.name)) {
+    return '';
+  }
+
+  const isPrevSelected = index > 0 && selectedItems.value.has(currentDir.value[index - 1].name);
+  const isNextSelected = index < currentDir.value.length - 1 && selectedItems.value.has(currentDir.value[index + 1].name);
+
+  let classes = 'bg-neutral-200 dark:bg-neutral-700';
+
+  if (isPrevSelected && isNextSelected) {
+    classes += ' rounded-none';
+  } else if (isPrevSelected) {
+    classes += ' rounded-b-md rounded-t-none';
+  } else if (isNextSelected) {
+    classes += ' rounded-t-md rounded-b-none';
+  } else {
+    classes += ' rounded-md';
+  }
+
+  return classes;
+}
+
+function getContextMenuItems (item: StorageListElement): ContextMenuItem[] {
+  const isSelected = selectedItems.value.has(item.name);
+  if (selectedItems.value.size > 1 && isSelected) {
+    const allFiles = Array.from(selectedItems.value).every(name => {
+      const el = currentDir.value.find(e => e.name === name);
+      return el && el.type === 'file';
+    });
+
+    const items = [];
+    const itemString = allFiles ? 'files' : 'items';
+    if (allFiles) {
+      items.push({
+        label: `Download ${selectedItems.value.size} files`,
+        icon: 'i-bi-download',
+        onClick: batchDownload
+      });
+    }
+
+    items.push({
+      label: `Delete ${selectedItems.value.size} ${itemString}`,
+      icon: 'i-bi-trash',
+      color: 'error',
+      onClick: confirmBatchDelete
+    });
+
+    return items as ContextMenuItem[];
+  }
+
+  return [
+    {
+      label: item.type === 'dir' ? 'Open directory' : 'Download file',
+      icon: item.type === 'dir' ? 'i-ri-arrow-right-line' : 'i-bi-download',
+      onClick: () => item.type === 'dir' ? list(`${currentPath.value}/${item.name}`) : read(item.name)
+    },
+    {
+      label: 'Delete',
+      icon: 'i-bi-trash',
+      color: 'error',
+      onClick: () => {
+        itemToDelete.value = { ...item, fullPath: `${currentPath.value}/${item.name}` };
+        showDeleteModal.value = true;
+      }
+    }
+  ];
+}
+
+async function batchDownload () {
+  const items = new Set(selectedItems.value);
+  for (const name of items) {
+    const item = currentDir.value.find(e => e.name === name);
+    if (item && item.type === 'file') {
+      await read(item.name);
+    }
+  }
+}
+
+function confirmBatchDelete () {
+  itemToDelete.value = null; // Clear single
+  showDeleteModal.value = true;
+}
+
 const showDeleteModal = ref(false);
 const itemToDelete = ref<StorageListElement & { fullPath: string } | null>(null);
 async function remove () {
+  if (selectedItems.value.size > 0 && !itemToDelete.value) {
+    loading.value.remove = true;
+    const items = new Set(selectedItems.value);
+    for (const name of items) {
+      const fullPath = `${currentPath.value}/${name}`;
+      await deviceStore.busyBar.removeResource({ path: fullPath })
+        .catch(async error => {
+          await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
+        });
+    }
+    loading.value.remove = false;
+    showDeleteModal.value = false;
+    selectedItems.value.clear();
+    return list(currentPath.value);
+  }
+
   if (!itemToDelete.value?.fullPath) {
     toast.add({
       id: 'storage-delete-error',
@@ -488,6 +841,35 @@ async function uploadFiles () {
 const showMkdirModal = ref(false);
 const mkdirNameModel = ref('');
 
+const isDragging = ref(false);
+const dragCounter = ref(0);
+
+function onDragEnter () {
+  dragCounter.value++;
+  isDragging.value = true;
+}
+
+function onDragLeave () {
+  dragCounter.value--;
+  if (dragCounter.value <= 0) {
+    isDragging.value = false;
+    dragCounter.value = 0;
+  }
+}
+
+function onDrop (e: DragEvent) {
+  isDragging.value = false;
+  dragCounter.value = 0;
+  if (e.dataTransfer?.files) {
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) {
+      filesModel.value = files;
+      filesToUpload.value = [];
+      showUploadModal.value = true;
+    }
+  }
+}
+
 async function mkdir () {
   if (!mkdirNameModel.value.trim().length) {
     toast.add({
@@ -515,7 +897,65 @@ async function mkdir () {
   await list(currentPath.value);
 }
 
-onMounted(async () => {
+const fileListContainer = ref<HTMLElement | null>(null);
+
+function onGlobalClick (event: MouseEvent) {
+  if (selectedItems.value.size === 0) {
+    return;
+  }
+
+  const target = event.target as HTMLElement;
+  // Don't clear if clicking inside the list
+  if (fileListContainer.value && fileListContainer.value.contains(target)) {
+    return;
+  }
+  // Don't clear if clicking context menu items (usually in a separate portal with role="menu")
+  if (target.closest('[role="menu"]')) {
+    return;
+  }
+  // Don't clear if a modal is open (e.g. delete confirmation)
+  if (showDeleteModal.value || showMkdirModal.value || showUploadModal.value) {
+    return;
+  }
+
+  selectedItems.value.clear();
+}
+
+async function init () {
   await list(currentPath.value);
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
+  window.addEventListener('click', onGlobalClick);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', init);
+  window.removeEventListener('click', onGlobalClick);
 });
 </script>
+
+<style scoped>
+.fim-focus-visible {
+  display: none;
+}
+.fim:focus-within .fim-focus-visible {
+  display: block;
+}
+.fim:focus-within .fim-focus-hidden {
+  display: none;
+}
+
+.fm-item:hover:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  backdrop-filter: brightness(1.5);
+}
+</style>

@@ -149,7 +149,7 @@ class Main(App):
         self.info_parser.add_argument(
             "--vendor-name",
             type=str,
-            default="Flipper Devices Inc",
+            default="Flipper FZCO",
             help="Vendor name string",
         )
         self.info_parser.add_argument(
@@ -159,7 +159,7 @@ class Main(App):
             help="Product name string",
         )
         self.info_parser.add_argument(
-            "--part-number", type=str, default="BSB0001", help="Product part number"
+            "--part-number", type=str, default="BB.1", help="Product part number"
         )
         self.info_parser.add_argument(
             "--product-url",

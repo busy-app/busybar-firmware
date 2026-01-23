@@ -276,10 +276,16 @@ async function setBrightnessToAuto () {
   loading.value.brightness = false;
 }
 
-onMounted(async () => {
+async function init () {
   await deviceStore.getDeviceStatus();
   await deviceStore.getApiVersion();
   await refreshAudioVolume();
   await refreshDisplayBrightness();
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>

@@ -104,7 +104,7 @@ async function attemptUnlock () {
   loading.value = false;
 }
 
-onMounted(async () => {
+async function init () {
   try {
     await deviceStore.fetchDeviceName(true);
     await navigateTo('/');
@@ -114,5 +114,11 @@ onMounted(async () => {
   setTimeout(() => {
     initialLoading.value = false;
   }, 500);
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>
