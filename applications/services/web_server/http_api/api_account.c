@@ -91,13 +91,13 @@ static void mqtt_link_events_callback(const void* message, void* context) {
     MqttLinkContext* link_ctx = context;
     furi_assert(link_ctx);
 
-    MqttClientEvent* mqtt_event = (MqttClientEvent*)message;
+    const MqttEvent* mqtt_event = (const MqttEvent*)message;
     furi_assert(mqtt_event);
 
-    if(mqtt_event->type == MqttClientEventLinkPin) {
-        strncpy(link_ctx->pin, mqtt_event->link.pin, MQTT_LINK_PIN_LEN);
-        link_ctx->pin[MQTT_LINK_PIN_LEN] = '\0';
-        link_ctx->pin_expires_at = mqtt_event->link.expires_at;
+    if(mqtt_event->type == MqttEventTypeLinkPinReceived) {
+        const MqttEventLinkPinReceived* event = &mqtt_event->link_pin_received;
+        strlcpy(link_ctx->pin, event->pin, sizeof(link_ctx->pin));
+        link_ctx->pin_expires_at = event->expires_at;
         mg_wakeup(web_srv_get_mgr(), link_ctx->conn->id, NULL, 0);
     }
 }

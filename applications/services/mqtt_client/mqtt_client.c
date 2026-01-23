@@ -56,13 +56,18 @@ static void mqtt_ping_timer_callback(void* data) {
     }
 }
 
-static void mqtt_status_change_event(MqttClient* mqtt, MqttClientStatus status) {
-    mqtt->status = status;
-    MqttClientEvent pub_event = {
-        .type = MqttClientEventStatusChange,
-        .status = status,
+static void mqtt_set_status(MqttClient* instance, MqttClientStatus status) {
+    instance->status = status;
+
+    MqttEvent event = {
+        .type = MqttEventTypeStatusChanged,
+        .status_changed =
+            {
+                .status = status,
+            },
     };
-    furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
 static const char* mqtt_get_server_url(const MqttClient* instance) {
@@ -128,9 +133,9 @@ static void mqtt_device_on_message(
 
         if(pin) {
             FURI_LOG_I(TAG, "Link PIN: %s", pin);
-            MqttClientEvent pub_event = {
-                .type = MqttClientEventLinkPin,
-                .link =
+            MqttEvent pub_event = {
+                .type = MqttEventTypeLinkPinReceived,
+                .link_pin_received =
                     {
                         .pin = pin,
                         .expires_at = pin_expires_at,
@@ -158,8 +163,8 @@ static void mqtt_device_on_message(
 
             mqtt_saved_state_save(saved_state);
 
-            MqttClientEvent pub_event = {
-                .type = MqttClientEventLinkDone,
+            MqttEvent pub_event = {
+                .type = MqttEventTypeLinkDone,
             };
 
             furi_pubsub_publish(instance->event_pubsub, &pub_event);
@@ -263,7 +268,7 @@ static void mqtt_close_mg_event_handler(
     UNUSED(event_data);
 
     FURI_LOG_W(TAG, "MQTT Connection close");
-    mqtt_status_change_event(instance, MqttClientStatusNotConnected);
+    mqtt_set_status(instance, MqttClientStatusNotConnected);
 
     if(instance->ping_enabled) {
         mg_timer_free(&instance->mgr.timers, &instance->ping_timer);
@@ -315,9 +320,9 @@ static void mqtt_mqtt_cmd_mg_event_handler(
 
         if(sub_reason == MQTT_QOS) {
             if(mqtt_saved_state_is_valid(&instance->saved_state)) {
-                mqtt_status_change_event(instance, MqttClientStatusConnectedLinked);
+                mqtt_set_status(instance, MqttClientStatusConnectedLinked);
             } else {
-                mqtt_status_change_event(instance, MqttClientStatusConnectedNotLinked);
+                mqtt_set_status(instance, MqttClientStatusConnectedNotLinked);
             }
 
             instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;

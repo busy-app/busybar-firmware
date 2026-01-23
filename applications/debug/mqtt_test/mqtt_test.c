@@ -141,20 +141,20 @@ static void mqtt_test_events_callback(const void* message, void* context) {
     MqttTestApp* instance = context;
     furi_assert(instance);
 
-    MqttClientEvent* mqtt_event = (MqttClientEvent*)message;
+    const MqttEvent* mqtt_event = (const MqttEvent*)message;
     furi_assert(mqtt_event);
 
-    if(mqtt_event->type == MqttClientEventStatusChange) {
+    if(mqtt_event->type == MqttEventTypeStatusChanged) {
         const MqttTestAppEvent app_event = {
             .type = MqttTestAppEventStatusUpdate,
         };
         furi_check(
             furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
             FuriStatusOk);
-    } else if(mqtt_event->type == MqttClientEventLinkPin) {
+    } else if(mqtt_event->type == MqttEventTypeLinkPinReceived) {
         const MqttTestAppEvent app_event = {
             .type = MqttTestAppEventPinCode,
-            .str_param = furi_string_alloc_set_str(mqtt_event->link.pin),
+            .str_param = furi_string_alloc_set_str(mqtt_event->link_pin_received.pin),
         };
         furi_check(
             furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==

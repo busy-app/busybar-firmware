@@ -9,6 +9,20 @@
 
 #define MQTT_LINK_PIN_LEN (4)
 
+typedef struct MqttClient MqttClient;
+
+typedef enum {
+    MqttEventTypeStatusChanged,
+    MqttEventTypeLinkPinReceived,
+    MqttEventTypeLinkDone,
+    MqttEventTypeMax,
+} MqttEventType;
+
+typedef struct {
+    const char* pin;
+    uint32_t expires_at;
+} MqttEventLinkPinReceived;
+
 typedef enum {
     MqttClientStatusError, // Clent certificates missing
     MqttClientStatusNotConnected, // Not connected to MQTT broker
@@ -17,19 +31,16 @@ typedef enum {
 } MqttClientStatus;
 
 typedef struct {
-    enum {
-        MqttClientEventStatusChange,
-        MqttClientEventLinkPin,
-        MqttClientEventLinkDone,
-    } type;
+    MqttClientStatus status;
+} MqttEventStatusChanged;
+
+typedef struct {
+    MqttEventType type;
     union {
-        struct {
-            const char* pin;
-            uint32_t expires_at;
-        } link;
-        MqttClientStatus status;
+        MqttEventStatusChanged status_changed;
+        MqttEventLinkPinReceived link_pin_received;
     };
-} MqttClientEvent;
+} MqttEvent;
 
 typedef enum {
     MqttQosAtMostOnce = 0,
@@ -37,8 +48,6 @@ typedef enum {
     MqttQosExactlyOnce = 2,
     MqttQosMax,
 } MqttQos;
-
-typedef struct MqttClient MqttClient;
 
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt);
 
