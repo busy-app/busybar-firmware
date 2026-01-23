@@ -43,7 +43,13 @@ update_tgz = dist_env.Command(
     u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tgz"),
     update_tar,
     action=[
-        "python3 -m gzip --best ${SOURCE}",
+        [
+            "${PYTHON3}",
+            "-m", 
+            "gzip", 
+            "--best", 
+            "${SOURCE}"
+        ],
         Move("${TARGET}", "${SOURCE}.gz")
     ]
 )
@@ -110,7 +116,13 @@ min_update_tgz = dist_env.Command(
     u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tgz"),
     min_update_tar,
     action=[
-        "python3 -m gzip --best ${SOURCE}",
+        [
+            "${PYTHON3}",
+            "-m", 
+            "gzip", 
+            "--best", 
+            "${SOURCE}"
+        ],
         Move("${TARGET}", "${SOURCE}.gz")
     ]
 )

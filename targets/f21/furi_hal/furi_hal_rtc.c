@@ -1,5 +1,6 @@
 #include <furi.h>
 #include <furi_hal_rtc.h>
+#include <furi_hal_cortex.h>
 
 #include <stm32u5xx_ll_pwr.h>
 #include <stm32u5xx_ll_rtc.h>
@@ -8,18 +9,8 @@
 
 #define TAG "FuriHalRtc"
 
-#define FURI_HAL_RTC_HEADER_MAGIC 0x10F1
-
-time_t furi_hal_rtc_get_timestamp(void) {
-    DateTime datetime;
-    furi_hal_rtc_get_datetime(&datetime);
-
-    return datetime_datetime_to_timestamp(&datetime);
-}
-
-time_t furi_hal_rtc_get_timestamp_ms(void) {
-    return furi_hal_rtc_get_timestamp() * 1000;
-}
+#define FURI_HAL_RTC_HEADER_MAGIC    0x10F1
+#define FURI_HAL_RTC_SYNC_TIMEOUT_US (1000 * 1000)
 
 static void furi_hal_rtc_start_clock_and_switch(void) {
     // Check if the RTC clock source is already LSE
@@ -49,7 +40,7 @@ static void furi_hal_rtc_start_clock_and_switch(void) {
         LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSE);
         /* Restore clock configuration if changed */
         if(pwrclkchanged == SET) {
-            LL_APB1_GRP1_DisableClock(LL_AHB3_GRP1_PERIPH_PWR);
+            LL_AHB3_GRP1_DisableClock(LL_AHB3_GRP1_PERIPH_PWR);
         }
     }
 }
@@ -96,10 +87,35 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
     furi_check(!FURI_IS_IRQ_MODE());
     furi_check(datetime);
 
-    FURI_CRITICAL_ENTER();
-    uint32_t time = LL_RTC_TIME_Get(RTC); // 0x00HHMMSS
-    uint32_t date = LL_RTC_DATE_Get(RTC); // 0xWWDDMMYY
-    FURI_CRITICAL_EXIT();
+    uint32_t prescaler, sub_second, time, date;
+
+    for(;;) {
+        /* only check timeout for consecutive RS wait cycles */
+        FuriHalCortexTimer timeout_timer = furi_hal_cortex_timer_get(FURI_HAL_RTC_SYNC_TIMEOUT_US);
+        while(!LL_RTC_IsActiveFlag_RS(RTC)) {
+            furi_thread_yield();
+
+            if(furi_hal_cortex_timer_is_expired(timeout_timer)) {
+                furi_crash("RTC sync timeout: RS flag not set in time");
+            }
+        }
+
+        FURI_CRITICAL_ENTER();
+
+        if(LL_RTC_IsActiveFlag_RS(RTC)) {
+            prescaler = LL_RTC_GetSynchPrescaler(RTC);
+            sub_second = LL_RTC_TIME_GetSubSecond(RTC);
+            time = LL_RTC_TIME_Get(RTC); /* xx-HH-MM-SS */
+            date = LL_RTC_DATE_Get(RTC); /* WW-DD-MM-YY */
+
+            LL_RTC_ClearFlag_RS(RTC);
+
+            FURI_CRITICAL_EXIT();
+            break;
+        }
+
+        FURI_CRITICAL_EXIT();
+    }
 
     datetime->second = __LL_RTC_CONVERT_BCD2BIN((time >> 0) & 0xFF);
     datetime->minute = __LL_RTC_CONVERT_BCD2BIN((time >> 8) & 0xFF);
@@ -108,14 +124,30 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
     datetime->month = __LL_RTC_CONVERT_BCD2BIN((date >> 8) & 0xFF);
     datetime->day = __LL_RTC_CONVERT_BCD2BIN((date >> 16) & 0xFF);
     datetime->weekday = __LL_RTC_CONVERT_BCD2BIN((date >> 24) & 0xFF);
+
+    /* special case for getting time right after set operation */
+    if(sub_second > prescaler) {
+        time_t timestamp = datetime_datetime_to_timestamp(datetime);
+        datetime_timestamp_to_datetime(timestamp - 1, datetime);
+
+        sub_second %= (prescaler + 1);
+    }
+
+    datetime->millis = 1000 * (prescaler - sub_second) / (prescaler + 1);
 }
 
-void furi_hal_rtc_sync_shadow(void) {
-    if(!LL_RTC_IsShadowRegBypassEnabled(RTC)) {
-        LL_RTC_ClearFlag_RS(RTC);
-        while(!LL_RTC_IsActiveFlag_RS(RTC)) {
-        };
-    }
+time_t furi_hal_rtc_get_timestamp(void) {
+    DateTime datetime;
+    furi_hal_rtc_get_datetime(&datetime);
+
+    return datetime_datetime_to_timestamp(&datetime);
+}
+
+time_t furi_hal_rtc_get_timestamp_ms(void) {
+    DateTime datetime;
+    furi_hal_rtc_get_datetime(&datetime);
+
+    return datetime_datetime_to_timestamp_ms(&datetime);
 }
 
 void furi_hal_rtc_set_datetime(DateTime* datetime) {
@@ -149,8 +181,13 @@ void furi_hal_rtc_set_datetime(DateTime* datetime) {
 
     /* Exit Initialization mode */
     LL_RTC_DisableInitMode(RTC);
+    while(!LL_RTC_IsActiveFlag_RS(RTC)) {
+    }
 
-    furi_hal_rtc_sync_shadow();
+    /* Pend milliseconds set */
+    uint32_t prescaler = LL_RTC_GetSynchPrescaler(RTC);
+    uint32_t shift = prescaler - datetime->millis * (prescaler + 1) / 1000;
+    LL_RTC_TIME_Synchronize(RTC, LL_RTC_SHIFT_SECOND_ADVANCE, shift);
 
     /* Enable write protection */
     LL_RTC_EnableWriteProtection(RTC);
