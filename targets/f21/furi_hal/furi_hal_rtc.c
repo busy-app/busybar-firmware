@@ -40,7 +40,7 @@ static void furi_hal_rtc_start_clock_and_switch(void) {
         LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSE);
         /* Restore clock configuration if changed */
         if(pwrclkchanged == SET) {
-            LL_APB1_GRP1_DisableClock(LL_AHB3_GRP1_PERIPH_PWR);
+            LL_AHB3_GRP1_DisableClock(LL_AHB3_GRP1_PERIPH_PWR);
         }
     }
 }
