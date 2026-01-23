@@ -1,5 +1,6 @@
 #include <furi.h>
 #include <furi_hal_rtc.h>
+#include <furi_hal_cortex.h>
 
 #include <stm32u5xx_ll_pwr.h>
 #include <stm32u5xx_ll_rtc.h>
@@ -9,7 +10,7 @@
 #define TAG "FuriHalRtc"
 
 #define FURI_HAL_RTC_HEADER_MAGIC    0x10F1
-#define FURI_HAL_RTC_SYNC_TIMEOUT_MS 1000
+#define FURI_HAL_RTC_SYNC_TIMEOUT_US (1000 * 1000)
 
 static void furi_hal_rtc_start_clock_and_switch(void) {
     // Check if the RTC clock source is already LSE
@@ -90,13 +91,11 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
 
     for(;;) {
         /* only check timeout for consecutive RS wait cycles */
-        uint32_t start_tick = furi_get_tick();
-        uint32_t timeout_ticks = furi_ms_to_ticks(FURI_HAL_RTC_SYNC_TIMEOUT_MS);
-
+        FuriHalCortexTimer timeout_timer = furi_hal_cortex_timer_get(FURI_HAL_RTC_SYNC_TIMEOUT_US);
         while(!LL_RTC_IsActiveFlag_RS(RTC)) {
             furi_thread_yield();
 
-            if(furi_get_tick() - start_tick >= timeout_ticks) {
+            if(furi_hal_cortex_timer_is_expired(timeout_timer)) {
                 furi_crash("RTC sync timeout: RS flag not set in time");
             }
         }
