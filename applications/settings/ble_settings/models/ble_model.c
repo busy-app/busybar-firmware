@@ -34,8 +34,6 @@ static void ble_model_on_device_name_change_callback(const void* message, void* 
     BleModel* model = context;
     furi_assert(model);
     UNUSED(message);
-    // FURI_LOG_W(TAG, "Here1");
-    // device_name_get(model->device_name, model->name);
 
     if(model->callback) {
         model->callback(BleModelStateEventNameChanged, model->context);
