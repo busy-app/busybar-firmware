@@ -42,7 +42,7 @@ export const useWifiStore = defineStore('wifi', () => {
           const existing = acc.find(n => n.ssid === curr.ssid);
           if (!existing) {
             acc.push(curr);
-          } else if (curr.rssi && existing.rssi && curr.rssi > existing.rssi) {
+          } else if (curr.rssi && existing.rssi && curr.rssi < existing.rssi) {
             const index = acc.indexOf(existing);
             acc[index] = curr;
           }

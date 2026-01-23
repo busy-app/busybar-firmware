@@ -31,7 +31,7 @@
 
 #include <version/version.h>
 
-#define MATTER_SOFTWARE_VER_NUM 2ul
+#define MATTER_SOFTWARE_VER_NUM 3ul
 
 namespace chip {
 namespace DeviceLayer {

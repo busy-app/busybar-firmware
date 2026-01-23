@@ -170,10 +170,17 @@ function createObjectUrl (file: File | Blob): string {
 function saveFps () {
   localStorage.setItem('animation-fps', fpsModel.value.toString());
 }
-onMounted(() => {
+
+function init () {
   const savedFps = localStorage.getItem('animation-fps');
   if (savedFps) {
     fpsModel.value = parseInt(savedFps, 10);
   }
+}
+
+onMounted(async () => {
+  init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>

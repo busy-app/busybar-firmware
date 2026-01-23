@@ -32,9 +32,8 @@ export const useDeviceStore = defineStore('device', () => {
     checkingConnection.value = true;
     try {
       await apiRequest('/api/name', { timeout: 3000 });
-      // todo: dispatch a global event instead
       if (!isConnected.value) {
-        window.location.reload();
+        window.dispatchEvent(new Event('device-reconnected'));
       }
       isConnected.value = true;
 
@@ -329,7 +328,7 @@ export const useDeviceStore = defineStore('device', () => {
   });
   async function uploadFirmware () {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
+    xhr.open('POST', `${useRuntimeConfig().public.barUrl || window.location.origin}/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     if (useApiStore().apiKey) {
       xhr.setRequestHeader('X-API-Key', useApiStore().apiKey!);

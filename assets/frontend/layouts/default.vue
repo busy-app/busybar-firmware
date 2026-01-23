@@ -41,7 +41,7 @@ if (!useRuntimeConfig().public.disablePolling) {
 }
 
 const shouldLoadDefaultPage = ref(false);
-onMounted(async () => {
+async function init () {
   // early access check
   try {
     await deviceStore.fetchDeviceName(true);
@@ -51,9 +51,15 @@ onMounted(async () => {
     }
   }
   shouldLoadDefaultPage.value = true;
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
 
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
+  window.removeEventListener('device-reconnected', init);
 });
 </script>
