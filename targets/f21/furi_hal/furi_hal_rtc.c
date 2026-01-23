@@ -8,7 +8,8 @@
 
 #define TAG "FuriHalRtc"
 
-#define FURI_HAL_RTC_HEADER_MAGIC 0x10F1
+#define FURI_HAL_RTC_HEADER_MAGIC    0x10F1
+#define FURI_HAL_RTC_SYNC_TIMEOUT_MS 1000
 
 static void furi_hal_rtc_start_clock_and_switch(void) {
     // Check if the RTC clock source is already LSE
@@ -85,17 +86,37 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
     furi_check(!FURI_IS_IRQ_MODE());
     furi_check(datetime);
 
-    FURI_CRITICAL_ENTER();
-    while(!LL_RTC_IsActiveFlag_RS(RTC)) {
+    uint32_t prescaler, sub_second, time, date;
+
+    for(;;) {
+        /* only check timeout for consecutive RS wait cycles */
+        uint32_t start_tick = furi_get_tick();
+        uint32_t timeout_ticks = furi_ms_to_ticks(FURI_HAL_RTC_SYNC_TIMEOUT_MS);
+
+        while(!LL_RTC_IsActiveFlag_RS(RTC)) {
+            furi_thread_yield();
+
+            if(furi_get_tick() - start_tick >= timeout_ticks) {
+                furi_crash("RTC sync timeout: RS flag not set in time");
+            }
+        }
+
+        FURI_CRITICAL_ENTER();
+
+        if(LL_RTC_IsActiveFlag_RS(RTC)) {
+            prescaler = LL_RTC_GetSynchPrescaler(RTC);
+            sub_second = LL_RTC_TIME_GetSubSecond(RTC);
+            time = LL_RTC_TIME_Get(RTC); /* xx-HH-MM-SS */
+            date = LL_RTC_DATE_Get(RTC); /* WW-DD-MM-YY */
+
+            LL_RTC_ClearFlag_RS(RTC);
+
+            FURI_CRITICAL_EXIT();
+            break;
+        }
+
+        FURI_CRITICAL_EXIT();
     }
-
-    uint32_t prescaler = LL_RTC_GetSynchPrescaler(RTC);
-    uint32_t sub_second = LL_RTC_TIME_GetSubSecond(RTC);
-    uint32_t time = LL_RTC_TIME_Get(RTC); /* xx-HH-MM-SS */
-    uint32_t date = LL_RTC_DATE_Get(RTC); /* WW-DD-MM-YY */
-
-    LL_RTC_ClearFlag_RS(RTC);
-    FURI_CRITICAL_EXIT();
 
     datetime->second = __LL_RTC_CONVERT_BCD2BIN((time >> 0) & 0xFF);
     datetime->minute = __LL_RTC_CONVERT_BCD2BIN((time >> 8) & 0xFF);
@@ -105,6 +126,7 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
     datetime->day = __LL_RTC_CONVERT_BCD2BIN((date >> 16) & 0xFF);
     datetime->weekday = __LL_RTC_CONVERT_BCD2BIN((date >> 24) & 0xFF);
 
+    /* special case for getting time right after set operation */
     if(sub_second > prescaler) {
         time_t timestamp = datetime_datetime_to_timestamp(datetime);
         datetime_timestamp_to_datetime(timestamp - 1, datetime);
@@ -163,6 +185,7 @@ void furi_hal_rtc_set_datetime(DateTime* datetime) {
     while(!LL_RTC_IsActiveFlag_RS(RTC)) {
     }
 
+    /* Pend milliseconds set */
     uint32_t prescaler = LL_RTC_GetSynchPrescaler(RTC);
     uint32_t shift = prescaler - datetime->millis * (prescaler + 1) / 1000;
     LL_RTC_TIME_Synchronize(RTC, LL_RTC_SHIFT_SECOND_ADVANCE, shift);
