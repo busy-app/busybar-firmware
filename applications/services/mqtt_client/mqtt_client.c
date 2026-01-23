@@ -1,17 +1,16 @@
 #include "mqtt_client_i.h"
 
-#include <network/network.h>
-#include <storage/storage.h>
-#include <json_helper.h>
 #include <furi_hal_random.h>
 #include <furi_hal_version.h>
+
+#include <network/network.h>
+#include <storage/storage.h>
+
 #include <toolbox/hex.h>
 
 #define TAG "MqttClient"
 
 #define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/ca/cacert.pem")
-
-#define SESSION_FILE APP_DATA_PATH("session.json")
 
 #define MQTT_PING_PERIOD (10 * 60 * 1000)
 
@@ -28,6 +27,7 @@ static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeM
 
 static void mqtt_connect_callback(void* data);
 static bool mqtt_client_load_ca_bundle(MqttClient* mqtt);
+static void mqtt_reset_saved_state(MqttClient* instance);
 
 static void mqtt_wifi_event_callback(const void* state, void* context) {
     MqttClient* instance = context;
@@ -118,52 +118,71 @@ static void mqtt_device_request_pin(MqttClient* mqtt) {
     furi_string_free(topic);
 }
 
-static void
-    mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, const struct mg_str* message) {
+static void mqtt_device_on_message(
+    MqttClient* instance,
+    const FuriString* topic_str,
+    const struct mg_str* message) {
     if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
         char* pin = mg_json_get_str(*message, "$.code");
         int32_t pin_expires_at = mg_json_get_long(*message, "$.expires_at", -1);
+
         if(pin) {
             FURI_LOG_I(TAG, "Link PIN: %s", pin);
             MqttClientEvent pub_event = {
                 .type = MqttClientEventLinkPin,
-                .link = {.pin = pin, .expires_at = pin_expires_at}};
-            furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
+                .link =
+                    {
+                        .pin = pin,
+                        .expires_at = pin_expires_at,
+                    },
+            };
+            furi_pubsub_publish(instance->event_pubsub, &pub_event);
             free(pin);
         }
+
     } else if(furi_string_end_with(topic_str, "/down/v1/link/token")) {
         char* session_id = mg_json_get_str(*message, "$.session_id");
         char* token = mg_json_get_str(*message, "$.token");
         char* email = mg_json_get_str(*message, "$.email");
         char* user_id = mg_json_get_str(*message, "$.user_id");
+
         if(session_id && token && email && user_id) {
             FURI_LOG_I(TAG, "Link done!");
 
-            JsonConfig* cfg = json_config_alloc();
-            JsonConfigStatus status = json_config_open(cfg, SESSION_FILE);
-            furi_assert(status != JsonConfigStatusError);
-            json_config_write_str(cfg, "session_id", session_id);
-            json_config_write_str(cfg, "token", token);
-            json_config_write_str(cfg, "email", email);
-            json_config_write_str(cfg, "user_id", user_id);
-            status = json_config_free(cfg);
-            furi_assert(status != JsonConfigStatusError);
+            MqttSavedState* saved_state = &instance->saved_state;
 
-            furi_string_set(mqtt->session_id, session_id);
-            furi_string_set(mqtt->link_token, token);
-            mqtt->is_linked = true;
+            furi_string_set(saved_state->session_id, session_id);
+            furi_string_set(saved_state->user_id, user_id);
+            furi_string_set(saved_state->email, email);
+            furi_string_set(saved_state->token, token);
 
-            MqttClientEvent pub_event = {.type = MqttClientEventLinkDone};
-            furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
+            mqtt_saved_state_save(saved_state);
+
+            instance->is_linked = true;
+
+            MqttClientEvent pub_event = {
+                .type = MqttClientEventLinkDone,
+            };
+
+            furi_pubsub_publish(instance->event_pubsub, &pub_event);
 
             // Close MQTT connection to reconnect with new token
-            mqtt->conn->is_draining = 1;
-            mqtt->fast_reconnect = true;
+            instance->conn->is_draining = 1;
+            instance->fast_reconnect = true;
         }
-        if(session_id) free(session_id);
-        if(token) free(token);
-        if(email) free(email);
-        if(user_id) free(user_id);
+
+        if(session_id) {
+            free(session_id);
+        }
+        if(user_id) {
+            free(user_id);
+        }
+        if(token) {
+            free(token);
+        }
+        if(email) {
+            free(email);
+        }
     }
 }
 
@@ -380,10 +399,12 @@ static void mqtt_connect_callback(void* data) {
     FuriString* username = furi_string_alloc_printf(
         "BusyBar device %s", furi_string_get_cstr(instance->device_serial));
 
+    const MqttSavedState* saved_state = &instance->saved_state;
+
     const struct mg_mqtt_opts opts = {
-        .client_id = mg_str(furi_string_get_cstr(instance->client_id)),
+        .client_id = mg_str(furi_string_get_cstr(saved_state->client_id)),
         .user = mg_str(furi_string_get_cstr(username)),
-        .pass = mg_str(furi_string_get_cstr(instance->link_token)),
+        .pass = mg_str(furi_string_get_cstr(saved_state->token)),
         .clean = true,
         .keepalive = 0,
         .version = 5,
@@ -401,48 +422,6 @@ static void mqtt_connect_callback(void* data) {
     }
 
     furi_string_free(username);
-}
-
-static void mqtt_client_load_session(MqttClient* mqtt) {
-    mqtt->is_linked = false;
-
-    JsonConfig* cfg = json_config_alloc();
-    JsonConfigStatus status = json_config_open(cfg, SESSION_FILE);
-    furi_assert(status != JsonConfigStatusError);
-
-    do {
-        status = json_config_read_str(cfg, "client_id", mqtt->client_id, NULL);
-        furi_assert(status != JsonConfigStatusError);
-        if((status == JsonConfigStatusMissing) || (furi_string_empty(mqtt->client_id))) {
-            uint32_t random_id[2];
-            furi_hal_random_fill_buf((uint8_t*)random_id, sizeof(random_id));
-            furi_string_printf(mqtt->client_id, "busybar-%08lx%08lx", random_id[0], random_id[1]);
-            json_config_write_str(cfg, "client_id", furi_string_get_cstr(mqtt->client_id));
-            break;
-        }
-        status = json_config_read_str(cfg, "session_id", mqtt->session_id, NULL);
-        furi_assert(status != JsonConfigStatusError);
-        if(status == JsonConfigStatusMissing) break;
-        if(furi_string_empty(mqtt->session_id)) break;
-
-        status = json_config_read_str(cfg, "token", mqtt->link_token, NULL);
-        furi_assert(status != JsonConfigStatusError);
-        if(status == JsonConfigStatusMissing) break;
-        if(furi_string_empty(mqtt->link_token)) break;
-
-        mqtt->is_linked = true;
-    } while(0);
-
-    if(!mqtt->is_linked) {
-        furi_string_reset(mqtt->session_id);
-        furi_string_reset(mqtt->link_token);
-        json_config_delete(cfg, "session_id");
-        json_config_delete(cfg, "token");
-        FURI_LOG_W(TAG, "Session data reset");
-    }
-
-    status = json_config_free(cfg);
-    furi_assert(status != JsonConfigStatusError);
 }
 
 static bool mqtt_client_load_ca_bundle(MqttClient* mqtt) {
@@ -516,11 +495,8 @@ static void mqtt_unlink_api_message_handler(MqttClient* instance, const MqttApiM
         instance->fast_reconnect = true;
     }
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    storage_common_remove(storage, SESSION_FILE);
-    furi_record_close(RECORD_STORAGE);
-
-    mqtt_client_load_session(instance);
+    mqtt_reset_saved_state(instance);
+    instance->is_linked = false;
 }
 
 static void
@@ -547,17 +523,16 @@ static void mqtt_get_session_info_api_message_handler(
     furi_assert(data);
 
     const MqttApiMessageGetSessionInfo* get_session_info = &data->get_session_info;
+    const MqttSavedState* saved_state = &instance->saved_state;
 
-    if(get_session_info->id) {
-        furi_string_set(get_session_info->id, instance->session_id);
+    if(get_session_info->session_id) {
+        furi_string_set(get_session_info->session_id, saved_state->session_id);
     }
-
-    if(get_session_info->email) {
-        json_config_read_single_str(SESSION_FILE, "email", get_session_info->email, "");
-    }
-
     if(get_session_info->user_id) {
-        json_config_read_single_str(SESSION_FILE, "user_id", get_session_info->user_id, "");
+        furi_string_set(get_session_info->user_id, saved_state->user_id);
+    }
+    if(get_session_info->email) {
+        furi_string_set(get_session_info->email, saved_state->email);
     }
 }
 
@@ -614,12 +589,14 @@ static void mqtt_publish_message_handler(MqttClient* instance, const MqttApiMess
         return;
     }
 
+    const MqttSavedState* saved_state = &instance->saved_state;
+
     const MqttApiMessagePublish* publish = &data->publish;
 
     FuriString* full_topic = furi_string_alloc_printf(
         "%s/%s/up/%s/%s",
         MQTT_API_ROOT_TOPIC,
-        furi_string_get_cstr(instance->session_id),
+        furi_string_get_cstr(saved_state->session_id),
         MQTT_API_VERSION,
         publish->topic);
 
@@ -664,8 +641,36 @@ static void mqtt_init_device_uid(MqttClient* instance) {
 }
 
 static void mqtt_load_settings(MqttClient* instance) {
-    mqtt_settings_init(&instance->settings);
-    mqtt_settings_load(&instance->settings);
+    MqttSettings* settings = &instance->settings;
+
+    mqtt_settings_init(settings);
+    mqtt_settings_load(settings);
+}
+
+static void mqtt_reset_saved_state(MqttClient* instance) {
+    MqttSavedState* saved_state = &instance->saved_state;
+    mqtt_saved_state_reset(saved_state);
+
+    uint32_t random_id[2];
+    furi_hal_random_fill_buf((uint8_t*)random_id, sizeof(random_id));
+
+    furi_string_printf(saved_state->client_id, "busybar-%08lx%08lx", random_id[0], random_id[1]);
+
+    mqtt_saved_state_save(saved_state);
+}
+
+static void mqtt_load_saved_state(MqttClient* instance) {
+    MqttSavedState* saved_state = &instance->saved_state;
+
+    mqtt_saved_state_init(saved_state);
+    mqtt_saved_state_load(saved_state);
+
+    instance->is_linked = mqtt_saved_state_is_valid(saved_state);
+
+    if(!instance->is_linked) {
+        FURI_LOG_W(TAG, "Saved state invalid, resetting");
+        mqtt_reset_saved_state(instance);
+    }
 }
 
 static void mqtt_api_init(MqttClient* instance) {
@@ -682,15 +687,12 @@ static MqttClient* mqtt_client_alloc(void) {
 
     instance->status = MqttClientStatusNotConnected;
     instance->device_serial = furi_string_alloc();
-    instance->client_id = furi_string_alloc();
-    instance->session_id = furi_string_alloc();
-    instance->link_token = furi_string_alloc();
     instance->event_pubsub = furi_pubsub_alloc();
 
     mqtt_init_device_uid(instance);
 
     mqtt_load_settings(instance);
-    mqtt_client_load_session(instance);
+    mqtt_load_saved_state(instance);
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);

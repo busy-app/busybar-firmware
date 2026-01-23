@@ -52,7 +52,7 @@ void mqtt_client_unlink(MqttClient* instance) {
 
 void mqtt_client_get_session_info(
     MqttClient* instance,
-    FuriString* id,
+    FuriString* session_id,
     FuriString* email,
     FuriString* user_id) {
     furi_check(instance);
@@ -61,9 +61,9 @@ void mqtt_client_get_session_info(
         .type = MqttApiMessageTypeGetSessionInfo,
         .data.get_session_info =
             {
-                .id = id,
-                .email = email,
+                .session_id = session_id,
                 .user_id = user_id,
+                .email = email,
             },
     };
 

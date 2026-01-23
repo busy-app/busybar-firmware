@@ -10,6 +10,7 @@
 #include <wifi/wifi.h>
 
 #include "settings/mqtt_settings.h"
+#include "settings/mqtt_saved_state.h"
 
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
@@ -43,15 +44,13 @@ struct MqttClient {
     char* ca_bundle;
 
     FuriString* device_serial;
-    FuriString* client_id;
-    FuriString* session_id;
-    FuriString* link_token;
 
     struct mg_timer screen_stream_timer;
     FuriString* screen_stream_topic;
     char* screen_stream_buf;
 
     MqttSettings settings;
+    MqttSavedState saved_state;
 };
 
 typedef enum {
@@ -85,9 +84,9 @@ typedef struct {
 } MqttApiMessageSetProfile;
 
 typedef struct {
-    FuriString* id;
-    FuriString* email;
+    FuriString* session_id;
     FuriString* user_id;
+    FuriString* email;
 } MqttApiMessageGetSessionInfo;
 
 typedef struct {
