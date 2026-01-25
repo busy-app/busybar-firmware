@@ -4,6 +4,8 @@
 
 typedef enum {
     SceneIdMain,
+    SceneIdFactoryResetConfirm,
+    SceneIdFactoryReset,
 
     SceneIdsCount,
 } SceneId;

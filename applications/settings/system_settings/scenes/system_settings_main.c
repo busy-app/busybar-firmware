@@ -72,6 +72,10 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == SceneEventFactoryReset) {
+            scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);
+            consumed = true;
+        }
     } else if(event->type == SceneManagerEventTypeBack) {
         desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
     }
@@ -79,7 +83,7 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
     return consumed;
 }
 
-const Scene system_scene_main = {
+const Scene system_settings_scene_main = {
     .enter_callback = scene_main_on_enter,
     .exit_callback = scene_main_on_exit,
     .event_callback = scene_main_on_event,
