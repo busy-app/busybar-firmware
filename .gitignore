@@ -29,6 +29,7 @@ __pycache__/
 *.pickle
 
 .obj/
+.stfolder/
 bindings/
 .DS_Store
 .mxproject
