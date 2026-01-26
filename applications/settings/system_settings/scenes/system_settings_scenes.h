@@ -11,6 +11,7 @@ typedef enum {
     SceneIdPowerMenu,
     SceneIdPowerShutDownConfirm,
     SceneIdPowerUnplugUsb,
+    SceneIdPowerRestart,
 
     SceneIdsCount,
 } SceneId;

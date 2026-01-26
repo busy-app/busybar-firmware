@@ -95,6 +95,7 @@ static bool scene_power_menu_on_event(const SceneManagerEvent* event, void* cont
             }
             consumed = true;
         } else if(event->event == SceneEventRestart) {
+            scene_manager_next_scene(instance->scene_manager, SceneIdPowerRestart);
             consumed = true;
         } else if(event->event == SceneEventInfo) {
             consumed = true;
