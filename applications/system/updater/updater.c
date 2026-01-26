@@ -214,6 +214,11 @@ static void autoupdate_timer_callback(void* context) {
         return;
     }
 
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        FURI_LOG_D(TAG, "Autoupdate: skipped, debug is enabled");
+        return;
+    }
+
     Sntp* sntp = furi_record_open(RECORD_SNTP);
     DateTime datetime;
     sntp_get_local_datetime(sntp, &datetime);
