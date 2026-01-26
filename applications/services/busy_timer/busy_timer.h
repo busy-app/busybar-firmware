@@ -32,7 +32,6 @@ typedef enum {
     BusyTimerEventTypeStateChanged,
     BusyTimerEventTypeIntervalEnded,
     BusyTimerEventTypeTimerPaused,
-    BusyTimerEventTypeUserInteracted,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 

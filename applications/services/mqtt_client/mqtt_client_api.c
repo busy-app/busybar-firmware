@@ -133,6 +133,50 @@ void mqtt_client_publish(
     mqtt_client_send_message(instance, &message);
 }
 
+MqttSubscription* mqtt_subscribe(
+    MqttClient* instance,
+    MqttQos qos,
+    const char* topic,
+    MqttSubscriptionCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(topic);
+    furi_check(callback);
+    furi_check(qos < MqttQosMax);
+
+    MqttSubscription* subscription;
+
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeSubscribe,
+        .data.subscribe =
+            {
+                .topic = topic,
+                .callback = callback,
+                .callback_context = context,
+                .subscription = &subscription,
+                .qos = qos,
+            },
+    };
+
+    mqtt_client_send_message(instance, &message);
+    return subscription;
+}
+
+void mqtt_unsubscribe(MqttClient* instance, MqttSubscription* subscription) {
+    furi_check(instance);
+    furi_check(subscription);
+
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeUnsubscribe,
+        .data.unsubscribe =
+            {
+                .subscription = subscription,
+            },
+    };
+
+    mqtt_client_send_message(instance, &message);
+}
+
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* instance) {
     furi_check(instance);
     return instance->event_pubsub;

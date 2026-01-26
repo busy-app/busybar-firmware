@@ -5,6 +5,8 @@
 #include <furi.h>
 #include <api_lock.h>
 
+#include <m-i-list.h>
+
 #include <mongoose.h>
 
 #include <wifi/wifi.h>
@@ -18,10 +20,25 @@
 #define MQTT_QOS                 (2)
 #define MQTT_API_VERSION         "v1"
 
-#define MQTT_DEVICE_ROOT_TOPIC "devices"
-#define MQTT_SESSION_ROOT_TOPIC    "sessions"
+#define MQTT_DEVICE_ROOT_TOPIC  "devices"
+#define MQTT_SESSION_ROOT_TOPIC "sessions"
 
-#define MQTT_BUSY_TIMER_SNAPSHOT_TOPIC "busy/snapshot"
+typedef enum {
+    MqttScopeDevice,
+    MqttScopeSession,
+    MqttScopeMax,
+} MqttScope;
+
+struct MqttSubscription {
+    FuriString* topic;
+    MqttScope scope;
+    MqttQos qos;
+    MqttSubscriptionCallback callback;
+    void* callback_context;
+    ILIST_INTERFACE(MqttSubscriptionList, MqttSubscription);
+};
+
+ILIST_DEF(MqttSubscriptionList, MqttSubscription, M_POD_OPLIST)
 
 struct MqttClient {
     FuriPubSub* event_pubsub;
@@ -48,6 +65,8 @@ struct MqttClient {
     FuriString* screen_stream_topic;
     char* screen_stream_buf;
 
+    MqttSubscriptionList_t subscriptions;
+
     MqttSettings settings;
     MqttSavedState saved_state;
 };
@@ -60,6 +79,8 @@ typedef enum {
     MqttApiMessageTypeGetProfile,
     MqttApiMessageTypeSetProfile,
     MqttApiMessageTypePublish,
+    MqttApiMessageTypeSubscribe,
+    MqttApiMessageTypeUnsubscribe,
     MqttApiMessageTypeWifiState,
     MqttApiMessageTypeMax,
 } MqttApiMessageType;
@@ -96,6 +117,18 @@ typedef struct {
 } MqttApiMessagePublish;
 
 typedef struct {
+    const char* topic;
+    MqttSubscriptionCallback callback;
+    void* callback_context;
+    MqttQos qos;
+    MqttSubscription** subscription;
+} MqttApiMessageSubscribe;
+
+typedef struct {
+    MqttSubscription* subscription;
+} MqttApiMessageUnsubscribe;
+
+typedef struct {
     WifiState state;
 } MqttApiMessageWifiState;
 
@@ -106,6 +139,8 @@ typedef union {
     MqttApiMessageSetProfile set_profile;
     MqttApiMessageGetSessionInfo get_session_info;
     MqttApiMessagePublish publish;
+    MqttApiMessageSubscribe subscribe;
+    MqttApiMessageUnsubscribe unsubscribe;
     MqttApiMessageWifiState wifi_state;
 } MqttApiMessageData;
 
@@ -115,13 +150,20 @@ typedef struct {
     FuriApiLock lock;
 } MqttApiMessage;
 
-typedef enum {
-    MqttScopeDevice,
-    MqttScopeSession,
-    MqttScopeMax,
-} MqttScope;
+void mqtt_make_topic_path(
+    MqttClient* instance,
+    MqttScope scope,
+    const char* dir,
+    const char* topic,
+    FuriString* out);
 
-void mqtt_subscribe_internal(MqttClient* instance, MqttScope scope, MqttQos qos, const char* topic);
+MqttSubscription* mqtt_subscribe_internal(
+    MqttClient* instance,
+    MqttScope scope,
+    MqttQos qos,
+    const char* topic,
+    MqttSubscriptionCallback callback,
+    void* context);
 
 uint16_t mqtt_publish_internal(
     MqttClient* instance,
@@ -131,9 +173,7 @@ uint16_t mqtt_publish_internal(
     const void* data,
     size_t data_size);
 
-// void mqtt_topics_subscribe(MqttClient* mqtt);
-
-void mqtt_topics_on_message(
+bool mqtt_topics_on_message(
     MqttClient* mqtt,
     const FuriString* topic_str,
     const struct mg_mqtt_message* msg);
@@ -159,11 +199,3 @@ bool mqtt_tls_init(
     bool custom_certs);
 
 void mqtt_tls_free_ca(struct mg_connection* conn);
-
-// BusyTimer api
-void mqtt_busy_timer_init(MqttClient* mqtt);
-
-void mqtt_busy_timer_on_message(
-    MqttClient* mqtt,
-    const FuriString* topic_str,
-    const struct mg_mqtt_message* msg);

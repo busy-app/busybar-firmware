@@ -92,70 +92,79 @@ static bool mqtt_is_tls_enabled(const MqttClient* instance) {
     }
 }
 
-static void mqtt_device_on_message(
-    MqttClient* instance,
-    const FuriString* topic_str,
-    const struct mg_str* message) {
-    if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
-        char* pin = mg_json_get_str(*message, "$.code");
-        int32_t pin_expires_at = mg_json_get_long(*message, "$.expires_at", -1);
+static void mqtt_link_otp_subscription_callback(
+    const char* topic,
+    const void* data,
+    size_t data_size,
+    void* context) {
+    UNUSED(topic);
+    furi_assert(context);
+    MqttClient* instance = context;
 
-        if(pin) {
-            FURI_LOG_I(TAG, "Link PIN: %s", pin);
-            MqttEvent pub_event = {
-                .type = MqttEventTypeLinkPinReceived,
-                .link_pin_received =
-                    {
-                        .pin = pin,
-                        .expires_at = pin_expires_at,
-                    },
-            };
-            furi_pubsub_publish(instance->event_pubsub, &pub_event);
-            free(pin);
-        }
+    const struct mg_str json_str = mg_str_n(data, data_size);
 
-    } else if(furi_string_end_with(topic_str, "/down/v1/link/token")) {
-        char* session_id = mg_json_get_str(*message, "$.session_id");
-        char* token = mg_json_get_str(*message, "$.token");
-        char* email = mg_json_get_str(*message, "$.email");
-        char* user_id = mg_json_get_str(*message, "$.user_id");
+    char* pin = mg_json_get_str(json_str, "$.code");
+    int32_t pin_expires_at = mg_json_get_long(json_str, "$.expires_at", -1);
 
-        if(session_id && token && email && user_id) {
-            FURI_LOG_I(TAG, "Link done!");
+    if(pin) {
+        FURI_LOG_I(TAG, "Link PIN: %s", pin);
+        MqttEvent pub_event = {
+            .type = MqttEventTypeLinkPinReceived,
+            .link_pin_received =
+                {
+                    .pin = pin,
+                    .expires_at = pin_expires_at,
+                },
+        };
 
-            MqttSavedState* saved_state = &instance->saved_state;
-
-            furi_string_set(saved_state->session_id, session_id);
-            furi_string_set(saved_state->user_id, user_id);
-            furi_string_set(saved_state->email, email);
-            furi_string_set(saved_state->token, token);
-
-            mqtt_saved_state_save(saved_state);
-
-            MqttEvent pub_event = {
-                .type = MqttEventTypeLinkDone,
-            };
-
-            furi_pubsub_publish(instance->event_pubsub, &pub_event);
-
-            // Close MQTT connection to reconnect with new token
-            instance->conn->is_draining = 1;
-            instance->fast_reconnect = true;
-        }
-
-        if(session_id) {
-            free(session_id);
-        }
-        if(user_id) {
-            free(user_id);
-        }
-        if(token) {
-            free(token);
-        }
-        if(email) {
-            free(email);
-        }
+        furi_pubsub_publish(instance->event_pubsub, &pub_event);
+        free(pin);
     }
+}
+
+static void mqtt_link_token_subscription_callback(
+    const char* topic,
+    const void* data,
+    size_t data_size,
+    void* context) {
+    UNUSED(topic);
+    furi_assert(context);
+    MqttClient* instance = context;
+
+    const struct mg_str json_str = mg_str_n(data, data_size);
+
+    char* session_id = mg_json_get_str(json_str, "$.session_id");
+    char* token = mg_json_get_str(json_str, "$.token");
+    char* email = mg_json_get_str(json_str, "$.email");
+    char* user_id = mg_json_get_str(json_str, "$.user_id");
+
+    if(session_id && token && email && user_id) {
+        FURI_LOG_I(TAG, "Link done!");
+
+        MqttSavedState* saved_state = &instance->saved_state;
+
+        furi_string_set(saved_state->session_id, session_id);
+        furi_string_set(saved_state->user_id, user_id);
+        furi_string_set(saved_state->email, email);
+        furi_string_set(saved_state->token, token);
+
+        mqtt_saved_state_save(saved_state);
+
+        MqttEvent pub_event = {
+            .type = MqttEventTypeLinkDone,
+        };
+
+        furi_pubsub_publish(instance->event_pubsub, &pub_event);
+
+        // Close MQTT connection to reconnect with new token
+        instance->conn->is_draining = 1;
+        instance->fast_reconnect = true;
+    }
+
+    if(session_id) free(session_id);
+    if(user_id) free(user_id);
+    if(token) free(token);
+    if(email) free(email);
 }
 
 // Mongoose event handlers
@@ -207,12 +216,38 @@ static void mqtt_open_mg_event_handler(
     if(status_code == 0) {
         FURI_LOG_I(TAG, "MQTT Connected");
 
-        if(mqtt_saved_state_is_valid(&instance->saved_state)) {
-            mqtt_subscribe_internal(instance, MqttScopeSession, MqttQosExactlyOnce, "#");
-        } else {
-            mqtt_subscribe_internal(instance, MqttScopeDevice, MqttQosExactlyOnce, "#");
+        FuriString* topic_path = furi_string_alloc();
+
+        MqttSubscriptionList_it_ct it;
+        for(MqttSubscriptionList_it(it, instance->subscriptions); !MqttSubscriptionList_end_p(it);
+            MqttSubscriptionList_next(it)) {
+            const MqttSubscription* subscription = MqttSubscriptionList_cref(it);
+
+            if(!mqtt_saved_state_is_valid(&instance->saved_state) &&
+               subscription->scope == MqttScopeSession) {
+                continue;
+            }
+
+            mqtt_make_topic_path(
+                instance,
+                subscription->scope,
+                "down",
+                furi_string_get_cstr(subscription->topic),
+                topic_path);
+
+            FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic_path));
+
+            const struct mg_mqtt_opts sub_opts = {
+                .topic = mg_str(furi_string_get_cstr(topic_path)),
+                .qos = subscription->qos,
+            };
+
+            mg_mqtt_sub(instance->conn, &sub_opts);
         }
 
+        furi_string_free(topic_path);
+
+        // TODO: Refactor ping logic
         if(!instance->ping_enabled) {
             mg_timer_init(
                 &instance->mgr.timers,
@@ -287,7 +322,7 @@ static void mqtt_mqtt_cmd_mg_event_handler(
 
         FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
 
-        if(sub_reason == MQTT_QOS) {
+        if(sub_reason < MqttQosMax) {
             if(mqtt_saved_state_is_valid(&instance->saved_state)) {
                 mqtt_set_status(instance, MqttClientStatusConnectedLinked);
             } else {
@@ -319,16 +354,28 @@ static void mqtt_mqtt_msg_mg_event_handler(
     const struct mg_mqtt_message* message) {
     UNUSED(connection);
 
-    FuriString* topic_str =
+    // TODO: Better way to match topics
+    FuriString* topic_path =
         furi_string_alloc_printf("%.*s", message->topic.len, message->topic.buf);
 
-    if(furi_string_start_with(topic_str, MQTT_DEVICE_ROOT_TOPIC)) {
-        mqtt_device_on_message(instance, topic_str, &message->data);
-    } else if(furi_string_start_with(topic_str, MQTT_SESSION_ROOT_TOPIC)) {
-        mqtt_topics_on_message(instance, topic_str, message);
+    MqttSubscriptionList_it_ct it;
+    for(MqttSubscriptionList_it(it, instance->subscriptions); !MqttSubscriptionList_end_p(it);
+        MqttSubscriptionList_next(it)) {
+        const MqttSubscription* subscription = MqttSubscriptionList_cref(it);
+        const char* topic_str = furi_string_get_cstr(subscription->topic);
+
+        if(furi_string_end_with(topic_path, topic_str)) {
+            if(subscription->callback) {
+                subscription->callback(
+                    topic_str,
+                    message->data.buf,
+                    message->data.len,
+                    subscription->callback_context);
+            }
+        }
     }
 
-    furi_string_free(topic_str);
+    furi_string_free(topic_path);
 
     FURI_LOG_D(
         TAG,
@@ -568,6 +615,30 @@ static void mqtt_publish_message_handler(MqttClient* instance, const MqttApiMess
         publish->data_size);
 }
 
+static void mqtt_subscribe_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageSubscribe* subscribe = &data->subscribe;
+    *subscribe->subscription = mqtt_subscribe_internal(
+        instance,
+        MqttScopeSession,
+        subscribe->qos,
+        subscribe->topic,
+        subscribe->callback,
+        subscribe->callback_context);
+}
+
+static void
+    mqtt_unsubscribe_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageUnsubscribe* unsubscribe = &data->unsubscribe;
+    UNUSED(unsubscribe);
+    // TODO: Implementation
+}
+
 static void mqtt_wifi_state_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
@@ -629,6 +700,24 @@ static void mqtt_api_init(MqttClient* instance) {
     instance->wakeup_conn_id = dummy_conn->id;
 }
 
+static void mqtt_device_topics_init(MqttClient* instance) {
+    mqtt_subscribe_internal(
+        instance,
+        MqttScopeDevice,
+        MqttQosExactlyOnce,
+        "link/otp",
+        mqtt_link_otp_subscription_callback,
+        instance);
+
+    mqtt_subscribe_internal(
+        instance,
+        MqttScopeDevice,
+        MqttQosExactlyOnce,
+        "link/token",
+        mqtt_link_token_subscription_callback,
+        instance);
+}
+
 // Constructor
 
 static MqttClient* mqtt_client_alloc(void) {
@@ -637,6 +726,8 @@ static MqttClient* mqtt_client_alloc(void) {
     instance->status = MqttClientStatusNotConnected;
     instance->device_serial = furi_string_alloc();
     instance->event_pubsub = furi_pubsub_alloc();
+
+    MqttSubscriptionList_init(instance->subscriptions);
 
     mqtt_init_device_uid(instance);
 
@@ -650,9 +741,7 @@ static MqttClient* mqtt_client_alloc(void) {
     mg_wakeup_init(&instance->mgr);
 
     mqtt_api_init(instance);
-
-    // Start listening for BusyTimer events
-    mqtt_busy_timer_init(instance);
+    mqtt_device_topics_init(instance);
 
     instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
 
@@ -680,7 +769,7 @@ int32_t mqtt_client_start(void* arg) {
 
 // Subscribe & publish internal implementations
 
-static void mqtt_make_topic_path(
+void mqtt_make_topic_path(
     MqttClient* instance,
     MqttScope scope,
     const char* dir,
@@ -704,19 +793,38 @@ static void mqtt_make_topic_path(
     furi_string_printf(out, "%s/%s/%s/%s/%s", root, id, dir, MQTT_API_VERSION, topic);
 }
 
-void mqtt_subscribe_internal(MqttClient* instance, MqttScope scope, MqttQos qos, const char* topic) {
-    FuriString* path = furi_string_alloc();
-    mqtt_make_topic_path(instance, scope, "down", topic, path);
+static MqttSubscription* mqtt_subscription_alloc(void) {
+    MqttSubscription* subscription = malloc(sizeof(MqttSubscription));
 
-    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(path));
+    subscription->topic = furi_string_alloc();
+    MqttSubscriptionList_init_field(subscription);
 
-    const struct mg_mqtt_opts sub_opts = {
-        .topic = mg_str(furi_string_get_cstr(path)),
-        .qos = qos,
-    };
+    return subscription;
+}
 
-    mg_mqtt_sub(instance->conn, &sub_opts);
-    furi_string_free(path);
+// static void mqtt_subscription_free(MqttSubscription* subscription) {
+//     furi_string_free(subscription->topic);
+//     free(subscription);
+// }
+
+MqttSubscription* mqtt_subscribe_internal(
+    MqttClient* instance,
+    MqttScope scope,
+    MqttQos qos,
+    const char* topic,
+    MqttSubscriptionCallback callback,
+    void* context) {
+    MqttSubscription* subscription = mqtt_subscription_alloc();
+
+    furi_string_set(subscription->topic, topic);
+    subscription->scope = scope;
+    subscription->qos = qos;
+    subscription->callback = callback;
+    subscription->callback_context = context;
+
+    MqttSubscriptionList_push_back(instance->subscriptions, subscription);
+
+    return subscription;
 }
 
 uint16_t mqtt_publish_internal(
@@ -757,6 +865,8 @@ static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeM
     [MqttApiMessageTypeGetProfile] = mqtt_get_profile_api_message_handler,
     [MqttApiMessageTypeSetProfile] = mqtt_set_profile_api_message_handler,
     [MqttApiMessageTypePublish] = mqtt_publish_message_handler,
+    [MqttApiMessageTypeSubscribe] = mqtt_subscribe_message_handler,
+    [MqttApiMessageTypeUnsubscribe] = mqtt_unsubscribe_message_handler,
     [MqttApiMessageTypeWifiState] = mqtt_wifi_state_message_handler,
 };
 

@@ -11,6 +11,14 @@
 
 typedef struct MqttClient MqttClient;
 
+typedef struct MqttSubscription MqttSubscription;
+
+typedef void (*MqttSubscriptionCallback)(
+    const char* topic,
+    const void* data,
+    size_t data_size,
+    void* context);
+
 typedef enum {
     MqttEventTypeStatusChanged,
     MqttEventTypeLinkPinReceived,
@@ -73,3 +81,12 @@ void mqtt_client_publish(
     const char* topic,
     const void* data,
     size_t data_size);
+
+MqttSubscription* mqtt_subscribe(
+    MqttClient* instance,
+    MqttQos qos,
+    const char* topic,
+    MqttSubscriptionCallback callback,
+    void* context);
+
+void mqtt_unsubscribe(MqttClient* instance, MqttSubscription* subscription);
