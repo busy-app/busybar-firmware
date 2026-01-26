@@ -112,6 +112,7 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->updater = furi_record_open(RECORD_UPDATER);
     instance->matter = furi_record_open(RECORD_MATTER);
     instance->theme = busy_theme_alloc();
 
@@ -212,6 +213,7 @@ static void busy_free(BusyApp* instance) {
 
     furi_record_close(RECORD_BUSY_TIMER);
     furi_record_close(RECORD_MATTER);
+    furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);

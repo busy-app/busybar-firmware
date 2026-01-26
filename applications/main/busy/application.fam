@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.APP,
     order=10,
     entry_point="busy_app",
-    requires=["gui"],
+    requires=["gui", "updater"],
     stack_size=4 * 1024,
     cdefines=["APP_BUSY"],
     targets=["f20", "f21", "f22"],
