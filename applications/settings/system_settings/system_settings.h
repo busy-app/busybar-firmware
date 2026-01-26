@@ -10,6 +10,7 @@
 #include <gui/gui.h>
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
+#include <power/power_service/power.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -40,6 +41,7 @@ typedef struct {
     Gui* gui;
     FrontDisplaySrv* front_display;
     BackDisplaySrv* back_display;
+    Power* power;
 
     Widget* front_scene_window;
     Widget* back_scene_window;

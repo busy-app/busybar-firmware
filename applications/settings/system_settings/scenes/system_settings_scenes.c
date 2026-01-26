@@ -4,6 +4,8 @@ extern const Scene system_settings_scene_main;
 extern const Scene system_settings_scene_factory_reset_confirm;
 extern const Scene system_settings_scene_factory_reset;
 extern const Scene system_settings_scene_power_menu;
+extern const Scene system_settings_scene_power_shut_down_confirm;
+extern const Scene system_settings_scene_power_unplug_usb;
 
 const Scene* const system_settings_scenes[SceneIdsCount] = {
     [SceneIdMain] = &system_settings_scene_main,
@@ -12,4 +14,6 @@ const Scene* const system_settings_scenes[SceneIdsCount] = {
     [SceneIdFactoryReset] = &system_settings_scene_factory_reset,
 
     [SceneIdPowerMenu] = &system_settings_scene_power_menu,
+    [SceneIdPowerShutDownConfirm] = &system_settings_scene_power_shut_down_confirm,
+    [SceneIdPowerUnplugUsb] = &system_settings_scene_power_unplug_usb,
 };

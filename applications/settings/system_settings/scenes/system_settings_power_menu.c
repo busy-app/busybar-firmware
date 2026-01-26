@@ -5,8 +5,10 @@
 #include <gui/modules/var_item_list.h>
 #include <gui/modules/submenu.h>
 
+#include <power/power_service/power.h>
+
 typedef enum {
-    SceneEventTransportMode = AppEventSceneEventsStart,
+    SceneEventShutDown = AppEventSceneEventsStart,
     SceneEventRestart,
     SceneEventInfo,
 } SceneEvent;
@@ -33,8 +35,8 @@ static void scene_power_menu_on_enter(void* context) {
         data->front_menu = submenu_alloc(instance->front_scene_window);
         submenu_add_item(
             data->front_menu,
-            "Transport mode",
-            SceneEventTransportMode,
+            "Shut down",
+            SceneEventShutDown,
             scene_power_menu_menu_item_callback,
             instance);
 
@@ -53,8 +55,7 @@ static void scene_power_menu_on_enter(void* context) {
             instance);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(
-            data->back_menu, "Transport mode", SceneEventTransportMode, NULL, instance);
+        submenu_add_item(data->back_menu, "Shut down", SceneEventShutDown, NULL, instance);
 
         submenu_add_item(data->back_menu, "Restart device", SceneEventRestart, NULL, instance);
 
@@ -84,7 +85,14 @@ static bool scene_power_menu_on_event(const SceneManagerEvent* event, void* cont
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == SceneEventTransportMode) {
+        if(event->event == SceneEventShutDown) {
+            bool is_usb_connected = power_is_usb_connected(instance->power);
+
+            if(is_usb_connected) {
+                scene_manager_next_scene(instance->scene_manager, SceneIdPowerUnplugUsb);
+            } else {
+                scene_manager_next_scene(instance->scene_manager, SceneIdPowerShutDownConfirm);
+            }
             consumed = true;
         } else if(event->event == SceneEventRestart) {
             consumed = true;

@@ -41,8 +41,7 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
     furi_delay_ms(REBOOT_TIMER_MS);
     // TODO Make factory reset
 
-    Power* power = furi_record_open(RECORD_POWER);
-    power_reboot(power, PowerRebootNormal);
+    power_reboot(instance->power, PowerRebootNormal);
     while(1)
         ;
 }

@@ -84,6 +84,7 @@ static SystemSettings* system_settings_alloc() {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
+    instance->power = furi_record_open(RECORD_POWER);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -141,6 +142,7 @@ static void system_settings_free(SystemSettings* instance) {
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
+    furi_record_close(RECORD_POWER);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
