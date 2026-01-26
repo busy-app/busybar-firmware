@@ -150,6 +150,12 @@ typedef struct {
     FuriApiLock lock;
 } MqttApiMessage;
 
+void mqtt_handle_api_message(MqttClient* instance, const MqttApiMessage* message);
+
+void mqtt_reset_saved_state(MqttClient* instance);
+
+void mqtt_connect_callback(void* data);
+
 void mqtt_make_topic_path(
     MqttClient* instance,
     MqttScope scope,
