@@ -208,8 +208,12 @@ static StatusBar* status_bar_alloc(void) {
     bool is_usb_connected = power_is_usb_connected(instance->power);
     float audio_volume = audio_get_volume(instance->audio);
 
+#ifdef SRV_WIFI
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     furi_state_subscribe(wifi_get_state(wifi), wifi_state_callback, instance);
+#else
+    UNUSED(wifi_state_callback);
+#endif
 
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);

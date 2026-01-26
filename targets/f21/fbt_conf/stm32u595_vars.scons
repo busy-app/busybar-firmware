@@ -6,6 +6,7 @@ Import("FW_ENV", "VARS")
 _fw_default_apps_config = {
     "default": [
         "basic_services",
+        "extended_services",
         "main_apps",
         "settings",
         "system_apps",
@@ -13,11 +14,16 @@ _fw_default_apps_config = {
     ],
     "unit_tests": [
         "basic_services",
+        "extended_services",
         "settings",
         "system_apps",
         "main_apps",
         "debug_apps",
         "unit_tests",
+    ],
+    "recovery": [
+        "basic_services",
+        "recovery",
     ],
 }
 

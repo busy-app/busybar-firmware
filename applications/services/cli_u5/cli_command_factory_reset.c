@@ -29,6 +29,7 @@ static void format_emmc_ext(void) {
 }
 
 static void wifi_ble_reset_pairing(void) {
+#ifdef SRV_BLE
     printf("Resetting BLE pairing...\r\n");
 
     Ble* ble = furi_record_open(RECORD_BLE);
@@ -36,6 +37,7 @@ static void wifi_ble_reset_pairing(void) {
     furi_record_close(RECORD_BLE);
 
     printf("BLE pairing was successfully reset\r\n");
+#endif // SRV_BLE
 }
 
 static void wifi_ble_restore_default_config(void) {

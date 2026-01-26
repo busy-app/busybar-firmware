@@ -5,6 +5,7 @@
 #define TEMP_PIPE_SZ 128U
 #define CLI_PROMPT   "\r\n917>: "
 
+#ifdef SRV_INTERCOM
 bool cli_command_sl_cli_send_command_get_response(PipeSide* pipe, const char* sl_cmd) {
     PipeSideBundle temp_bundle = pipe_alloc(TEMP_PIPE_SZ, 1);
     PipeSide* temp_own_pipe = temp_bundle.alices_side;
@@ -52,3 +53,7 @@ void cli_command_sl_echo(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
 }
+
+#else
+
+#endif
