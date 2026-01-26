@@ -7,3 +7,12 @@ App(
     stack_size=1024 * 1,
     sources=["crash.c"],
 )
+
+App(
+    appid="crash_cmd",
+    name="crash",
+    targets=["f64", "f65"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="crash_cli_command",
+    sources=["crash_cli.c"],
+)

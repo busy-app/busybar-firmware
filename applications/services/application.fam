@@ -50,7 +50,16 @@ App(
     appid="basic_services",
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
-    provides=["cli", "input", "network", "wifi", "nvm", "matter", "startup_dfu_hook"],
+    provides=[
+        "cli",
+        "input",
+        "network",
+        "wifi",
+        "nvm",
+        "matter",
+        "startup_dfu_hook",
+        "crash_cmd",
+    ],
     targets=["f64", "f65"],
 )
 
