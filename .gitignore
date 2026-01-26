@@ -29,11 +29,14 @@ __pycache__/
 *.pickle
 
 .obj/
-.stfolder/
 bindings/
 .DS_Store
 .mxproject
 Brewfile.lock.json
+
+# syncthing
+.stfolder/
+.stignore
 
 # Kate
 .kateproject
