@@ -48,7 +48,7 @@ struct MqttClient {
     struct mg_timer reconnect_delay_timer;
     uint32_t reconnect_delay;
 
-    unsigned long wakeup_conn_id;
+    unsigned long api_connection_id;
 
     struct mg_timer ping_timer;
     bool ping_enabled;
@@ -150,11 +150,17 @@ typedef struct {
     FuriApiLock lock;
 } MqttApiMessage;
 
-void mqtt_handle_api_message(MqttClient* instance, const MqttApiMessage* message);
+void mqtt_api_init(MqttClient* instance);
+
+void mqtt_connection_open(MqttClient* instance);
 
 void mqtt_reset_saved_state(MqttClient* instance);
 
-void mqtt_connect_callback(void* data);
+const char* mqtt_get_server_url(const MqttClient* instance);
+
+void mqtt_set_status(MqttClient* instance, MqttClientStatus status);
+
+bool mqtt_is_tls_enabled(const MqttClient* instance);
 
 void mqtt_make_topic_path(
     MqttClient* instance,
@@ -171,6 +177,8 @@ MqttSubscription* mqtt_subscribe_internal(
     MqttSubscriptionCallback callback,
     void* context);
 
+void mqtt_unsubscribe_internal(MqttClient* instance, MqttSubscription* subscription);
+
 uint16_t mqtt_publish_internal(
     MqttClient* instance,
     MqttScope scope,
@@ -179,6 +187,7 @@ uint16_t mqtt_publish_internal(
     const void* data,
     size_t data_size);
 
+// TODO: --- snip ---
 bool mqtt_topics_on_message(
     MqttClient* mqtt,
     const FuriString* topic_str,
@@ -197,6 +206,7 @@ void mqtt_screen_streaming_on_message(
     const struct mg_mqtt_message* msg);
 
 void mqtt_screen_streaming_on_close(MqttClient* mqtt);
+// TODO: --- snip ---
 
 bool mqtt_tls_init(
     struct mg_connection* conn,
