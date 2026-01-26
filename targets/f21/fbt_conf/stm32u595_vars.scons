@@ -19,6 +19,13 @@ _fw_default_apps_config = {
         "debug_apps",
         "unit_tests",
     ],
+    "917_crash": [
+        "basic_services",
+        "main_apps",
+        "settings",
+        "system_apps",
+        "debug_apps",
+    ],
 }
 
 fw_apps_configs_option = find_variable_config(VARS, "FIRMWARE_APPS")

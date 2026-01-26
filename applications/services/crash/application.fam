@@ -1,0 +1,9 @@
+App(
+    appid="crash",
+    name="crash",
+    targets=["f64", "f65"],
+    apptype=FlipperAppType.SERVICE,
+    entry_point="crash_srv",
+    stack_size=1024 * 1,
+    sources=["crash.c"],
+)
