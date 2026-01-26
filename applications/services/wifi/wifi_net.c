@@ -10,6 +10,8 @@
 #define WIRELESS_MTU (MAX_DATA_LEN - SIZEOF_ETH_HDR + ETH_PAD_SIZE)
 #define DHCP_WAIT_MS (30 * 1000)
 
+#define INTERCOM_TX_TIMEOUT_MS (500)
+
 static err_t wifi_link_output_callback(struct netif* netif, struct pbuf* p) {
     Wifi* instance = netif->state;
     furi_assert(instance);
@@ -19,12 +21,16 @@ static err_t wifi_link_output_callback(struct netif* netif, struct pbuf* p) {
 #endif
 
     const size_t tx_size =
-        intercom_tx(instance->intercom_ch_data, p->payload, p->len, FuriWaitForever);
-    furi_check(tx_size == p->len);
+        intercom_tx(instance->intercom_ch_data, p->payload, p->len, INTERCOM_TX_TIMEOUT_MS);
 
 #if(ETH_PAD_SIZE != 0)
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
+
+    if(tx_size != p->len) {
+        FURI_LOG_W(TAG, "intercom_tx timeout or incomplete send");
+        return ERR_IF;
+    }
 
     return ERR_OK;
 }
