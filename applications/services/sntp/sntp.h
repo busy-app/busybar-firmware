@@ -6,8 +6,7 @@
 
 #include "settings/settings.h"
 
-#include <furi.h>
-#include <time.h>
+#include <datetime.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,9 +43,17 @@ void sntp_get_settings(const Sntp* instance, SntpSettings* settings);
 bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
 
 /**
+ * @brief Get local time & date.
+ * 
+ * @param[in] instance pointer to the SNTP service instance
+ * @param[out] datetime pointer to a structure to be filled with local time & date
+ */
+void sntp_get_local_datetime(Sntp* instance, DateTime* datetime);
+
+/**
  * @brief Get local Unix seconds timestamp
  * 
- * @param[in] instance
+ * @param[in] instance pointer to the SNTP service instance
  * @return 64-bit local Unix seconds timestamp
  */
 time_t sntp_get_local_timestamp(Sntp* instance);
@@ -54,7 +61,7 @@ time_t sntp_get_local_timestamp(Sntp* instance);
 /**
  * @brief Get local Unix milliseconds timestamp
  *
- * @param[in] instance
+ * @param[in] instance pointer to the SNTP service instance
  * @return 64-bit local Unix milliseconds timestamp
  */
 time_t sntp_get_local_timestamp_ms(Sntp* instance);

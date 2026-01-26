@@ -1,8 +1,8 @@
-#include <furi.h>
-
+#include <sntp/sntp.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
-#include <furi_hal_rtc.h>
+
+#include <furi.h>
 
 #define TAG                      "Clock"
 #define CLOCK_INTERVAL_UPDATE_MS (500) // 500 milliseconds
@@ -15,6 +15,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     Gui* gui;
+    Sntp* sntp;
     Label* labels[GuiDisplayIdMax];
     FuriString* time_string;
 } Clock;
@@ -47,9 +48,9 @@ static void clock_custom_event_callback(uint32_t events, void* context) {
 
 const char* clock_get_time_string(Clock* instance) {
     furi_assert(instance);
-    UNUSED(instance);
+
     DateTime date_time;
-    furi_hal_rtc_get_datetime(&date_time);
+    sntp_get_local_datetime(instance->sntp, &date_time);
 
     furi_string_printf(
         instance->time_string,
@@ -60,6 +61,7 @@ const char* clock_get_time_string(Clock* instance) {
         date_time.day,
         date_time.month,
         date_time.year);
+
     return furi_string_get_cstr(instance->time_string);
 }
 
@@ -83,6 +85,7 @@ static Clock* clock_alloc(void) {
     instance->time_string = furi_string_alloc();
 
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->sntp = furi_record_open(RECORD_SNTP);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, clock_custom_event_callback, instance);
@@ -118,6 +121,7 @@ static void clock_free(Clock* instance) {
         }
     });
 
+    furi_record_close(RECORD_SNTP);
     furi_record_close(RECORD_GUI);
     furi_event_loop_timer_stop(instance->timer);
     furi_event_loop_timer_free(instance->timer);
