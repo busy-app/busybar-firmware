@@ -31,28 +31,37 @@ typedef struct {
     SntpTimeUpdateCallback callback;
 } ThreadContext;
 
-static void rtc_adjust_time(time_t mseconds_epoch) {
-    /* extract millisecond-precision epoch time */
-    time_t seconds_new = mseconds_epoch / 1000;
-    int mseconds_new = mseconds_epoch % 1000;
+static void rtc_adjust_time(time_t timestamp_ms) {
+    /* capture current RTC time */
+    time_t timestamp_ms_old = furi_hal_rtc_get_timestamp_ms();
 
-    /* capture current RTC time before update for delta calculation */
-    DateTime datetime_new, datetime_old;
-    furi_hal_rtc_get_datetime(&datetime_old);
-
-    /* apply timezone offset & update RTC with synchronized time */
-    datetime_timestamp_to_datetime(seconds_new, &datetime_new);
+    /* update RTC with received time */
+    DateTime datetime_new;
+    datetime_timestamp_ms_to_datetime(timestamp_ms, &datetime_new);
     furi_hal_rtc_set_datetime(&datetime_new);
 
     /* log updated UTC time */
-    char datetime_new_str[20]; /* 19 for "YYYY-MM-DD HH:MM:SS" + 1 for null terminator */
-    strftime(
-        datetime_new_str, sizeof(datetime_new_str), "%Y-%m-%d %H:%M:%S", gmtime(&seconds_new));
-    FURI_LOG_I(TAG, "Exact UTC time: %s.%03d", datetime_new_str, mseconds_new);
+    FURI_LOG_I(
+        TAG,
+        "Exact UTC time: %04" PRIu16 "-%02" PRIu8 "-%02" PRIu8 " %02" PRIu8 ":%02" PRIu8
+        ":%02" PRIu8 ".%03" PRIu16,
+        datetime_new.year,
+        datetime_new.month,
+        datetime_new.day,
+        datetime_new.hour,
+        datetime_new.minute,
+        datetime_new.second,
+        datetime_new.millis);
 
     /* log count of seconds RTC was adjusted */
-    time_t seconds_old = datetime_datetime_to_timestamp(&datetime_old);
-    FURI_LOG_I(TAG, "Time adjustment from RTC: %+d seconds", (int)(seconds_new - seconds_old));
+    bool is_delta_positive = timestamp_ms >= timestamp_ms_old;
+    uint64_t delta_ms = llabs(timestamp_ms - timestamp_ms_old);
+    FURI_LOG_I(
+        TAG,
+        "RTC time adjusted by %c%" PRIu64 ".%03" PRIu64 " seconds",
+        is_delta_positive ? '+' : '-',
+        delta_ms / 1000,
+        delta_ms % 1000);
 }
 
 static void time_update_callback(struct mg_connection* c, int ev, void* ev_data) {
