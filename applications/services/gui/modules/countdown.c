@@ -13,7 +13,7 @@ struct Countdown {
     lv_timer_t* timer;
 
     time_t timestamp;
-    DateTime last_updated_at;
+    uint8_t last_update_second;
     CountdownDirection direction;
     CountdownShowHour hours;
 };
@@ -27,12 +27,12 @@ const lv_obj_class_t countdown_lvgl_class;
 static void countdown_update(Countdown* countdown) {
     furi_assert(countdown);
 
-    DateTime local_time = {0};
-    furi_hal_rtc_get_datetime(&local_time);
-    if(memcmp(&local_time, &countdown->last_updated_at, sizeof(local_time)) == 0) return;
-    countdown->last_updated_at = local_time;
+    DateTime datetime;
+    furi_hal_rtc_get_datetime(&datetime);
+    if(datetime.second == countdown->last_update_second) return;
+    countdown->last_update_second = datetime.second;
 
-    time_t now = furi_hal_rtc_get_timestamp();
+    time_t now = datetime_datetime_to_timestamp(&datetime);
 
     time_t delta = countdown->timestamp - now;
     if(countdown->direction == CountdownDirectionTimeSince) delta = -delta;
