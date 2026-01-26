@@ -66,7 +66,7 @@ void matter_settings_send_custom_event(MatterSettings* instance, uint32_t event)
 
 bool matter_settings_check_wifi_connectivity(MatterSettings* instance);
 
-void matter_settings_exit_if_last(MatterSettings* instance);
+bool matter_settings_exit_if_last(MatterSettings* instance);
 
 #ifdef __cplusplus
 }
