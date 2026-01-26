@@ -1,6 +1,7 @@
 #include <sntp/sntp.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
+#include <applications/system/updater/updater.h>
 
 #include <furi.h>
 
@@ -16,6 +17,7 @@ typedef struct {
     FuriEventLoopTimer* timer;
     Gui* gui;
     Sntp* sntp;
+    Updater* updater;
     Label* labels[GuiDisplayIdMax];
     FuriString* time_string;
 } Clock;
@@ -86,6 +88,9 @@ static Clock* clock_alloc(void) {
 
     instance->gui = furi_record_open(RECORD_GUI);
     instance->sntp = furi_record_open(RECORD_SNTP);
+    instance->updater = furi_record_open(RECORD_UPDATER);
+
+    updater_pause_autoupdates(instance->updater);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, clock_custom_event_callback, instance);
@@ -121,6 +126,9 @@ static void clock_free(Clock* instance) {
         }
     });
 
+    updater_resume_autoupdates(instance->updater);
+
+    furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_SNTP);
     furi_record_close(RECORD_GUI);
     furi_event_loop_timer_stop(instance->timer);
