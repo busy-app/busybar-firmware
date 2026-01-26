@@ -49,18 +49,17 @@ static void clock_custom_event_callback(uint32_t events, void* context) {
 const char* clock_get_time_string(Clock* instance) {
     furi_assert(instance);
 
-    DateTime date_time;
-    sntp_get_local_datetime(instance->sntp, &date_time);
+    LocalTime lt = sntp_get_local_time(instance->sntp);
 
     furi_string_printf(
         instance->time_string,
         "   %02d:%02d:%02d\n%02d-%02d-%04d",
-        date_time.hour,
-        date_time.minute,
-        date_time.second,
-        date_time.day,
-        date_time.month,
-        date_time.year);
+        lt.dt.hour,
+        lt.dt.minute,
+        lt.dt.second,
+        lt.dt.day,
+        lt.dt.month,
+        lt.dt.year);
 
     return furi_string_get_cstr(instance->time_string);
 }

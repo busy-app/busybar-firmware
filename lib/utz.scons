@@ -1,0 +1,23 @@
+from fbt.util import GLOB_FILE_EXCLUSION
+
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        Dir("utz").srcnode(),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="utz")
+libenv.ApplyLibFlags()
+
+
+sources = Glob(
+    "utz/*.c",
+    exclude=GLOB_FILE_EXCLUSION,
+    source=True,
+)
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

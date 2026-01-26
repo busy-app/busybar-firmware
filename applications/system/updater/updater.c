@@ -215,11 +215,10 @@ static void autoupdate_timer_callback(void* context) {
     }
 
     Sntp* sntp = furi_record_open(RECORD_SNTP);
-    DateTime datetime;
-    sntp_get_local_datetime(sntp, &datetime);
+    LocalTime local_time = sntp_get_local_time(sntp);
     furi_record_close(RECORD_SNTP);
 
-    int time_minutes = datetime.hour * 60 + datetime.minute;
+    int time_minutes = local_time.dt.hour * 60 + local_time.dt.minute;
     int interval_start = instance->settings.autoupdate_interval_start;
     int interval_end = instance->settings.autoupdate_interval_end;
     bool is_time_in_interval =
@@ -231,8 +230,8 @@ static void autoupdate_timer_callback(void* context) {
         FURI_LOG_D(
             TAG,
             "Autoupdate: skipped, outside time window (%02d:%02d)",
-            datetime.hour,
-            datetime.minute);
+            local_time.dt.hour,
+            local_time.dt.minute);
         return;
     }
 

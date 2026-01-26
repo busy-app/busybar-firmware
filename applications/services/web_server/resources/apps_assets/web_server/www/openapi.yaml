@@ -1251,9 +1251,7 @@ paths:
         - System
       summary: Set current timestamp
       description: |
-        Sets the RTC timestamp in ISO 8601 format.
-        - Without 'Z': treated as local time
-        - With 'Z': treated as UTC and converted to local time using current timezone offset
+        Sets the RTC timestamp in ISO 8601 format. Time zone qualifier (e.g. Z of UTC or +hh:mm for local time) is required.
       operationId: setTimeTimestamp
       parameters:
         - name: timestamp
@@ -1261,9 +1259,9 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z?$"
-          description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45 for local time or 2025-10-02T14:30:45Z for UTC)
-          example: "2025-10-02T14:30:45"
+            pattern: "^[0-9]{4}(-?)[0-9]{2}\\1[0-9]{2}T[0-9]{2}(:?)[0-9]{2}\\2[0-9]{2}(Z|([+-][0-9]{2}:?([0-9]{2})?))$"
+          description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45+02:00 for local time or 2025-10-02T14:30:45Z for UTC)
+          example: "2025-10-02T14:30:45+0100"
       responses:
         "200":
           description: Timestamp set successfully
@@ -1282,8 +1280,8 @@ paths:
     post:
       tags:
         - System
-      summary: Set timezone offset
-      description: Sets the timezone offset in ±HH:MM format
+      summary: Set timezone
+      description: Sets the timezone name. Use getTimeTzlist to get available names list.
       operationId: setTimeTimezone
       parameters:
         - name: timezone
@@ -1291,9 +1289,9 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[+-][0-9]{2}:[0-9]{2}$"
-          description: Timezone offset in ±HH:MM format (range -12:00 to +14:00)
-          example: "+04:00"
+            pattern: "^.+$"
+          description: Timezone name
+          example: "Stuttgart"
       responses:
         "200":
           description: Timezone set successfully
@@ -1303,6 +1301,27 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid timezone offset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/time/tzlist:
+    get:
+      tags:
+        - System
+      summary: Get list of supported time zones
+      description: Retrieves the list of time zones accepted by setTimeTimezone
+      operationId: getTimeTzlist
+      responses:
+        "200":
+          description: Got the list successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimezoneListResponse"
+        "400":
+          description: Error getting time zone list
           content:
             application/json:
               schema:
@@ -2131,6 +2150,13 @@ components:
         is_autostart_enabled:
           type: boolean
           example: false
+
+    TimezoneListResponse:
+      type: array
+      items:
+        type: string
+        example: "Adelaide"
+
 
 tags:
   - name: System
