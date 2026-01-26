@@ -115,6 +115,14 @@ static bool api_wifi_parse_ip_method(FuriString* method_str, WifiIpManagement* m
     return result;
 }
 
+static bool api_wifi_check_record_exists(struct mg_connection* conn) {
+    if(!furi_record_exists(RECORD_WIFI)) {
+        MG_REPLY_ERROR(conn, 500, "WiFi service not available");
+        return true;
+    }
+    return false;
+}
+
 static bool api_wifi_get_networks_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -124,6 +132,7 @@ static bool api_wifi_get_networks_callback(
     UNUSED(msg);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(!api_wifi_check_record_exists(conn)) return true;
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiScanResult* results = malloc(sizeof(WifiScanResult) * WIFI_SCAN_RESULT_COUNT);
@@ -329,6 +338,7 @@ static bool api_wifi_connect_callback(
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(!api_wifi_check_record_exists(conn)) return true;
 
     WifiCredentials credentials = {0};
     WifiIpConfig ip_config = {0};
@@ -370,6 +380,7 @@ static bool api_wifi_disconnect_callback(
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(!api_wifi_check_record_exists(conn)) return true;
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiStatus status = wifi_disconnect(wifi);
@@ -407,6 +418,7 @@ static bool api_wifi_get_status_callback(
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(!api_wifi_check_record_exists(conn)) return true;
 
     WifiInfo info = {0};
     Wifi* wifi = furi_record_open(RECORD_WIFI);
