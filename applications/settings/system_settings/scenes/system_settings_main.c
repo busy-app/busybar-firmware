@@ -75,6 +75,9 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
         if(event->event == SceneEventFactoryReset) {
             scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);
             consumed = true;
+        } else if(event->event == SceneEventPower) {
+            scene_manager_next_scene(instance->scene_manager, SceneIdPowerMenu);
+            consumed = true;
         }
     } else if(event->type == SceneManagerEventTypeBack) {
         desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
