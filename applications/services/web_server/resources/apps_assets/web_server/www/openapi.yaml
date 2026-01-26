@@ -1355,6 +1355,102 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/matter/commissioning:
+    get:
+      tags:
+        - Matter
+      summary: Smart home commissioning status
+      operationId: getMatterCommissioningStatus
+      parameters: []
+      responses:
+        "200":
+          description: Successfully got Matter commissioning status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatterCommissionedFabrics"
+    post:
+      tags:
+        - Matter
+      summary: Link device to a smart home
+      operationId: startMatterCommissioning
+      parameters: []
+      responses:
+        "200":
+          description: Successfully started Matter commissioning
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatterCommissioningPayload"
+        "503":
+          description: Internal Matter service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - Matter
+      summary: Erase all smart home links
+      parameters: []
+      responses:
+        "200":
+          description: Successfully erased all Matter commissioning info, device restart is needed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Internal Matter service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/matter/endpoint/1:
+    get:
+      tags:
+        - Matter
+      summary: Get Matter endpoint 1 state
+      parameters: []
+      responses:
+        "200":
+          description: Successfully got Matter endpoint 1 state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatterEndpointState"
+        "503":
+          description: Internal Matter service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Matter
+      summary: Set Matter endpoint 1 state
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatterEndpointState"
+      responses:
+        "200":
+          description: Successfully set Matter endpoint 1 state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Internal Matter service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -2131,6 +2227,66 @@ components:
         is_autostart_enabled:
           type: boolean
           example: false
+
+    MatterCommissionedFabrics:
+      type: object
+      properties:
+        fabric_count:
+          type: integer
+          example: 1
+          description: "Number of Matter smart homes (\"fabrics\") that this device is linked with (\"commissioned into\")"
+        latest_commissioning_status:
+          type: object
+          properties:
+            value:
+              type: string
+              enum:
+                - never_started
+                - started
+                - completed_successfully
+                - failed
+              description: "Latest state of Matter smart home linking (\"commissioning\") process. Note: \"never_started\" only refers to the current power cycle of the device; this status is not recorded across reboots."
+              example: "completed_successfully"
+            timestamp:
+              type: string
+              description: "UTC Unix millisecond timestamp of latest state update. Note: it's a number in a string."
+              example: "1769436711000"
+    MatterCommissioningPayload:
+      type: object
+      properties:
+        available_until:
+          type: string
+          description: "Linking with (\"commissioning into\") a Matter smart home using the provided payload is possible before this UTC Unix millisecond timestamp. Note: it's a number in a string."
+          example: "1769437579000"
+        qr_code:
+          type: string
+          description: "Payload of the QR code for linking with (\"commissioning into\") a Matter smart home"
+          example: "MT:YNDA0-O913..VV7I000"
+        manual_code:
+          type: string
+          description: "Manual code for linking with (\"commissioning into\") a Matter smart home"
+          example: "1155-360-0377"
+    MatterEndpointState:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - switch
+          description: "Type of device emulated by a Matter endpoint. Currently only \"switch\" is implemented."
+          example: switch
+        state:
+          type: boolean
+          description: "State of device emulated by a Matter endpoint. Boolean for \"switch\" device type."
+          example: false
+        startup:
+          type: string
+          enum:
+            - "off"
+            - "on"
+            - toggle
+            - last
+          description: "For the \"switch\" device type, specifies the value on startup. Never sent by the server, but can be specified by the client."
 
 tags:
   - name: System

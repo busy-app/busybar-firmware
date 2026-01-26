@@ -148,8 +148,9 @@ static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* conte
     furi_assert(context);
     MatterCli* matter_cli = context;
 
-    if(matter_is_commissioned(matter_cli->matter)) {
-        printf("device is commissioned to one or more fabrics\r\n");
+    size_t count = matter_commissioned_fabrics(matter_cli->matter).count;
+    if(count) {
+        printf("device is commissioned to %zu fabrics\r\n", count);
     } else {
         printf("device is not commissioned to any fabric\r\n");
     }
@@ -211,8 +212,13 @@ static void matter_cli_motd(void* context) {
 
     FuriString* formatted_state = furi_string_alloc();
 
-    matter_cli_format_switch_state(
-        matter_cli, formatted_state, matter_get_switch_state(matter_cli->matter));
+    bool state;
+    if(matter_get_switch_state(matter_cli->matter, &state)) {
+        matter_cli_format_switch_state(matter_cli, formatted_state, state);
+    } else {
+        furi_string_set_str(formatted_state, "service unavailable");
+    }
+
     printf("  %s\r\n", furi_string_get_cstr(formatted_state));
 
     furi_string_free(formatted_state);

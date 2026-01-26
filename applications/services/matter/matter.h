@@ -6,6 +6,7 @@
 #pragma once
 
 #include "matter_common.h"
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,10 +62,11 @@ FuriPubSub* matter_get_pubsub(MatterSrv* matter);
  * @brief Gets the state of the Matter switch
  * 
  * @param[in] matter Service instance
+ * @param[out] state Switch state. May be `NULL`
  * 
- * @returns Current state of the Matter switch. Always false on error.
+ * @returns true on success
  */
-bool matter_get_switch_state(MatterSrv* matter);
+bool matter_get_switch_state(MatterSrv* matter, bool* state);
 
 /**
  * @brief Sets the state of the Matter switch
@@ -109,14 +111,23 @@ size_t
     matter_enable_commissioning(MatterSrv* matter, FuriString* qr_code, FuriString* manual_code);
 
 /**
- * @brief Determines whether the device is commissioned into at least one Matter
- *        fabric
+ * @brief Commissioning information struct
+ */
+typedef struct {
+    size_t count; //<! Number of fabric the device is commissioned into
+    MatterCommissioningStatus last_status; //<! Latest status update from the service PubSub
+    time_t
+        last_status_at; //<! UTC Unix millisecond timestamp of latest status update. `0` means no updates have been issued yet.
+} MatterCommissionedFabrics;
+
+/**
+ * @brief Brief information about the commissioning status
  * 
  * @param[in] matter Service instance
  * 
- * @returns true if commissioned to any fabric. Always false on error.
+ * @returns Commissioning information struct
  */
-bool matter_is_commissioned(MatterSrv* matter);
+MatterCommissionedFabrics matter_commissioned_fabrics(MatterSrv* matter);
 
 #ifdef __cplusplus
 }

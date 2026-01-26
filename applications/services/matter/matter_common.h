@@ -15,6 +15,7 @@ extern "C" {
  * @brief Node commissioning (onboarding) status
  */
 typedef enum {
+    MatterCommissioningStatusNeverStarted,
     MatterCommissioningStatusStarted,
     MatterCommissioningStatusComplete,
     MatterCommissioningStatusFailed,
