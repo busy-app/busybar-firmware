@@ -23,6 +23,7 @@ _fw_default_apps_config = {
     ],
     "917_crash": [
         "basic_services",
+        "extended_services",
         "main_apps",
         "settings",
         "system_apps",
