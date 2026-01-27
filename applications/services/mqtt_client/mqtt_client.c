@@ -71,11 +71,9 @@ const char* mqtt_get_server_url(const MqttClient* instance) {
 }
 
 static void mqtt_link_otp_subscription_callback(
-    const char* topic,
     const void* data,
     size_t data_size,
     void* context) {
-    UNUSED(topic);
     furi_assert(context);
     MqttClient* instance = context;
 
@@ -101,11 +99,9 @@ static void mqtt_link_otp_subscription_callback(
 }
 
 static void mqtt_link_token_subscription_callback(
-    const char* topic,
     const void* data,
     size_t data_size,
     void* context) {
-    UNUSED(topic);
     furi_assert(context);
     MqttClient* instance = context;
 

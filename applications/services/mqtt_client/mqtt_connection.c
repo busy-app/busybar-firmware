@@ -246,12 +246,10 @@ static void mqtt_mqtt_msg_mg_event_handler(
     for(MqttSubscriptionList_it(it, instance->subscriptions); !MqttSubscriptionList_end_p(it);
         MqttSubscriptionList_next(it)) {
         const MqttSubscription* subscription = MqttSubscriptionList_cref(it);
-        const char* topic_str = furi_string_get_cstr(subscription->topic);
 
-        if(furi_string_end_with(topic_path, topic_str)) {
+        if(furi_string_end_with(topic_path, subscription->topic)) {
             if(subscription->callback) {
                 subscription->callback(
-                    topic_str,
                     message->data.buf,
                     message->data.len,
                     subscription->callback_context);

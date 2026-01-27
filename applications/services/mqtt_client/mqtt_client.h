@@ -14,7 +14,6 @@ typedef struct MqttClient MqttClient;
 typedef struct MqttSubscription MqttSubscription;
 
 typedef void (*MqttSubscriptionCallback)(
-    const char* topic,
     const void* data,
     size_t data_size,
     void* context);

@@ -529,11 +529,9 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
 }
 
 static void busy_timer_mqtt_subscription_callback(
-    const char* topic,
     const void* data,
     size_t data_size,
     void* context) {
-    UNUSED(topic);
     UNUSED(data_size); // FIXME: Dangerous?
 
     furi_assert(context);
