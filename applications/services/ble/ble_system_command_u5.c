@@ -58,16 +58,14 @@ static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, 
     FuriString* name = furi_string_alloc();
     ble_get_name_from_record(name);
 
-    size_t name_size = furi_string_size(name) + 1;
-    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + name_size;
+    size_t name_size = furi_string_size(name);
+    size_t new_msg_size = sizeof(BleIntercomFrameHeader) + name_size + 1;
 
     BleIntercomFrameGeneric* name_frame = malloc(new_msg_size);
-
     memcpy(&name_frame->header, &frame->header, sizeof(BleIntercomFrameHeader));
     name_frame->header.command = BleCommandSetDeviceName;
     name_frame->header.data_size = name_size;
     memcpy(name_frame->data, furi_string_get_cstr(name), name_size);
-    name_frame->data[name_size] = 0;
 
     bool result = ble_command_request_process(name_frame, context);
     free(name_frame);
