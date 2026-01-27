@@ -19,7 +19,7 @@ static int32_t nwp_get_active_version_thread_entry(void* context) {
 
 #ifdef SRV_INTERCOM
     bool success = cli_command_sl_cli_send_command_get_response(tx_pipe, "device_info");
-#else  // SRV_INTERCOM
+#else // SRV_INTERCOM
     bool success = false;
 #endif // SRV_INTERCOM
 
