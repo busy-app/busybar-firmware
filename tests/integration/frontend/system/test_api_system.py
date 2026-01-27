@@ -1,7 +1,32 @@
 import allure
 import pytest
 
+from typing import Optional
+
 from clients.api import SystemAPI
+
+
+@pytest.fixture
+def time_settings_guard(system_api: SystemAPI):
+    """Restore device time and timezone after a test."""
+    original = system_api.get_time().timestamp
+
+    timezone_offset: Optional[str] = None
+    if original.endswith("Z"):
+        timezone_offset = "+00:00"
+    elif len(original) >= 6 and (original[-6] in ("+", "-")):
+        timezone_offset = original[-6:]
+
+    original_local = original[:19]
+
+    yield original_local, timezone_offset
+
+    try:
+        if timezone_offset:
+            system_api.set_timezone(timezone_offset)
+        system_api.set_timestamp(original_local)
+    except Exception:
+        pass
 
 
 @allure.feature("5. Web Frontend")
@@ -86,7 +111,7 @@ class TestTimeAPI:
     @allure.title("POST /api/time/timestamp")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_time_timestamp_post(self, system_api: SystemAPI):
+    def test_api_time_timestamp_post(self, system_api: SystemAPI, time_settings_guard):
         """Test POST /api/time/timestamp endpoint"""
         test_timestamp = "2025-06-15T12:30:45"
 
@@ -126,7 +151,7 @@ class TestTimeAPI:
             "-12:00",
         ],
     )
-    def test_api_time_timezone_post(self, system_api: SystemAPI, test_tz):
+    def test_api_time_timezone_post(self, system_api: SystemAPI, test_tz, time_settings_guard):
         """Test POST /api/time/timezone endpoint"""
         system_api.set_timezone(test_tz)
 

@@ -3,11 +3,12 @@ from time import sleep
 
 import allure
 import pytest
+import requests
 
 from clients.api import AssetsAPI
 
 
-ASSETS_DIR = Path(__file__).parent.parent / "assets"
+ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 
 
 @allure.feature("5. Web Frontend")
@@ -64,7 +65,6 @@ class TestAssetsAPI:
     @allure.title("POST /api/display/draw (image)")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.xfail(reason="Test image asset (img.png) not present in repository")
     def test_api_display_draw_image(self, assets_api: AssetsAPI):
         """Test POST /api/display/draw endpoint with image element"""
         test_app_id = "test_display_img"
@@ -96,7 +96,14 @@ class TestAssetsAPI:
 
             assets_api.draw(test_app_id, elements)
         finally:
-            assets_api.delete_assets(test_app_id)
+            try:
+                assets_api.delete_assets(test_app_id)
+            except requests.exceptions.RequestException as exc:
+                allure.attach(
+                    f"Asset cleanup failed: {exc}",
+                    name="Asset Cleanup Error",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
 
     @allure.id("2654")
     @allure.title("DELETE /api/display/draw")
@@ -129,7 +136,14 @@ class TestAssetsAPI:
         try:
             assets_api.play_audio(test_app_id, test_audio_file)
         finally:
-            assets_api.delete_assets(test_app_id)
+            try:
+                assets_api.delete_assets(test_app_id)
+            except requests.exceptions.RequestException as exc:
+                allure.attach(
+                    f"Asset cleanup failed: {exc}",
+                    name="Asset Cleanup Error",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
 
     @allure.id("2656")
     @allure.title("DELETE /api/audio/play")

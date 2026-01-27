@@ -29,6 +29,29 @@ class TestBleAPI:
 
         assert response.status_code == 200
 
+    @allure.id("3564")
+    @allure.title("#3564 BLE. Preserve status over reboot")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_ble_preserve_status_over_reboot(
+        self, ble_api: BleAPI, reboot_device
+    ):
+        """Test that BLE enabled/disabled status is preserved over reboot"""
+        # Enable BLE and reboot then disable and reboot
+        ble_api.enable()
+        assert ble_api.get_status().state == "enabled"
+        reboot_device()
+        assert ble_api.get_status().state == "enabled"
+
+        ble_api.disable()
+        assert ble_api.get_status().state == "disabled"
+        reboot_device()
+        assert ble_api.get_status().state == "disabled"
+
+        ble_api.enable()
+        assert ble_api.get_status().state == "enabled"
+        reboot_device()
+        assert ble_api.get_status().state == "enabled"
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")
@@ -59,7 +82,6 @@ class TestBleStatusAPI:
     @allure.title("DELETE /api/ble/pairing")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.skip(reason="Destructive test - removes BLE pairing")
     def test_api_ble_pairing_delete(self, ble_api: BleAPI):
         """Test DELETE /api/ble/pairing endpoint"""
         response = ble_api.remove_pairing()

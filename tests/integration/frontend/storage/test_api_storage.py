@@ -53,7 +53,10 @@ class TestStorageAPI:
         """Test POST /api/storage/mkdir endpoint"""
         test_dir = f"/ext/test_mkdir_{int(time.time())}"
 
-        storage_api.mkdir(test_dir)
+        try:
+            storage_api.mkdir(test_dir)
+        finally:
+            storage_api.remove_raw(test_dir)
 
     @allure.id("2650")
     @allure.title(
