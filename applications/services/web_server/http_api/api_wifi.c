@@ -117,10 +117,10 @@ static bool api_wifi_parse_ip_method(FuriString* method_str, WifiIpManagement* m
 
 static bool api_wifi_check_record_exists(struct mg_connection* conn) {
     if(!furi_record_exists(RECORD_WIFI)) {
-        MG_REPLY_ERROR(conn, 500, "WiFi service not available");
-        return true;
+        MG_REPLY_ERROR(conn, 503, "WiFi service not available");
+        return false;
     }
-    return false;
+    return true;
 }
 
 static bool api_wifi_get_networks_callback(
