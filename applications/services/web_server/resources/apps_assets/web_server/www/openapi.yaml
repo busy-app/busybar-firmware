@@ -1277,11 +1277,30 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/time/timezone:
+    get:
+      tags:
+        - System
+      summary: Get timezone
+      description: Get current timezone name
+      operationId: getTimeTimezone
+      responses:
+        "200":
+          description: Timezone got successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimezoneInfo"
+        "400":
+          description: Invalid timezone offset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       tags:
         - System
       summary: Set timezone
-      description: Sets the timezone name. Use getTimeTzlist to get available names list.
+      description: Sets the timezone name. Use /api/time/tzlist to get available names list.
       operationId: setTimeTimezone
       parameters:
         - name: timezone
@@ -1311,7 +1330,7 @@ paths:
       tags:
         - System
       summary: Get list of supported time zones
-      description: Retrieves the list of time zones accepted by setTimeTimezone
+      description: Retrieves the list of time zones accepted by /api/time/timezone
       operationId: getTimeTzlist
       responses:
         "200":
@@ -1797,6 +1816,16 @@ components:
           example: "2025-10-02T14:30:45+04:00"
       required:
         - timestamp
+
+    TimezoneInfo:
+      type: object
+      properties:
+        timezone:
+          type: string
+          description: Timezone name
+          example: "Berlin"
+      required:
+        - timezone
 
     Status:
       type: object

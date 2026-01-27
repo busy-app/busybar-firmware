@@ -125,6 +125,35 @@ static bool api_time_set_timezone_callback(
     return true;
 }
 
+static bool api_time_get_timezone_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool is_success = true;
+
+    Sntp* sntp = furi_record_open(RECORD_SNTP);
+    SntpSettings settings;
+    sntp_get_settings(sntp, &settings);
+
+    furi_record_close(RECORD_SNTP);
+
+    FURI_LOG_D(TAG, "get timezone: '%s' '%s' %hhd:%hhu", settings.timezone.name, settings.timezone.abrev_formatter, settings.timezone.offset.hours, settings.timezone.offset.minutes);
+
+    if(is_success) {
+        MG_REPLY_OK_BODY(conn, "{\"timezone\":\"%s\"}\n", settings.timezone.name);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
 static bool api_time_get_timezone_list_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -174,6 +203,12 @@ static const HttpHandler api_time_handlers[] = {
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_time_set_timezone_callback,
+    },
+    {
+        .uri = "timezone",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = api_time_get_timezone_callback,
     },
     {
         .uri = "tzlist",
