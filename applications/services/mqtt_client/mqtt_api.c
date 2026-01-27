@@ -229,8 +229,17 @@ static void
 
     if(instance->status == MqttClientStatusConnectedNotLinked) {
         const char* empty = "{}";
+
         mqtt_publish_internal(
-            instance, MqttScopeDevice, MqttQosExactlyOnce, "link/request", empty, strlen(empty));
+            instance,
+            MqttScopeDevice,
+            MqttQosExactlyOnce,
+            "link/request",
+            empty,
+            strlen(empty),
+            NULL,
+            0);
+
         is_success = true;
     }
 
@@ -314,7 +323,9 @@ static void
         publish->qos,
         publish->topic,
         publish->data,
-        publish->data_size);
+        publish->data_size,
+        NULL,
+        0);
 }
 
 static void

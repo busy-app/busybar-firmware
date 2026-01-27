@@ -315,7 +315,9 @@ uint16_t mqtt_publish_internal(
     MqttQos qos,
     const char* topic,
     const void* data,
-    size_t data_size) {
+    size_t data_size,
+    const struct mg_mqtt_prop* props,
+    uint32_t props_count) {
     if(!instance->conn) {
         // TODO: What to do with messages published before the connection has been established?
         return 0;
@@ -328,6 +330,9 @@ uint16_t mqtt_publish_internal(
         .topic = mg_str(furi_string_get_cstr(path)),
         .message = mg_str_n(data, data_size),
         .qos = qos,
+        // Removing const is safe here
+        .props = (struct mg_mqtt_prop*)props,
+        .num_props = props_count,
     };
 
     // TODO: Implement proper QoS handling

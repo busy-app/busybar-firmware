@@ -189,7 +189,9 @@ uint16_t mqtt_publish_internal(
     MqttQos qos,
     const char* topic,
     const void* data,
-    size_t data_size);
+    size_t data_size,
+    const struct mg_mqtt_prop* props,
+    uint32_t props_count);
 
 // TODO: --- snip ---
 bool mqtt_topics_on_message(
