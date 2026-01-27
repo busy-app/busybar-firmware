@@ -2,8 +2,6 @@
 #include <settings_helpers/status_view.h>
 #include "../settings_helpers/gui_params.h"
 
-#include <power/power_service/power.h>
-
 #define REBOOT_TIMER_MS (2500)
 
 typedef struct {
