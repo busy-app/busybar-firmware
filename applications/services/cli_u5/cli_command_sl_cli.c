@@ -6,7 +6,12 @@
 #define CLI_PROMPT   "\r\n917>: "
 
 #ifdef SRV_INTERCOM
-bool cli_command_sl_cli_send_command_get_response(PipeSide* pipe, const char* sl_cmd) {
+FURI_CHECK_RETURN bool
+    cli_command_sl_cli_send_command_get_response(PipeSide* pipe, const char* sl_cmd) {
+    if(!furi_record_exists(RECORD_CLI_INTERCOM)) {
+        return false;
+    }
+
     PipeSideBundle temp_bundle = pipe_alloc(TEMP_PIPE_SZ, 1);
     PipeSide* temp_own_pipe = temp_bundle.alices_side;
     PipeSide* temp_shell_pipe = temp_bundle.bobs_side;

@@ -34,6 +34,10 @@ bindings/
 .mxproject
 Brewfile.lock.json
 
+# syncthing
+.stfolder/
+.stignore
+
 # Kate
 .kateproject
 .kateconfig

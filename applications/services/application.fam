@@ -68,6 +68,7 @@ App(
         "nvm",
         "matter",
         "startup_dfu_hook",
+        "crash_cmd",
     ],
     targets=["f64", "f65"],
 )

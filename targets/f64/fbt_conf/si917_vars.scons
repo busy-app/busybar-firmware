@@ -34,6 +34,12 @@ _fw_default_apps_config = {
         "cli",
         "cli_uart",
     ],
+    "917_crash": [
+        "basic_services",
+        "intercom_services",
+        "system_apps",
+        "crash",
+    ],
     "recovery": [
         "basic_services",
         "intercom_services",

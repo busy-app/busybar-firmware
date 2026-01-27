@@ -21,6 +21,13 @@ _fw_default_apps_config = {
         "debug_apps",
         "unit_tests",
     ],
+    "917_crash": [
+        "basic_services",
+        "main_apps",
+        "settings",
+        "system_apps",
+        "debug_apps",
+    ],
     "recovery": [
         "basic_services",
         "recovery",
