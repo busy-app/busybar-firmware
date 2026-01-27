@@ -11,13 +11,12 @@
 
 #define TAG "Recovery"
 
+#define RECOVERY_DELAY_MS (1000)
+
 typedef struct {
     Gui* gui;
 
     FuriEventLoop* event_loop;
-
-    Widget* back_container;
-    Widget* front_container;
 
     Label *back_status_label, *front_status_label;
     FuriEventLoopTimer* recovery_run_timer;
@@ -51,29 +50,30 @@ RecoveryApp* recovery_app_alloc(void) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
 
         Widget* root_back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
-        instance->back_container = widget_alloc(root_back);
-
-        instance->back_status_label = label_alloc(instance->back_container);
-        label_set_text_font_size(instance->back_status_label, LabelFontSizeLarge);
+        instance->back_status_label = label_alloc(root_back);
         label_set_text(instance->back_status_label, "Recovering...");
+        label_set_text_align(instance->back_status_label, TextAlignCenter);
+        label_set_text_font_size(instance->back_status_label, LabelFontSizeLarge);
         widget_set_size_content(label_get_base(instance->back_status_label));
+        widget_set_align(label_get_base(instance->back_status_label), AlignCenter);
 
         Widget* root_front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
-        instance->front_container = widget_alloc(root_front);
-        instance->front_status_label = label_alloc(instance->front_container);
+        instance->front_status_label = label_alloc(root_front);
         label_set_text(instance->front_status_label, "Recovering...");
+        label_set_text_align(instance->front_status_label, TextAlignCenter);
         widget_set_size_content(label_get_base(instance->front_status_label));
+        widget_set_align(label_get_base(instance->front_status_label), AlignCenter);
     });
 
-    furi_event_loop_timer_start(instance->recovery_run_timer, 1000);
+    furi_event_loop_timer_start(instance->recovery_run_timer, RECOVERY_DELAY_MS);
 
     return instance;
 }
 
 void recovery_app_free(RecoveryApp* instance) {
     with_gui(instance->gui, {
-        widget_free(instance->back_container);
-        widget_free(instance->front_container);
+        label_free(instance->back_status_label);
+        label_free(instance->front_status_label);
     });
 
     furi_event_loop_free(instance->event_loop);

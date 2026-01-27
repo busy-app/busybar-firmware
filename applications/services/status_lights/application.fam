@@ -3,7 +3,7 @@ App(
     name="StatusLightsSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="status_lights_srv",
-    cdefines=["SRV_STATUS_LIGHTS_BACKEND"],
+    cdefines=["SRV_STATUS_LIGHTS"],
     stack_size=1 * 1024,
     order=130,
     targets=["f64", "f65"],
