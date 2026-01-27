@@ -155,7 +155,7 @@ static void mqtt_close_mg_event_handler(
     UNUSED(connection);
     UNUSED(event_data);
 
-    FURI_LOG_W(TAG, "MQTT Connection close");
+    FURI_LOG_W(TAG, "MQTT Connection closed");
     mqtt_set_status(instance, MqttClientStatusNotConnected);
 
     if(instance->ping_enabled) {
@@ -169,8 +169,6 @@ static void mqtt_close_mg_event_handler(
         free(instance->ca_bundle);
         instance->ca_bundle = NULL;
     }
-
-    // mqtt_topics_on_close(instance);
 
     if(instance->is_wifi_up) {
         if(instance->fast_reconnect) {

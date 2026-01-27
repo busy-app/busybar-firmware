@@ -1,9 +1,10 @@
-#include "../mqtt_client.h"
-
 #include <gui/gui.h>
+#include <mqtt_client/mqtt_client.h>
 #include <front_display/front_display.h>
 
 #define TAG "MqttScreenStreamingSrv"
+
+#define THREAD_STACK_SIZE (1024)
 
 #define SUB_QOS (MqttQosAtLeastOnce)
 #define PUB_QOS (MqttQosAtMostOnce)
@@ -112,8 +113,8 @@ static int32_t mqtt_screen_streaming_thread_callback(void* arg) {
 
 static MqttScreenStreaming* mqtt_screen_streaming_alloc(void) {
     MqttScreenStreaming* instance = malloc(sizeof(MqttScreenStreaming));
-    instance->thread =
-        furi_thread_alloc_ex(TAG, 1024, mqtt_screen_streaming_thread_callback, instance);
+    instance->thread = furi_thread_alloc_ex(
+        TAG, THREAD_STACK_SIZE, mqtt_screen_streaming_thread_callback, instance);
     return instance;
 }
 

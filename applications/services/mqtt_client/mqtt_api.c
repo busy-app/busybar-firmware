@@ -1,6 +1,6 @@
 #include "mqtt_client_i.h"
 
-// =========  API message passing =========
+// =========  API message passing (public) =========
 
 static void mqtt_client_send_message(MqttClient* instance, MqttApiMessage* message) {
     message->lock = api_lock_alloc_locked();
@@ -179,10 +179,14 @@ void mqtt_unsubscribe(MqttClient* instance, MqttSubscription* subscription) {
     mqtt_client_send_message(instance, &message);
 }
 
+// ========= Direct access API (public) =========
+
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* instance) {
     furi_check(instance);
     return instance->event_pubsub;
 }
+
+// ========= Mqtt Message API (public) =========
 
 const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size) {
     furi_check(message);
@@ -195,7 +199,7 @@ const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size)
     return data.buf;
 }
 
-// ========= API message handling =========
+// ========= API message handling (private) =========
 
 static void
     mqtt_get_status_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
@@ -349,8 +353,7 @@ static void
     furi_assert(data);
 
     const MqttApiMessageUnsubscribe* unsubscribe = &data->unsubscribe;
-    UNUSED(unsubscribe);
-    // TODO: Implementation
+    mqtt_unsubscribe_internal(instance, unsubscribe->subscription);
 }
 
 static void

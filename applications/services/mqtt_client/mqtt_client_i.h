@@ -193,27 +193,6 @@ uint16_t mqtt_publish_internal(
     const struct mg_mqtt_prop* props,
     uint32_t props_count);
 
-// TODO: --- snip ---
-bool mqtt_topics_on_message(
-    MqttClient* mqtt,
-    const FuriString* topic_str,
-    const struct mg_mqtt_message* msg);
-
-void mqtt_topics_on_close(MqttClient* mqtt);
-
-void mqtt_http_api_on_message(
-    MqttClient* mqtt,
-    const FuriString* topic_str,
-    const struct mg_mqtt_message* msg);
-
-void mqtt_screen_streaming_on_message(
-    MqttClient* mqtt,
-    const FuriString* topic_str,
-    const struct mg_mqtt_message* msg);
-
-void mqtt_screen_streaming_on_close(MqttClient* mqtt);
-// TODO: --- snip ---
-
 bool mqtt_tls_init(
     struct mg_connection* conn,
     struct mg_str name,
