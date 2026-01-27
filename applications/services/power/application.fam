@@ -4,6 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="power_srv_app",
     stack_size=2 * 1024,
+    cdefines=["SRV_POWER"],
     provides=["power_cmd"],
     sources=[
         "power_service/power_api.c",

@@ -16,8 +16,6 @@ App(
         "storage",
         "input",
         "gui",
-        "desktop",
-        "loader",
         "front_display",
         "back_display",
         "power_srv",
@@ -33,6 +31,8 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "audio",
+        "loader",
+        "desktop",
         "cli",
         "cli_socket",
         "cli_intercom",
