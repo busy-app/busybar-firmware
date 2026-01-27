@@ -35,7 +35,7 @@ for key, value in _fw_default_apps_config.items():
 
 fw_appdirs_option = find_variable_config(VARS, "APPDIRS")
 assert isinstance(fw_appdirs_option.default, list)
-fw_appdirs_option.default.extend((("applications/system", False),))
+fw_appdirs_option.default.extend((("applications/system", True),))
 fw_appdirs_option.default.extend((("applications/debug", False),))
 fw_appdirs_option.default.extend((("applications/settings", False),))
 

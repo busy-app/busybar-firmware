@@ -2,10 +2,12 @@
 #include <core/thread.h>
 
 #include <gui/modules/label.h>
-
 #include <gui/gui.h>
 
 #include <power/power_service/power.h>
+
+#include <toolbox/update_lib/factory_reset.h>
+#include <updater/updater.h>
 
 #define TAG "Recovery"
 
@@ -18,14 +20,32 @@ typedef struct {
     Widget* front_container;
 
     Label *back_status_label, *front_status_label;
-
+    FuriEventLoopTimer* recovery_run_timer;
 } RecoveryApp;
+
+static void recovery_run_timer_callback(void* context) {
+    RecoveryApp* instance = context;
+
+    FURI_LOG_I(TAG, "Starting factory reset...");
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+
+    UpdaterStatus update_status = updater_session_start(updater);
+    if(update_status == UpdaterStatusOk) {
+        FURI_LOG_I(TAG, "Factory reset in progress...");
+        factory_reset_perform(updater, false);
+    }
+
+    furi_event_loop_stop(instance->event_loop);
+}
 
 RecoveryApp* recovery_app_alloc(void) {
     RecoveryApp* instance = malloc(sizeof(*instance));
 
     instance->gui = furi_record_open(RECORD_GUI);
     instance->event_loop = furi_event_loop_alloc();
+
+    instance->recovery_run_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, recovery_run_timer_callback, FuriEventLoopTimerTypeOnce, instance);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -44,6 +64,8 @@ RecoveryApp* recovery_app_alloc(void) {
         label_set_text(instance->front_status_label, "Recovering...");
         widget_set_size_content(label_get_base(instance->front_status_label));
     });
+
+    furi_event_loop_timer_start(instance->recovery_run_timer, 1000);
 
     return instance;
 }
