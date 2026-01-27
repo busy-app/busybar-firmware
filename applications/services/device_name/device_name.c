@@ -111,9 +111,9 @@ static bool device_name_read_config(Storage* storage, FuriString* name) {
             FURI_LOG_W(TAG, "File is empty");
             break;
         }
+
+        char buf[MAX_NAME_LENGTH + 1] = {0};
         size_t name_size = MIN(file_size, MAX_NAME_LENGTH);
-        char buf[name_size + 1];
-        buf[name_size] = 0;
 
         if(!storage_file_read(file, buf, name_size)) {
             FURI_LOG_W(TAG, "Unable to read name from file");
