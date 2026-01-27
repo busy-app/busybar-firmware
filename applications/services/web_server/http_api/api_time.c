@@ -143,8 +143,6 @@ static bool api_time_get_timezone_callback(
 
     furi_record_close(RECORD_SNTP);
 
-    FURI_LOG_D(TAG, "get timezone: '%s' '%s' %hhd:%hhu", settings.timezone.name, settings.timezone.abrev_formatter, settings.timezone.offset.hours, settings.timezone.offset.minutes);
-
     if(is_success) {
         MG_REPLY_OK_BODY(conn, "{\"timezone\":\"%s\"}\n", settings.timezone.name);
     } else {
