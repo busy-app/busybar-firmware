@@ -5,9 +5,9 @@
 #include <gui/modules/submenu.h>
 
 typedef enum {
-    SceneEventFactoryReset = AppEventSceneEventsStart,
-    SceneEventPower,
+    SceneEventPower = AppEventSceneEventsStart,
     SceneEventDebug,
+    SceneEventFactoryReset,
 } SceneEvent;
 
 typedef struct {
@@ -27,6 +27,15 @@ static void scene_main_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
+
+        submenu_add_item(
+            data->front_menu, "Power", SceneEventPower, scene_main_menu_item_callback, instance);
+        submenu_add_item(
+            data->front_menu,
+            "Debug apps",
+            SceneEventDebug,
+            scene_main_menu_item_callback,
+            instance);
         submenu_add_item(
             data->front_menu,
             "Factory reset",
@@ -34,22 +43,11 @@ static void scene_main_on_enter(void* context) {
             scene_main_menu_item_callback,
             instance);
 
-        submenu_add_item(
-            data->front_menu, "Power", SceneEventPower, scene_main_menu_item_callback, instance);
-
-        submenu_add_item(
-            data->front_menu,
-            "Debug apps",
-            SceneEventDebug,
-            scene_main_menu_item_callback,
-            instance);
-
         data->back_menu = submenu_alloc(instance->back_scene_window);
-        submenu_add_item(data->back_menu, "Factory reset", SceneEventFactoryReset, NULL, instance);
 
         submenu_add_item(data->back_menu, "Power", SceneEventPower, NULL, instance);
-
         submenu_add_item(data->back_menu, "Debug apps", SceneEventDebug, NULL, instance);
+        submenu_add_item(data->back_menu, "Factory reset", SceneEventFactoryReset, NULL, instance);
     });
 }
 
@@ -72,11 +70,14 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == SceneEventFactoryReset) {
-            scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);
-            consumed = true;
-        } else if(event->event == SceneEventPower) {
+        if(event->event == SceneEventPower) {
             scene_manager_next_scene(instance->scene_manager, SceneIdPowerMenu);
+            consumed = true;
+        } else if(event->event == SceneEventDebug) {
+            scene_manager_next_scene(instance->scene_manager, SceneIdDebug);
+            consumed = true;
+        } else if(event->event == SceneEventFactoryReset) {
+            scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);
             consumed = true;
         }
     } else if(event->type == SceneManagerEventTypeBack) {

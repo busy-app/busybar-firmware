@@ -14,6 +14,8 @@ typedef enum {
     SceneIdPowerRestart,
     SceneIdPowerInfo,
 
+    SceneIdDebug,
+
     SceneIdsCount,
 } SceneId;
 
