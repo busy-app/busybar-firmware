@@ -60,17 +60,16 @@ void name_generator_make_detailed(char* name, size_t max_name_size, const char* 
     furi_check(max_name_size);
     furi_check(prefix);
 
-    DateTime dateTime;
-    furi_hal_rtc_get_datetime(&dateTime);
+    DateTimeMs dateTime = furi_hal_rtc_get_datetime();
 
     snprintf(
         name,
         max_name_size,
-        "%s-%.4d_%.2d_%.2d-%.2d_%.2d",
+        "%s-%.4hu_%.2hhu_%.2hhu-%.2hhu_%.2hhu",
         prefix,
-        dateTime.year,
-        dateTime.month,
-        dateTime.day,
-        dateTime.hour,
-        dateTime.minute);
+        dateTime.dt.year,
+        dateTime.dt.month,
+        dateTime.dt.dayofmonth,
+        dateTime.dt.hour,
+        dateTime.dt.minute);
 }

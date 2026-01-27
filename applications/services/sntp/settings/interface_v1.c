@@ -34,13 +34,11 @@ static bool retry_sync_interval_is_valid(const SettingProviderSetting* setting, 
     return (value >= RETRY_SYNC_INTERVAL_MIN && value <= RETRY_SYNC_INTERVAL_MAX);
 }
 
-static bool serialize_uzone(
-    const SettingProviderSetting* setting,
-    FuriString* string,
-    const void* value) {
+static bool
+    serialize_uzone(const SettingProviderSetting* setting, FuriString* string, const void* value) {
     UNUSED(setting);
 
-    const utz_zone_t *zone = value;
+    const utz_zone_t* zone = value;
 
     furi_string_set_str(string, zone->name);
 
@@ -53,7 +51,7 @@ bool deserialize_uzone(
     const FuriString* string) {
     UNUSED(setting);
 
-    utz_zone_t *zone = value;
+    utz_zone_t* zone = value;
 
     return utz_get_zone_by_name(furi_string_get_cstr(string), zone);
 }

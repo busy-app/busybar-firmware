@@ -28,10 +28,7 @@ static bool api_time_get_timestamp_callback(
 
     datetime_format_timestamp(&local_time, timestamp_buf);
 
-    MG_REPLY_OK_BODY(
-        conn,
-        "{\"timestamp\":\"%s\"}\n",
-        timestamp_buf);
+    MG_REPLY_OK_BODY(conn, "{\"timestamp\":\"%s\"}\n", timestamp_buf);
 
     return true;
 }
@@ -63,11 +60,7 @@ static bool api_time_set_timestamp_callback(
             break;
         }
 
-        time_t timestamp = datetime_datetime_to_timestamp(&datetime);
-
-        datetime_timestamp_to_datetime(timestamp, &datetime);
-
-        furi_hal_rtc_set_datetime(&datetime);
+        furi_hal_rtc_set_datetime(&(DateTimeMs){.dt = datetime, .millis = 0});
 
         is_success = true;
     } while(false);
@@ -164,8 +157,8 @@ static bool api_time_get_timezone_list_callback(
 
     bool is_success = true;
 
-    FuriString *result = furi_string_alloc_set_str("[");
-    const char *item = utz_zone_names;
+    FuriString* result = furi_string_alloc_set_str("[");
+    const char* item = utz_zone_names;
     furi_string_cat_printf(result, "\"%s\"", item);
     while((item = utz_next_zone_name(item))) {
         furi_string_cat_printf(result, ",\"%s\"", item);

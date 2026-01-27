@@ -27,12 +27,11 @@ const lv_obj_class_t countdown_lvgl_class;
 static void countdown_update(Countdown* countdown) {
     furi_assert(countdown);
 
-    DateTime datetime;
-    furi_hal_rtc_get_datetime(&datetime);
-    if(datetime.second == countdown->last_update_second) return;
-    countdown->last_update_second = datetime.second;
+    DateTimeMs datetime = furi_hal_rtc_get_datetime();
+    if(datetime.dt.second == countdown->last_update_second) return;
+    countdown->last_update_second = datetime.dt.second;
 
-    time_t now = datetime_datetime_to_timestamp(&datetime);
+    time_t now = datetime_datetime_to_timestamp(&datetime.dt);
 
     time_t delta = countdown->timestamp - now;
     if(countdown->direction == CountdownDirectionTimeSince) delta = -delta;

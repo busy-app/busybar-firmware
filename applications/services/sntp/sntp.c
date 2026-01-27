@@ -95,17 +95,14 @@ static bool do_set_settings(Sntp* instance, SntpMessage* message) {
 }
 
 static bool do_get_local_time(Sntp* instance, SntpMessage* message) {
-    DateTime dt;
-    furi_hal_rtc_get_datetime(&dt);
-
-    utz_datetime_t udt = datetime_to_udatetime(&dt);
+    DateTimeMs dt = furi_hal_rtc_get_datetime();
 
     utz_offset_t offset;
-    utz_get_current_offset(&instance->settings.timezone, &udt, &offset);
+    utz_get_current_offset(&instance->settings.timezone, &dt.dt, &offset);
 
-    udt = utz_udatetime_add(&udt, &offset);
+    dt.dt = utz_udatetime_add(&dt.dt, &offset);
 
-    message->local_time->dt = datetime_from_udatetime(&udt);
+    message->local_time->dt = dt.dt;
     message->local_time->offset = offset;
 
     return true;
@@ -222,7 +219,8 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
 }
 
 time_t sntp_get_timestamp(void) {
-    return furi_hal_rtc_get_timestamp();;
+    return furi_hal_rtc_get_timestamp();
+    ;
 }
 
 time_t sntp_get_timestamp_ms(void) {
@@ -245,7 +243,6 @@ LocalTime sntp_get_local_time(Sntp* instance) {
 
     return result;
 }
-
 
 int32_t sntp_srv(void* p) {
     UNUSED(p);

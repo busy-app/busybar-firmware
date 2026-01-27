@@ -57,7 +57,7 @@ const char* clock_get_time_string(Clock* instance) {
         lt.dt.hour,
         lt.dt.minute,
         lt.dt.second,
-        lt.dt.day,
+        lt.dt.dayofmonth,
         lt.dt.month,
         lt.dt.year);
 
