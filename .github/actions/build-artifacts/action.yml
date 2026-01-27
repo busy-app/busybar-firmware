@@ -174,7 +174,7 @@ runs:
         rm -rf "$ARTIFACT_PATH"
         mkdir -p "$ARTIFACT_PATH"
         cp -v dist/f${U5_TARGET_HW}-*/* "$ARTIFACT_PATH"/
-        cp -v fbt_layers/fbtng/build/f${U5_TARGET_HW}-firmware-*/fw_artifacts/firmware.dfu "$ARTIFACT_PATH"/busybar-f${U5_TARGET_HW}-recovery-${DIST_SUFFIX:-${SUFFIX}}.dfu
+        cp -v fbt_layers/fbtng/build/f${U5_TARGET_HW}-firmware-*/fw_artifacts/firmware.dfu "$ARTIFACT_PATH"/busybar-f${U5_TARGET_HW}-recovery-${DIST_SUFFIX:-${SUFFIX:-local}}.dfu
 
     - name: Calculate hashsums for artifacts
       if: inputs.generate_hashes == 'true'
