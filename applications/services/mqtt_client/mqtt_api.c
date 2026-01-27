@@ -301,7 +301,8 @@ static void
     }
 }
 
-static void mqtt_publish_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void
+    mqtt_publish_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -316,7 +317,8 @@ static void mqtt_publish_message_handler(MqttClient* instance, const MqttApiMess
         publish->data_size);
 }
 
-static void mqtt_subscribe_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void
+    mqtt_subscribe_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -331,7 +333,7 @@ static void mqtt_subscribe_message_handler(MqttClient* instance, const MqttApiMe
 }
 
 static void
-    mqtt_unsubscribe_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+    mqtt_unsubscribe_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -340,7 +342,8 @@ static void
     // TODO: Implementation
 }
 
-static void mqtt_wifi_state_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void
+    mqtt_wifi_state_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -367,10 +370,10 @@ static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeM
     [MqttApiMessageTypeGetSessionInfo] = mqtt_get_session_info_api_message_handler,
     [MqttApiMessageTypeGetProfile] = mqtt_get_profile_api_message_handler,
     [MqttApiMessageTypeSetProfile] = mqtt_set_profile_api_message_handler,
-    [MqttApiMessageTypePublish] = mqtt_publish_message_handler,
-    [MqttApiMessageTypeSubscribe] = mqtt_subscribe_message_handler,
-    [MqttApiMessageTypeUnsubscribe] = mqtt_unsubscribe_message_handler,
-    [MqttApiMessageTypeWifiState] = mqtt_wifi_state_message_handler,
+    [MqttApiMessageTypePublish] = mqtt_publish_api_message_handler,
+    [MqttApiMessageTypeSubscribe] = mqtt_subscribe_api_message_handler,
+    [MqttApiMessageTypeUnsubscribe] = mqtt_unsubscribe_api_message_handler,
+    [MqttApiMessageTypeWifiState] = mqtt_wifi_state_api_message_handler,
 };
 
 static void
