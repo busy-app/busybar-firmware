@@ -5,6 +5,22 @@ App(
     entry_point="mqtt_client_start",
     stack_size=8 * 1024,
     order=160,
-    requires=["web_server"],
+    requires=[
+        "web_server",
+        "mqtt_screen_streaming"
+    ],
+    targets=["f20", "f21", "f22"],
+)
+
+App(
+    appid="mqtt_screen_streaming",
+    name="MqttScreenStreamingHook",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="mqtt_screen_streaming_on_system_start",
+    order=60,
+    requires=[
+        "gui",
+        "mqtt_client"
+    ],
     targets=["f20", "f21", "f22"],
 )
