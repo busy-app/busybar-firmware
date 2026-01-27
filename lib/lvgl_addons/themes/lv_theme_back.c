@@ -351,7 +351,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &qr_code_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.qr_code_card, LV_PART_MAIN);
 
-#ifndef FURI_RAM_EXEC
 #ifdef SETTINGS_SOUND
     } else if(lv_obj_check_type(obj, &slider_view_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.slider_view, LV_PART_MAIN);
@@ -377,10 +376,11 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &status_view_additional_text_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.status_view_additional_text, LV_PART_MAIN);
 
+#ifdef APP_BUSY
     } else if(lv_obj_check_type(obj, &countdown_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
-#endif // FURI_RAM_EXEC
+#endif // APP_BUSY
     }
 }
 

@@ -168,12 +168,16 @@ static void cli_commands_init(CliRegistry* registry) {
 
     cli_registry_add_command(
         registry, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);
+#ifdef SRV_STATUS_LIGHTS
     cli_registry_add_command(
         registry, "status_lights", CliCommandFlagParallelSafe, cli_command_status_lights, NULL);
+#endif // SRV_STATUS_LIGHTS
     cli_registry_add_command(
         registry, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
+#ifdef SRV_AUDIO
     cli_registry_add_command(
         registry, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
+#endif // SRV_AUDIO
 
 #ifdef SRV_INTERCOM
     cli_registry_add_command(

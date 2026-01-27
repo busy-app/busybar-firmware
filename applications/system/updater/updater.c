@@ -963,7 +963,7 @@ static Updater* updater_alloc(void) {
 #ifdef SRV_SNTP
     instance->autoupdate_timer = furi_event_loop_timer_alloc(
         instance->event_loop, autoupdate_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
-#else
+#else // SRV_SNTP
     UNUSED(autoupdate_timer_callback);
 #endif // SRV_SNTP
     instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);

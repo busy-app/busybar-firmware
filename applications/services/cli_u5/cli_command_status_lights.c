@@ -31,9 +31,8 @@ void cli_command_status_lights(PipeSide* pipe, FuriString* args, void* context) 
     StatusLights* status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     status_lights_run_preset(status_lights, StatusLightsPresetStaticColor, color);
     furi_record_close(RECORD_STATUS_LIGHTS);
-#else
+#else // SRV_STATUS_LIGHTS
     UNUSED(args);
     UNUSED(cli_command_status_lights_print_usage);
-    printf("Status Lights service is not available.\r\n");
-#endif
+#endif // SRV_STATUS_LIGHTS
 }

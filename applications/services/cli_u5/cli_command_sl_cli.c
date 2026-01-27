@@ -53,7 +53,4 @@ void cli_command_sl_echo(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
 }
-
-#else
-
-#endif
+#endif // SRV_INTERCOM
