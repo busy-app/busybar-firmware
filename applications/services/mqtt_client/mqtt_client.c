@@ -70,14 +70,12 @@ const char* mqtt_get_server_url(const MqttClient* instance) {
     }
 }
 
-static void mqtt_link_otp_subscription_callback(
-    const void* data,
-    size_t data_size,
-    void* context) {
+static void mqtt_link_otp_subscription_callback(const MqttMessage* message, void* context) {
+    furi_assert(message);
     furi_assert(context);
     MqttClient* instance = context;
 
-    const struct mg_str json_str = mg_str_n(data, data_size);
+    const struct mg_str json_str = TO_RAW_MESSAGE(message)->data;
 
     char* pin = mg_json_get_str(json_str, "$.code");
     int32_t pin_expires_at = mg_json_get_long(json_str, "$.expires_at", -1);
@@ -98,14 +96,12 @@ static void mqtt_link_otp_subscription_callback(
     }
 }
 
-static void mqtt_link_token_subscription_callback(
-    const void* data,
-    size_t data_size,
-    void* context) {
+static void mqtt_link_token_subscription_callback(const MqttMessage* message, void* context) {
+    furi_assert(message);
     furi_assert(context);
     MqttClient* instance = context;
 
-    const struct mg_str json_str = mg_str_n(data, data_size);
+    const struct mg_str json_str = TO_RAW_MESSAGE(message)->data;
 
     char* session_id = mg_json_get_str(json_str, "$.session_id");
     char* token = mg_json_get_str(json_str, "$.token");

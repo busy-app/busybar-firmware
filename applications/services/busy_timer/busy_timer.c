@@ -528,18 +528,14 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
     }
 }
 
-static void busy_timer_mqtt_subscription_callback(
-    const void* data,
-    size_t data_size,
-    void* context) {
-    UNUSED(data_size); // FIXME: Dangerous?
-
+static void busy_timer_mqtt_subscription_callback(const MqttMessage* message, void* context) {
+    furi_assert(message);
     furi_assert(context);
     BusyTimer* instance = context;
 
     BusyTimerSnapshot snapshot;
-
-    if(busy_timer_snapshot_deserialize(&snapshot, data)) {
+    // TODO: take data size into account
+    if(busy_timer_snapshot_deserialize(&snapshot, mqtt_message_get_data(message, NULL))) {
         busy_timer_set_snapshot(instance, &snapshot);
     } else {
         FURI_LOG_W(TAG, "Invalid snapshot data");

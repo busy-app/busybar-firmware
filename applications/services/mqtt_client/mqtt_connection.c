@@ -249,10 +249,7 @@ static void mqtt_mqtt_msg_mg_event_handler(
 
         if(furi_string_end_with(topic_path, subscription->topic)) {
             if(subscription->callback) {
-                subscription->callback(
-                    message->data.buf,
-                    message->data.len,
-                    subscription->callback_context);
+                subscription->callback(TO_MQTT_MESSAGE(message), subscription->callback_context);
             }
         }
     }

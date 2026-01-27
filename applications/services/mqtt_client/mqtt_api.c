@@ -184,6 +184,17 @@ FuriPubSub* mqtt_client_get_pubsub(MqttClient* instance) {
     return instance->event_pubsub;
 }
 
+const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size) {
+    furi_check(message);
+    const struct mg_str data = TO_RAW_MESSAGE(message)->data;
+
+    if(data_size) {
+        *data_size = data.len;
+    }
+
+    return data.buf;
+}
+
 // ========= API message handling =========
 
 static void

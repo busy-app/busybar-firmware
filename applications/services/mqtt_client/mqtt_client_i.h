@@ -23,6 +23,10 @@
 #define MQTT_DEVICE_ROOT_TOPIC  "devices"
 #define MQTT_SESSION_ROOT_TOPIC "sessions"
 
+// NOTE: MqttMessage is an opaque alias for mg_mqtt_message.
+#define TO_RAW_MESSAGE(msg)  ((const struct mg_mqtt_message*)(msg))
+#define TO_MQTT_MESSAGE(msg) ((const MqttMessage*)(msg))
+
 typedef enum {
     MqttScopeDevice,
     MqttScopeSession,
