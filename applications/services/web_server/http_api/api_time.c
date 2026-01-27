@@ -101,7 +101,7 @@ static bool api_time_set_timezone_callback(
             break;
         }
 
-        uzone_t zone;
+        utz_zone_t zone;
         if(!utz_get_zone_by_name(timezone_str, &zone)) {
             break;
         }

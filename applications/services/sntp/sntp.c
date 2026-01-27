@@ -98,9 +98,9 @@ static bool do_get_local_time(Sntp* instance, SntpMessage* message) {
     DateTime dt;
     furi_hal_rtc_get_datetime(&dt);
 
-    udatetime_t udt = datetime_to_udatetime(&dt);
+    utz_datetime_t udt = datetime_to_udatetime(&dt);
 
-    uoffset_t offset;
+    utz_offset_t offset;
     utz_get_current_offset(&instance->settings.timezone, &udt, &offset);
 
     udt = utz_udatetime_add(&udt, &offset);

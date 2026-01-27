@@ -40,7 +40,7 @@ static bool serialize_uzone(
     const void* value) {
     UNUSED(setting);
 
-    const uzone_t *zone = value;
+    const utz_zone_t *zone = value;
 
     furi_string_set_str(string, zone->name);
 
@@ -53,7 +53,7 @@ bool deserialize_uzone(
     const FuriString* string) {
     UNUSED(setting);
 
-    uzone_t *zone = value;
+    utz_zone_t *zone = value;
 
     return utz_get_zone_by_name(furi_string_get_cstr(string), zone);
 }
