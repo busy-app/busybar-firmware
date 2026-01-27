@@ -56,7 +56,13 @@ function batteryIcon (): string {
   return 'i-ri-battery-line';
 }
 
-onMounted(async () => {
+async function init () {
   await deviceStore.getDeviceStatus();
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>

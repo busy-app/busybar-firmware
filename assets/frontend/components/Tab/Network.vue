@@ -745,7 +745,13 @@ async function handleHttpApiToggle (value: boolean) {
   }
 }
 
-onMounted(async () => {
+async function init () {
   await refreshWifiState();
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>

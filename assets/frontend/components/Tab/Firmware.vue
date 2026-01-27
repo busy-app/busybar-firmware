@@ -32,7 +32,8 @@
             onClick: startFirmwareUpdateFromFile
           } : stage === 'uploading' ? {
             label: 'Cancel',
-            color: 'neutral'
+            color: 'neutral',
+            onClick: onFirmwareUploadAbort
           } : stage === 'error' ? {
             class: 'hidden'
           } : {}
@@ -52,9 +53,9 @@
               v-if="!firmwareFileModel"
               v-model="firmwareFileModel"
               data-id="modal-update-firmware-file-upload"
-              accept=".tar"
+              accept=".tar,.tgz"
               class="w-full h-[400px] rounded-xl"
-              label="Upload Firmware file (.tar)"
+              label="Upload Firmware file (.tar/.tgz)"
               description="Drag and drop to upload"
               :ui="{
                 icon: 'size-6',
@@ -347,8 +348,18 @@ watch(() => deviceStore.firmwareUpdate.stage, newStage => {
   }, 3000);
 });
 
-onMounted(async () => {
+function onFirmwareUploadAbort () {
+  window.location.reload();
+}
+
+async function init () {
   await deviceStore.getApiVersion();
   await deviceStore.getDeviceStatus();
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
 });
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>

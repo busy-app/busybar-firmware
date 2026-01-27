@@ -215,11 +215,9 @@ static void autoupdate_timer_callback(void* context) {
     }
 
     Sntp* sntp = furi_record_open(RECORD_SNTP);
-    time_t timestamp = sntp_get_local_timestamp(sntp);
-    furi_record_close(RECORD_SNTP);
-
     DateTime datetime;
-    datetime_timestamp_to_datetime(timestamp, &datetime);
+    sntp_get_local_datetime(sntp, &datetime);
+    furi_record_close(RECORD_SNTP);
 
     int time_minutes = datetime.hour * 60 + datetime.minute;
     int interval_start = instance->settings.autoupdate_interval_start;
@@ -962,8 +960,12 @@ static Updater* updater_alloc(void) {
     instance->install_url = furi_string_alloc();
     instance->install_sha256 = furi_string_alloc();
 
+#ifdef SRV_SNTP
     instance->autoupdate_timer = furi_event_loop_timer_alloc(
         instance->event_loop, autoupdate_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+#else // SRV_SNTP
+    UNUSED(autoupdate_timer_callback);
+#endif // SRV_SNTP
     instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);
 
     furi_event_loop_subscribe_message_queue(

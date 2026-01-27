@@ -161,7 +161,7 @@ uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index) {
 
 static char const* desc_string_arr[] = {
     [UsbStrLang] = (const char[]){0x09, 0x04},
-    [UsbStrManufacturer] = "Flipper Devices Inc.",
+    [UsbStrManufacturer] = "Flipper FZCO",
     [UsbStrProduct] = "BUSY Bar USB Ethernet",
     [UsbStrSerial] = NULL,
     [UsbStrNcmInterface] = "Network Interface",
