@@ -65,10 +65,6 @@ struct MqttClient {
 
     FuriString* device_serial;
 
-    struct mg_timer screen_stream_timer;
-    FuriString* screen_stream_topic;
-    char* screen_stream_buf;
-
     MqttSubscriptionList_t subscriptions;
 
     MqttSettings settings;
