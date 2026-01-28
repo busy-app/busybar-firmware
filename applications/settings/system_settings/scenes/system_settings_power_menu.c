@@ -39,14 +39,12 @@ static void scene_power_menu_on_enter(void* context) {
             SceneEventShutDown,
             scene_power_menu_menu_item_callback,
             instance);
-
         submenu_add_item(
             data->front_menu,
             "Restart device",
             SceneEventRestart,
             scene_power_menu_menu_item_callback,
             instance);
-
         submenu_add_item(
             data->front_menu,
             "Info",
@@ -56,9 +54,7 @@ static void scene_power_menu_on_enter(void* context) {
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(data->back_menu, "Shut down", SceneEventShutDown, NULL, instance);
-
         submenu_add_item(data->back_menu, "Restart device", SceneEventRestart, NULL, instance);
-
         submenu_add_item(data->back_menu, "Info", SceneEventInfo, NULL, instance);
     });
 }
