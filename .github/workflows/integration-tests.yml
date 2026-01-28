@@ -83,14 +83,19 @@ jobs:
             echo "Found latest: $UPDATE_PATH"
           fi
 
-          # Derive ELF path from update path
-          ELF_PATH="${UPDATE_PATH/-update-/-firmware-}"
-          ELF_PATH="${ELF_PATH%.tgz}.elf"
+          # Derive ELF paths from update path (U5 and Si917)
+          U5_ELF_PATH="${UPDATE_PATH/-update-/-firmware-}"
+          U5_ELF_PATH="${U5_ELF_PATH%.tgz}.elf"
+
+          SI917_ELF_PATH="${UPDATE_PATH/-update-/-sil_firmware-}"
+          SI917_ELF_PATH="${SI917_ELF_PATH%.tgz}.elf"
 
           echo "update_url=${BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
-          echo "elf_url=${BASE_URL}/${ELF_PATH}" >> $GITHUB_OUTPUT
+          echo "u5_elf_url=${BASE_URL}/${U5_ELF_PATH}" >> $GITHUB_OUTPUT
+          echo "si917_elf_url=${BASE_URL}/${SI917_ELF_PATH}" >> $GITHUB_OUTPUT
           echo "Update URL: ${BASE_URL}/${UPDATE_PATH}"
-          echo "ELF URL: ${BASE_URL}/${ELF_PATH}"
+          echo "U5 ELF URL: ${BASE_URL}/${U5_ELF_PATH}"
+          echo "Si917 ELF URL: ${BASE_URL}/${SI917_ELF_PATH}"
 
       - name: 'Download update package'
         run: |
@@ -98,11 +103,19 @@ jobs:
           echo "Downloading: ${{ steps.resolve_firmware.outputs.update_url }}"
           curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tgz "${{ steps.resolve_firmware.outputs.update_url }}"
 
-      - name: 'Download firmware ELF'
+      - name: 'Download firmware ELF files for crash tracing'
         run: |
           set -euo pipefail
-          echo "Downloading: ${{ steps.resolve_firmware.outputs.elf_url }}"
-          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-firmware.elf "${{ steps.resolve_firmware.outputs.elf_url }}"
+          mkdir -p /_work/elf
+
+          echo "Downloading U5 ELF: ${{ steps.resolve_firmware.outputs.u5_elf_url }}"
+          curl --fail -L -o /_work/elf/busybar-f${{ env.U5_HW_TARGET }}-firmware.elf "${{ steps.resolve_firmware.outputs.u5_elf_url }}"
+
+          echo "Downloading Si917 ELF: ${{ steps.resolve_firmware.outputs.si917_elf_url }}"
+          curl --fail -L -o /_work/elf/busybar-f${{ env.U5_HW_TARGET }}-sil_firmware.elf "${{ steps.resolve_firmware.outputs.si917_elf_url }}"
+
+          echo "ELF files downloaded to /_work/elf/"
+          ls -la /_work/elf/
 
       - name: 'Flash firmware'
         id: flashing
