@@ -37,7 +37,14 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
     });
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
+    UpdaterStatus update_status = updater_session_start(updater);
+    while(update_status != UpdaterStatusOk) {
+        furi_delay_ms(5000);
+        update_status = updater_session_start(updater);
+    }
     factory_reset_perform(updater, false);
+
+    updater_session_stop(updater);
     furi_record_close(RECORD_UPDATER);
 
     while(true)
