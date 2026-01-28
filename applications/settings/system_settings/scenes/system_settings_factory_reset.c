@@ -1,8 +1,8 @@
 #include "../system_settings.h"
-#include <settings_helpers/status_view.h>
 #include "../settings_helpers/gui_params.h"
 
-#define REBOOT_TIMER_MS (2500)
+#include <settings_helpers/status_view.h>
+#include <toolbox/update_lib/factory_reset.h>
 
 typedef struct {
     StatusView* statuses[GuiDisplayIdMax];
@@ -36,11 +36,11 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
         }
     });
 
-    furi_delay_ms(REBOOT_TIMER_MS);
-    // TODO Make factory reset
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+    factory_reset_perform(updater, false);
+    furi_record_close(RECORD_UPDATER);
 
-    power_reboot(instance->power, PowerRebootNormal);
-    while(1)
+    while(true)
         ;
 }
 
