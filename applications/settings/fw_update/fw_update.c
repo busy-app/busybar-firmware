@@ -100,7 +100,7 @@ static FwUpdate* fw_update_alloc(void) {
         instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
         nav_bar_set_header_image(instance->back_nav_bar, SETTINGS_ICON_BACK);
         nav_bar_set_header_text(instance->back_nav_bar, "SETTINGS");
-        nav_bar_push_location(instance->back_nav_bar, "FW UPDATE");
+        nav_bar_push_location(instance->back_nav_bar, "Firmware");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
 
@@ -157,8 +157,8 @@ int32_t fw_update_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
 
-        furi_string_set_str(descriptor->front_title, "FW update");
-        furi_string_set_str(descriptor->back_title, "FW UPDATE");
+        furi_string_set_str(descriptor->front_title, "Firmware");
+        furi_string_set_str(descriptor->back_title, "Firmware");
         furi_string_set_str(descriptor->front_icon, IMG_PATH("microchip_front_8x8.bin"));
         furi_string_set_str(descriptor->back_icon, IMG_PATH("microchip_back_12x12.bin"));
 
