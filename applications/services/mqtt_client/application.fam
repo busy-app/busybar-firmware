@@ -30,7 +30,7 @@ App(
     name="MqttHttpProxySrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="mqtt_http_proxy_srv",
-    stack_size=8 * 1024,
+    stack_size=4 * 1024,
     order=270,
     requires=[
         "web_server",
