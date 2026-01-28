@@ -29,6 +29,7 @@ App(
     name="BleSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="ble_srv",
+    cdefines=["SRV_BLE"],
     stack_size=2 * 1024,
     order=140,
     targets=["f20", "f21", "f22"],

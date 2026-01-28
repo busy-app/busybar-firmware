@@ -130,7 +130,11 @@ static void status_bar_custom_event_callback(uint32_t events, void* context) {
     }
 
     if(READ_BIT(events, StatusBarUpdateEventAudioVolume)) {
+#ifdef SRV_AUDIO
         audio_volume = audio_get_volume(instance->audio);
+#else // SRV_AUDIO
+        audio_volume = 0;
+#endif // SRV_AUDIO
     }
 
     if(READ_BIT(events, StatusBarUpdateEventUsbConnectionState)) {
@@ -199,17 +203,31 @@ static StatusBar* status_bar_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_LEN, sizeof(StatusBarEvent));
     instance->gui = furi_record_open(RECORD_GUI);
+
+#ifdef SRV_POWER
     instance->power = furi_record_open(RECORD_POWER);
-    instance->audio = furi_record_open(RECORD_AUDIO);
 
     PowerInfo power_info;
     power_get_info(instance->power, &power_info);
 
     bool is_usb_connected = power_is_usb_connected(instance->power);
-    float audio_volume = audio_get_volume(instance->audio);
+#else // SRV_POWER
+    bool is_usb_connected = true;
+#endif // SRV_POWER
 
+#ifdef SRV_AUDIO
+    instance->audio = furi_record_open(RECORD_AUDIO);
+    float audio_volume = audio_get_volume(instance->audio);
+#else // SRV_AUDIO
+    float audio_volume = 0;
+#endif // SRV_AUDIO
+
+#ifdef SRV_WIFI
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     furi_state_subscribe(wifi_get_state(wifi), wifi_state_callback, instance);
+#else // SRV_WIFI
+    UNUSED(wifi_state_callback);
+#endif // SRV_WIFI
 
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
@@ -220,8 +238,10 @@ static StatusBar* status_bar_alloc(void) {
         widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 2, 1);
         flex_layout_set_spacing(status_bar, 3);
 
+#ifdef SRV_BLE
         instance->ble_status_indicator =
             ble_status_indicator_alloc(flex_layout_get_base(status_bar));
+#endif // SRV_BLE
 
         instance->wifi_status_indicator =
             wifi_status_indicator_alloc(flex_layout_get_base(status_bar));
@@ -258,8 +278,17 @@ static StatusBar* status_bar_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, status_bar_custom_event_callback, instance);
 
+#ifdef SRV_POWER
     furi_pubsub_subscribe(power_get_pubsub(instance->power), power_events_callback, instance);
+#else // SRV_POWER
+    UNUSED(power_events_callback);
+#endif // SRV_POWER
+
+#ifdef SRV_AUDIO
     furi_pubsub_subscribe(audio_get_pubsub(instance->audio), audio_events_callback, instance);
+#else // SRV_AUDIO
+    UNUSED(audio_events_callback);
+#endif // SRV_AUDIO
 
     furi_record_create(RECORD_STATUS_BAR, instance);
     return instance;

@@ -6,6 +6,7 @@
 
 #define INTERCOM_TX_TIMEOUT_MS                 (1000UL)
 #define INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS (500UL)
+#define INTERCOM_INITIAL_SYNC_TIMEOUT_MS       (10000UL)
 
 #ifdef INTERCOM_DEBUG
 #define INTERCOM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
@@ -336,16 +337,24 @@ static Intercom* intercom_alloc(void) {
     // dont't hold up the rest of the system
     furi_record_create(RECORD_INTERCOM, instance);
 
-    while(1) {
+    int n_retry_sync_left =
+        INTERCOM_INITIAL_SYNC_TIMEOUT_MS / INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS / 2;
+
+    while(n_retry_sync_left-- > 0) {
         intercom_sync_request(&INTERCOM_GPIO);
         if(intercom_try_sync(instance)) break;
 
         FURI_LOG_E(
             TAG,
-            "Initial sync failed, retrying in %ld ms",
+            "Initial sync failed, retrying (#%d) in %ld ms",
+            n_retry_sync_left,
             INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
 
         furi_delay_ms(INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
+    }
+
+    if(!instance->is_in_sync) {
+        intercom_error_handler(IntercomErrorSync, instance);
     }
 
     return instance;
