@@ -133,10 +133,14 @@ static void
 
 static void cli_command_device_info_print_name() {
     FuriString* name = furi_string_alloc();
+#ifdef SRV_NAME
     DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
     device_name_get(device_name, name);
-    cli_command_device_info_callback("name", furi_string_get_cstr(name), false, NULL);
     furi_record_close(RECORD_DEVICE_NAME);
+#else // SRV_NAME
+    furi_string_set_str(name, "BUSY Bar");
+#endif // SRV_NAME
+    cli_command_device_info_callback("name", furi_string_get_cstr(name), false, NULL);
     furi_string_free(name);
 }
 
@@ -147,7 +151,11 @@ static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* cont
 
     cli_command_device_info_print_name();
     furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
+#ifdef SRV_INTERCOM
     bool sl_cli_command_status = cli_command_sl_cli_send_command_get_response(pipe, "device_info");
+#else // SRV_INTERCOM
+    bool sl_cli_command_status = false;
+#endif // SRV_INTERCOM
     printf("%-30s: %s\r\n", "sl_intercom_status", sl_cli_command_status ? "ok" : "error");
 }
 
@@ -160,14 +168,21 @@ static void cli_commands_init(CliRegistry* registry) {
 
     cli_registry_add_command(
         registry, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);
+#ifdef SRV_STATUS_LIGHTS
     cli_registry_add_command(
         registry, "status_lights", CliCommandFlagParallelSafe, cli_command_status_lights, NULL);
+#endif // SRV_STATUS_LIGHTS
     cli_registry_add_command(
         registry, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
+#ifdef SRV_AUDIO
     cli_registry_add_command(
         registry, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
+#endif // SRV_AUDIO
+
+#ifdef SRV_INTERCOM
     cli_registry_add_command(
         registry, "sl_cli", CliCommandFlagParallelSafe, cli_command_sl_cli, NULL);
+#endif // SRV_INTERCOM
     cli_registry_add_command(
         registry, "date", CliCommandFlagParallelSafe, cli_command_rtc_date, NULL);
     // commands from `.fam`s
