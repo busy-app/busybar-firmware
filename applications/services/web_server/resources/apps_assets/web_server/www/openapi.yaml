@@ -1114,7 +1114,7 @@ paths:
   /api/time:
     get:
       tags:
-        - System
+        - Time
       summary: Get current timestamp with timezone
       description: Retrieves the current timestamp from RTC with timezone in ISO 8601 format
       operationId: getTime
@@ -1248,7 +1248,7 @@ paths:
   /api/time/timestamp:
     post:
       tags:
-        - System
+        - Time
       summary: Set current timestamp
       description: |
         Sets the RTC timestamp in ISO 8601 format. Time zone qualifier (e.g. Z of UTC or +hh:mm for local time) is required.
@@ -1279,7 +1279,7 @@ paths:
   /api/time/timezone:
     get:
       tags:
-        - System
+        - Time
       summary: Get timezone
       description: Get current timezone name
       operationId: getTimeTimezone
@@ -1298,7 +1298,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     post:
       tags:
-        - System
+        - Time
       summary: Set timezone
       description: Sets the timezone name. Use /api/time/tzlist to get available names list.
       operationId: setTimeTimezone
@@ -1328,7 +1328,7 @@ paths:
   /api/time/tzlist:
     get:
       tags:
-        - System
+        - Time
       summary: Get list of supported time zones
       description: Retrieves the list of time zones accepted by /api/time/timezone
       operationId: getTimeTzlist
@@ -2202,6 +2202,8 @@ components:
 tags:
   - name: System
     description: System information and control
+  - name: Time
+    description: Time-related methods
   - name: Updater
     description: Firmware update control
   - name: Wi-Fi
