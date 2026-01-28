@@ -24,6 +24,14 @@ typedef enum {
     MqttPropertyTypeMax,
 } MqttPropertyType;
 
+typedef struct {
+    MqttPropertyType type;
+    union {
+        int32_t number;
+        const char* string;
+    } value;
+} MqttProperty;
+
 typedef enum {
     MqttEventTypeStatusChanged,
     MqttEventTypeLinkPinReceived,
@@ -81,11 +89,20 @@ MqttProfileId mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url);
 void mqtt_client_set_profile(MqttClient* mqtt, MqttProfileId profile_id, const char* custom_url);
 
 void mqtt_client_publish(
-    MqttClient* mqtt,
+    MqttClient* instance,
     MqttQos qos,
     const char* topic,
     const void* data,
     size_t data_size);
+
+void mqtt_client_publish_ex(
+    MqttClient* instance,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size,
+    const MqttProperty* props,
+    uint32_t props_count);
 
 MqttSubscription* mqtt_subscribe(
     MqttClient* instance,

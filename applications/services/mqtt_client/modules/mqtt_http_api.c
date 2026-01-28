@@ -222,15 +222,24 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
         mg_send(conn, request->data, request->data_size);
 
     } else if(ev == MG_EV_HTTP_MSG) {
-        struct mg_http_message* msg = (struct mg_http_message*)ev_data;
-        FURI_LOG_T(TAG, "HTTP resp: %.*s", (int)msg->body.len, msg->body.buf);
-        // TODO: Correlation data via properties
-        mqtt_client_publish(
+        const struct mg_http_message* msg = (const struct mg_http_message*)ev_data;
+        FURI_LOG_T(TAG, "HTTP resp: %.*s", msg->body.len, msg->body.buf);
+
+        const MqttProperty props[] = {
+            {
+                .type = MqttPropertyTypeCorrelationData,
+                .value.string = furi_string_get_cstr(request->correlation_data),
+            },
+        };
+
+        mqtt_client_publish_ex(
             request->mqtt,
             MqttQosAtLeastOnce,
             furi_string_get_cstr(request->response_topic),
             msg->message.buf,
-            msg->message.len);
+            msg->message.len,
+            props,
+            COUNT_OF(props));
 
         conn->is_draining = 1;
 
@@ -253,14 +262,23 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
 }
 
 static void mqtt_http_api_respond_error(const MqttHttpApiRequest* request) {
-    // TODO: Set correlation data property
     const char* message = "HTTP/1.1 422 Unprocessable Entity\r\n\r\n";
-    mqtt_client_publish(
+
+    const MqttProperty props[] = {
+        {
+            .type = MqttPropertyTypeCorrelationData,
+            .value.string = furi_string_get_cstr(request->correlation_data),
+        },
+    };
+
+    mqtt_client_publish_ex(
         request->mqtt,
         MqttQosAtLeastOnce,
         furi_string_get_cstr(request->response_topic),
         message,
-        strlen(message));
+        strlen(message),
+        props,
+        COUNT_OF(props));
 }
 
 static void mqtt_http_api_message_callback(const MqttMessage* message, void* context) {

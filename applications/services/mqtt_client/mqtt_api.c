@@ -135,6 +135,38 @@ void mqtt_client_publish(
     mqtt_client_send_message(instance, &message);
 }
 
+void mqtt_client_publish_ex(
+    MqttClient* instance,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size,
+    const MqttProperty* props,
+    uint32_t props_count) {
+    furi_check(instance);
+    furi_check(topic);
+    furi_check(data);
+    furi_check(data_size);
+    furi_check(props);
+    furi_check(props_count);
+    furi_check(qos < MqttQosMax);
+
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypePublish,
+        .data.publish =
+            {
+                .topic = topic,
+                .data = data,
+                .data_size = data_size,
+                .props = props,
+                .props_count = props_count,
+                .qos = qos,
+            },
+    };
+
+    mqtt_client_send_message(instance, &message);
+}
+
 MqttSubscription* mqtt_subscribe(
     MqttClient* instance,
     MqttQos qos,
@@ -315,8 +347,8 @@ static void
         publish->topic,
         publish->data,
         publish->data_size,
-        NULL,
-        0);
+        publish->props,
+        publish->props_count);
 }
 
 static void

@@ -17,6 +17,19 @@ typedef struct {
 
 static const MqttProfile mqtt_profiles[MqttProfileIdMax];
 
+typedef enum {
+    MqttPropertyValueTypeNumber,
+    MqttPropertyValueTypeString,
+    MqttPropertyValueTypeMax,
+} MqttPropertyValueType;
+
+typedef struct {
+    uint8_t raw_id;
+    MqttPropertyValueType value_type;
+} MqttPropertyDesc;
+
+static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax];
+
 static void mqtt_wifi_event_callback(const void* state, void* context) {
     MqttClient* instance = context;
     furi_assert(instance);
@@ -226,21 +239,50 @@ static MqttClient* mqtt_client_alloc(void) {
     return instance;
 }
 
-// Service thread
+const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size) {
+    furi_check(message);
+    const struct mg_str data = TO_RAW_MESSAGE(message)->data;
 
-int32_t mqtt_client_start(void* arg) {
-    UNUSED(arg);
-
-    MqttClient* instance = mqtt_client_alloc();
-
-    while(1) {
-        mg_mgr_poll(&instance->mgr, MQTT_POLL_PERIOD);
+    if(data_size) {
+        *data_size = data.len;
     }
 
-    return 0;
+    return data.buf;
 }
 
-// Subscribe & publish internal implementations
+bool mqtt_message_get_string_property(
+    const MqttMessage* message,
+    MqttPropertyType property_type,
+    FuriString* value) {
+    furi_check(message);
+    furi_check(property_type < MqttPropertyTypeMax);
+
+    const MqttPropertyDesc* desc = &mqtt_property_table[property_type];
+    furi_check(desc->value_type == MqttPropertyValueTypeString);
+
+    bool is_found = false;
+
+    for(size_t prop_offs = 0;;) {
+        struct mg_mqtt_prop prop = {};
+        const struct mg_mqtt_message* raw_message = TO_RAW_MESSAGE(message);
+        // NOTE: mg_mqtt_next_prop() does NOT mutate data pointed to by *msg
+        prop_offs = mg_mqtt_next_prop((struct mg_mqtt_message*)raw_message, &prop, prop_offs);
+
+        if(prop_offs <= 0) {
+            break;
+        }
+
+        if(prop.id == desc->raw_id) {
+            if(value && prop.val.len) {
+                furi_string_printf(value, "%.*s", prop.val.len, prop.val.buf);
+                is_found = true;
+                break;
+            }
+        }
+    }
+
+    return is_found;
+}
 
 void mqtt_make_topic_path(
     MqttClient* instance,
@@ -309,6 +351,20 @@ void mqtt_unsubscribe_internal(MqttClient* instance, MqttSubscription* subscript
     // TODO: reconnect
 }
 
+static void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw_property) {
+    const MqttPropertyDesc* desc = &mqtt_property_table[property->type];
+
+    raw_property->id = desc->raw_id;
+
+    if(desc->value_type == MqttPropertyValueTypeNumber) {
+        raw_property->iv = property->value.number;
+    } else if(desc->value_type == MqttPropertyValueTypeString) {
+        raw_property->val = mg_str(property->value.string);
+    } else {
+        furi_crash("Invalid MqttPropertyValueType value");
+    }
+}
+
 uint16_t mqtt_publish_internal(
     MqttClient* instance,
     MqttScope scope,
@@ -316,7 +372,7 @@ uint16_t mqtt_publish_internal(
     const char* topic,
     const void* data,
     size_t data_size,
-    const struct mg_mqtt_prop* props,
+    const MqttProperty* props,
     uint32_t props_count) {
     if(!instance->conn) {
         // TODO: What to do with messages published before the connection has been established?
@@ -326,17 +382,29 @@ uint16_t mqtt_publish_internal(
     FuriString* path = furi_string_alloc();
     mqtt_make_topic_path(instance, scope, "up", topic, path);
 
+    mg_mqtt_prop* raw_props = NULL;
+
+    if(props && props_count) {
+        raw_props = malloc(props_count * sizeof(mg_mqtt_prop));
+        for(uint32_t i = 0; i < props_count; ++i) {
+            mqtt_property_to_raw(&props[i], &raw_props[i]);
+        }
+    }
+
     const struct mg_mqtt_opts opts = {
         .topic = mg_str(furi_string_get_cstr(path)),
         .message = mg_str_n(data, data_size),
         .qos = qos,
-        // Removing const is safe here
-        .props = (struct mg_mqtt_prop*)props,
+        .props = raw_props,
         .num_props = props_count,
     };
 
     // TODO: Implement proper QoS handling
     const uint16_t retransmit_id = mg_mqtt_pub(instance->conn, &opts);
+
+    if(raw_props) {
+        free(raw_props);
+    }
 
     furi_string_free(path);
     return retransmit_id;
@@ -366,3 +434,30 @@ static const MqttProfile mqtt_profiles[MqttProfileIdMax] = {
             .use_tls = false,
         },
 };
+
+static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax] = {
+    [MqttPropertyTypeResponseTopic] =
+        {
+            .raw_id = MQTT_PROP_RESPONSE_TOPIC,
+            .value_type = MqttPropertyValueTypeString,
+        },
+    [MqttPropertyTypeCorrelationData] =
+        {
+            .raw_id = MQTT_PROP_CORRELATION_DATA,
+            .value_type = MqttPropertyValueTypeString,
+        },
+};
+
+// Service thread
+
+int32_t mqtt_client_start(void* arg) {
+    UNUSED(arg);
+
+    MqttClient* instance = mqtt_client_alloc();
+
+    while(1) {
+        mg_mgr_poll(&instance->mgr, MQTT_POLL_PERIOD);
+    }
+
+    return 0;
+}

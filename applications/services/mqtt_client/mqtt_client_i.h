@@ -27,6 +27,8 @@
 #define TO_RAW_MESSAGE(msg)  ((const struct mg_mqtt_message*)(msg))
 #define TO_MQTT_MESSAGE(msg) ((const MqttMessage*)(msg))
 
+typedef struct mg_mqtt_prop mg_mqtt_prop;
+
 typedef enum {
     MqttScopeDevice,
     MqttScopeSession,
@@ -113,6 +115,8 @@ typedef struct {
     const char* topic;
     const void* data;
     size_t data_size;
+    const MqttProperty* props;
+    uint32_t props_count;
     MqttQos qos;
 } MqttApiMessagePublish;
 
@@ -186,7 +190,7 @@ uint16_t mqtt_publish_internal(
     const char* topic,
     const void* data,
     size_t data_size,
-    const struct mg_mqtt_prop* props,
+    const MqttProperty* props,
     uint32_t props_count);
 
 bool mqtt_tls_init(
