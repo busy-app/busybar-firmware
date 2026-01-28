@@ -166,9 +166,6 @@ static int compare_zone_info(const void* p1, const void* p2) {
 
 static ZoneInfo* compile_zone_list(void) {
     ZoneInfo* zone_infos = calloc(utz_num_zone_names, sizeof(ZoneInfo));
-    if(!zone_infos) {
-        return NULL;
-    }
     DateTimeMs dt = furi_hal_rtc_get_datetime();
     size_t i = 0;
     for(const char* name = utz_zone_names; name && i != utz_num_zone_names;
@@ -218,9 +215,6 @@ static FuriString* generate_zone_list_json(const ZoneInfo* infos) {
     }
 
     FuriString* r = furi_string_alloc_set("[");
-    if(!r) {
-        return NULL;
-    }
     for(size_t i = 0; i != utz_num_zone_names; ++i) {
         FuriString* obj = format_zone_info_json(infos + i);
 
