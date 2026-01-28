@@ -1,14 +1,17 @@
-#include "../mqtt_client_i.h"
+#include <mongoose.h>
 
 #include <network/network.h>
+#include <mqtt_client/mqtt_client.h>
 
 #define TAG "MqttHttpProxySrv"
 
 #define POLL_PERIOD_MS (500)
 
-#define HTTP_HOST           "http://127.0.0.1"
-#define HTTP_URI_API_PREFIX "/api/"
-#define HTTP_CONN_TIMEOUT   (5000) // In ms
+#define HTTP_HOST            "http://127.0.0.1"
+#define HTTP_URI_API_PREFIX  "/api/"
+#define HTTP_CONN_TIMEOUT_MS (5000)
+
+#define RESPONSE_TOPIC_PREFIX "http/"
 
 #define SUB_QOS (MqttQosExactlyOnce)
 #define PUB_QOS (MqttQosExactlyOnce)
@@ -75,7 +78,7 @@ static MqttHttpApiRequest*
     context->mqtt = mqtt;
     context->response_topic = furi_string_alloc();
     context->correlation_data = furi_string_alloc();
-    context->poll_cnt = HTTP_CONN_TIMEOUT / MQTT_POLL_PERIOD;
+    context->poll_cnt = HTTP_CONN_TIMEOUT_MS / POLL_PERIOD_MS;
 
     size_t data_size;
     const void* data = mqtt_message_get_data(message, &data_size);
@@ -90,6 +93,12 @@ static MqttHttpApiRequest*
         message, MqttPropertyTypeResponseTopic, context->response_topic);
     mqtt_message_get_string_property(
         message, MqttPropertyTypeCorrelationData, context->correlation_data);
+
+    //TODO: Only send the relevant part via response topic prop?
+    const size_t idx = furi_string_search(context->response_topic, RESPONSE_TOPIC_PREFIX);
+    if(idx != FURI_STRING_FAILURE) {
+        furi_string_right(context->response_topic, idx);
+    }
 
     return context;
 }
