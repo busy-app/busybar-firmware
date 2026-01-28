@@ -185,15 +185,28 @@ void submenu_reset(Submenu* instance) {
 
 uint32_t submenu_get_selected_item_index(const Submenu* instance) {
     furi_check(instance);
-    // TODO: For later
-    furi_crash("Not implemented");
+
+    // TODO DOESN'T WORK!!!
+    const SubmenuItem* item = (SubmenuItem*)lv_group_get_focused(instance->group);
+    if(item) {
+        return item->index;
+    }
+
+    return 0;
 }
 
 void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
     furi_check(instance);
-    UNUSED(index);
-    // TODO: For later
-    furi_crash("Not implemented");
+
+    uint32_t child_count = lv_obj_get_child_count((lv_obj_t*)instance);
+    for(uint32_t i = 0; i < child_count; i++) {
+        SubmenuItem* item = (SubmenuItem*)lv_obj_get_child((lv_obj_t*)instance, i);
+        if(item->index == index) {
+            lv_group_focus_obj((lv_obj_t*)item);
+            lv_obj_scroll_to_view((lv_obj_t*)item, LV_ANIM_OFF);
+            break;
+        }
+    }
 }
 
 // LVGL class descriptors
