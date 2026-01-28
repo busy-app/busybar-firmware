@@ -23,9 +23,9 @@ static void
     furi_string_cat_printf(
         info_str, "#888888 State:# %s\n", info.is_charging ? "Charging" : "Discharging");
     furi_string_cat_printf(
-        info_str, "#888888 Battery volt:# %.2f\n", info.voltage_battery / 1000.f);
+        info_str, "#888888 Battery volt:# %.2fV\n", info.voltage_battery / 1000.f);
     furi_string_cat_printf(
-        info_str, "#888888 Battery curr:# %.2f\n", info.current_battery / 1000.f);
+        info_str, "#888888 Battery curr:# %.2fA\n", info.current_battery / 1000.f);
     furi_string_cat_printf(
         info_str,
         "#888888 Battery temp:# %.1fC\n",
