@@ -13,6 +13,7 @@ typedef enum {
 typedef struct {
     Submenu* front_menu;
     Submenu* back_menu;
+    uint32_t menu_index;
 } SettingsSceneSystem;
 
 static void scene_main_menu_item_callback(uint32_t index, void* context) {
@@ -42,12 +43,13 @@ static void scene_main_on_enter(void* context) {
             SceneEventFactoryReset,
             scene_main_menu_item_callback,
             instance);
+        submenu_set_selected_item_index(data->front_menu, data->menu_index);
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
-
         submenu_add_item(data->back_menu, "Power", SceneEventPower, NULL, instance);
         submenu_add_item(data->back_menu, "Debug apps", SceneEventDebug, NULL, instance);
         submenu_add_item(data->back_menu, "Factory reset", SceneEventFactoryReset, NULL, instance);
+        submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
 }
 
@@ -67,6 +69,7 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
+    SettingsSceneSystem* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
@@ -80,6 +83,7 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
             scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);
             consumed = true;
         }
+        data->menu_index = event->event;
     } else if(event->type == SceneManagerEventTypeBack) {
         desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
     }
