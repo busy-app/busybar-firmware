@@ -18,6 +18,13 @@ typedef struct MqttSubscription MqttSubscription;
 typedef void (*MqttSubscriptionCallback)(const MqttMessage* message, void* context);
 
 typedef enum {
+    MqttPropertyTypeResponseTopic,
+    MqttPropertyTypeCorrelationData,
+    /* Add more property types as needed */
+    MqttPropertyTypeMax,
+} MqttPropertyType;
+
+typedef enum {
     MqttEventTypeStatusChanged,
     MqttEventTypeLinkPinReceived,
     MqttEventTypeLinkDone,
@@ -90,3 +97,8 @@ MqttSubscription* mqtt_subscribe(
 void mqtt_unsubscribe(MqttClient* instance, MqttSubscription* subscription);
 
 const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size);
+
+bool mqtt_message_get_string_property(
+    const MqttMessage* message,
+    MqttPropertyType property_type,
+    FuriString* value);
