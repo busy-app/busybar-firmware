@@ -129,6 +129,8 @@ static FwUpdate* fw_update_alloc(void) {
 }
 
 static void fw_update_free(FwUpdate* instance) {
+    scene_manager_free(instance->scene_manager);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, fw_update_gui_input_callback);
