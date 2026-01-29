@@ -149,14 +149,25 @@ static void this_free(ThisInstance* instance) {
     free(instance);
 }
 
+static void this_setup_app_descriptor(SettingsAppDescriptor* descriptor) {
+    furi_string_set_str(descriptor->front_title, "Firmware");
+    furi_string_set_str(descriptor->back_title, "Firmware");
+    furi_string_set_str(descriptor->front_icon, THIS_IMG_PATH("microchip_front_8x8.bin"));
+    furi_string_set_str(descriptor->back_icon, THIS_IMG_PATH("microchip_back_12x12.bin"));
+
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+    UpdaterCheckState updater_check_state;
+    furi_state_get(updater_get_check_state(updater), &updater_check_state);
+    furi_record_close(RECORD_UPDATER);
+
+    if(updater_check_state.result == UpdaterCheckResultAvailable) {
+        furi_string_set_str(descriptor->menu_extra, "Update");
+    }
+}
+
 int32_t settings_firmware_app_entry(void* argument) {
     if(argument) {
-        SettingsAppDescriptor* descriptor = argument;
-
-        furi_string_set_str(descriptor->front_title, "Firmware");
-        furi_string_set_str(descriptor->back_title, "Firmware");
-        furi_string_set_str(descriptor->front_icon, THIS_IMG_PATH("microchip_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, THIS_IMG_PATH("microchip_back_12x12.bin"));
+        this_setup_app_descriptor(argument);
     } else {
         ThisInstance* instance = this_alloc();
 
