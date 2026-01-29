@@ -1,7 +1,5 @@
 #include "mqtt_i.h"
 
-#define TAG "MqttAccount"
-
 static void mqtt_account_link_otp_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);

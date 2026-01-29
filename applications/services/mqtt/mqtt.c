@@ -8,8 +8,6 @@
 
 #include <toolbox/hex.h>
 
-#define TAG "Mqtt"
-
 typedef struct {
     const char* url;
     bool use_tls;

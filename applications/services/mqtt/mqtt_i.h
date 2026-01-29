@@ -14,6 +14,8 @@
 #include "settings/mqtt_settings.h"
 #include "settings/mqtt_saved_state.h"
 
+#define TAG "Mqtt"
+
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
 #define MQTT_POLL_PERIOD         (1000)

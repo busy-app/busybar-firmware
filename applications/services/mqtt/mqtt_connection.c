@@ -3,8 +3,6 @@
 #include <storage/storage.h>
 #include <busy_timer/time_macros.h>
 
-#define TAG "MqttConnection"
-
 #define MQTT_PING_PERIOD M_TO_MS(10)
 
 #define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/ca/cacert.pem")
