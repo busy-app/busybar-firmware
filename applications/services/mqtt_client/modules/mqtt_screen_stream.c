@@ -1,8 +1,10 @@
 #include <gui/gui.h>
-#include <mqtt_client/mqtt_client.h>
+
 #include <front_display/front_display.h>
 
-#include <time.h>
+#include <mqtt_client/mqtt_client.h>
+
+#include <busy_timer/time_macros.h>
 
 #define TAG "MqttScreenStreamSrv"
 
@@ -15,6 +17,8 @@
 #define API_QUEUE_SIZE  (4)
 #define FRAME_PERIOD_MS (500)
 
+#define STREAM_TIMEOUT_MS M_TO_MS(1)
+
 typedef enum {
     MqttScreenStreamApiMessageTypeStart,
     MqttScreenStreamApiMessageTypeStop,
@@ -23,14 +27,12 @@ typedef enum {
 
 typedef struct {
     MqttScreenStreamApiMessageType type;
-    union {
-        time_t timestamp;
-    };
 } MqttScreenStreamApiMessage;
 
 typedef struct {
     FuriEventLoop* event_loop;
-    FuriEventLoopTimer* timer;
+    FuriEventLoopTimer* frame_timer;
+    FuriEventLoopTimer* timeout_timer;
     FuriMessageQueue* api_queue;
     MqttClient* mqtt;
     Gui* gui;
@@ -44,19 +46,12 @@ static void mqtt_screen_stream_message_callback(const MqttMessage* message, void
     MqttScreenStreamSrv* instance = context;
 
     size_t data_size;
-    const char* data = mqtt_message_get_data(message, &data_size);
-    UNUSED(data);
-    // TODO: Parse timestamp & calculate timeout
+    mqtt_message_get_data(message, &data_size);
 
-    MqttScreenStreamApiMessage api_msg;
-
-    if(data_size) {
-        api_msg.type = MqttScreenStreamApiMessageTypeStart;
-        api_msg.timestamp = 0;
-
-    } else {
-        api_msg.type = MqttScreenStreamApiMessageTypeStop;
-    }
+    const MqttScreenStreamApiMessage api_msg = {
+        .type = data_size ? MqttScreenStreamApiMessageTypeStart :
+                            MqttScreenStreamApiMessageTypeStop,
+    };
 
     furi_message_queue_put(instance->api_queue, &api_msg, FuriWaitForever);
 }
@@ -80,7 +75,7 @@ static void mqtt_screen_stream_pubsub_callback(const void* message, void* contex
     }
 }
 
-static void mqtt_screen_stream_timer_callback(void* context) {
+static void mqtt_screen_stream_frame_timer_callback(void* context) {
     furi_assert(context);
     MqttScreenStreamSrv* instance = context;
 
@@ -93,23 +88,39 @@ static void mqtt_screen_stream_timer_callback(void* context) {
         instance->mqtt, PUB_QOS, PUB_TOPIC, instance->buffer, FRONT_DISPLAY_BUF_SIZE);
 }
 
+static void mqtt_screen_stream_timeout_timer_callback(void* context) {
+    furi_assert(context);
+    MqttScreenStreamSrv* instance = context;
+
+    FURI_LOG_I(TAG, "Stop (timeout)");
+
+    furi_event_loop_timer_stop(instance->frame_timer);
+}
+
 static void mqtt_screen_stream_api_queue_callback(FuriEventLoopObject* obj, void* context) {
     furi_assert(context);
     MqttScreenStreamSrv* instance = context;
 
     furi_assert(instance->api_queue == obj);
 
-    MqttScreenStreamApiMessage msg;
-    while(furi_message_queue_get(instance->api_queue, &msg, 0) == FuriStatusOk) {
-        if(msg.type == MqttScreenStreamApiMessageTypeStart) {
-            if(!furi_event_loop_timer_is_running(instance->timer)) {
+    MqttScreenStreamApiMessage api_msg;
+    while(furi_message_queue_get(instance->api_queue, &api_msg, 0) == FuriStatusOk) {
+        if(api_msg.type == MqttScreenStreamApiMessageTypeStart) {
+            if(!furi_event_loop_timer_is_running(instance->frame_timer)) {
                 FURI_LOG_I(TAG, "Start");
-                furi_event_loop_timer_start(instance->timer, FRAME_PERIOD_MS);
+
+                furi_event_loop_timer_start(instance->frame_timer, FRAME_PERIOD_MS);
+                furi_event_loop_pend_callback(
+                    instance->event_loop, mqtt_screen_stream_frame_timer_callback, instance);
             }
 
-        } else if(msg.type == MqttScreenStreamApiMessageTypeStop) {
+            furi_event_loop_timer_start(instance->timeout_timer, STREAM_TIMEOUT_MS);
+
+        } else if(api_msg.type == MqttScreenStreamApiMessageTypeStop) {
             FURI_LOG_I(TAG, "Stop");
-            furi_event_loop_timer_stop(instance->timer);
+
+            furi_event_loop_timer_stop(instance->frame_timer);
+            furi_event_loop_timer_stop(instance->timeout_timer);
 
         } else {
             furi_crash("Invalid MqttScreenStreamApiMessageType value");
@@ -121,10 +132,15 @@ static MqttScreenStreamSrv* mqtt_screen_stream_alloc(void) {
     MqttScreenStreamSrv* instance = malloc(sizeof(MqttScreenStreamSrv));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->timer = furi_event_loop_timer_alloc(
+    instance->frame_timer = furi_event_loop_timer_alloc(
         instance->event_loop,
-        mqtt_screen_stream_timer_callback,
+        mqtt_screen_stream_frame_timer_callback,
         FuriEventLoopTimerTypePeriodic,
+        instance);
+    instance->timeout_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        mqtt_screen_stream_timeout_timer_callback,
+        FuriEventLoopTimerTypeOnce,
         instance);
     instance->api_queue =
         furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(MqttScreenStreamApiMessage));
