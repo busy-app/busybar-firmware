@@ -139,17 +139,15 @@ class TestSettingsAPI:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("key", [
-        # Valid numeric keys - firmware returns key_valid=False (bug)
-        pytest.param("1234", marks=pytest.mark.xfail(reason="Firmware bug: key_valid returns False for valid numeric keys")),
-        pytest.param("12345", marks=pytest.mark.xfail(reason="Firmware bug: key_valid returns False for valid numeric keys")),
-        pytest.param("0000", marks=pytest.mark.xfail(reason="Firmware bug: key_valid returns False for valid numeric keys")),
-        pytest.param("9999999999", marks=pytest.mark.xfail(reason="Firmware bug: key_valid returns False for valid numeric keys")),
-        pytest.param("1234567890", marks=pytest.mark.xfail(reason="Firmware bug: key_valid returns False for valid numeric keys")),
-        # Valid non-numeric keys (expected to have key_valid=False)
+        "1234",
+        "12345",
+        "0000",
         "asfd",
         "asfde",
         "blablabla",
-        # Invalid keys
+        "9999999999",
+        "1234567890",
+        # invalid keys
         "1a45",          # invalid - mixed
         "abcd",          # invalid - non-numeric
         "123",           # invalid - too short

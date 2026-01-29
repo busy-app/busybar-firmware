@@ -33,7 +33,7 @@ class Config:
     PROJECT_WORKSPACE: str = os.getenv("PROJECT_WORKSPACE", "/_work")
 
     # Firmware-relative paths (within BSB_FIRMWARE_PATH)
-    FIRMWARE_ELF: str = "busybar-f21-firmware.elf"
+    FIRMWARE_ELF: str = os.getenv("U5_ELF", "")
     PLATFORM_JSON: str = "scripts/debug/platforms/stm32u595.json"
     TOOLCHAIN_ENV: str = "scripts/toolchain/fbtenv.sh"
     OPENOCD_INTERFACE: str = "interface/cmsis-dap.cfg"
