@@ -19,23 +19,23 @@
 #define SUB_TOPIC "http-request"
 
 typedef enum {
-    MqttHttpApiMethodIdGet,
-    MqttHttpApiMethodIdPost,
-    MqttHttpApiMethodIdDelete,
-    MqttHttpApiMethodIdMax,
-} MqttHttpApiMethodId;
+    MqttHttpProxyMethodIdGet,
+    MqttHttpProxyMethodIdPost,
+    MqttHttpProxyMethodIdDelete,
+    MqttHttpProxyMethodIdMax,
+} MqttHttpProxyMethodId;
 
 typedef struct {
     const char* name;
-    MqttHttpApiMethodId id;
-} MqttHttpApiBlocklistEntry;
+    MqttHttpProxyMethodId id;
+} MqttHttpProxyBlocklistEntry;
 
 typedef struct {
     MqttClient* mqtt;
     struct mg_mgr mgr;
     struct mg_timer timer;
     unsigned long api_connection_id;
-} MqttHttpApi;
+} MqttHttpProxySrv;
 
 typedef struct {
     MqttClient* mqtt;
@@ -44,26 +44,26 @@ typedef struct {
     uint8_t* data;
     size_t data_size;
     uint32_t poll_cnt;
-} MqttHttpApiRequest;
+} MqttHttpProxyRequest;
 
-static const char* mqtt_http_method_names[MqttHttpApiMethodIdMax] = {
-    [MqttHttpApiMethodIdGet] = "GET",
-    [MqttHttpApiMethodIdPost] = "POST",
-    [MqttHttpApiMethodIdDelete] = "DELETE",
+static const char* mqtt_http_proxy_method_names[MqttHttpProxyMethodIdMax] = {
+    [MqttHttpProxyMethodIdGet] = "GET",
+    [MqttHttpProxyMethodIdPost] = "POST",
+    [MqttHttpProxyMethodIdDelete] = "DELETE",
 };
 
-static const MqttHttpApiBlocklistEntry mqtt_api_blocklist[] = {
+static const MqttHttpProxyBlocklistEntry mqtt_http_proxy_blocklist[] = {
     {
         .name = "update",
-        .id = MqttHttpApiMethodIdPost,
+        .id = MqttHttpProxyMethodIdPost,
     },
 };
 
-static MqttHttpApiMethodId mqtt_http_api_get_method_id_by_name(const struct mg_str name) {
-    MqttHttpApiMethodId found_id;
+static MqttHttpProxyMethodId mqtt_http_proxy_get_method_id_by_name(const struct mg_str name) {
+    MqttHttpProxyMethodId found_id;
 
-    for(found_id = 0; found_id < MqttHttpApiMethodIdMax; ++found_id) {
-        if(mg_strcmp(name, mg_str(mqtt_http_method_names[found_id])) == 0) {
+    for(found_id = 0; found_id < MqttHttpProxyMethodIdMax; ++found_id) {
+        if(mg_strcmp(name, mg_str(mqtt_http_proxy_method_names[found_id])) == 0) {
             break;
         }
     }
@@ -71,9 +71,9 @@ static MqttHttpApiMethodId mqtt_http_api_get_method_id_by_name(const struct mg_s
     return found_id;
 }
 
-static MqttHttpApiRequest*
-    mqtt_http_api_request_alloc(MqttClient* mqtt, const MqttMessage* message) {
-    MqttHttpApiRequest* context = malloc(sizeof(MqttHttpApiRequest));
+static MqttHttpProxyRequest*
+    mqtt_http_proxy_request_alloc(MqttClient* mqtt, const MqttMessage* message) {
+    MqttHttpProxyRequest* context = malloc(sizeof(MqttHttpProxyRequest));
 
     context->mqtt = mqtt;
     context->response_topic = furi_string_alloc();
@@ -103,7 +103,7 @@ static MqttHttpApiRequest*
     return context;
 }
 
-static void mqtt_http_api_request_free(MqttHttpApiRequest* context) {
+static void mqtt_http_proxy_request_free(MqttHttpProxyRequest* context) {
     furi_string_free(context->response_topic);
     furi_string_free(context->correlation_data);
 
@@ -114,7 +114,7 @@ static void mqtt_http_api_request_free(MqttHttpApiRequest* context) {
     free(context);
 }
 
-static bool mqtt_http_api_request_has_valid_props(const MqttHttpApiRequest* context) {
+static bool mqtt_http_proxy_request_has_valid_props(const MqttHttpProxyRequest* context) {
     bool is_valid = false;
 
     do {
@@ -130,7 +130,7 @@ static bool mqtt_http_api_request_has_valid_props(const MqttHttpApiRequest* cont
     return is_valid;
 }
 
-static bool mqtt_http_api_is_valid_uri(const struct mg_http_message* http_msg) {
+static bool mqtt_http_proxy_is_valid_uri(const struct mg_http_message* http_msg) {
     bool is_valid = false;
 
     do {
@@ -151,7 +151,7 @@ static bool mqtt_http_api_is_valid_uri(const struct mg_http_message* http_msg) {
     return is_valid;
 }
 
-static bool mqtt_http_api_method_is_blocked(const struct mg_http_message* http_msg) {
+static bool mqtt_http_proxy_method_is_blocked(const struct mg_http_message* http_msg) {
     bool is_blocked = false;
 
     struct mg_str uri_mask = http_msg->uri;
@@ -164,13 +164,14 @@ static bool mqtt_http_api_method_is_blocked(const struct mg_http_message* http_m
         uri_mask.len -= 1;
     }
 
-    for(uint32_t i = 0; i < COUNT_OF(mqtt_api_blocklist); i++) {
-        const MqttHttpApiBlocklistEntry* const block_entry = &mqtt_api_blocklist[i];
+    for(uint32_t i = 0; i < COUNT_OF(mqtt_http_proxy_blocklist); i++) {
+        const MqttHttpProxyBlocklistEntry* const block_entry = &mqtt_http_proxy_blocklist[i];
 
         if(mg_strcmp(uri_mask, mg_str(block_entry->name)) == 0) {
-            const MqttHttpApiMethodId id = mqtt_http_api_get_method_id_by_name(http_msg->method);
+            const MqttHttpProxyMethodId id =
+                mqtt_http_proxy_get_method_id_by_name(http_msg->method);
 
-            if(id != MqttHttpApiMethodIdMax) {
+            if(id != MqttHttpProxyMethodIdMax) {
                 if(id == block_entry->id) {
                     is_blocked = true;
                     break;
@@ -182,7 +183,7 @@ static bool mqtt_http_api_method_is_blocked(const struct mg_http_message* http_m
     return is_blocked;
 }
 
-static bool mqtt_http_api_is_websocket_upgrade(const struct mg_http_message* http_msg) {
+static bool mqtt_http_proxy_is_websocket_upgrade(const struct mg_http_message* http_msg) {
     bool is_websocket = false;
 
     const struct mg_str* hdr = mg_http_get_header((struct mg_http_message*)http_msg, "Connection");
@@ -196,7 +197,7 @@ static bool mqtt_http_api_is_websocket_upgrade(const struct mg_http_message* htt
     return is_websocket;
 }
 
-static bool mqtt_http_api_request_has_valid_request(const MqttHttpApiRequest* context) {
+static bool mqtt_http_proxy_request_has_valid_request(const MqttHttpProxyRequest* context) {
     bool is_valid = false;
 
     do {
@@ -207,13 +208,13 @@ static bool mqtt_http_api_request_has_valid_request(const MqttHttpApiRequest* co
         if(req_len <= 0) {
             break;
         }
-        if(!mqtt_http_api_is_valid_uri(&http_msg)) {
+        if(!mqtt_http_proxy_is_valid_uri(&http_msg)) {
             break;
         }
-        if(mqtt_http_api_method_is_blocked(&http_msg)) {
+        if(mqtt_http_proxy_method_is_blocked(&http_msg)) {
             break;
         }
-        if(mqtt_http_api_is_websocket_upgrade(&http_msg)) {
+        if(mqtt_http_proxy_is_websocket_upgrade(&http_msg)) {
             break;
         }
 
@@ -224,7 +225,7 @@ static bool mqtt_http_api_request_has_valid_request(const MqttHttpApiRequest* co
 }
 
 static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_data) {
-    MqttHttpApiRequest* request = conn->fn_data;
+    MqttHttpProxyRequest* request = conn->fn_data;
     furi_assert(request);
 
     if(ev == MG_EV_CONNECT) {
@@ -255,7 +256,7 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
     } else if(ev == MG_EV_CLOSE) {
         FURI_LOG_T(TAG, "HTTP connection closed");
 
-        mqtt_http_api_request_free(request);
+        mqtt_http_proxy_request_free(request);
         conn->fn_data = NULL;
 
     } else if(ev == MG_EV_POLL) {
@@ -270,7 +271,7 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
     }
 }
 
-static void mqtt_http_api_respond_error(const MqttHttpApiRequest* request) {
+static void mqtt_http_proxy_respond_error(const MqttHttpProxyRequest* request) {
     const char* message = "HTTP/1.1 422 Unprocessable Entity\r\n\r\n";
 
     const MqttProperty props[] = {
@@ -290,27 +291,29 @@ static void mqtt_http_api_respond_error(const MqttHttpApiRequest* request) {
         COUNT_OF(props));
 }
 
-static void mqtt_http_api_message_callback(const MqttMessage* message, void* context) {
+static void mqtt_http_proxy_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
-    MqttHttpApi* instance = context;
+    MqttHttpProxySrv* instance = context;
 
-    MqttHttpApiRequest* request = mqtt_http_api_request_alloc(instance->mqtt, message);
-    mg_wakeup(&instance->mgr, instance->api_connection_id, &request, sizeof(MqttHttpApiRequest*));
+    MqttHttpProxyRequest* request = mqtt_http_proxy_request_alloc(instance->mqtt, message);
+    mg_wakeup(
+        &instance->mgr, instance->api_connection_id, &request, sizeof(MqttHttpProxyRequest*));
 }
 
-static bool mqtt_http_api_process_request(MqttHttpApi* instance, MqttHttpApiRequest* request) {
+static bool
+    mqtt_http_proxy_process_request(MqttHttpProxySrv* instance, MqttHttpProxyRequest* request) {
     bool success = false;
 
     do {
-        if(!mqtt_http_api_request_has_valid_props(request)) {
+        if(!mqtt_http_proxy_request_has_valid_props(request)) {
             FURI_LOG_W(TAG, "Missing msg properties");
             break;
         }
 
-        if(!mqtt_http_api_request_has_valid_request(request)) {
+        if(!mqtt_http_proxy_request_has_valid_request(request)) {
             FURI_LOG_W(TAG, "Bad request");
-            mqtt_http_api_respond_error(request);
+            mqtt_http_proxy_respond_error(request);
             break;
         }
 
@@ -323,26 +326,26 @@ static bool mqtt_http_api_process_request(MqttHttpApi* instance, MqttHttpApiRequ
 }
 
 static void
-    mqtt_http_api_event_callback(struct mg_connection* connection, int event, void* event_data) {
+    mqtt_http_proxy_event_callback(struct mg_connection* connection, int event, void* event_data) {
     if(event == MG_EV_WAKEUP) {
-        MqttHttpApi* instance = connection->fn_data;
+        MqttHttpProxySrv* instance = connection->fn_data;
         furi_assert(instance);
 
         const struct mg_str* data = event_data;
         furi_assert(data);
         furi_assert(data->buf);
-        furi_assert(data->len == sizeof(MqttHttpApiRequest*));
+        furi_assert(data->len == sizeof(MqttHttpProxyRequest*));
 
-        MqttHttpApiRequest* request = *(MqttHttpApiRequest**)data->buf;
+        MqttHttpProxyRequest* request = *(MqttHttpProxyRequest**)data->buf;
 
-        if(!mqtt_http_api_process_request(instance, request)) {
-            mqtt_http_api_request_free(request);
+        if(!mqtt_http_proxy_process_request(instance, request)) {
+            mqtt_http_proxy_request_free(request);
         }
     }
 }
 
-static MqttHttpApi* mqtt_http_api_alloc(void) {
-    MqttHttpApi* instance = malloc(sizeof(MqttHttpApi));
+static MqttHttpProxySrv* mqtt_http_proxy_alloc(void) {
+    MqttHttpProxySrv* instance = malloc(sizeof(MqttHttpProxySrv));
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
     Network* network = furi_record_open(RECORD_NETWORK);
@@ -352,17 +355,17 @@ static MqttHttpApi* mqtt_http_api_alloc(void) {
     mg_wakeup_init(&instance->mgr);
 
     const struct mg_connection* api_connnection =
-        mg_wrapfd(&instance->mgr, MG_INVALID_SOCKET, mqtt_http_api_event_callback, instance);
+        mg_wrapfd(&instance->mgr, MG_INVALID_SOCKET, mqtt_http_proxy_event_callback, instance);
     instance->api_connection_id = api_connnection->id;
 
-    mqtt_subscribe(instance->mqtt, SUB_QOS, SUB_TOPIC, mqtt_http_api_message_callback, instance);
+    mqtt_subscribe(instance->mqtt, SUB_QOS, SUB_TOPIC, mqtt_http_proxy_message_callback, instance);
     return instance;
 }
 
 int32_t mqtt_http_proxy_srv(void* arg) {
     UNUSED(arg);
 
-    MqttHttpApi* instance = mqtt_http_api_alloc();
+    MqttHttpProxySrv* instance = mqtt_http_proxy_alloc();
 
     for(;;) {
         mg_mgr_poll(&instance->mgr, POLL_PERIOD_MS);
