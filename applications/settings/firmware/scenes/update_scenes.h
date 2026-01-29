@@ -1,0 +1,11 @@
+#pragma once
+
+#include <gui/scene_manager.h>
+
+typedef enum {
+    ThisSceneIdxMain,
+
+    ThisSceneIdxsCount,
+} ThisSceneIdx;
+
+extern const Scene* const settings_firmware_app_scenes[];
