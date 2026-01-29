@@ -77,7 +77,7 @@ jobs:
 
             # Fetch directory listing and find latest update file
             LISTING=$(curl -sL "${BASE_URL}/${BRANCH}/")
-            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.tgz" | sort -V | tail -1)
+            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.tar" | sort -V | tail -1)
 
             if [ -z "$UPDATE_FILE" ]; then
               echo "ERROR: Could not find update file for branch $BRANCH"
@@ -90,10 +90,10 @@ jobs:
 
           # Derive ELF paths from update path (U5 and Si917)
           U5_ELF_PATH="${UPDATE_PATH/-update-/-firmware-}"
-          U5_ELF_PATH="${U5_ELF_PATH%.tgz}.elf"
+          U5_ELF_PATH="${U5_ELF_PATH%.tar}.elf"
 
           SI917_ELF_PATH="${UPDATE_PATH/-update-/-sil_firmware-}"
-          SI917_ELF_PATH="${SI917_ELF_PATH%.tgz}.elf"
+          SI917_ELF_PATH="${SI917_ELF_PATH%.tar}.elf"
 
           echo "update_url=${BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
           echo "u5_elf_url=${BASE_URL}/${U5_ELF_PATH}" >> $GITHUB_OUTPUT
@@ -106,7 +106,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "Downloading: ${{ steps.resolve_firmware.outputs.update_url }}"
-          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tgz "${{ steps.resolve_firmware.outputs.update_url }}"
+          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tar "${{ steps.resolve_firmware.outputs.update_url }}"
 
       - name: 'Download firmware ELF files for crash tracing'
         run: |
@@ -129,7 +129,7 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py format --no-confirm
-          python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tgz -r 3 --connect-timeout 10
+          python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tar -r 3 --connect-timeout 10
           python3 scripts/testops.py wait -t 260
 
       - name: 'Sanity check after flashing'
