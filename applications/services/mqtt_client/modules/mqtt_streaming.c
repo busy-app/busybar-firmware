@@ -1,9 +1,6 @@
-#include <gui/gui.h>
+#include "mqtt_streaming_i.h"
 
 #include <front_display/front_display.h>
-
-#include <mqtt_client/mqtt_client.h>
-
 #include <busy_timer/time_macros.h>
 
 #define TAG "MqttStreamingSrv"
@@ -18,26 +15,6 @@
 #define FRAME_PERIOD_MS (500)
 
 #define STREAM_TIMEOUT_MS M_TO_MS(1)
-
-typedef enum {
-    MqttStreamingApiMessageTypeStart,
-    MqttStreamingApiMessageTypeStop,
-    MqttStreamingApiMessageTypeMax,
-} MqttStreamingApiMessageType;
-
-typedef struct {
-    MqttStreamingApiMessageType type;
-} MqttStreamingApiMessage;
-
-typedef struct {
-    FuriEventLoop* event_loop;
-    FuriEventLoopTimer* frame_timer;
-    FuriEventLoopTimer* timeout_timer;
-    FuriMessageQueue* api_queue;
-    MqttClient* mqtt;
-    Gui* gui;
-    uint8_t* frame_buf;
-} MqttStreamingSrv;
 
 static void mqtt_streaming_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
