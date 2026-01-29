@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - dev
-      - ssecsd/smoke-tests # temporary branch for smoke tests debugging
     tags:
-      - '*'
+      - '*-rc*'
   workflow_dispatch:
     inputs:
       firmware_branch:

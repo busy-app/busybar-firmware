@@ -21,9 +21,9 @@ from .base import BaseAPI
 # === Test Network Configuration ===
 # Can be overridden via environment variables
 
-TEST_WIFI_SSID = os.environ.get("TEST_WIFI_SSID", "Vodafone-31C8A0")
-TEST_WIFI_PASSWORD = os.environ.get("TEST_WIFI_PASSWORD", "FyYDhHdUPYKS8UZP")
-TEST_WIFI_SECURITY = os.environ.get("TEST_WIFI_SECURITY", "WPA3")
+TEST_WIFI_SSID = os.environ.get("TEST_WIFI_SSID", "")
+TEST_WIFI_PASSWORD = os.environ.get("TEST_WIFI_PASSWORD", "")
+TEST_WIFI_SECURITY = os.environ.get("TEST_WIFI_SECURITY", "WPA2")
 
 
 # === Response Models ===
