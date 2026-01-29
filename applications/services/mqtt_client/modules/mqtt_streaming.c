@@ -3,7 +3,7 @@
 #include <front_display/front_display.h>
 #include <busy_timer/time_macros.h>
 
-#define TAG "MqttStreamingSrv"
+#define TAG "MqttStreaming"
 
 #define SUB_QOS (MqttQosAtLeastOnce)
 #define PUB_QOS (MqttQosAtMostOnce)

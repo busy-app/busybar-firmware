@@ -2,7 +2,7 @@
 
 #include <network/network.h>
 
-#define TAG "MqttHttpProxySrv"
+#define TAG "MqttHttpProxy"
 
 #define POLL_PERIOD_MS (1000)
 
