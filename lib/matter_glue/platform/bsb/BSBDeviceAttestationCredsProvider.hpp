@@ -10,6 +10,7 @@ class BSBDACProvider : public DeviceAttestationCredentialsProvider {
 private:
     void* m_cd_buffer = NULL;
     size_t m_cd_size = 0;
+
 public:
     void SetCertificationDeclaration(const void* buffer, size_t size);
     CHIP_ERROR GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) override;
