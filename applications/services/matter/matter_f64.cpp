@@ -73,6 +73,7 @@ static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
     static const size_t pattern[2] = {4, 3};
     const size_t original_len = strlen(buffer);
     const size_t orig_len_with_terminator = original_len + 1;
+    if(!original_len) return;
     furi_check((original_len == 11) || (original_len == 21));
 
     size_t pattern_step = 0;
