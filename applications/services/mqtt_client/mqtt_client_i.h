@@ -156,6 +156,8 @@ typedef struct {
 
 void mqtt_api_init(MqttClient* instance);
 
+void mqtt_account_init(MqttClient* instance);
+
 void mqtt_connection_open(MqttClient* instance);
 
 void mqtt_reset_saved_state(MqttClient* instance);

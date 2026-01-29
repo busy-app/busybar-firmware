@@ -8,7 +8,7 @@
 
 #include <toolbox/hex.h>
 
-#define TAG "MqttClient"
+#define TAG "Mqtt"
 
 typedef struct {
     const char* url;
@@ -83,73 +83,6 @@ const char* mqtt_get_server_url(const MqttClient* instance) {
     }
 }
 
-static void mqtt_link_otp_subscription_callback(const MqttMessage* message, void* context) {
-    furi_assert(message);
-    furi_assert(context);
-    MqttClient* instance = context;
-
-    const struct mg_str json_str = TO_RAW_MESSAGE(message)->data;
-
-    char* pin = mg_json_get_str(json_str, "$.code");
-    int32_t pin_expires_at = mg_json_get_long(json_str, "$.expires_at", -1);
-
-    if(pin) {
-        FURI_LOG_I(TAG, "Link PIN: %s", pin);
-        MqttEvent pub_event = {
-            .type = MqttEventTypeLinkPinReceived,
-            .link_pin_received =
-                {
-                    .pin = pin,
-                    .expires_at = pin_expires_at,
-                },
-        };
-
-        furi_pubsub_publish(instance->event_pubsub, &pub_event);
-        free(pin);
-    }
-}
-
-static void mqtt_link_token_subscription_callback(const MqttMessage* message, void* context) {
-    furi_assert(message);
-    furi_assert(context);
-    MqttClient* instance = context;
-
-    const struct mg_str json_str = TO_RAW_MESSAGE(message)->data;
-
-    char* session_id = mg_json_get_str(json_str, "$.session_id");
-    char* token = mg_json_get_str(json_str, "$.token");
-    char* email = mg_json_get_str(json_str, "$.email");
-    char* user_id = mg_json_get_str(json_str, "$.user_id");
-
-    if(session_id && token && email && user_id) {
-        FURI_LOG_I(TAG, "Link done!");
-
-        MqttSavedState* saved_state = &instance->saved_state;
-
-        furi_string_set(saved_state->session_id, session_id);
-        furi_string_set(saved_state->user_id, user_id);
-        furi_string_set(saved_state->email, email);
-        furi_string_set(saved_state->token, token);
-
-        mqtt_saved_state_save(saved_state);
-
-        MqttEvent pub_event = {
-            .type = MqttEventTypeLinkDone,
-        };
-
-        furi_pubsub_publish(instance->event_pubsub, &pub_event);
-
-        // Close MQTT connection to reconnect with new token
-        instance->conn->is_draining = 1;
-        instance->fast_reconnect = true;
-    }
-
-    if(session_id) free(session_id);
-    if(user_id) free(user_id);
-    if(token) free(token);
-    if(email) free(email);
-}
-
 static void mqtt_init_device_uid(MqttClient* instance) {
     hex_bytes_to_string(
         furi_hal_version_uid(), furi_hal_version_uid_size(), instance->device_serial);
@@ -186,24 +119,6 @@ static void mqtt_load_saved_state(MqttClient* instance) {
     }
 }
 
-static void mqtt_device_topics_init(MqttClient* instance) {
-    mqtt_subscribe_internal(
-        instance,
-        MqttScopeDevice,
-        MqttQosExactlyOnce,
-        "link/otp",
-        mqtt_link_otp_subscription_callback,
-        instance);
-
-    mqtt_subscribe_internal(
-        instance,
-        MqttScopeDevice,
-        MqttQosExactlyOnce,
-        "link/token",
-        mqtt_link_token_subscription_callback,
-        instance);
-}
-
 // Constructor
 
 static MqttClient* mqtt_client_alloc(void) {
@@ -227,7 +142,7 @@ static MqttClient* mqtt_client_alloc(void) {
     mg_wakeup_init(&instance->mgr);
 
     mqtt_api_init(instance);
-    mqtt_device_topics_init(instance);
+    mqtt_account_init(instance);
 
     instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
 
