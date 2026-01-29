@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gui/gui.h>
-#include <mqtt/mqtt_client.h>
+#include <mqtt/mqtt.h>
 
 typedef enum {
     MqttStreamingApiMessageTypeStart,

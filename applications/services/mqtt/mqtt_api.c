@@ -1,4 +1,4 @@
-#include "mqtt_client_i.h"
+#include "mqtt_i.h"
 
 // =========  API message passing (public) =========
 

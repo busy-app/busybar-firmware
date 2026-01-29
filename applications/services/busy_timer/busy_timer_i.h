@@ -5,7 +5,7 @@
 
 #include <furi.h>
 
-#include <mqtt/mqtt_client.h>
+#include <mqtt/mqtt.h>
 
 #include <toolbox/api_lock.h>
 

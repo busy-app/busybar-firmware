@@ -1,4 +1,4 @@
-#include "mqtt_client_i.h"
+#include "mqtt_i.h"
 
 #include <storage/storage.h>
 #include <busy_timer/time_macros.h>

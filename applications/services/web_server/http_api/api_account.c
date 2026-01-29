@@ -1,5 +1,5 @@
 #include "http_api.h"
-#include <mqtt/mqtt_client.h>
+#include <mqtt/mqtt.h>
 
 #define TAG "HttpAccount"
 

@@ -1,4 +1,4 @@
-#include "mqtt_client_i.h"
+#include "mqtt_i.h"
 #include <mbedtls/ssl.h>
 #include <mbedtls/pk.h>
 #include <pk_wrap.h>

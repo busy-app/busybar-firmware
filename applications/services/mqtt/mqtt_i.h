@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mqtt_client.h"
+#include "mqtt.h"
 
 #include <furi.h>
 #include <api_lock.h>

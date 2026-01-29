@@ -1,4 +1,4 @@
-#include "mqtt_client_i.h"
+#include "mqtt_i.h"
 
 #include <furi_hal_random.h>
 #include <furi_hal_version.h>
