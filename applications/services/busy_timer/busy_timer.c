@@ -503,7 +503,7 @@ static void busy_timer_debounce_timer_callback(void* context) {
     char* snapshot_str = busy_timer_snapshot_serialize(&instance->user_snapshot);
     furi_check(snapshot_str);
 
-    mqtt_client_publish(
+    mqtt_publish(
         instance->mqtt,
         TIMER_SNAPSHOT_MQTT_QOS,
         TIMER_SNAPSHOT_MQTT_TOPIC,

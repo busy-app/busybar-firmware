@@ -31,7 +31,7 @@ typedef struct {
 static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax];
 
 static void mqtt_wifi_event_callback(const void* state, void* context) {
-    MqttClient* instance = context;
+    Mqtt* instance = context;
     furi_assert(instance);
 
     const WifiInfo* info = state;
@@ -47,7 +47,7 @@ static void mqtt_wifi_event_callback(const void* state, void* context) {
     mg_wakeup(&instance->mgr, instance->api_connection_id, &msg, sizeof(MqttApiMessage));
 }
 
-void mqtt_set_status(MqttClient* instance, MqttClientStatus status) {
+void mqtt_set_status(Mqtt* instance, MqttStatus status) {
     instance->status = status;
 
     MqttEvent event = {
@@ -61,7 +61,7 @@ void mqtt_set_status(MqttClient* instance, MqttClientStatus status) {
     furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
-bool mqtt_is_tls_enabled(const MqttClient* instance) {
+bool mqtt_is_tls_enabled(const Mqtt* instance) {
     const MqttSettings* settings = &instance->settings;
     const MqttProfileId profile_id = settings->profile_id;
 
@@ -72,7 +72,7 @@ bool mqtt_is_tls_enabled(const MqttClient* instance) {
     }
 }
 
-const char* mqtt_get_server_url(const MqttClient* instance) {
+const char* mqtt_get_server_url(const Mqtt* instance) {
     const MqttSettings* settings = &instance->settings;
     const MqttProfileId profile_id = settings->profile_id;
 
@@ -83,19 +83,19 @@ const char* mqtt_get_server_url(const MqttClient* instance) {
     }
 }
 
-static void mqtt_init_device_uid(MqttClient* instance) {
+static void mqtt_init_device_uid(Mqtt* instance) {
     hex_bytes_to_string(
         furi_hal_version_uid(), furi_hal_version_uid_size(), instance->device_serial);
 }
 
-static void mqtt_load_settings(MqttClient* instance) {
+static void mqtt_load_settings(Mqtt* instance) {
     MqttSettings* settings = &instance->settings;
 
     mqtt_settings_init(settings);
     mqtt_settings_load(settings);
 }
 
-void mqtt_reset_saved_state(MqttClient* instance) {
+void mqtt_reset_saved_state(Mqtt* instance) {
     MqttSavedState* saved_state = &instance->saved_state;
     mqtt_saved_state_reset(saved_state);
 
@@ -107,7 +107,7 @@ void mqtt_reset_saved_state(MqttClient* instance) {
     mqtt_saved_state_save(saved_state);
 }
 
-static void mqtt_load_saved_state(MqttClient* instance) {
+static void mqtt_load_saved_state(Mqtt* instance) {
     MqttSavedState* saved_state = &instance->saved_state;
 
     mqtt_saved_state_init(saved_state);
@@ -121,10 +121,10 @@ static void mqtt_load_saved_state(MqttClient* instance) {
 
 // Constructor
 
-static MqttClient* mqtt_client_alloc(void) {
-    MqttClient* instance = malloc(sizeof(MqttClient));
+static Mqtt* mqtt_alloc(void) {
+    Mqtt* instance = malloc(sizeof(Mqtt));
 
-    instance->status = MqttClientStatusNotConnected;
+    instance->status = MqttStatusNotConnected;
     instance->device_serial = furi_string_alloc();
     instance->event_pubsub = furi_pubsub_alloc();
 
@@ -200,7 +200,7 @@ bool mqtt_message_get_string_property(
 }
 
 void mqtt_make_topic_path(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttScope scope,
     const char* dir,
     const char* topic,
@@ -238,7 +238,7 @@ static void mqtt_subscription_free(MqttSubscription* subscription) {
 }
 
 MqttSubscription* mqtt_subscribe_internal(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttScope scope,
     MqttQos qos,
     const char* topic,
@@ -257,7 +257,7 @@ MqttSubscription* mqtt_subscribe_internal(
     return subscription;
 }
 
-void mqtt_unsubscribe_internal(MqttClient* instance, MqttSubscription* subscription) {
+void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription) {
     UNUSED(instance);
 
     MqttSubscriptionList_unlink(subscription);
@@ -281,7 +281,7 @@ static void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw
 }
 
 uint16_t mqtt_publish_internal(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttScope scope,
     MqttQos qos,
     const char* topic,
@@ -365,10 +365,10 @@ static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax] = {
 
 // Service thread
 
-int32_t mqtt_client_start(void* arg) {
+int32_t mqtt_srv(void* arg) {
     UNUSED(arg);
 
-    MqttClient* instance = mqtt_client_alloc();
+    Mqtt* instance = mqtt_alloc();
 
     while(1) {
         mg_mgr_poll(&instance->mgr, MQTT_POLL_PERIOD);

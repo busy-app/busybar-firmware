@@ -11,7 +11,7 @@
 
 static void mqtt_ping_timer_callback(void* data) {
     furi_assert(data);
-    MqttClient* mqtt = data;
+    Mqtt* mqtt = data;
 
     if(mqtt->conn) {
         FURI_LOG_D(TAG, "-> PING");
@@ -21,12 +21,12 @@ static void mqtt_ping_timer_callback(void* data) {
 
 static void mqtt_reconnect_callback(void* data) {
     furi_assert(data);
-    MqttClient* instance = data;
+    Mqtt* instance = data;
 
     mqtt_connection_open(instance);
 }
 
-static bool mqtt_client_load_ca_bundle(MqttClient* mqtt) {
+static bool mqtt_load_ca_bundle(Mqtt* mqtt) {
     furi_assert(mqtt->ca_bundle == NULL);
     bool success = false;
     Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -54,14 +54,14 @@ static bool mqtt_client_load_ca_bundle(MqttClient* mqtt) {
 }
 
 static void mqtt_connect_mg_event_handler(
-    MqttClient* instance,
+    Mqtt* instance,
     struct mg_connection* connection,
     const void* event_data) {
     UNUSED(event_data);
 
-    if(!mqtt_client_load_ca_bundle(instance)) {
+    if(!mqtt_load_ca_bundle(instance)) {
         connection->is_draining = 1;
-        instance->status = MqttClientStatusError;
+        instance->status = MqttStatusError;
         return;
     }
 
@@ -71,13 +71,13 @@ static void mqtt_connect_mg_event_handler(
 
         if(!mqtt_tls_init(connection, name, mg_str(instance->ca_bundle), has_custom_certs)) {
             connection->is_draining = 1;
-            instance->status = MqttClientStatusError;
+            instance->status = MqttStatusError;
         }
     }
 }
 
 static void mqtt_tls_handshake_mg_event_handler(
-    MqttClient* instance,
+    Mqtt* instance,
     struct mg_connection* connection,
     const void* event_data) {
     UNUSED(event_data);
@@ -90,7 +90,7 @@ static void mqtt_tls_handshake_mg_event_handler(
 }
 
 static void mqtt_open_mg_event_handler(
-    MqttClient* instance,
+    Mqtt* instance,
     struct mg_connection* connection,
     int* status_code_p) {
     UNUSED(connection);
@@ -149,14 +149,14 @@ static void mqtt_open_mg_event_handler(
 }
 
 static void mqtt_close_mg_event_handler(
-    MqttClient* instance,
+    Mqtt* instance,
     struct mg_connection* connection,
     const void* event_data) {
     UNUSED(connection);
     UNUSED(event_data);
 
     FURI_LOG_W(TAG, "MQTT Connection closed");
-    mqtt_set_status(instance, MqttClientStatusNotConnected);
+    mqtt_set_status(instance, MqttStatusNotConnected);
 
     if(instance->ping_enabled) {
         mg_timer_free(&instance->mgr.timers, &instance->ping_timer);
@@ -193,7 +193,7 @@ static void mqtt_close_mg_event_handler(
 }
 
 static void mqtt_mqtt_cmd_mg_event_handler(
-    MqttClient* instance,
+    Mqtt* instance,
     struct mg_connection* connection,
     const struct mg_mqtt_message* message) {
     const uint8_t cmd = message->cmd;
@@ -206,9 +206,9 @@ static void mqtt_mqtt_cmd_mg_event_handler(
 
         if(sub_reason < MqttQosMax) {
             if(mqtt_saved_state_is_valid(&instance->saved_state)) {
-                mqtt_set_status(instance, MqttClientStatusConnectedLinked);
+                mqtt_set_status(instance, MqttStatusConnectedLinked);
             } else {
-                mqtt_set_status(instance, MqttClientStatusConnectedNotLinked);
+                mqtt_set_status(instance, MqttStatusConnectedNotLinked);
             }
 
             instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
@@ -231,7 +231,7 @@ static void mqtt_mqtt_cmd_mg_event_handler(
 }
 
 static void mqtt_mqtt_msg_mg_event_handler(
-    MqttClient* instance,
+    Mqtt* instance,
     struct mg_connection* connection,
     const struct mg_mqtt_message* message) {
     UNUSED(connection);
@@ -268,7 +268,7 @@ static void mqtt_connection_mg_event_callback(
     struct mg_connection* connection,
     int event,
     void* event_data) {
-    MqttClient* instance = connection->fn_data;
+    Mqtt* instance = connection->fn_data;
     furi_assert(instance);
 
     if(event == MG_EV_CONNECT) {
@@ -288,7 +288,7 @@ static void mqtt_connection_mg_event_callback(
 
 // Internal API
 
-void mqtt_connection_open(MqttClient* instance) {
+void mqtt_connection_open(Mqtt* instance) {
     mg_timer_free(&instance->mgr.timers, &instance->reconnect_delay_timer);
 
     FuriString* username = furi_string_alloc_printf(
@@ -313,7 +313,7 @@ void mqtt_connection_open(MqttClient* instance) {
         &instance->mgr, server_url, &opts, mqtt_connection_mg_event_callback, instance);
 
     if(!instance->conn) {
-        instance->status = MqttClientStatusError;
+        instance->status = MqttStatusError;
     }
 
     furi_string_free(username);

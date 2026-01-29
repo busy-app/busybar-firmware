@@ -18,7 +18,7 @@ typedef struct {
     FuriEventLoopTimer* frame_timer;
     FuriEventLoopTimer* timeout_timer;
     FuriMessageQueue* api_queue;
-    MqttClient* mqtt;
+    Mqtt* mqtt;
     Gui* gui;
     uint8_t* frame_buf;
 } MqttStreamingSrv;

@@ -5,7 +5,7 @@
 static void mqtt_account_link_otp_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
-    MqttClient* instance = context;
+    Mqtt* instance = context;
 
     const struct mg_str json_str = TO_RAW_MESSAGE(message)->data;
 
@@ -31,7 +31,7 @@ static void mqtt_account_link_otp_message_callback(const MqttMessage* message, v
 static void mqtt_account_link_token_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
-    MqttClient* instance = context;
+    Mqtt* instance = context;
 
     const struct mg_str json_str = TO_RAW_MESSAGE(message)->data;
 
@@ -69,7 +69,7 @@ static void mqtt_account_link_token_message_callback(const MqttMessage* message,
     if(email) free(email);
 }
 
-void mqtt_account_init(MqttClient* instance) {
+void mqtt_account_init(Mqtt* instance) {
     mqtt_subscribe_internal(
         instance,
         MqttScopeDevice,

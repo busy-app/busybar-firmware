@@ -40,7 +40,7 @@ static void mqtt_streaming_pubsub_callback(const void* message, void* context) {
 
     const MqttEvent* event = message;
     if(event->type == MqttEventTypeStatusChanged) {
-        if(event->status_changed.status == MqttClientStatusNotConnected) {
+        if(event->status_changed.status == MqttStatusNotConnected) {
             FURI_LOG_E(TAG, "Connection lost");
             const MqttStreamingApiMessage api_msg = {
                 .type = MqttStreamingApiMessageTypeStop,
@@ -60,8 +60,7 @@ static void mqtt_streaming_frame_timer_callback(void* context) {
         memcpy(instance->frame_buf, frame, FRONT_DISPLAY_BUF_SIZE);
     });
 
-    mqtt_client_publish(
-        instance->mqtt, PUB_QOS, PUB_TOPIC, instance->frame_buf, FRONT_DISPLAY_BUF_SIZE);
+    mqtt_publish(instance->mqtt, PUB_QOS, PUB_TOPIC, instance->frame_buf, FRONT_DISPLAY_BUF_SIZE);
 }
 
 static void mqtt_streaming_timeout_timer_callback(void* context) {
@@ -132,7 +131,7 @@ static MqttStreamingSrv* mqtt_streaming_alloc(void) {
         instance);
 
     furi_pubsub_subscribe(
-        mqtt_client_get_pubsub(instance->mqtt), mqtt_streaming_pubsub_callback, instance);
+        mqtt_get_pubsub(instance->mqtt), mqtt_streaming_pubsub_callback, instance);
 
     mqtt_subscribe(instance->mqtt, SUB_QOS, SUB_TOPIC, mqtt_streaming_message_callback, instance);
 

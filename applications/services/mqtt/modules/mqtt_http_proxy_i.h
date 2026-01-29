@@ -17,14 +17,14 @@ typedef struct {
 } MqttHttpProxyBlocklistEntry;
 
 typedef struct {
-    MqttClient* mqtt;
+    Mqtt* mqtt;
     struct mg_mgr mgr;
     struct mg_timer timer;
     unsigned long api_connection_id;
 } MqttHttpProxySrv;
 
 typedef struct {
-    MqttClient* mqtt;
+    Mqtt* mqtt;
     FuriString* response_topic;
     FuriString* correlation_data;
     uint8_t* data;

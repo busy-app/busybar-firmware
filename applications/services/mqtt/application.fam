@@ -1,8 +1,8 @@
 App(
-    appid="mqtt_client",
-    name="MqttClientSrv",
+    appid="mqtt",
+    name="MqttSrv",
     apptype=FlipperAppType.SERVICE,
-    entry_point="mqtt_client_start",
+    entry_point="mqtt_srv",
     stack_size=8 * 1024,
     order=160,
     requires=[
@@ -21,7 +21,7 @@ App(
     order=260,
     requires=[
         "gui",
-        "mqtt_client"
+        "mqtt"
     ],
     targets=["f20", "f21", "f22"],
 )
@@ -35,7 +35,7 @@ App(
     order=270,
     requires=[
         "web_server",
-        "mqtt_client",
+        "mqtt",
     ],
     targets=["f20", "f21", "f22"],
 )

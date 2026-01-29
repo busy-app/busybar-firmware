@@ -46,7 +46,7 @@ struct MqttSubscription {
 
 ILIST_DEF(MqttSubscriptionList, MqttSubscription, M_POD_OPLIST)
 
-struct MqttClient {
+struct Mqtt {
     FuriPubSub* event_pubsub;
     struct mg_mgr mgr;
     struct mg_connection* conn;
@@ -59,7 +59,7 @@ struct MqttClient {
     struct mg_timer ping_timer;
     bool ping_enabled;
 
-    MqttClientStatus status;
+    MqttStatus status;
     bool is_wifi_up;
     bool fast_reconnect;
 
@@ -88,7 +88,7 @@ typedef enum {
 } MqttApiMessageType;
 
 typedef struct {
-    MqttClientStatus* status;
+    MqttStatus* status;
 } MqttApiMessageGetStatus;
 
 typedef struct {
@@ -154,39 +154,39 @@ typedef struct {
     FuriApiLock lock;
 } MqttApiMessage;
 
-void mqtt_api_init(MqttClient* instance);
+void mqtt_api_init(Mqtt* instance);
 
-void mqtt_account_init(MqttClient* instance);
+void mqtt_account_init(Mqtt* instance);
 
-void mqtt_connection_open(MqttClient* instance);
+void mqtt_connection_open(Mqtt* instance);
 
-void mqtt_reset_saved_state(MqttClient* instance);
+void mqtt_reset_saved_state(Mqtt* instance);
 
-const char* mqtt_get_server_url(const MqttClient* instance);
+const char* mqtt_get_server_url(const Mqtt* instance);
 
-void mqtt_set_status(MqttClient* instance, MqttClientStatus status);
+void mqtt_set_status(Mqtt* instance, MqttStatus status);
 
-bool mqtt_is_tls_enabled(const MqttClient* instance);
+bool mqtt_is_tls_enabled(const Mqtt* instance);
 
 void mqtt_make_topic_path(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttScope scope,
     const char* dir,
     const char* topic,
     FuriString* out);
 
 MqttSubscription* mqtt_subscribe_internal(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttScope scope,
     MqttQos qos,
     const char* topic,
     MqttSubscriptionCallback callback,
     void* context);
 
-void mqtt_unsubscribe_internal(MqttClient* instance, MqttSubscription* subscription);
+void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription);
 
 uint16_t mqtt_publish_internal(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttScope scope,
     MqttQos qos,
     const char* topic,

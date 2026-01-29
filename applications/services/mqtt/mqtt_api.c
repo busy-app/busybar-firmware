@@ -2,16 +2,16 @@
 
 // =========  API message passing (public) =========
 
-static void mqtt_client_send_message(MqttClient* instance, MqttApiMessage* message) {
+static void mqtt_send_message(Mqtt* instance, MqttApiMessage* message) {
     message->lock = api_lock_alloc_locked();
     mg_wakeup(&instance->mgr, instance->api_connection_id, message, sizeof(MqttApiMessage));
     api_lock_wait_unlock_and_free(message->lock);
 }
 
-MqttClientStatus mqtt_client_get_status(MqttClient* instance) {
+MqttStatus mqtt_get_status(Mqtt* instance) {
     furi_check(instance);
 
-    MqttClientStatus status;
+    MqttStatus status;
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeGetStatus,
@@ -21,11 +21,11 @@ MqttClientStatus mqtt_client_get_status(MqttClient* instance) {
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
     return status;
 }
 
-bool mqtt_client_request_link_pin(MqttClient* instance) {
+bool mqtt_request_link_pin(Mqtt* instance) {
     furi_check(instance);
 
     bool success = false;
@@ -38,22 +38,22 @@ bool mqtt_client_request_link_pin(MqttClient* instance) {
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
     return success;
 }
 
-void mqtt_client_unlink(MqttClient* instance) {
+void mqtt_unlink(Mqtt* instance) {
     furi_check(instance);
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeUnlink,
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
 }
 
-void mqtt_client_get_session_info(
-    MqttClient* instance,
+void mqtt_get_session_info(
+    Mqtt* instance,
     FuriString* session_id,
     FuriString* email,
     FuriString* user_id) {
@@ -69,10 +69,10 @@ void mqtt_client_get_session_info(
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
 }
 
-MqttProfileId mqtt_client_get_profile(MqttClient* instance, FuriString* custom_url) {
+MqttProfileId mqtt_get_profile(Mqtt* instance, FuriString* custom_url) {
     furi_check(instance);
 
     MqttProfileId profile_id;
@@ -86,14 +86,11 @@ MqttProfileId mqtt_client_get_profile(MqttClient* instance, FuriString* custom_u
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
     return profile_id;
 }
 
-void mqtt_client_set_profile(
-    MqttClient* instance,
-    MqttProfileId profile_id,
-    const char* custom_url) {
+void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* custom_url) {
     furi_check(instance);
     furi_check(profile_id < MqttProfileIdMax);
 
@@ -106,11 +103,11 @@ void mqtt_client_set_profile(
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
 }
 
-void mqtt_client_publish(
-    MqttClient* instance,
+void mqtt_publish(
+    Mqtt* instance,
     MqttQos qos,
     const char* topic,
     const void* data,
@@ -132,11 +129,11 @@ void mqtt_client_publish(
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
 }
 
-void mqtt_client_publish_ex(
-    MqttClient* instance,
+void mqtt_publish_ex(
+    Mqtt* instance,
     MqttQos qos,
     const char* topic,
     const void* data,
@@ -164,11 +161,11 @@ void mqtt_client_publish_ex(
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
 }
 
 MqttSubscription* mqtt_subscribe(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttQos qos,
     const char* topic,
     MqttSubscriptionCallback callback,
@@ -192,11 +189,11 @@ MqttSubscription* mqtt_subscribe(
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
     return subscription;
 }
 
-void mqtt_unsubscribe(MqttClient* instance, MqttSubscription* subscription) {
+void mqtt_unsubscribe(Mqtt* instance, MqttSubscription* subscription) {
     furi_check(instance);
     furi_check(subscription);
 
@@ -208,20 +205,19 @@ void mqtt_unsubscribe(MqttClient* instance, MqttSubscription* subscription) {
             },
     };
 
-    mqtt_client_send_message(instance, &message);
+    mqtt_send_message(instance, &message);
 }
 
 // ========= Direct access API (public) =========
 
-FuriPubSub* mqtt_client_get_pubsub(MqttClient* instance) {
+FuriPubSub* mqtt_get_pubsub(Mqtt* instance) {
     furi_check(instance);
     return instance->event_pubsub;
 }
 
 // ========= API message handling (private) =========
 
-static void
-    mqtt_get_status_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_get_status_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -229,7 +225,7 @@ static void
     *(get_status->status) = instance->status;
 }
 
-static void mqtt_unlink_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -241,8 +237,7 @@ static void mqtt_unlink_api_message_handler(MqttClient* instance, const MqttApiM
     mqtt_reset_saved_state(instance);
 }
 
-static void
-    mqtt_request_pin_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -250,7 +245,7 @@ static void
 
     const MqttApiMessageRequestPin* request_pin = &data->request_pin;
 
-    if(instance->status == MqttClientStatusConnectedNotLinked) {
+    if(instance->status == MqttStatusConnectedNotLinked) {
         const char* empty = "{}";
 
         mqtt_publish_internal(
@@ -269,9 +264,8 @@ static void
     *(request_pin->is_success) = is_success;
 }
 
-static void mqtt_get_session_info_api_message_handler(
-    MqttClient* instance,
-    const MqttApiMessageData* data) {
+static void
+    mqtt_get_session_info_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -289,8 +283,7 @@ static void mqtt_get_session_info_api_message_handler(
     }
 }
 
-static void
-    mqtt_get_profile_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_get_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -308,8 +301,7 @@ static void
     }
 }
 
-static void
-    mqtt_set_profile_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_set_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -333,8 +325,7 @@ static void
     }
 }
 
-static void
-    mqtt_publish_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -351,8 +342,7 @@ static void
         publish->props_count);
 }
 
-static void
-    mqtt_subscribe_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_subscribe_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -366,8 +356,7 @@ static void
         subscribe->callback_context);
 }
 
-static void
-    mqtt_unsubscribe_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_unsubscribe_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -375,8 +364,7 @@ static void
     mqtt_unsubscribe_internal(instance, unsubscribe->subscription);
 }
 
-static void
-    mqtt_wifi_state_api_message_handler(MqttClient* instance, const MqttApiMessageData* data) {
+static void mqtt_wifi_state_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
@@ -394,7 +382,7 @@ static void
     }
 }
 
-typedef void (*MqttApiMessageHandler)(MqttClient* instance, const MqttApiMessageData* data);
+typedef void (*MqttApiMessageHandler)(Mqtt* instance, const MqttApiMessageData* data);
 
 static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeMax] = {
     [MqttApiMessageTypeGetStatus] = mqtt_get_status_api_message_handler,
@@ -412,7 +400,7 @@ static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeM
 static void
     mqtt_api_event_callback(struct mg_connection* connection, int event, void* event_data) {
     if(event == MG_EV_WAKEUP) {
-        MqttClient* instance = connection->fn_data;
+        Mqtt* instance = connection->fn_data;
         furi_assert(instance);
 
         const struct mg_str* data = event_data;
@@ -432,7 +420,7 @@ static void
     }
 }
 
-void mqtt_api_init(MqttClient* instance) {
+void mqtt_api_init(Mqtt* instance) {
     // Create a dummy connection only for wakeup event
     const struct mg_connection* api_connnection =
         mg_wrapfd(&instance->mgr, MG_INVALID_SOCKET, mqtt_api_event_callback, instance);

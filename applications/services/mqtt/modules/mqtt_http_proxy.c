@@ -43,7 +43,7 @@ static MqttHttpProxyMethodId mqtt_http_proxy_get_method_id_by_name(const struct 
 }
 
 static MqttHttpProxyRequest*
-    mqtt_http_proxy_request_alloc(MqttClient* mqtt, const MqttMessage* message) {
+    mqtt_http_proxy_request_alloc(Mqtt* mqtt, const MqttMessage* message) {
     MqttHttpProxyRequest* context = malloc(sizeof(MqttHttpProxyRequest));
 
     context->mqtt = mqtt;
@@ -213,7 +213,7 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
             },
         };
 
-        mqtt_client_publish_ex(
+        mqtt_publish_ex(
             request->mqtt,
             MqttQosAtLeastOnce,
             furi_string_get_cstr(request->response_topic),
@@ -252,7 +252,7 @@ static void mqtt_http_proxy_respond_error(const MqttHttpProxyRequest* request) {
         },
     };
 
-    mqtt_client_publish_ex(
+    mqtt_publish_ex(
         request->mqtt,
         MqttQosAtLeastOnce,
         furi_string_get_cstr(request->response_topic),

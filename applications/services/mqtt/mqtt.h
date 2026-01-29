@@ -9,7 +9,7 @@
 
 #define MQTT_LINK_PIN_LEN (4)
 
-typedef struct MqttClient MqttClient;
+typedef struct Mqtt Mqtt;
 
 typedef struct MqttMessage MqttMessage;
 
@@ -45,14 +45,14 @@ typedef struct {
 } MqttEventLinkPinReceived;
 
 typedef enum {
-    MqttClientStatusError, // Clent certificates missing
-    MqttClientStatusNotConnected, // Not connected to MQTT broker
-    MqttClientStatusConnectedNotLinked, // Connected to MQTT broker, not linked
-    MqttClientStatusConnectedLinked, // Connected to MQTT broker, linked
-} MqttClientStatus;
+    MqttStatusError, // Clent certificates missing
+    MqttStatusNotConnected, // Not connected to MQTT broker
+    MqttStatusConnectedNotLinked, // Connected to MQTT broker, not linked
+    MqttStatusConnectedLinked, // Connected to MQTT broker, linked
+} MqttStatus;
 
 typedef struct {
-    MqttClientStatus status;
+    MqttStatus status;
 } MqttEventStatusChanged;
 
 typedef struct {
@@ -70,33 +70,29 @@ typedef enum {
     MqttQosMax,
 } MqttQos;
 
-FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt);
+FuriPubSub* mqtt_get_pubsub(Mqtt* mqtt);
 
-MqttClientStatus mqtt_client_get_status(MqttClient* mqtt);
+MqttStatus mqtt_get_status(Mqtt* mqtt);
 
-bool mqtt_client_request_link_pin(MqttClient* mqtt);
+bool mqtt_request_link_pin(Mqtt* mqtt);
 
-void mqtt_client_unlink(MqttClient* mqtt);
+void mqtt_unlink(Mqtt* mqtt);
 
-void mqtt_client_get_session_info(
-    MqttClient* mqtt,
-    FuriString* id,
-    FuriString* email,
-    FuriString* user_id);
+void mqtt_get_session_info(Mqtt* mqtt, FuriString* id, FuriString* email, FuriString* user_id);
 
-MqttProfileId mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url);
+MqttProfileId mqtt_get_profile(Mqtt* mqtt, FuriString* custom_url);
 
-void mqtt_client_set_profile(MqttClient* mqtt, MqttProfileId profile_id, const char* custom_url);
+void mqtt_set_profile(Mqtt* mqtt, MqttProfileId profile_id, const char* custom_url);
 
-void mqtt_client_publish(
-    MqttClient* instance,
+void mqtt_publish(
+    Mqtt* instance,
     MqttQos qos,
     const char* topic,
     const void* data,
     size_t data_size);
 
-void mqtt_client_publish_ex(
-    MqttClient* instance,
+void mqtt_publish_ex(
+    Mqtt* instance,
     MqttQos qos,
     const char* topic,
     const void* data,
@@ -105,13 +101,13 @@ void mqtt_client_publish_ex(
     uint32_t props_count);
 
 MqttSubscription* mqtt_subscribe(
-    MqttClient* instance,
+    Mqtt* instance,
     MqttQos qos,
     const char* topic,
     MqttSubscriptionCallback callback,
     void* context);
 
-void mqtt_unsubscribe(MqttClient* instance, MqttSubscription* subscription);
+void mqtt_unsubscribe(Mqtt* instance, MqttSubscription* subscription);
 
 const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size);
 
