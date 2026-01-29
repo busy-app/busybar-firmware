@@ -7,16 +7,17 @@ App(
     order=160,
     requires=[
         "mqtt_http_proxy",
-        "mqtt_screen_streaming",
+        "mqtt_screen_stream",
     ],
     targets=["f20", "f21", "f22"],
 )
 
 App(
-    appid="mqtt_screen_streaming",
-    name="MqttScreenStreamingHook",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="mqtt_screen_streaming_on_system_start",
+    appid="mqtt_screen_stream",
+    name="MqttScreenStreamSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="mqtt_screen_stream_srv",
+    stack_size=1 * 1024,
     order=260,
     requires=[
         "gui",
