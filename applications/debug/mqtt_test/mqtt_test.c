@@ -4,7 +4,7 @@
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/label.h>
 
-#include <mqtt_client/mqtt_client.h>
+#include <mqtt/mqtt_client.h>
 
 #define TAG "MqttTest"
 
