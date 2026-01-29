@@ -4,7 +4,7 @@
 
 #define TAG "MqttHttpProxySrv"
 
-#define POLL_PERIOD_MS (500)
+#define POLL_PERIOD_MS (1000)
 
 #define HTTP_HOST            "http://127.0.0.1"
 #define HTTP_URI_API_PREFIX  "/api/"

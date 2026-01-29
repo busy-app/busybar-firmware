@@ -16,7 +16,7 @@
 
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
-#define MQTT_POLL_PERIOD         (100)
+#define MQTT_POLL_PERIOD         (1000)
 #define MQTT_QOS                 (2)
 #define MQTT_API_VERSION         "v1"
 
