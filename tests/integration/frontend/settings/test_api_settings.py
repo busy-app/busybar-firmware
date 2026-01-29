@@ -34,6 +34,8 @@ class TestNameAPI:
         "T",
         "Nah - ure_ad-en",
         "Name(Paren",
+        "N!",
+        "Name!",
         "Name)Paren",
         "Name- Dash",
         "Name=Equal",
@@ -42,6 +44,7 @@ class TestNameAPI:
         "Name:Colon",
         "Name,Comma",
         "Name.Period",
+        "Name|Pipe",
         "Name?Question",
     ])
     def test_api_name_post(self, settings_api: SettingsAPI, test_name):
@@ -71,14 +74,12 @@ class TestNameAPI:
         " ",
         "  ",
         # Special character combinations (device rejects these)
-        "18 symbols length!",
+        "20 symmbbols length!",
         "8u7Y 8a&",
         "Bu$Y 8aR",
         "wa^%$#@!()_+{}|>?",
         "Name \\ bh d / h",
         "Quotes '  ` ~",
-        "N!",
-        "Name!",
         "Name@Home",
         "Name#1",
         "Name$Dollar",
@@ -90,7 +91,6 @@ class TestNameAPI:
         "Name}Brace",
         "Name[Bracket",
         "Name]Bracket",
-        "Name|Pipe",
         "Name\"Quote",
         "Name<Less",
         "Name>Greater",
@@ -164,12 +164,8 @@ class TestSettingsAPI:
         assert verify.mode == "key"
 
         is_valid_key = 4 <= len(key) <= 10 and key.isdigit()
-        if is_valid_key:
-            with allure.step("Verify success response for valid key"):
-                assert verify.key_valid is True
-        else:
-            with allure.step("Verify failure response for invalid key"):
-                assert verify.key_valid is False
+        with allure.step("Verify success response for valid key"):
+            assert verify.key_valid is is_valid_key
 
     @allure.id("2644")
     @allure.title("Settings. GET /api/display/brightness")
