@@ -17,6 +17,17 @@ MqttClientStatus mqtt_client_get_status(MqttClient* mqtt) {
     return status;
 }
 
+bool mqtt_client_is_linked(MqttClient* mqtt) {
+    furi_assert(mqtt);
+
+    bool status = false;
+
+    MqttClientMessage msg = {.type = MqttClientMessageIsLinked, .bool_param = &status};
+    mqtt_client_send_message(mqtt, &msg);
+
+    return status;
+}
+
 bool mqtt_client_request_link_pin(MqttClient* mqtt) {
     furi_assert(mqtt);
 

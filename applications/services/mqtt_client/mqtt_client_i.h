@@ -62,6 +62,7 @@ typedef struct {
     enum {
         MqttClientMessageWifiStateChange,
         MqttClientMessageGetStatus,
+        MqttClientMessageIsLinked,
         MqttClientMessageUnlink,
         MqttClientMessageRequestPin,
         MqttClientMessageGetSessionInfo,

@@ -1,0 +1,10 @@
+App(
+    appid="account_settings",
+    name="Account settings",
+    apptype=FlipperAppType.SETTINGS,
+    entry_point="account_settings_entry",
+    requires=["gui", "front_display", "back_display", "mqtt_client"],
+    stack_size=8 * 1024,
+    order=30,
+    targets=["f21", "f22"],
+)

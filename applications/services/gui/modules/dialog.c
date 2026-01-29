@@ -4,16 +4,19 @@
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 
-#define MY_CLASS        (&dialog_lvgl_class)
-#define MY_TEXT_CLASS   (&dialog_text_lvgl_class)
-#define MY_OPTION_CLASS (&dialog_option_lvgl_class)
-#define MY_CURSOR_CLASS (&dialog_cursor_lvgl_class)
+#define MY_CLASS          (&dialog_lvgl_class)
+#define MY_TEXT_CLASS     (&dialog_text_lvgl_class)
+#define MY_TEXT_SUB_CLASS (&dialog_text_sub_lvgl_class)
+#define MY_OPTION_CLASS   (&dialog_option_lvgl_class)
+#define MY_CURSOR_CLASS   (&dialog_cursor_lvgl_class)
 
 #define ARROW_CHAR ("▶")
 
 struct Dialog {
     Widget base;
-    lv_obj_t* text;
+    lv_obj_t* text_cont;
+    lv_obj_t* text_main;
+    lv_obj_t* text_sub;
     lv_obj_t* options_cont;
     lv_group_t* options_group;
     DialogCallback callback;
@@ -29,6 +32,7 @@ typedef struct {
 
 const lv_obj_class_t dialog_lvgl_class;
 const lv_obj_class_t dialog_text_lvgl_class;
+const lv_obj_class_t dialog_text_sub_lvgl_class;
 const lv_obj_class_t dialog_option_lvgl_class;
 const lv_obj_class_t dialog_cursor_lvgl_class;
 
@@ -74,20 +78,46 @@ static lv_obj_t* dialog_option_alloc(lv_obj_t* parent, uint32_t index) {
 }
 
 static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
+    LV_UNUSED(class_p);
     Dialog* instance = (Dialog*)obj;
     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
 
-    instance->text = lv_obj_class_create_obj(MY_TEXT_CLASS, obj);
-    lv_obj_class_init_obj(instance->text);
-    lv_label_set_text(instance->text, "");
+    instance->text_cont = lv_obj_create(obj);
+    lv_obj_set_style_pad_all(instance->text_cont, 0, LV_PART_MAIN);
+
+    instance->text_main = lv_obj_class_create_obj(MY_TEXT_CLASS, instance->text_cont);
+    lv_obj_class_init_obj(instance->text_main);
+    lv_label_set_long_mode(instance->text_main, LV_LABEL_LONG_MODE_WRAP);
+    lv_label_set_text(instance->text_main, "");
+
+    instance->text_sub = lv_obj_class_create_obj(MY_TEXT_SUB_CLASS, instance->text_cont);
+    lv_obj_class_init_obj(instance->text_sub);
+    lv_label_set_long_mode(instance->text_sub, LV_LABEL_LONG_MODE_DOTS);
+    lv_label_set_text(instance->text_sub, "");
+
+    // Force single line
+    lv_coord_t line_height =
+        lv_font_get_line_height(lv_obj_get_style_text_font(instance->text_sub, LV_PART_MAIN));
+    lv_obj_set_style_max_height(instance->text_sub, line_height, LV_PART_MAIN);
+
+    lv_obj_add_flag(instance->text_sub, LV_OBJ_FLAG_HIDDEN);
 
     instance->options_cont = lv_obj_create(obj);
     lv_obj_set_flex_flow(instance->options_cont, LV_FLEX_FLOW_COLUMN);
     lv_flex_flow_t parent_flow = lv_obj_get_style_flex_flow(obj, LV_PART_MAIN);
     if(parent_flow == LV_FLEX_FLOW_COLUMN) {
+        lv_obj_set_flex_flow(instance->text_cont, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(
+            instance->text_cont, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+        lv_obj_set_size(instance->text_cont, LV_PCT(100), LV_SIZE_CONTENT);
+
         lv_obj_set_size(instance->options_cont, LV_PCT(100), LV_SIZE_CONTENT);
     } else {
+        lv_obj_set_flex_flow(instance->text_cont, LV_FLEX_FLOW_COLUMN);
+        lv_obj_set_flex_align(
+            instance->text_cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+        lv_obj_set_size(instance->text_cont, LV_PCT(100), LV_PCT(100));
+
         lv_obj_set_size(instance->options_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     }
 
@@ -102,14 +132,14 @@ static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 }
 
 static void dialog_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
+    LV_UNUSED(class_p);
 
     Dialog* instance = (Dialog*)obj;
     lv_group_delete(instance->options_group);
 }
 
 static void dialog_option_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
+    LV_UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
@@ -172,7 +202,17 @@ Widget* dialog_get_base(Dialog* instance) {
 
 void dialog_set_text(Dialog* instance, const char* text) {
     furi_check(instance);
-    lv_label_set_text(instance->text, text);
+    lv_label_set_text(instance->text_main, text);
+}
+
+void dialog_set_text_sub(Dialog* instance, const char* text) {
+    furi_check(instance);
+    if(text) {
+        lv_label_set_text(instance->text_sub, text);
+        lv_obj_remove_flag(instance->text_sub, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(instance->text_sub, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 void dialog_set_options(Dialog* instance, const char* text_0, const char* text_1) {
@@ -223,6 +263,13 @@ const lv_obj_class_t dialog_lvgl_class = {
 const lv_obj_class_t dialog_text_lvgl_class = {
     .base_class = &lv_label_class,
     .name = "dialog-text",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+};
+
+const lv_obj_class_t dialog_text_sub_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "dialog-text-sub",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
 };

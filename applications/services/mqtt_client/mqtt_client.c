@@ -449,6 +449,9 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
     case MqttClientMessageGetStatus:
         *(msg->status) = mqtt->status;
         break;
+    case MqttClientMessageIsLinked:
+        *(msg->bool_param) = mqtt->is_linked;
+        break;
     case MqttClientMessageRequestPin:
         if(mqtt->status == MqttClientStatusConnectedNotLinked) {
             mqtt_device_request_pin(mqtt);
@@ -467,6 +470,9 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
         furi_record_close(RECORD_STORAGE);
 
         mqtt_client_load_session(mqtt);
+
+        MqttClientEvent pub_event = {.type = MqttClientEventUnlinked};
+        furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
 
         break;
     case MqttClientMessageGetSessionInfo:

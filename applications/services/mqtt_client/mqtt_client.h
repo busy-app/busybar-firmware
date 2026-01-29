@@ -27,6 +27,7 @@ typedef struct {
         MqttClientEventStatusChange,
         MqttClientEventLinkPin,
         MqttClientEventLinkDone,
+        MqttClientEventUnlinked,
     } type;
     union {
         struct {
@@ -49,6 +50,7 @@ typedef struct MqttClient MqttClient;
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt);
 
 MqttClientStatus mqtt_client_get_status(MqttClient* mqtt);
+bool mqtt_client_is_linked(MqttClient* mqtt);
 bool mqtt_client_request_link_pin(MqttClient* mqtt);
 void mqtt_client_unlink(MqttClient* mqtt);
 void mqtt_client_get_session_info(

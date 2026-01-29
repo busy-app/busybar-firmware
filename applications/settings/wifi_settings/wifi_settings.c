@@ -156,7 +156,6 @@ static void wifi_settings_free(WifiSettings* instance) {
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
-    furi_record_close(RECORD_STATUS_LIGHTS);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

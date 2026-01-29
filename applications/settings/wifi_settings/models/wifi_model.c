@@ -1,8 +1,5 @@
 #include "wifi_model.h"
 #include <wifi/wifi.h>
-#include "../wifi_settings.h"
-
-#define TAG "Wifi MODEL"
 
 struct WifiModel {
     Wifi* wifi;

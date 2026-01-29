@@ -58,12 +58,20 @@ Widget* dialog_get_base(Dialog* instance);
 void dialog_set_calback(Dialog* instance, DialogCallback callback, void* context);
 
 /**
- * @brief Set a text label value.
+ * @brief Set a main text label value.
  *
  * @param[in,out] instance pointer to the Dialog instance to be modified
  * @param[in] text zero-terminated string containing the text
  */
 void dialog_set_text(Dialog* instance, const char* text);
+
+/**
+ * @brief Set an extra text label value.
+ *
+ * @param[in,out] instance pointer to the Dialog instance to be modified
+ * @param[in] text zero-terminated string containing the text (NULL to disable this label)
+ */
+void dialog_set_text_sub(Dialog* instance, const char* text);
 
 /**
  * @brief Set options text.
