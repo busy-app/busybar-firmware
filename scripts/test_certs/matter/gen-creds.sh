@@ -9,7 +9,7 @@ usage() {
   echo "  type: test|certification"
   echo "    Use \"test\" for regular testing."
   echo "    Use \"certification\" for devices going into certification testing."
-  echo "  ver: see \"MATTER_SOFTWARE_VERSION\" in \"matter_f64.cpp\""
+  echo "  ver: see \"MATTER_SOFTWARE_VER_NUM\" in \"ConfigurationManagerImpl.cpp\""
   echo ""
   echo "Required env vars:"
   echo "  - MATTER_DIR: path to cloned repo:"

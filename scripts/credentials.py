@@ -51,7 +51,6 @@ class AttestationKeyId(IntEnum):
     KEY = 0
     DAC = 1
     PAI = 2
-    CD = 3
 
 
 class SetupKeyID(IntEnum):
@@ -96,11 +95,6 @@ class Main(App):
             "--pai",
             required=True,
             help="PAI (Product Attestation Intermediate) file (.pem or .der format)",
-        )
-        self.attest_parser.add_argument(
-            "--cd",
-            required=True,
-            help="CD (Certification Declaration) file (.der format)",
         )
         self.attest_parser.add_argument(
             "--wrap-private-key",
@@ -264,7 +258,6 @@ class Main(App):
             AttestationKeyId.KEY: self.read_key_file(self.args.key),
             AttestationKeyId.DAC: self.read_cert_file(self.args.dac),
             AttestationKeyId.PAI: self.read_cert_file(self.args.pai),
-            AttestationKeyId.CD: self.read_cert_file(self.args.cd),
         }
         self.write_data(KeyType.ATTESTATION, data)
 

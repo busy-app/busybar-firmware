@@ -7,7 +7,7 @@ It performs the following steps (same defaults as the original shell script):
  2. Source (approximate) the toolchain environment (best-effort: executed as a subprocess
     to get PATH modifications) unless skipped.
  3. Wipe crypto storage partition 0.
- 4. Provision attestation artifacts (private key, DAC, PAI, CD).
+ 4. Provision attestation artifacts (private key, DAC, PAI).
  5. Provision setup parameters (discriminator + passcode; salt/verifier generated internally by credentials.py).
  6. Provision device info (uses defaults provided by credentials.py `info` subcommand).
 
@@ -92,9 +92,6 @@ DEFAULT_PRODUCT_ID = "0001"
 DEFAULT_PASSCODE = _gen_random_passcode()
 DEFAULT_DISCRIMINATOR = _rand_12bit_str()
 DEFAULT_CERTS_DIR = SCRIPTS_DIR / "test_certs" / "matter"
-DEFAULT_CD_PATH = (
-    DEFAULT_CERTS_DIR / f"test-CD-{DEFAULT_VENDOR_ID}-{DEFAULT_PRODUCT_ID}.der"
-)
 
 CRYPTO_STORAGE = SCRIPTS_DIR / "crypto_storage.py"
 CREDENTIALS = SCRIPTS_DIR / "credentials.py"
@@ -259,12 +256,6 @@ def parse_args(argv):
         help="Directory containing production certificates from CloudPKI. If not set, default test certs will be used.",
     )
     parser.add_argument(
-        "--cd",
-        type=Path,
-        default=DEFAULT_CD_PATH,
-        help="Path to CD DER file. If not, default test CD will be used.",
-    )
-    parser.add_argument(
         "--toolchain-path",
         type=Path,
         default=REPO_ROOT,
@@ -305,9 +296,9 @@ def wipe_crypto_storage(env: dict) -> None:
 
 
 def provision_attestation(
-    env: dict, pai_cert: Path, dac_key: Path, dac_cert: Path, cd_file: Path
+    env: dict, pai_cert: Path, dac_key: Path, dac_cert: Path
 ) -> None:
-    ensure_files_exist([pai_cert, dac_key, dac_cert, cd_file])
+    ensure_files_exist([pai_cert, dac_key, dac_cert])
     run_cmd(
         [
             sys.executable,
@@ -319,8 +310,6 @@ def provision_attestation(
             str(dac_cert),
             "--pai",
             str(pai_cert),
-            "--cd",
-            str(cd_file),
         ],
         env=env,
         desc="provision attestation",
@@ -359,7 +348,6 @@ def main(argv=None):
     if not args.no_toolchain_env:
         setup_toolchain_env(env, toolchain_path, args.toolchain_version)
 
-    cd_file = args.cd.expanduser().resolve()
     production_dir = (
         args.production_certs.expanduser().resolve()
         if args.production_certs is not None
@@ -376,7 +364,7 @@ def main(argv=None):
                 get_default_certs(DEFAULT_CERTS_DIR, args.vendor_id, args.product_id)
             )
         with attestation_context as (pai_cert, dac_key, dac_cert):
-            provision_attestation(env, pai_cert, dac_key, dac_cert, cd_file)
+            provision_attestation(env, pai_cert, dac_key, dac_cert)
 
     if not args.no_setup:
         provision_setup(
