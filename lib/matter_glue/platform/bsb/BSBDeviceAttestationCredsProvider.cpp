@@ -12,26 +12,31 @@ enum {
     PK,
     DAC,
     PAI,
-    CD,
 };
 
 }; // namespace KeyId
 
 using namespace DeviceLayer::BSB;
 
-class BSBDACProvider : public DeviceAttestationCredentialsProvider {
-public:
-    CHIP_ERROR GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) override;
-    CHIP_ERROR GetFirmwareInformation(MutableByteSpan& out_firmware_info_buffer) override;
-    CHIP_ERROR GetDeviceAttestationCert(MutableByteSpan& out_dac_buffer) override;
-    CHIP_ERROR GetProductAttestationIntermediateCert(MutableByteSpan& out_pai_buffer) override;
-    CHIP_ERROR SignWithDeviceAttestationKey(
-        const ByteSpan& message_to_sign,
-        MutableByteSpan& out_signature_buffer) override;
-};
+void BSBDACProvider::SetCertificationDeclaration(const void* buffer, size_t size) {
+    furi_check(buffer);
+    furi_check(!m_cd_buffer);
+    furi_check(!m_cd_size);
+
+    if(!size) return;
+
+    m_cd_buffer = malloc(size);
+    m_cd_size = size;
+    memcpy(m_cd_buffer, buffer, size);
+}
 
 CHIP_ERROR BSBDACProvider::GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) {
-    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterAttestation, KeyId::CD, out_cd_buffer);
+    if(!m_cd_buffer) return CHIP_ERROR_CERT_NOT_FOUND;
+
+    size_t to_copy = MIN(m_cd_size, out_cd_buffer.size());
+    memcpy(out_cd_buffer.begin(), m_cd_buffer, to_copy);
+
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR BSBDACProvider::GetFirmwareInformation(MutableByteSpan& out_firmware_info_buffer) {
@@ -55,7 +60,7 @@ CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(
         FuriHalCryptoKeyTypeMatterAttestation, KeyId::PK, message_to_sign, out_signature_buffer);
 }
 
-DeviceAttestationCredentialsProvider* GetDeviceAttestationCredentialsProvider(void) {
+BSBDACProvider* GetDeviceAttestationCredentialsProvider(void) {
     static BSBDACProvider provider;
     return &provider;
 }
