@@ -1,7 +1,8 @@
 #include "../system_settings.h"
-#include <settings_helpers/gui_params.h>
 
 #include <gui/modules/label.h>
+
+#define GREY_TEXT(text) "#888888 " text "#"
 
 #define SYSTEM_SETTINGS_POWER_INFO_UPDATE_PERIOD_MS (500)
 
@@ -19,23 +20,24 @@ static void
     PowerInfo info = {};
     power_get_info(instance->power, &info);
 
-    furi_string_printf(info_str, "#888888 Battery level:# %u%%\n", info.charge);
+    furi_string_printf(info_str, GREY_TEXT("Battery level:") " %u%%\n", info.charge);
     furi_string_cat_printf(
-        info_str, "#888888 State:# %s\n", info.is_charging ? "Charging" : "Discharging");
+        info_str, GREY_TEXT("State:") " %s\n", info.is_charging ? "Charging" : "Discharging");
     furi_string_cat_printf(
-        info_str, "#888888 Battery volt:# %.2fV\n", info.voltage_battery / 1000.f);
+        info_str, GREY_TEXT("Battery volt:") " %.2fV\n", info.voltage_battery / 1000.f);
     furi_string_cat_printf(
-        info_str, "#888888 Battery curr:# %.2fA\n", info.current_battery / 1000.f);
+        info_str, GREY_TEXT("Battery curr:") " %.2fA\n", info.current_battery / 1000.f);
     furi_string_cat_printf(
         info_str,
-        "#888888 Battery temp:# %.1fC\n",
+        GREY_TEXT("Battery temp:") " %.1fC\n",
         power_get_temperature_battery_celsius(info.temperature_battery));
-    furi_string_cat_printf(info_str, "#888888 USB volt:# %.2fV\n", info.voltage_usb / 1000.f);
-    furi_string_cat_printf(info_str, "#888888 USB current:# %.2fA\n", info.current_usb / 1000.f);
+    furi_string_cat_printf(info_str, GREY_TEXT("USB volt:") " %.2fV\n", info.voltage_usb / 1000.f);
+    furi_string_cat_printf(
+        info_str, GREY_TEXT("USB current:") " %.2fA\n", info.current_usb / 1000.f);
 }
 
 static void system_settings_power_info_update(void* context) {
-    furi_check(context);
+    furi_assert(context);
 
     SystemSettings* instance = context;
     SettingsScenePowerInfo* scene =
@@ -86,12 +88,12 @@ static void system_settings_scene_power_info_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPowerInfo);
 
     furi_string_free(scene->power_info_str);
+    furi_event_loop_tick_set(instance->event_loop, 0, NULL, NULL);
 
     with_gui(instance->gui, {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             label_free(scene->power_info[disp]);
         }
-        furi_event_loop_tick_set(instance->event_loop, 0, NULL, NULL);
     });
 }
 

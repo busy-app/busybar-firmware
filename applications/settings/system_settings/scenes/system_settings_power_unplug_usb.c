@@ -3,8 +3,6 @@
 #include <settings_helpers/status_view.h>
 #include "../settings_helpers/gui_params.h"
 
-#include <power/power_service/power.h>
-
 typedef enum {
     SceneEventPowerUsbConnectionEvent = AppEventSceneEventsStart,
 } SceneEvent;
@@ -15,8 +13,8 @@ typedef struct {
 } SettingsScenePowerUnplugUsb;
 
 static void system_settings_scene_power_usb_event_callback(const void* message, void* context) {
-    furi_check(message);
-    furi_check(context);
+    furi_assert(message);
+    furi_assert(context);
 
     PowerEvent* event = (PowerEvent*)message;
     SystemSettings* instance = context;

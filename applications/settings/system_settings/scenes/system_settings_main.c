@@ -16,11 +16,13 @@ typedef struct {
     uint32_t menu_index;
 } SettingsSceneSystem;
 
-static void scene_main_menu_item_callback(uint32_t index, void* context) {
+static void system_settings_scene_main_menu_item_callback(uint32_t index, void* context) {
+    furi_assert(context);
+
     system_settings_send_custom_event(context, index);
 }
 
-static void scene_main_on_enter(void* context) {
+static void system_settings_scene_main_on_enter(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -30,18 +32,22 @@ static void scene_main_on_enter(void* context) {
         data->front_menu = submenu_alloc(instance->front_scene_window);
 
         submenu_add_item(
-            data->front_menu, "Power", SceneEventPower, scene_main_menu_item_callback, instance);
+            data->front_menu,
+            "Power",
+            SceneEventPower,
+            system_settings_scene_main_menu_item_callback,
+            instance);
         submenu_add_item(
             data->front_menu,
             "Debug apps",
             SceneEventDebug,
-            scene_main_menu_item_callback,
+            system_settings_scene_main_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Factory reset",
             SceneEventFactoryReset,
-            scene_main_menu_item_callback,
+            system_settings_scene_main_menu_item_callback,
             instance);
         submenu_set_selected_item_index(data->front_menu, data->menu_index);
 
@@ -53,7 +59,7 @@ static void scene_main_on_enter(void* context) {
     });
 }
 
-static void scene_main_on_exit(void* context) {
+static void system_settings_scene_main_on_exit(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -65,7 +71,7 @@ static void scene_main_on_exit(void* context) {
     });
 }
 
-static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
+static bool system_settings_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -95,8 +101,8 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
 }
 
 const Scene system_settings_scene_main = {
-    .enter_callback = scene_main_on_enter,
-    .exit_callback = scene_main_on_exit,
-    .event_callback = scene_main_on_event,
+    .enter_callback = system_settings_scene_main_on_enter,
+    .exit_callback = system_settings_scene_main_on_exit,
+    .event_callback = system_settings_scene_main_on_event,
     .data_size = sizeof(SettingsSceneSystem),
 };

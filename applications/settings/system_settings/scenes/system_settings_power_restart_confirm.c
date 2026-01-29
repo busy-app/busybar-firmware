@@ -1,9 +1,6 @@
 #include "../system_settings.h"
-#include <settings_helpers/gui_params.h>
 
 #include <gui/modules/dialog.h>
-
-#include <power/power_service/power.h>
 
 typedef enum {
     SceneEventConfirm = AppEventSceneEventsStart,

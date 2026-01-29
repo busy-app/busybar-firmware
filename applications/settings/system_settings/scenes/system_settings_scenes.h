@@ -5,9 +5,6 @@
 typedef enum {
     SceneIdMain,
 
-    SceneIdFactoryResetConfirm,
-    SceneIdFactoryReset,
-
     SceneIdPowerMenu,
     SceneIdPowerShutDownConfirm,
     SceneIdPowerUnplugUsb,
@@ -16,6 +13,9 @@ typedef enum {
     SceneIdPowerInfo,
 
     SceneIdDebug,
+
+    SceneIdFactoryResetConfirm,
+    SceneIdFactoryReset,
 
     SceneIdsCount,
 } SceneId;

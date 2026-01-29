@@ -1,11 +1,7 @@
 
 #include "../system_settings.h"
-#include <settings_helpers/gui_params.h>
 
-#include <gui/modules/var_item_list.h>
 #include <gui/modules/submenu.h>
-
-#include <power/power_service/power.h>
 
 typedef enum {
     SceneEventShutDown = AppEventSceneEventsStart,
@@ -19,11 +15,11 @@ typedef struct {
     uint32_t menu_index;
 } SettingsSceneSystem;
 
-static void scene_power_menu_menu_item_callback(uint32_t index, void* context) {
+static void system_settings_scene_power_menu_menu_item_callback(uint32_t index, void* context) {
     system_settings_send_custom_event(context, index);
 }
 
-static void scene_power_menu_on_enter(void* context) {
+static void system_settings_scene_power_menu_on_enter(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -36,19 +32,19 @@ static void scene_power_menu_on_enter(void* context) {
             data->front_menu,
             "Shut down",
             SceneEventShutDown,
-            scene_power_menu_menu_item_callback,
+            system_settings_scene_power_menu_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Restart device",
             SceneEventRestart,
-            scene_power_menu_menu_item_callback,
+            system_settings_scene_power_menu_menu_item_callback,
             instance);
         submenu_add_item(
             data->front_menu,
             "Info",
             SceneEventInfo,
-            scene_power_menu_menu_item_callback,
+            system_settings_scene_power_menu_menu_item_callback,
             instance);
         submenu_set_selected_item_index(data->front_menu, data->menu_index);
 
@@ -60,7 +56,7 @@ static void scene_power_menu_on_enter(void* context) {
     });
 }
 
-static void scene_power_menu_on_exit(void* context) {
+static void system_settings_scene_power_menu_on_exit(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -73,7 +69,8 @@ static void scene_power_menu_on_exit(void* context) {
     });
 }
 
-static bool scene_power_menu_on_event(const SceneManagerEvent* event, void* context) {
+static bool
+    system_settings_scene_power_menu_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -105,16 +102,15 @@ static bool scene_power_menu_on_event(const SceneManagerEvent* event, void* cont
     } else if(event->type == SceneManagerEventTypeBack) {
         system_settings_pop_location(instance);
         data->menu_index = SceneEventShutDown;
-        scene_manager_previous_scene(instance->scene_manager);
-        consumed = true;
+        consumed = scene_manager_previous_scene(instance->scene_manager);
     }
 
     return consumed;
 }
 
 const Scene system_settings_scene_power_menu = {
-    .enter_callback = scene_power_menu_on_enter,
-    .exit_callback = scene_power_menu_on_exit,
-    .event_callback = scene_power_menu_on_event,
+    .enter_callback = system_settings_scene_power_menu_on_enter,
+    .exit_callback = system_settings_scene_power_menu_on_exit,
+    .event_callback = system_settings_scene_power_menu_on_event,
     .data_size = sizeof(SettingsSceneSystem),
 };

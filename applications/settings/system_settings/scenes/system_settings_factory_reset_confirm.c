@@ -14,6 +14,8 @@ typedef struct {
 } SceneSystemFactoryResetConfirm;
 
 static void system_settings_scene_factory_reset_confirm_callback(uint8_t result, void* context) {
+    furi_assert(context);
+
     SystemSettings* instance = context;
     if(result == 0) {
         system_settings_send_custom_event(instance, SceneEventConfirm);
@@ -22,7 +24,7 @@ static void system_settings_scene_factory_reset_confirm_callback(uint8_t result,
     }
 }
 
-static void scene_factory_reset_confirm_on_enter(void* context) {
+static void system_settings_scene_factory_reset_confirm_on_enter(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -48,7 +50,7 @@ static void scene_factory_reset_confirm_on_enter(void* context) {
     });
 }
 
-static void scene_factory_reset_confirm_on_exit(void* context) {
+static void system_settings_scene_factory_reset_confirm_on_exit(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -61,7 +63,9 @@ static void scene_factory_reset_confirm_on_exit(void* context) {
     });
 }
 
-static bool scene_factory_reset_confirm_on_event(const SceneManagerEvent* event, void* context) {
+static bool system_settings_scene_factory_reset_confirm_on_event(
+    const SceneManagerEvent* event,
+    void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -86,8 +90,8 @@ static bool scene_factory_reset_confirm_on_event(const SceneManagerEvent* event,
 }
 
 const Scene system_settings_scene_factory_reset_confirm = {
-    .enter_callback = scene_factory_reset_confirm_on_enter,
-    .exit_callback = scene_factory_reset_confirm_on_exit,
-    .event_callback = scene_factory_reset_confirm_on_event,
+    .enter_callback = system_settings_scene_factory_reset_confirm_on_enter,
+    .exit_callback = system_settings_scene_factory_reset_confirm_on_exit,
+    .event_callback = system_settings_scene_factory_reset_confirm_on_event,
     .data_size = sizeof(SceneSystemFactoryResetConfirm),
 };

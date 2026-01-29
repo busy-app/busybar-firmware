@@ -1,9 +1,6 @@
 #include "../system_settings.h"
-#include <settings_helpers/gui_params.h>
 
 #include <gui/modules/dialog.h>
-
-#include <power/power_service/power.h>
 
 typedef enum {
     SceneEventConfirm = AppEventSceneEventsStart,
@@ -24,7 +21,7 @@ static void system_settings_scene_power_shut_down_confirm_callback(uint8_t resul
     }
 }
 
-static void scene_shut_down_confirm_on_enter(void* context) {
+static void system_settings_scene_shut_down_confirm_on_enter(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -38,9 +35,9 @@ static void scene_shut_down_confirm_on_enter(void* context) {
         dialog_set_text(data->front_dialog, "Shut down\ndevice??");
         dialog_set_text(data->back_dialog, "Shut down device?");
 
-        Color color_reset = COLOR_MAKE_RGB(0xED, 0x00, 0x18);
+        Color color_shut_down = COLOR_MAKE_RGB(0xED, 0x00, 0x18);
         Color color_cancel = COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF);
-        dialog_set_option_colors(data->front_dialog, color_reset, color_cancel);
+        dialog_set_option_colors(data->front_dialog, color_shut_down, color_cancel);
 
         dialog_set_options(data->front_dialog, "Yes", "Cancel");
         dialog_set_options(data->back_dialog, "Yes", "Cancel");
@@ -50,7 +47,7 @@ static void scene_shut_down_confirm_on_enter(void* context) {
     });
 }
 
-static void scene_shut_down_confirm_on_exit(void* context) {
+static void system_settings_scene_shut_down_confirm_on_exit(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -63,7 +60,9 @@ static void scene_shut_down_confirm_on_exit(void* context) {
     });
 }
 
-static bool scene_shut_down_confirm_on_event(const SceneManagerEvent* event, void* context) {
+static bool system_settings_scene_shut_down_confirm_on_event(
+    const SceneManagerEvent* event,
+    void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
@@ -75,10 +74,8 @@ static bool scene_shut_down_confirm_on_event(const SceneManagerEvent* event, voi
 
             if(!power_off_success) {
                 system_settings_pop_location(instance);
-                scene_manager_previous_scene(instance->scene_manager);
+                consumed = scene_manager_previous_scene(instance->scene_manager);
             }
-
-            consumed = true;
         } else if(event->event == SceneEventCancel) {
             system_settings_pop_location(instance);
             consumed = scene_manager_search_and_switch_to_previous_scene(
@@ -94,8 +91,8 @@ static bool scene_shut_down_confirm_on_event(const SceneManagerEvent* event, voi
 }
 
 const Scene system_settings_scene_power_shut_down_confirm = {
-    .enter_callback = scene_shut_down_confirm_on_enter,
-    .exit_callback = scene_shut_down_confirm_on_exit,
-    .event_callback = scene_shut_down_confirm_on_event,
+    .enter_callback = system_settings_scene_shut_down_confirm_on_enter,
+    .exit_callback = system_settings_scene_shut_down_confirm_on_exit,
+    .event_callback = system_settings_scene_shut_down_confirm_on_event,
     .data_size = sizeof(SceneSystemFactoryResetConfirm),
 };

@@ -4,6 +4,8 @@
 #include <settings_helpers/status_view.h>
 #include <toolbox/update_lib/factory_reset.h>
 
+#define REBOOT_TIMER_MS (2500)
+
 typedef struct {
     StatusView* statuses[GuiDisplayIdMax];
 } SettingsSceneReboot;
@@ -33,6 +35,8 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
             status_view_set_header(scene->statuses[disp], "Restarting device...");
         }
     });
+
+    furi_delay_ms(REBOOT_TIMER_MS);
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
     UpdaterStatus update_status = updater_session_start(updater);
@@ -64,14 +68,10 @@ static void system_settings_scene_factory_reset_on_exit(void* context) {
 
 static bool
     system_settings_scene_factory_reset_on_event(const SceneManagerEvent* event, void* context) {
-    furi_assert(context);
-
-    SystemSettings* instance = context;
-    UNUSED(instance);
+    UNUSED(context);
     UNUSED(event);
 
-    bool consumed = false;
-    return consumed;
+    return false;
 }
 
 const Scene system_settings_scene_factory_reset = {

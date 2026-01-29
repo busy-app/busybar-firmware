@@ -1,8 +1,6 @@
 #include "../system_settings.h"
-#include <settings_helpers/gui_params.h>
 
 #include <gui/modules/var_item_list.h>
-
 #include <furi_hal_nvm.h>
 
 typedef enum {

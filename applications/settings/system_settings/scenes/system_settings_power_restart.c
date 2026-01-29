@@ -2,8 +2,6 @@
 #include <settings_helpers/status_view.h>
 #include "../settings_helpers/gui_params.h"
 
-#include <power/power_service/power.h>
-
 #define REBOOT_TIMER_MS (2500)
 
 typedef struct {
@@ -35,8 +33,6 @@ static void system_settings_scene_power_restart_on_enter(void* context) {
     });
 
     furi_delay_ms(REBOOT_TIMER_MS);
-    // TODO Make factory reset
-
     power_reboot(instance->power, PowerRebootNormal);
     while(1)
         ;
@@ -57,14 +53,10 @@ static void system_settings_scene_power_restart_on_exit(void* context) {
 
 static bool
     system_settings_scene_power_restart_on_event(const SceneManagerEvent* event, void* context) {
-    furi_assert(context);
-
-    SystemSettings* instance = context;
-    UNUSED(instance);
+    UNUSED(context);
     UNUSED(event);
 
-    bool consumed = false;
-    return consumed;
+    return false;
 }
 
 const Scene system_settings_scene_power_restart = {
