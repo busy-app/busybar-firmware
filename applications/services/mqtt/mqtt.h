@@ -115,3 +115,8 @@ bool mqtt_message_get_string_property(
     const MqttMessage* message,
     MqttPropertyType property_type,
     FuriString* value);
+
+bool mqtt_message_get_number_property(
+    const MqttMessage* message,
+    MqttPropertyType property_type,
+    int32_t* value);

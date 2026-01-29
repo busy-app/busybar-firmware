@@ -117,41 +117,6 @@ static void mqtt_load_saved_state(Mqtt* instance) {
     }
 }
 
-// Constructor
-
-static Mqtt* mqtt_alloc(void) {
-    Mqtt* instance = malloc(sizeof(Mqtt));
-
-    instance->status = MqttStatusNotConnected;
-    instance->device_serial = furi_string_alloc();
-    instance->event_pubsub = furi_pubsub_alloc();
-
-    MqttSubscriptionList_init(instance->subscriptions);
-
-    mqtt_init_device_uid(instance);
-
-    mqtt_load_settings(instance);
-    mqtt_load_saved_state(instance);
-
-    Network* network = furi_record_open(RECORD_NETWORK);
-    network_init_current_thread(network);
-
-    mg_mgr_init(&instance->mgr);
-    mg_wakeup_init(&instance->mgr);
-
-    mqtt_api_init(instance);
-    mqtt_account_init(instance);
-
-    instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
-
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, instance);
-
-    furi_record_create(RECORD_MQTT, instance);
-
-    return instance;
-}
-
 const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size) {
     furi_check(message);
     const struct mg_str data = TO_RAW_MESSAGE(message)->data;
@@ -163,38 +128,86 @@ const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size)
     return data.buf;
 }
 
-bool mqtt_message_get_string_property(
-    const MqttMessage* message,
-    MqttPropertyType property_type,
-    FuriString* value) {
-    furi_check(message);
-    furi_check(property_type < MqttPropertyTypeMax);
-
-    const MqttPropertyDesc* desc = &mqtt_property_table[property_type];
-    furi_check(desc->value_type == MqttPropertyValueTypeString);
-
+static bool mqtt_message_get_raw_property(
+    const mg_mqtt_message* raw_message,
+    uint8_t raw_id,
+    mg_mqtt_prop* out_prop) {
     bool is_found = false;
 
     for(size_t prop_offs = 0;;) {
         struct mg_mqtt_prop prop = {};
-        const struct mg_mqtt_message* raw_message = TO_RAW_MESSAGE(message);
         // NOTE: mg_mqtt_next_prop() does NOT mutate data pointed to by *msg
-        prop_offs = mg_mqtt_next_prop((struct mg_mqtt_message*)raw_message, &prop, prop_offs);
+        prop_offs = mg_mqtt_next_prop((mg_mqtt_message*)raw_message, &prop, prop_offs);
 
         if(prop_offs <= 0) {
             break;
         }
 
-        if(prop.id == desc->raw_id) {
-            if(value && prop.val.len) {
-                furi_string_printf(value, "%.*s", prop.val.len, prop.val.buf);
-                is_found = true;
-                break;
-            }
+        if(prop.id == raw_id) {
+            *out_prop = prop;
+            is_found = true;
+            break;
         }
     }
 
     return is_found;
+}
+
+bool mqtt_message_get_string_property(
+    const MqttMessage* message,
+    MqttPropertyType property_type,
+    FuriString* value) {
+    furi_check(message);
+    furi_check(value);
+    furi_check(property_type < MqttPropertyTypeMax);
+
+    bool success = false;
+
+    const MqttPropertyDesc* desc = &mqtt_property_table[property_type];
+    furi_check(desc->value_type == MqttPropertyValueTypeString);
+
+    do {
+        mg_mqtt_prop string_prop;
+
+        if(!mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &string_prop)) {
+            break;
+        }
+
+        const mg_str raw_val = string_prop.val;
+
+        if(raw_val.len == 0) {
+            break;
+        }
+
+        furi_string_printf(value, "%.*s", raw_val.len, raw_val.buf);
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+bool mqtt_message_get_number_property(
+    const MqttMessage* message,
+    MqttPropertyType property_type,
+    int32_t* value) {
+    furi_check(message);
+    furi_check(value);
+    furi_check(property_type < MqttPropertyTypeMax);
+
+    const MqttPropertyDesc* desc = &mqtt_property_table[property_type];
+    furi_check(desc->value_type == MqttPropertyValueTypeNumber);
+
+    mg_mqtt_prop number_prop;
+
+    const bool success =
+        mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &number_prop);
+
+    if(success) {
+        *value = number_prop.iv;
+    }
+
+    return success;
 }
 
 void mqtt_make_topic_path(
@@ -278,7 +291,7 @@ static void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw
     }
 }
 
-uint16_t mqtt_publish_internal(
+void mqtt_publish_internal(
     Mqtt* instance,
     MqttScope scope,
     MqttQos qos,
@@ -288,8 +301,8 @@ uint16_t mqtt_publish_internal(
     const MqttProperty* props,
     uint32_t props_count) {
     if(!instance->conn) {
-        // TODO: What to do with messages published before the connection has been established?
-        return 0;
+        // TODO: Correctly handle publish attempts when no connection is available
+        return;
     }
 
     FuriString* path = furi_string_alloc();
@@ -313,14 +326,13 @@ uint16_t mqtt_publish_internal(
     };
 
     // TODO: Implement proper QoS handling
-    const uint16_t retransmit_id = mg_mqtt_pub(instance->conn, &opts);
+    mg_mqtt_pub(instance->conn, &opts);
 
     if(raw_props) {
         free(raw_props);
     }
 
     furi_string_free(path);
-    return retransmit_id;
 }
 
 // Static lookup tables
@@ -362,6 +374,39 @@ static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax] = {
 };
 
 // Service thread
+
+static Mqtt* mqtt_alloc(void) {
+    Mqtt* instance = malloc(sizeof(Mqtt));
+
+    instance->status = MqttStatusNotConnected;
+    instance->device_serial = furi_string_alloc();
+    instance->event_pubsub = furi_pubsub_alloc();
+
+    MqttSubscriptionList_init(instance->subscriptions);
+
+    mqtt_init_device_uid(instance);
+
+    mqtt_load_settings(instance);
+    mqtt_load_saved_state(instance);
+
+    Network* network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(network);
+
+    mg_mgr_init(&instance->mgr);
+    mg_wakeup_init(&instance->mgr);
+
+    mqtt_api_init(instance);
+    mqtt_account_init(instance);
+
+    instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
+
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, instance);
+
+    furi_record_create(RECORD_MQTT, instance);
+
+    return instance;
+}
 
 int32_t mqtt_srv(void* arg) {
     UNUSED(arg);

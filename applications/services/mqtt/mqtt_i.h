@@ -29,7 +29,10 @@
 #define TO_RAW_MESSAGE(msg)  ((const struct mg_mqtt_message*)(msg))
 #define TO_MQTT_MESSAGE(msg) ((const MqttMessage*)(msg))
 
+// Shorter types
+typedef struct mg_str mg_str;
 typedef struct mg_mqtt_prop mg_mqtt_prop;
+typedef struct mg_mqtt_message mg_mqtt_message;
 
 typedef enum {
     MqttScopeDevice,
@@ -187,7 +190,7 @@ MqttSubscription* mqtt_subscribe_internal(
 
 void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription);
 
-uint16_t mqtt_publish_internal(
+void mqtt_publish_internal(
     Mqtt* instance,
     MqttScope scope,
     MqttQos qos,
