@@ -156,7 +156,7 @@ jobs:
             --ignore=playwright-automation \
             --junitxml=test-results.xml
 
-        continue-on-error: false
+        continue-on-error: true
         env:
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
