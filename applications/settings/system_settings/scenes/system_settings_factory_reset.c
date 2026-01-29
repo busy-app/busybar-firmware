@@ -25,8 +25,6 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
     };
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "FACTORY RESET");
-
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
 
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {

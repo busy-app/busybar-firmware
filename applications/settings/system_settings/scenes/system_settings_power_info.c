@@ -63,9 +63,6 @@ static void system_settings_scene_power_info_on_enter(void* context) {
     };
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "POWER INFO");
-        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
-
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             widget_set_scrollbar_mode(windows[disp], WidgetScrollBarModeAuto);
             scene->power_info[disp] = label_alloc(windows[disp]);
@@ -91,8 +88,6 @@ static void system_settings_scene_power_info_on_exit(void* context) {
     furi_string_free(scene->power_info_str);
 
     with_gui(instance->gui, {
-        nav_bar_pop_location(instance->back_nav_bar);
-
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             label_free(scene->power_info[disp]);
         }
@@ -103,9 +98,13 @@ static void system_settings_scene_power_info_on_exit(void* context) {
 static bool
     system_settings_scene_power_info_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
+    SystemSettings* instance = context;
 
     bool consumed = false;
-    UNUSED(event);
+    if(event->type == SceneManagerEventTypeBack) {
+        system_settings_pop_location(instance);
+        consumed = scene_manager_previous_scene(instance->scene_manager);
+    }
 
     return consumed;
 }

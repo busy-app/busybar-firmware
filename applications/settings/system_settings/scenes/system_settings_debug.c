@@ -66,8 +66,6 @@ static void system_settings_scene_debug_on_enter(void* context) {
     data->debug_apps = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug) ? DebugAppsOn : DebugAppsOff;
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "DEBUG");
-
         data->front_list = var_item_list_alloc(instance->front_scene_window);
         system_settings_scene_debug_fill_var_item_list(instance, data->front_list, true);
 
@@ -83,8 +81,6 @@ static void system_settings_scene_debug_on_exit(void* context) {
     SettingsSceneDebug* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdDebug);
 
     with_gui(instance->gui, {
-        nav_bar_pop_location(instance->back_nav_bar);
-
         var_item_list_free(data->front_list);
         var_item_list_free(data->back_list);
     });
@@ -106,6 +102,10 @@ static bool system_settings_scene_debug_on_event(const SceneManagerEvent* event,
                 furi_hal_nvm_set_flag(FuriHalNvmFlagDebug);
             }
         }
+        consumed = true;
+    } else if(event->type == SceneManagerEventTypeBack) {
+        system_settings_pop_location(instance);
+        scene_manager_previous_scene(instance->scene_manager);
         consumed = true;
     }
 

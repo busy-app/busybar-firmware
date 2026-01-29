@@ -31,8 +31,6 @@ static void scene_power_menu_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPowerMenu);
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "POWER");
-
         data->front_menu = submenu_alloc(instance->front_scene_window);
         submenu_add_item(
             data->front_menu,
@@ -70,8 +68,6 @@ static void scene_power_menu_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPowerMenu);
 
     with_gui(instance->gui, {
-        nav_bar_pop_location(instance->back_nav_bar);
-
         submenu_free(data->front_menu);
         submenu_free(data->back_menu);
     });
@@ -88,7 +84,7 @@ static bool scene_power_menu_on_event(const SceneManagerEvent* event, void* cont
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventShutDown) {
             bool is_usb_connected = power_is_usb_connected(instance->power);
-
+            system_settings_push_location(instance, "SHUT DOWN");
             if(is_usb_connected) {
                 scene_manager_next_scene(instance->scene_manager, SceneIdPowerUnplugUsb);
             } else {
@@ -96,17 +92,20 @@ static bool scene_power_menu_on_event(const SceneManagerEvent* event, void* cont
             }
             consumed = true;
         } else if(event->event == SceneEventRestart) {
-            scene_manager_next_scene(instance->scene_manager, SceneIdPowerRestart);
+            system_settings_push_location(instance, "RESTART");
+            scene_manager_next_scene(instance->scene_manager, SceneIdPowerRestartConfirm);
             consumed = true;
         } else if(event->event == SceneEventInfo) {
+            system_settings_push_location(instance, "INFO");
             scene_manager_next_scene(instance->scene_manager, SceneIdPowerInfo);
             consumed = true;
         }
 
         data->menu_index = event->event;
     } else if(event->type == SceneManagerEventTypeBack) {
-        scene_manager_previous_scene(instance->scene_manager);
+        system_settings_pop_location(instance);
         data->menu_index = SceneEventShutDown;
+        scene_manager_previous_scene(instance->scene_manager);
         consumed = true;
     }
 

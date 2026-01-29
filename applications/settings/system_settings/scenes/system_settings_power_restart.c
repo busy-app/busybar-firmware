@@ -27,10 +27,6 @@ static void system_settings_scene_power_restart_on_enter(void* context) {
     };
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "RESTART DEVICE");
-
-        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
-
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], images[disp]);

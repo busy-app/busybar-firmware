@@ -53,6 +53,10 @@ typedef struct {
 
 void system_settings_send_custom_event(SystemSettings* instance, uint32_t event);
 
+void system_settings_push_location(SystemSettings* instance, const char* location_name);
+
+void system_settings_pop_location(SystemSettings* instance);
+
 #ifdef __cplusplus
 }
 #endif

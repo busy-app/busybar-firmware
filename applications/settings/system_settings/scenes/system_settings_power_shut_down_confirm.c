@@ -32,8 +32,6 @@ static void scene_shut_down_confirm_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPowerShutDownConfirm);
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "SHUT DOWN");
-
         data->front_dialog = dialog_alloc(instance->front_scene_window);
         data->back_dialog = dialog_alloc(instance->back_scene_window);
 
@@ -60,8 +58,6 @@ static void scene_shut_down_confirm_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPowerShutDownConfirm);
 
     with_gui(instance->gui, {
-        nav_bar_pop_location(instance->back_nav_bar);
-
         dialog_free(data->front_dialog);
         dialog_free(data->back_dialog);
     });
@@ -78,15 +74,18 @@ static bool scene_shut_down_confirm_on_event(const SceneManagerEvent* event, voi
             bool power_off_success = power_off(instance->power);
 
             if(!power_off_success) {
+                system_settings_pop_location(instance);
                 scene_manager_previous_scene(instance->scene_manager);
             }
 
             consumed = true;
         } else if(event->event == SceneEventCancel) {
+            system_settings_pop_location(instance);
             consumed = scene_manager_search_and_switch_to_previous_scene(
                 instance->scene_manager, SceneIdPowerMenu);
         }
     } else if(event->type == SceneManagerEventTypeBack) {
+        system_settings_pop_location(instance);
         consumed = scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, SceneIdPowerMenu);
     }

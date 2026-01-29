@@ -30,8 +30,6 @@ static void scene_factory_reset_confirm_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFactoryResetConfirm);
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "FACTORY RESET");
-
         data->front_dialog = dialog_alloc(instance->front_scene_window);
         data->back_dialog = dialog_alloc(instance->back_scene_window);
 
@@ -58,8 +56,6 @@ static void scene_factory_reset_confirm_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFactoryResetConfirm);
 
     with_gui(instance->gui, {
-        nav_bar_pop_location(instance->back_nav_bar);
-
         dialog_free(data->front_dialog);
         dialog_free(data->back_dialog);
     });
@@ -76,9 +72,14 @@ static bool scene_factory_reset_confirm_on_event(const SceneManagerEvent* event,
             scene_manager_next_scene(instance->scene_manager, SceneIdFactoryReset);
             consumed = true;
         } else if(event->event == SceneEventCancel) {
+            system_settings_pop_location(instance);
             scene_manager_previous_scene(instance->scene_manager);
             consumed = true;
         }
+    } else if(event->type == SceneManagerEventTypeBack) {
+        system_settings_pop_location(instance);
+        scene_manager_previous_scene(instance->scene_manager);
+        consumed = true;
     }
 
     return consumed;

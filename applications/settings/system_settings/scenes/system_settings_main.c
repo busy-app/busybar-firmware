@@ -75,12 +75,15 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventPower) {
             scene_manager_next_scene(instance->scene_manager, SceneIdPowerMenu);
+            system_settings_push_location(instance, "POWER");
             consumed = true;
         } else if(event->event == SceneEventDebug) {
             scene_manager_next_scene(instance->scene_manager, SceneIdDebug);
+            system_settings_push_location(instance, "DEBUG");
             consumed = true;
         } else if(event->event == SceneEventFactoryReset) {
             scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);
+            system_settings_push_location(instance, "FACTORY RESET");
             consumed = true;
         }
         data->menu_index = event->event;

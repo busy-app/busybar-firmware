@@ -49,9 +49,6 @@ static void system_settings_scene_power_unplug_usb_on_enter(void* context) {
     };
 
     with_gui(instance->gui, {
-        nav_bar_push_location(instance->back_nav_bar, "SHUT DOWN");
-        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
-
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], images[disp]);
@@ -69,8 +66,6 @@ static void system_settings_scene_power_unplug_usb_on_exit(void* context) {
     furi_pubsub_unsubscribe(power_get_pubsub(instance->power), scene->power_subscription);
 
     with_gui(instance->gui, {
-        nav_bar_pop_location(instance->back_nav_bar);
-
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             status_view_free(scene->statuses[disp]);
         }
@@ -91,6 +86,9 @@ static bool
                 consumed = true;
             }
         }
+    } else if(event->type == SceneManagerEventTypeBack) {
+        system_settings_pop_location(instance);
+        consumed = scene_manager_previous_scene(instance->scene_manager);
     }
 
     return consumed;

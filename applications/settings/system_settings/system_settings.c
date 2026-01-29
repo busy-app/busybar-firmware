@@ -98,9 +98,9 @@ static SystemSettings* system_settings_alloc() {
 
         instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
         nav_bar_set_header_image(instance->back_nav_bar, SETTINGS_ICON_BACK);
-        nav_bar_push_location(instance->back_nav_bar, "SYSTEM");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
+        nav_bar_push_location(instance->back_nav_bar, "SYSTEM");
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -179,4 +179,17 @@ void system_settings_send_custom_event(SystemSettings* instance, uint32_t event)
 
     furi_check(
         furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
+
+void system_settings_push_location(SystemSettings* instance, const char* location_name) {
+    furi_assert(instance);
+    furi_assert(location_name);
+
+    with_gui(instance->gui, { nav_bar_push_location(instance->back_nav_bar, location_name); });
+}
+
+void system_settings_pop_location(SystemSettings* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, { nav_bar_pop_location(instance->back_nav_bar); });
 }
