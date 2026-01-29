@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - ssecsd/smoke-tests
     tags:
       - '*-rc*'
   workflow_dispatch:
