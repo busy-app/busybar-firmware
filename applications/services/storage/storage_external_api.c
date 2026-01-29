@@ -1094,6 +1094,49 @@ bool storage_simply_mkdir(Storage* storage, const char* path) {
     return result == FSE_OK || result == FSE_EXIST;
 }
 
+size_t storage_simply_read_entire_file(
+    Storage* storage,
+    const char* path,
+    void* buffer,
+    size_t buf_sz) {
+    furi_check(storage);
+    furi_check(path);
+    furi_check(buffer);
+
+    memset(buffer, 0, buf_sz);
+    File* file = storage_file_alloc(storage);
+
+    size_t read = 0;
+    do {
+        if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) break;
+        read = storage_file_read(file, buffer, buf_sz - 1);
+    } while(0);
+
+    storage_file_free(file);
+    return read;
+}
+
+bool storage_simply_write_entire_file(
+    Storage* storage,
+    const char* path,
+    const void* buffer,
+    size_t length) {
+    furi_check(storage);
+    furi_check(path);
+    furi_check(buffer);
+
+    File* file = storage_file_alloc(storage);
+
+    size_t written = 0;
+    do {
+        if(!storage_file_open(file, path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) break;
+        written = storage_file_write(file, buffer, length);
+    } while(0);
+
+    storage_file_free(file);
+    return written;
+}
+
 void storage_get_next_filename(
     Storage* storage,
     const char* dirname,
