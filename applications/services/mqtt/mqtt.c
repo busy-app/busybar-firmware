@@ -280,19 +280,20 @@ void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription) {
     mqtt_connection_close(instance, true);
 }
 
+static bool mqtt_is_valid_scope_for_current_state(Mqtt* instance, MqttScope scope) {
+    bool is_valid = false;
+
+    if(instance->status == MqttStatusConnectedLinked && scope == MqttScopeSession) {
+        is_valid = true;
+    } else if(instance->status == MqttStatusConnectedNotLinked && scope == MqttScopeDevice) {
+        is_valid = true;
+    }
+
+    return is_valid;
+}
+
 void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscription) {
-    // Subscribe only to Session-scoped topics when linked
-    if(instance->status == MqttStatusConnectedLinked) {
-        if(subscription->scope != MqttScopeSession) {
-            return;
-        }
-        // Subscribe only to Device-scoped topics when not linked
-    } else if(instance->status == MqttStatusConnectedNotLinked) {
-        if(subscription->scope != MqttScopeDevice) {
-            return;
-        }
-        // Do nothing when not connected
-    } else {
+    if(!mqtt_is_valid_scope_for_current_state(instance, subscription->scope)) {
         return;
     }
 
@@ -340,8 +341,8 @@ void mqtt_publish_internal(
     size_t data_size,
     const MqttProperty* props,
     uint32_t props_count) {
-    if(!instance->conn) {
-        // TODO: Correctly handle publish attempts when no connection is available
+    if(!mqtt_is_valid_scope_for_current_state(instance, scope)) {
+        // TODO: return error
         return;
     }
 
