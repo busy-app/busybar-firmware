@@ -29,9 +29,10 @@ static void account_scene_connecting_on_exit(void* context) {
     furi_assert(context);
 
     AccountSettings* instance = context;
-
     SceneConnecting* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdConnecting);
+
+    instance->link_reconnect_pending = false;
 
     with_gui(instance->gui, {
         status_view_free(data->back_status);
@@ -52,7 +53,11 @@ static bool account_scene_connecting_on_event(const SceneManagerEvent* event, vo
             if(state == AccountModelStateConnectedNotLinked) {
                 scene_manager_replace_current_scene(instance->scene_manager, SceneIdNotLinked);
             } else if(state == AccountModelStateConnectedLinked) {
-                scene_manager_replace_current_scene(instance->scene_manager, SceneIdLinked);
+                if(instance->link_reconnect_pending) {
+                    scene_manager_replace_current_scene(instance->scene_manager, SceneIdLinkDone);
+                } else {
+                    scene_manager_replace_current_scene(instance->scene_manager, SceneIdLinked);
+                }
             }
             consumed = true;
             break;

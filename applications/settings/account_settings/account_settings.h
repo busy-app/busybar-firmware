@@ -60,6 +60,7 @@ typedef struct {
     AccountModel* model;
 
     char link_pin[ACCOUNT_MODEL_LINK_PIN_LEN + 1];
+    bool link_reconnect_pending;
 } AccountSettings;
 
 void account_settings_send_custom_event(AccountSettings* instance, uint32_t event);

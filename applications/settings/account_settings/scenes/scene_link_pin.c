@@ -105,6 +105,7 @@ static bool account_scene_link_pin_on_event(const SceneManagerEvent* event, void
             consumed = true;
             break;
         case AppEventAccountLinkDone:
+            instance->link_reconnect_pending = true;
             scene_manager_replace_current_scene(instance->scene_manager, SceneIdConnecting);
             consumed = true;
             break;

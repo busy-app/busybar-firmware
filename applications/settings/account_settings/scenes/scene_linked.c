@@ -62,6 +62,9 @@ static void account_scene_linked_on_enter(void* context) {
         dialog_set_options(data->front_dialog, "Unlink", "Cancel");
         dialog_set_options(data->back_dialog, "Unlink", "Cancel");
 
+        dialog_select_option(data->front_dialog, 1);
+        dialog_select_option(data->back_dialog, 1);
+
         dialog_set_calback(data->front_dialog, account_scene_linked_dialog_callback, instance);
     });
 

@@ -8,6 +8,7 @@ typedef enum {
     SceneIdLinkPin,
     SceneIdLinked,
     SceneIdError,
+    SceneIdLinkDone,
     SceneIdNoWifi,
     SceneIdsCount,
 } SceneId;

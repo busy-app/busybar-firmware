@@ -241,6 +241,13 @@ void dialog_set_option_colors(Dialog* instance, Color color_0, Color color_1) {
         ((DialogOption*)option)->label, TO_LV_COLOR(color_1), LV_STATE_FOCUSED);
 }
 
+void dialog_select_option(Dialog* instance, uint8_t index) {
+    furi_check(instance);
+    furi_check(index <= 1);
+    lv_obj_t* target = lv_group_get_obj_by_index(instance->options_group, index);
+    lv_group_focus_obj(target);
+}
+
 void dialog_set_calback(Dialog* instance, DialogCallback callback, void* context) {
     furi_check(instance);
 

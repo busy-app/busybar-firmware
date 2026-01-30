@@ -91,6 +91,14 @@ void dialog_set_options(Dialog* instance, const char* text_0, const char* text_1
  */
 void dialog_set_option_colors(Dialog* instance, Color color_0, Color color_1);
 
+/**
+ * @brief Set dialog option selection.
+ *
+ * @param[in,out] instance pointer to the Dialog instance to be modified
+ * @param[in] index selected option (0/1)
+ */
+void dialog_select_option(Dialog* instance, uint8_t index);
+
 #ifdef __cplusplus
 }
 #endif

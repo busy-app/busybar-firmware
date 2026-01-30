@@ -5,6 +5,7 @@ extern const Scene account_scene_not_linked;
 extern const Scene account_scene_link_pin;
 extern const Scene account_scene_linked;
 extern const Scene account_scene_error;
+extern const Scene account_scene_link_done;
 extern const Scene account_scene_no_wifi;
 
 const Scene* const account_settings_scenes[SceneIdsCount] = {
@@ -13,5 +14,6 @@ const Scene* const account_settings_scenes[SceneIdsCount] = {
     [SceneIdLinkPin] = &account_scene_link_pin,
     [SceneIdLinked] = &account_scene_linked,
     [SceneIdError] = &account_scene_error,
+    [SceneIdLinkDone] = &account_scene_link_done,
     [SceneIdNoWifi] = &account_scene_no_wifi,
 };
