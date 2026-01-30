@@ -38,7 +38,7 @@ typedef enum {
 } MqttScope;
 
 typedef enum {
-    MqttPropertyValueTypeNumber,
+    MqttPropertyValueTypeInteger,
     MqttPropertyValueTypeString,
     MqttPropertyValueTypeMax,
 } MqttPropertyValueType;

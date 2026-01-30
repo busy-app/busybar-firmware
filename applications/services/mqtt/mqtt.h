@@ -18,6 +18,7 @@ typedef struct MqttSubscription MqttSubscription;
 typedef void (*MqttSubscriptionCallback)(const MqttMessage* message, void* context);
 
 typedef enum {
+    MqttPropertyTypeExpiryInterval,
     MqttPropertyTypeResponseTopic,
     MqttPropertyTypeCorrelationData,
     /* Add more property types as needed */
@@ -116,7 +117,7 @@ bool mqtt_message_get_string_property(
     MqttPropertyType property_type,
     FuriString* value);
 
-bool mqtt_message_get_number_property(
+bool mqtt_message_get_integer_property(
     const MqttMessage* message,
     MqttPropertyType property_type,
-    int32_t* value);
+    uint32_t* value);

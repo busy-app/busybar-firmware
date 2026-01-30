@@ -11,6 +11,9 @@ typedef enum {
 
 typedef struct {
     MqttStreamingApiMessageType type;
+    union {
+        uint32_t expiry_interval;
+    };
 } MqttStreamingApiMessage;
 
 typedef struct {

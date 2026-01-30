@@ -14,8 +14,6 @@
 #define API_QUEUE_SIZE  (4)
 #define FRAME_PERIOD_MS (500)
 
-#define STREAM_TIMEOUT_MS M_TO_MS(1)
-
 static void mqtt_streaming_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
@@ -25,8 +23,12 @@ static void mqtt_streaming_message_callback(const MqttMessage* message, void* co
     size_t data_size;
     mqtt_message_get_data(message, &data_size);
 
+    uint32_t expiry_interval = 0;
+    mqtt_message_get_integer_property(message, MqttPropertyTypeExpiryInterval, &expiry_interval);
+
     const MqttStreamingApiMessage api_msg = {
         .type = data_size ? MqttStreamingApiMessageTypeStart : MqttStreamingApiMessageTypeStop,
+        .expiry_interval = expiry_interval,
     };
 
     furi_message_queue_put(instance->api_queue, &api_msg, FuriWaitForever);
@@ -89,7 +91,7 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
                     instance->event_loop, mqtt_streaming_frame_timer_callback, instance);
             }
 
-            furi_event_loop_timer_start(instance->timeout_timer, STREAM_TIMEOUT_MS);
+            furi_event_loop_timer_start(instance->timeout_timer, S_TO_MS(api_msg.expiry_interval));
 
         } else if(api_msg.type == MqttStreamingApiMessageTypeStop) {
             FURI_LOG_I(TAG, "Stop");

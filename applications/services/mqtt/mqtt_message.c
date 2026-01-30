@@ -7,7 +7,7 @@ void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw
 
     raw_property->id = desc->raw_id;
 
-    if(desc->value_type == MqttPropertyValueTypeNumber) {
+    if(desc->value_type == MqttPropertyValueTypeInteger) {
         raw_property->iv = property->value.number;
     } else if(desc->value_type == MqttPropertyValueTypeString) {
         raw_property->val = mg_str(property->value.string);
@@ -103,30 +103,36 @@ bool mqtt_message_get_string_property(
     return success;
 }
 
-bool mqtt_message_get_number_property(
+bool mqtt_message_get_integer_property(
     const MqttMessage* message,
     MqttPropertyType property_type,
-    int32_t* value) {
+    uint32_t* value) {
     furi_check(message);
     furi_check(value);
     furi_check(property_type < MqttPropertyTypeMax);
 
     const MqttPropertyDesc* desc = &mqtt_property_desc_table[property_type];
-    furi_check(desc->value_type == MqttPropertyValueTypeNumber);
+    furi_check(desc->value_type == MqttPropertyValueTypeInteger);
 
-    struct mg_mqtt_prop number_prop;
+    struct mg_mqtt_prop integer_prop;
 
     const bool success =
-        mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &number_prop);
+        mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &integer_prop);
 
     if(success) {
-        *value = number_prop.iv;
+        *value = integer_prop.iv;
     }
 
     return success;
 }
 
+// https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901029
 static const MqttPropertyDesc mqtt_property_desc_table[MqttPropertyTypeMax] = {
+    [MqttPropertyTypeExpiryInterval] =
+        {
+            .raw_id = MQTT_PROP_MESSAGE_EXPIRY_INTERVAL,
+            .value_type = MqttPropertyValueTypeInteger,
+        },
     [MqttPropertyTypeResponseTopic] =
         {
             .raw_id = MQTT_PROP_RESPONSE_TOPIC,
