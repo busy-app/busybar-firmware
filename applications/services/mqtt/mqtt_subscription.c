@@ -1,16 +1,5 @@
 #include "mqtt_i.h"
 
-typedef enum {
-    MqttDirectionUp,
-    MqttDirectionDown,
-    MqttDirectionMax,
-} MqttDirection;
-
-static const char* mqtt_direction_table[MqttDirectionMax] = {
-    [MqttDirectionUp] = "up",
-    [MqttDirectionDown] = "down",
-};
-
 static MqttSubscription* mqtt_subscription_alloc(void) {
     MqttSubscription* subscription = malloc(sizeof(MqttSubscription));
 
@@ -40,12 +29,9 @@ static bool mqtt_is_valid_scope_for_current_state(Mqtt* instance, MqttScope scop
 static void mqtt_make_topic_path(
     Mqtt* instance,
     MqttScope scope,
-    MqttDirection dir,
+    const char* dir,
     const char* topic,
     FuriString* out) {
-    furi_assert(dir < MqttDirectionMax);
-
-    const char* dir_name = mqtt_direction_table[dir];
     const char* root;
     const char* id;
 
@@ -61,7 +47,7 @@ static void mqtt_make_topic_path(
         furi_crash("Invalid MqttScope value");
     }
 
-    furi_string_printf(out, "%s/%s/%s/%s/%s", root, id, dir_name, MQTT_API_VERSION, topic);
+    furi_string_printf(out, "%s/%s/%s/%s/%s", root, id, dir, MQTT_API_VERSION, topic);
 }
 
 MqttSubscription* mqtt_subscribe_internal(
@@ -104,7 +90,7 @@ void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscrip
     mqtt_make_topic_path(
         instance,
         subscription->scope,
-        MqttDirectionDown,
+        MQTT_DIRECTION_DOWN,
         furi_string_get_cstr(subscription->topic),
         topic_path);
 
@@ -135,7 +121,7 @@ void mqtt_publish_internal(
     }
 
     FuriString* path = furi_string_alloc();
-    mqtt_make_topic_path(instance, scope, MqttDirectionUp, topic, path);
+    mqtt_make_topic_path(instance, scope, MQTT_DIRECTION_UP, topic, path);
 
     mg_mqtt_prop* raw_props = NULL;
 

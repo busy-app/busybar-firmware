@@ -54,12 +54,13 @@ static bool mqtt_message_get_raw_property(
 
 static mg_str mqtt_message_trim_response_topic(mg_str response_topic) {
     mg_str captures[3]; // NOTE: Should be number of captures + 1
-    const mg_str pattern = mg_str(MQTT_SESSION_ROOT_TOPIC "/*/up/" MQTT_API_VERSION "/#");
+    const mg_str pattern =
+        mg_str(MQTT_SESSION_ROOT_TOPIC "/*/" MQTT_DIRECTION_UP "/" MQTT_API_VERSION "/#");
 
     if(mg_match(response_topic, pattern, captures)) {
-        return captures[1];
+        return captures[COUNT_OF(captures) - 2];
     } else {
-        FURI_LOG_W(TAG, "Response topic not on session");
+        FURI_LOG_E(TAG, "Malformed response topic");
         return response_topic;
     }
 }

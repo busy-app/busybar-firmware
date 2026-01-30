@@ -263,29 +263,38 @@ static void mqtt_mqtt_cmd_mg_event_handler(
     }
 }
 
+static struct mg_str mqtt_connection_trim_topic(struct mg_str topic_path) {
+    struct mg_str captures[4]; // NOTE: Should be number of captures + 1
+    struct mg_str pattern = mg_str("*/*/" MQTT_DIRECTION_DOWN "/" MQTT_API_VERSION "/#");
+
+    if(mg_match(topic_path, pattern, captures)) {
+        return captures[COUNT_OF(captures) - 2];
+
+    } else {
+        FURI_LOG_E(TAG, "Malformed topic path");
+        return topic_path;
+    }
+}
+
 static void mqtt_mqtt_msg_mg_event_handler(
     Mqtt* instance,
     struct mg_connection* connection,
     const struct mg_mqtt_message* message) {
     UNUSED(connection);
 
-    // TODO: Better way to match topics
-    FuriString* topic_path =
-        furi_string_alloc_printf("%.*s", message->topic.len, message->topic.buf);
+    const mg_str topic = mqtt_connection_trim_topic(message->topic);
 
     MqttSubscriptionList_it_ct it;
     for(MqttSubscriptionList_it(it, instance->subscriptions); !MqttSubscriptionList_end_p(it);
         MqttSubscriptionList_next(it)) {
         const MqttSubscription* subscription = MqttSubscriptionList_cref(it);
 
-        if(furi_string_end_with(topic_path, subscription->topic)) {
+        if(mg_strcmp(topic, mg_str(furi_string_get_cstr(subscription->topic))) == 0) {
             if(subscription->callback) {
                 subscription->callback(TO_MQTT_MESSAGE(message), subscription->callback_context);
             }
         }
     }
-
-    furi_string_free(topic_path);
 
     FURI_LOG_T(
         TAG,

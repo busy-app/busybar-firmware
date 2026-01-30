@@ -24,6 +24,9 @@
 #define MQTT_DEVICE_ROOT_TOPIC  "devices"
 #define MQTT_SESSION_ROOT_TOPIC "sessions"
 
+#define MQTT_DIRECTION_UP   "up"
+#define MQTT_DIRECTION_DOWN "down"
+
 // NOTE: MqttMessage is an opaque alias for mg_mqtt_message.
 #define TO_RAW_MESSAGE(msg)  ((mg_mqtt_message*)(msg))
 #define TO_MQTT_MESSAGE(msg) ((MqttMessage*)(msg))
