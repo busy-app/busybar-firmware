@@ -16,11 +16,11 @@ static void account_scene_connecting_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(data->front_status, SETTINGS_IMG_PATH("spinner_front_7x7.bin"));
+        status_view_set_icon(data->front_status, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
         status_view_set_header(data->front_status, "Connecting...");
 
         data->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(data->back_status, SETTINGS_IMG_PATH("spinner_back_16x16.bin"));
+        status_view_set_icon(data->back_status, SETTINGS_ANIM_PATH("spinner_back_16x16.anim"));
         status_view_set_header(data->back_status, "Connecting...");
     });
 }

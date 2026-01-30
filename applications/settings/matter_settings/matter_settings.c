@@ -205,7 +205,7 @@ int32_t matter_settings_entry(void* arg) {
         SettingsAppDescriptor* descriptor = arg;
 
         furi_string_set_str(descriptor->front_title, "Smart home");
-        furi_string_set_str(descriptor->back_title, "SMART HOME");
+        furi_string_set_str(descriptor->back_title, "Smart home");
         furi_string_set_str(descriptor->front_icon, IMG_PATH("house_front_7x7.bin"));
         furi_string_set_str(descriptor->back_icon, IMG_PATH("house_back_12x12.bin"));
 

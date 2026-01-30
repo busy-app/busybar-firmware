@@ -165,7 +165,7 @@ int32_t brightness_settings_entry(void* arg) {
         SettingsAppDescriptor* descriptor = arg;
 
         furi_string_set_str(descriptor->front_title, "Brightness");
-        furi_string_set_str(descriptor->back_title, "BRIGHTNESS");
+        furi_string_set_str(descriptor->back_title, "Brightness");
         brightness_model_format(model, descriptor->menu_extra);
         furi_string_set_str(descriptor->front_icon, IMG_PATH("sun_front_7x7.bin"));
         furi_string_set_str(descriptor->back_icon, IMG_PATH("sun_back_12x12.bin"));

@@ -3,6 +3,7 @@
 #include "../account_settings.h"
 #include <storage/storage.h>
 #include <gui/widget_i.h>
+#include <gui/modules/anim_image_i.h>
 
 #define LINK_PIN_BACK_CLASS  (&link_pin_view_back_lvgl_class)
 #define LINK_PIN_FRONT_CLASS (&link_pin_view_front_lvgl_class)
@@ -12,7 +13,7 @@
 struct LinkPinView {
     Widget base;
     lv_obj_t* code_label;
-    lv_obj_t* loading_spinner;
+    AnimImage* loading_spinner;
 };
 
 const lv_obj_class_t link_pin_view_back_lvgl_class;
@@ -56,9 +57,9 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_align(instance->code_label, LV_ALIGN_LEFT_MID, 0, 0);
     lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
 
-    instance->loading_spinner = lv_img_create(code_cont);
-    lv_img_set_src(instance->loading_spinner, SETTINGS_IMG_PATH("spinner_front_7x7.bin"));
-    lv_obj_align(instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
+    instance->loading_spinner = anim_image_alloc((Widget*)code_cont);
+    anim_image_set_source(instance->loading_spinner, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
+    lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
 }
 
 static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -102,9 +103,9 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     lv_obj_align(instance->code_label, LV_ALIGN_BOTTOM_LEFT, 0, 1);
     lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
 
-    instance->loading_spinner = lv_img_create(code_cont);
-    lv_img_set_src(instance->loading_spinner, SETTINGS_IMG_PATH("spinner_front_7x7.bin"));
-    lv_obj_align(instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
+    instance->loading_spinner = anim_image_alloc((Widget*)code_cont);
+    anim_image_set_source(instance->loading_spinner, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
+    lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
 
     font = lv_theme_get_font_normal(obj);
     lv_obj_t* bottom_label = lv_label_create(obj);
@@ -145,13 +146,13 @@ void link_pin_view_set_state(LinkPinView* instance, const char* pin_code) {
     furi_check(instance);
 
     if(pin_code) {
-        lv_obj_add_flag(instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
         lv_label_set_text(instance->code_label, pin_code);
         lv_obj_remove_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
         lv_label_set_text(instance->code_label, "");
-        lv_obj_remove_flag(instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
     }
 }
 

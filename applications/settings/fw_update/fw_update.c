@@ -155,8 +155,8 @@ int32_t fw_update_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
 
-        furi_string_set_str(descriptor->front_title, "FW update");
-        furi_string_set_str(descriptor->back_title, "FW UPDATE");
+        furi_string_set_str(descriptor->front_title, "Firmware");
+        furi_string_set_str(descriptor->back_title, "Firmware");
         furi_string_set_str(descriptor->front_icon, IMG_PATH("microchip_front_8x8.bin"));
         furi_string_set_str(descriptor->back_icon, IMG_PATH("microchip_back_12x12.bin"));
 
