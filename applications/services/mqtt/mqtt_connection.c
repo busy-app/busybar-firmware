@@ -282,7 +282,7 @@ static void mqtt_mqtt_msg_mg_event_handler(
     const struct mg_mqtt_message* message) {
     UNUSED(connection);
 
-    const mg_str topic = mqtt_connection_trim_topic(message->topic);
+    const struct mg_str topic = mqtt_connection_trim_topic(message->topic);
 
     MqttSubscriptionList_it_ct it;
     for(MqttSubscriptionList_it(it, instance->subscriptions); !MqttSubscriptionList_end_p(it);

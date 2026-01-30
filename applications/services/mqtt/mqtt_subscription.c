@@ -123,10 +123,10 @@ void mqtt_publish_internal(
     FuriString* path = furi_string_alloc();
     mqtt_make_topic_path(instance, scope, MQTT_DIRECTION_UP, topic, path);
 
-    mg_mqtt_prop* raw_props = NULL;
+    struct mg_mqtt_prop* raw_props = NULL;
 
     if(props && props_count) {
-        raw_props = malloc(props_count * sizeof(mg_mqtt_prop));
+        raw_props = malloc(props_count * sizeof(struct mg_mqtt_prop));
         for(uint32_t i = 0; i < props_count; ++i) {
             mqtt_property_to_raw(&props[i], &raw_props[i]);
         }

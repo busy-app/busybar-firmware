@@ -28,16 +28,8 @@
 #define MQTT_DIRECTION_DOWN "down"
 
 // NOTE: MqttMessage is an opaque alias for mg_mqtt_message.
-#define TO_RAW_MESSAGE(msg)  ((mg_mqtt_message*)(msg))
+#define TO_RAW_MESSAGE(msg)  ((struct mg_mqtt_message*)(msg))
 #define TO_MQTT_MESSAGE(msg) ((MqttMessage*)(msg))
-
-// Shorter types
-typedef struct mg_mgr mg_mgr;
-typedef struct mg_connection mg_connection;
-typedef struct mg_timer mg_timer;
-typedef struct mg_str mg_str;
-typedef struct mg_mqtt_prop mg_mqtt_prop;
-typedef struct mg_mqtt_message mg_mqtt_message;
 
 typedef enum {
     MqttScopeDevice,
@@ -68,10 +60,10 @@ struct MqttSubscription {
 ILIST_DEF(MqttSubscriptionList, MqttSubscription, M_POD_OPLIST)
 
 struct Mqtt {
-    mg_mgr mgr;
-    mg_connection* conn;
-    mg_timer reconnect_timer;
-    mg_timer ping_timer;
+    struct mg_mgr mgr;
+    struct mg_connection* conn;
+    struct mg_timer reconnect_timer;
+    struct mg_timer ping_timer;
 
     FuriPubSub* event_pubsub;
     FuriString* device_serial;
@@ -205,8 +197,12 @@ void mqtt_publish_internal(
     const MqttProperty* props,
     uint32_t props_count);
 
-void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw_property);
+void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw_property);
 
-bool mqtt_tls_init(mg_connection* conn, mg_str name, mg_str ca, bool custom_certs);
+bool mqtt_tls_init(
+    struct mg_connection* conn,
+    struct mg_str name,
+    struct mg_str ca,
+    bool custom_certs);
 
-void mqtt_tls_free_ca(mg_connection* conn);
+void mqtt_tls_free_ca(struct mg_connection* conn);

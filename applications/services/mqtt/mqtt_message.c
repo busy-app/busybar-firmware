@@ -2,7 +2,7 @@
 
 static const MqttPropertyDesc mqtt_property_desc_table[MqttPropertyTypeMax];
 
-void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw_property) {
+void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw_property) {
     const MqttPropertyDesc* desc = &mqtt_property_desc_table[property->type];
 
     raw_property->id = desc->raw_id;
@@ -28,15 +28,15 @@ const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size)
 }
 
 static bool mqtt_message_get_raw_property(
-    const mg_mqtt_message* raw_message,
+    const struct mg_mqtt_message* raw_message,
     uint8_t raw_id,
-    mg_mqtt_prop* out_prop) {
+    struct mg_mqtt_prop* out_prop) {
     bool is_found = false;
 
     for(size_t prop_offs = 0;;) {
         struct mg_mqtt_prop prop = {};
         // NOTE: mg_mqtt_next_prop() does NOT mutate data pointed to by *msg
-        prop_offs = mg_mqtt_next_prop((mg_mqtt_message*)raw_message, &prop, prop_offs);
+        prop_offs = mg_mqtt_next_prop((struct mg_mqtt_message*)raw_message, &prop, prop_offs);
 
         if(prop_offs <= 0) {
             break;
@@ -52,9 +52,9 @@ static bool mqtt_message_get_raw_property(
     return is_found;
 }
 
-static mg_str mqtt_message_trim_response_topic(mg_str response_topic) {
-    mg_str captures[3]; // NOTE: Should be number of captures + 1
-    const mg_str pattern =
+static struct mg_str mqtt_message_trim_response_topic(struct mg_str response_topic) {
+    struct mg_str captures[3]; // NOTE: Should be number of captures + 1
+    const struct mg_str pattern =
         mg_str(MQTT_SESSION_ROOT_TOPIC "/*/" MQTT_DIRECTION_UP "/" MQTT_API_VERSION "/#");
 
     if(mg_match(response_topic, pattern, captures)) {
@@ -79,13 +79,13 @@ bool mqtt_message_get_string_property(
     furi_check(desc->value_type == MqttPropertyValueTypeString);
 
     do {
-        mg_mqtt_prop string_prop;
+        struct mg_mqtt_prop string_prop;
 
         if(!mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &string_prop)) {
             break;
         }
 
-        mg_str raw_val = string_prop.val;
+        struct mg_str raw_val = string_prop.val;
 
         if(raw_val.len == 0) {
             break;
@@ -114,7 +114,7 @@ bool mqtt_message_get_number_property(
     const MqttPropertyDesc* desc = &mqtt_property_desc_table[property_type];
     furi_check(desc->value_type == MqttPropertyValueTypeNumber);
 
-    mg_mqtt_prop number_prop;
+    struct mg_mqtt_prop number_prop;
 
     const bool success =
         mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &number_prop);
