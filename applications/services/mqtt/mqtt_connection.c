@@ -3,6 +3,7 @@
 #include <storage/storage.h>
 #include <busy_timer/time_macros.h>
 
+#define MQTT_VERSION     (5)
 #define MQTT_PING_PERIOD M_TO_MS(10)
 
 #define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/ca/cacert.pem")
@@ -17,6 +18,27 @@ static void mqtt_ping_timer_callback(void* data) {
     }
 }
 
+static void mqtt_start_ping_timer(Mqtt* instance) {
+    if(!instance->is_ping_enabled) {
+        mg_timer_init(
+            &instance->mgr.timers,
+            &instance->ping_timer,
+            MQTT_PING_PERIOD,
+            MG_TIMER_REPEAT,
+            mqtt_ping_timer_callback,
+            instance);
+
+        instance->is_ping_enabled = true;
+    }
+}
+
+static void mqtt_stop_ping_timer(Mqtt* instance) {
+    if(instance->is_ping_enabled) {
+        mg_timer_free(&instance->mgr.timers, &instance->ping_timer);
+        instance->is_ping_enabled = false;
+    }
+}
+
 static void mqtt_reconnect_callback(void* data) {
     furi_assert(data);
     Mqtt* instance = data;
@@ -24,9 +46,28 @@ static void mqtt_reconnect_callback(void* data) {
     mqtt_connection_open(instance);
 }
 
-static bool mqtt_load_ca_bundle(Mqtt* mqtt) {
-    furi_assert(mqtt->ca_bundle == NULL);
+static void mqtt_start_reconnect_timer(Mqtt* instance) {
+    mg_timer_init(
+        &instance->mgr.timers,
+        &instance->reconnect_timer,
+        instance->reconnect_delay_ms,
+        MG_TIMER_ONCE,
+        mqtt_reconnect_callback,
+        instance);
+
+    instance->reconnect_delay_ms =
+        MIN(instance->reconnect_delay_ms * 2UL, MQTT_RECONNECT_DELAY_MAX);
+}
+
+static void mqtt_stop_reconnect_timer(Mqtt* instance) {
+    mg_timer_free(&instance->mgr.timers, &instance->reconnect_timer);
+}
+
+static bool mqtt_load_ca_bundle(Mqtt* instance) {
+    furi_assert(instance->ca_bundle == NULL);
+
     bool success = false;
+
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);
 
@@ -35,13 +76,14 @@ static bool mqtt_load_ca_bundle(Mqtt* mqtt) {
             FURI_LOG_E(TAG, "CA bundle file error: %s", storage_file_get_error_desc(file));
             break;
         }
-        uint64_t file_size = storage_file_size(file);
-        mqtt->ca_bundle = malloc(file_size);
-        if(storage_file_read(file, mqtt->ca_bundle, file_size) != file_size) {
+
+        const uint64_t file_size = storage_file_size(file);
+        instance->ca_bundle = malloc(file_size);
+
+        if(storage_file_read(file, instance->ca_bundle, file_size) != file_size) {
             FURI_LOG_E(TAG, "CA bundle file read error");
             break;
         }
-        storage_file_close(file);
 
         success = true;
     } while(0);
@@ -58,7 +100,7 @@ static void mqtt_connect_mg_event_handler(
     UNUSED(event_data);
 
     if(!mqtt_load_ca_bundle(instance)) {
-        connection->is_draining = 1;
+        mqtt_connection_close(instance, false);
         instance->status = MqttStatusError;
         return;
     }
@@ -68,7 +110,7 @@ static void mqtt_connect_mg_event_handler(
         const bool has_custom_certs = (instance->settings.profile_id == MqttProfileIdCustom);
 
         if(!mqtt_tls_init(connection, name, mg_str(instance->ca_bundle), has_custom_certs)) {
-            connection->is_draining = 1;
+            mqtt_connection_close(instance, false);
             instance->status = MqttStatusError;
         }
     }
@@ -129,17 +171,7 @@ static void mqtt_open_mg_event_handler(
 
         furi_string_free(topic_path);
 
-        // TODO: Refactor ping logic
-        if(!instance->ping_enabled) {
-            mg_timer_init(
-                &instance->mgr.timers,
-                &instance->ping_timer,
-                MQTT_PING_PERIOD,
-                MG_TIMER_REPEAT,
-                mqtt_ping_timer_callback,
-                instance);
-            instance->ping_enabled = true;
-        }
+        mqtt_start_ping_timer(instance);
 
     } else {
         FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", status_code);
@@ -156,10 +188,7 @@ static void mqtt_close_mg_event_handler(
     FURI_LOG_W(TAG, "MQTT Connection closed");
     mqtt_set_status(instance, MqttStatusNotConnected);
 
-    if(instance->ping_enabled) {
-        mg_timer_free(&instance->mgr.timers, &instance->ping_timer);
-        instance->ping_enabled = false;
-    }
+    mqtt_stop_ping_timer(instance);
 
     instance->conn = NULL;
 
@@ -169,23 +198,10 @@ static void mqtt_close_mg_event_handler(
     }
 
     if(instance->is_wifi_up) {
-        if(instance->fast_reconnect) {
-            instance->fast_reconnect = false;
+        if(instance->should_reconnect_now) {
             mqtt_connection_open(instance);
-
         } else {
-            mg_timer_init(
-                &instance->mgr.timers,
-                &instance->reconnect_delay_timer,
-                instance->reconnect_delay,
-                MG_TIMER_ONCE,
-                mqtt_reconnect_callback,
-                instance);
-            instance->reconnect_delay *= 2;
-
-            if(instance->reconnect_delay > MQTT_RECONNECT_DELAY_MAX) {
-                instance->reconnect_delay = MQTT_RECONNECT_DELAY_MAX;
-            }
+            mqtt_start_reconnect_timer(instance);
         }
     }
 }
@@ -209,11 +225,11 @@ static void mqtt_mqtt_cmd_mg_event_handler(
                 mqtt_set_status(instance, MqttStatusConnectedNotLinked);
             }
 
-            instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
+            instance->reconnect_delay_ms = MQTT_RECONNECT_DELAY_MIN;
 
         } else {
             FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
-            connection->is_draining = 1;
+            mqtt_connection_close(instance, false);
         }
 
     } else if(cmd == MQTT_CMD_PINGRESP) {
@@ -287,7 +303,9 @@ static void mqtt_connection_mg_event_callback(
 // Internal API
 
 void mqtt_connection_open(Mqtt* instance) {
-    mg_timer_free(&instance->mgr.timers, &instance->reconnect_delay_timer);
+    mqtt_stop_reconnect_timer(instance);
+
+    instance->should_reconnect_now = false;
 
     FuriString* username = furi_string_alloc_printf(
         "BusyBar device %s", furi_string_get_cstr(instance->device_serial));
@@ -300,7 +318,7 @@ void mqtt_connection_open(Mqtt* instance) {
         .pass = mg_str(furi_string_get_cstr(saved_state->token)),
         .clean = true,
         .keepalive = 0,
-        .version = 5,
+        .version = MQTT_VERSION,
     };
 
     const char* server_url = mqtt_get_server_url(instance);
@@ -315,4 +333,11 @@ void mqtt_connection_open(Mqtt* instance) {
     }
 
     furi_string_free(username);
+}
+
+void mqtt_connection_close(Mqtt* instance, bool reconnect_now) {
+    furi_assert(instance->conn);
+
+    instance->conn->is_draining = true;
+    instance->should_reconnect_now = reconnect_now;
 }

@@ -16,20 +16,22 @@
 
 #define TAG "Mqtt"
 
-#define MQTT_RECONNECT_DELAY_MIN (2000)
-#define MQTT_RECONNECT_DELAY_MAX (60000)
-#define MQTT_POLL_PERIOD         (1000)
-#define MQTT_QOS                 (2)
+#define MQTT_RECONNECT_DELAY_MIN (2000UL)
+#define MQTT_RECONNECT_DELAY_MAX (60000UL)
+#define MQTT_POLL_PERIOD_MS      (1000UL)
 #define MQTT_API_VERSION         "v1"
 
 #define MQTT_DEVICE_ROOT_TOPIC  "devices"
 #define MQTT_SESSION_ROOT_TOPIC "sessions"
 
 // NOTE: MqttMessage is an opaque alias for mg_mqtt_message.
-#define TO_RAW_MESSAGE(msg)  ((const struct mg_mqtt_message*)(msg))
-#define TO_MQTT_MESSAGE(msg) ((const MqttMessage*)(msg))
+#define TO_RAW_MESSAGE(msg)  ((mg_mqtt_message*)(msg))
+#define TO_MQTT_MESSAGE(msg) ((MqttMessage*)(msg))
 
 // Shorter types
+typedef struct mg_mgr mg_mgr;
+typedef struct mg_connection mg_connection;
+typedef struct mg_timer mg_timer;
 typedef struct mg_str mg_str;
 typedef struct mg_mqtt_prop mg_mqtt_prop;
 typedef struct mg_mqtt_message mg_mqtt_message;
@@ -52,30 +54,28 @@ struct MqttSubscription {
 ILIST_DEF(MqttSubscriptionList, MqttSubscription, M_POD_OPLIST)
 
 struct Mqtt {
+    mg_mgr mgr;
+    mg_connection* conn;
+    mg_timer reconnect_timer;
+    mg_timer ping_timer;
+
     FuriPubSub* event_pubsub;
-    struct mg_mgr mgr;
-    struct mg_connection* conn;
-
-    struct mg_timer reconnect_delay_timer;
-    uint32_t reconnect_delay;
-
-    unsigned long api_connection_id;
-
-    struct mg_timer ping_timer;
-    bool ping_enabled;
-
-    MqttStatus status;
-    bool is_wifi_up;
-    bool fast_reconnect;
+    FuriString* device_serial;
 
     char* ca_bundle;
 
-    FuriString* device_serial;
-
     MqttSubscriptionList_t subscriptions;
+
+    unsigned long api_connection_id;
+    uint32_t reconnect_delay_ms;
 
     MqttSettings settings;
     MqttSavedState saved_state;
+    MqttStatus status;
+
+    bool is_wifi_up;
+    bool is_ping_enabled;
+    bool should_reconnect_now;
 };
 
 typedef enum {
@@ -165,6 +165,8 @@ void mqtt_account_init(Mqtt* instance);
 
 void mqtt_connection_open(Mqtt* instance);
 
+void mqtt_connection_close(Mqtt* instance, bool reconnect_now);
+
 void mqtt_reset_saved_state(Mqtt* instance);
 
 const char* mqtt_get_server_url(const Mqtt* instance);
@@ -200,10 +202,6 @@ void mqtt_publish_internal(
     const MqttProperty* props,
     uint32_t props_count);
 
-bool mqtt_tls_init(
-    struct mg_connection* conn,
-    struct mg_str name,
-    struct mg_str ca,
-    bool custom_certs);
+bool mqtt_tls_init(mg_connection* conn, mg_str name, mg_str ca, bool custom_certs);
 
-void mqtt_tls_free_ca(struct mg_connection* conn);
+void mqtt_tls_free_ca(mg_connection* conn);

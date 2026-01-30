@@ -273,8 +273,8 @@ void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription) {
 
     MqttSubscriptionList_unlink(subscription);
     mqtt_subscription_free(subscription);
-
-    // TODO: reconnect
+    // NOTE: Used Mongoose version does not support unsubscription
+    mqtt_connection_close(instance, true);
 }
 
 static void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw_property) {
@@ -378,9 +378,10 @@ static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax] = {
 static Mqtt* mqtt_alloc(void) {
     Mqtt* instance = malloc(sizeof(Mqtt));
 
-    instance->status = MqttStatusNotConnected;
-    instance->device_serial = furi_string_alloc();
     instance->event_pubsub = furi_pubsub_alloc();
+    instance->device_serial = furi_string_alloc();
+    instance->reconnect_delay_ms = MQTT_RECONNECT_DELAY_MIN;
+    instance->status = MqttStatusNotConnected;
 
     MqttSubscriptionList_init(instance->subscriptions);
 
@@ -398,8 +399,6 @@ static Mqtt* mqtt_alloc(void) {
     mqtt_api_init(instance);
     mqtt_account_init(instance);
 
-    instance->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
-
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, instance);
 
@@ -414,7 +413,7 @@ int32_t mqtt_srv(void* arg) {
     Mqtt* instance = mqtt_alloc();
 
     while(1) {
-        mg_mgr_poll(&instance->mgr, MQTT_POLL_PERIOD);
+        mg_mgr_poll(&instance->mgr, MQTT_POLL_PERIOD_MS);
     }
 
     return 0;

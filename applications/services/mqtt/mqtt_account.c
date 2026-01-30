@@ -56,9 +56,7 @@ static void mqtt_account_link_token_message_callback(const MqttMessage* message,
 
         furi_pubsub_publish(instance->event_pubsub, &pub_event);
 
-        // Close MQTT connection to reconnect with new token
-        instance->conn->is_draining = 1;
-        instance->fast_reconnect = true;
+        mqtt_connection_close(instance, true);
     }
 
     if(session_id) free(session_id);

@@ -231,7 +231,7 @@ static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessage
 
     if(instance->conn) {
         instance->conn->is_draining = 1;
-        instance->fast_reconnect = true;
+        instance->should_reconnect_now = true;
     }
 
     mqtt_reset_saved_state(instance);
