@@ -3,6 +3,7 @@
 
 #include "matter.h"
 #include "matter_common_i.h"
+#include "matter_cd.h"
 
 #define TAG            "MatterSrv"
 #define FRAME_Q_SIZE   4
@@ -16,6 +17,7 @@ struct MatterSrv {
     FuriMessageQueue* request_queue;
     FuriPubSub* pubsub;
     IntercomChannel* intercom_ch;
+    MatterCd cd;
     bool switch_state;
     uint8_t commissioned_fabrics;
     bool first_frame_sent;
@@ -31,6 +33,8 @@ static bool matter_pick_frame_of_type(
     void* specific_frame,
     size_t specific_frame_size,
     FuriWait timeout) {
+    furi_assert(matter);
+
     size_t get_result_by = furi_get_tick() + timeout;
     while(furi_get_tick() < get_result_by) {
         FuriWait max_wait = get_result_by - furi_get_tick();
@@ -44,7 +48,8 @@ static bool matter_pick_frame_of_type(
         }
 
         if(frame.type == type) {
-            memcpy(specific_frame, &frame.frame_of_any_type, specific_frame_size);
+            if(specific_frame)
+                memcpy(specific_frame, &frame.frame_of_any_type, specific_frame_size);
             return true;
         }
 
@@ -307,9 +312,46 @@ bool matter_is_commissioned(MatterSrv* matter) {
     return request.fabric_count > 0;
 }
 
+const char* matter_get_wanted_cd_selection(MatterSrv* matter) {
+    furi_assert(matter);
+    return matter_cd_get_wanted_selection(&matter->cd);
+}
+
+bool matter_set_wanted_cd_selection(MatterSrv* matter, const char* selection) {
+    furi_assert(matter);
+    furi_assert(selection);
+    return matter_cd_set_wanted_selection(&matter->cd, selection);
+}
+
+const char* matter_get_de_facto_cd_selection(MatterSrv* matter) {
+    furi_assert(matter);
+    return matter_cd_get_de_facto_selection(&matter->cd);
+}
+
 // =============
 // Service setup
 // =============
+
+static bool matter_send_cd_and_await_ready(MatterSrv* matter) {
+    furi_assert(matter);
+
+    MatterIntercomFrame cd_frame = {
+        .type = MatterIntercomFrameTypeCdCertificate,
+        .cd_certificate = {
+            .contents_length = 0,
+        }};
+
+    matter_cd_init(&matter->cd);
+
+    matter_cd_prepare_initialization_frame(&matter->cd, &cd_frame);
+    if(!matter_send_frame(matter, &cd_frame)) return false;
+
+    if(!matter_pick_frame_of_type(
+           matter, MatterIntercomFrameTypeBackendReady, NULL, 0, FIRST_TIMEOUT))
+        return false;
+
+    return true;
+}
 
 MatterSrv* matter_srv_alloc(void) {
     MatterSrv* matter = malloc(sizeof(MatterSrv));
@@ -333,6 +375,8 @@ MatterSrv* matter_srv_alloc(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     matter->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdMatter, matter_forward_frame_to_thread, matter);
+
+    if(!matter_send_cd_and_await_ready(matter)) FURI_LOG_E(TAG, "initialization timed out");
 
     furi_record_create(RECORD_MATTER, matter);
     return matter;

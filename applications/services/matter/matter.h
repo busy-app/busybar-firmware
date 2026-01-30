@@ -118,6 +118,36 @@ size_t
  */
 bool matter_is_commissioned(MatterSrv* matter);
 
+/**
+ * @brief Gets the currently selected Certification Declaration
+ * 
+ * @param[in] matter Service instance
+ * 
+ * @returns Name of the Certification Declaration variant currently marked as "wanted"
+ */
+const char* matter_get_wanted_cd_selection(MatterSrv* matter);
+
+/**
+ * @brief Sets the currently selected Certification Declaration
+ * 
+ * @param[in] matter Service instance
+ * @param[in] selection Wanted selection
+ * 
+ * @warning Changes will only apply after a reboot
+ * 
+ * @returns true on success
+ */
+bool matter_set_wanted_cd_selection(MatterSrv* matter, const char* selection);
+
+/**
+ * @brief Gets the currently de-facto active Certification Declaration
+ * 
+ * @param[in] matter Service instance
+ * 
+ * @returns name of the Certification Declaration variant that Matter is currently using
+ */
+const char* matter_get_de_facto_cd_selection(MatterSrv* matter);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,0 +1,134 @@
+[tool.poetry]
+name = "busybar-tests"
+version = "1.0.0"
+description = "Enterprise test automation framework for BUSY Bar device"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "*", from = "."}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pytest = "^8.3.3"
+pytest-playwright = "^0.5.2"
+playwright = "^1.48.0"
+allure-pytest = "^2.13.5"  # Allure 3 uses same Python adapters
+allure-python-commons = "^2.13.5"
+pytest-xdist = "^3.6.1"
+pytest-rerunfailures = "^14.0"
+pytest-timeout = "^2.3.1"
+pytest-html = "^4.1.1"
+pytest-metadata = "^3.1.1"
+python-dotenv = "^1.0.1"
+pydantic = "^2.9.2"
+pydantic-settings = "^2.6.0"
+faker = "^30.3.0"
+requests = "^2.32.3"
+Pillow = "^10.4.0"
+opencv-python = "^4.10.0.84"
+colorlog = "^6.8.2"
+rich = "^13.8.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+pylint = "^3.3.1"
+mypy = "^1.11.2"
+pre-commit = "^3.8.0"
+ipython = "^8.18.1"
+pytest-mock = "^3.14.0"
+pytest-cov = "^5.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "smoke: Quick smoke tests for CI/CD",
+    "regression: Full regression test suite",
+    "critical: Critical functionality tests",
+    "wifi: WiFi configuration tests",
+    "bluetooth: Bluetooth functionality tests",
+    "firmware: Firmware update tests",
+    "slow: Tests that take more than 30 seconds",
+    "flaky: Tests that might be flaky and need retry",
+]
+addopts = """
+    --verbose
+    --strict-markers
+    --tb=short
+    --capture=no
+    --alluredir=./reports/allure-results
+    --clean-alluredir
+    --color=yes
+    --maxfail=5
+    --reruns=2
+    --reruns-delay=5
+"""
+timeout = 300
+timeout_method = "thread"
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.pytest_cache
+  | \.venv
+  | venv
+  | build
+  | dist
+  | allure-results
+  | allure-report
+)/
+'''
+
+[tool.pylint]
+max-line-length = 100
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+    "R0903",  # too-few-public-methods
+    "R0913",  # too-many-arguments
+    "W0212",  # protected-access
+]
+ignore = ["migrations", "venv", ".venv"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+exclude = [
+    "venv/",
+    ".venv/",
+    "build/",
+    "dist/",
+]
+
+[tool.coverage.run]
+source = ["pages", "tests", "utils", "fixtures"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+

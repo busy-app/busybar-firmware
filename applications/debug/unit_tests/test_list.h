@@ -21,6 +21,7 @@ extern "C" {
 #include "device_name_test/device_name_test.h"
 #include "storage_test/storage_test.h"
 #include "rtc_test/rtc_test.h"
+#include "datetime_test/datetime_test.h"
 #undef TEST_FUNCTION_DECLS
 
 typedef int (*TestCallback)(void);
@@ -36,6 +37,7 @@ static TestCallback unit_test_callbacks[] = {
 #include "device_name_test/device_name_test.h"
 #include "storage_test/storage_test.h"
 #include "rtc_test/rtc_test.h"
+#include "datetime_test/datetime_test.h"
 #undef TEST_FUNCTION_REFS
 };
 
