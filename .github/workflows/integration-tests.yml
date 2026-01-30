@@ -70,8 +70,8 @@ jobs:
             UPDATE_PATH="${{ github.event.inputs.update_url }}"
             echo "Using explicit path: $UPDATE_PATH"
           else
-            # Auto-detect latest build from branch
-            BRANCH="${{ github.event.inputs.firmware_branch || 'dev' }}"
+            # Auto-detect latest build from branch/tag
+            BRANCH="${{ github.event.inputs.firmware_branch || github.ref_name }}"
             echo "Resolving latest build for branch: $BRANCH"
 
             # Fetch directory listing and find latest update file
@@ -189,13 +189,29 @@ jobs:
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
             --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
 
-      - name: 'Upload runner logs'
+      - name: 'Configure AWS CLI'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: runner-logs-unit-tests
-          path: ${RUNNER_LOG_DIR}/latest/runlog.log
-          if-no-files-found: warn
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: 'Upload runner logs to S3'
+        if: always()
+        run: |
+          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          LOG_FILE="$RUNNER_LOG_DIR/latest/runlog.log"
+          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/integration-tests/$RUN_ID/runlog.log"
+          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/integration-tests/$RUN_ID/runlog.log"
+
+          if [ -f "$LOG_FILE" ]; then
+            aws s3 cp "$LOG_FILE" "$S3_PATH"
+            echo "## 📋 Runner Logs" >> $GITHUB_STEP_SUMMARY
+            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Log file not found: $LOG_FILE"
+          fi
 
       - name: Create Job Summary
         if: always()
