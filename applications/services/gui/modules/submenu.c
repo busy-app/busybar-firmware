@@ -186,7 +186,6 @@ void submenu_reset(Submenu* instance) {
 uint32_t submenu_get_selected_item_index(const Submenu* instance) {
     furi_check(instance);
 
-    // TODO DOESN'T WORK!!!
     const SubmenuItem* item = (SubmenuItem*)lv_group_get_focused(instance->group);
     if(item) {
         return item->index;
