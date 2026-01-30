@@ -109,7 +109,6 @@
         "cjson",
         "thorvg",
         "lvgl",
-        "lvgl_addons",
         "network",
         "mongoose",
         "zlib",
@@ -128,6 +127,7 @@
         "internal_assets",
         "ext_applications",
         "firmware_applications_u5",
+        "lvgl_addons",
         "cli",
         "containers",
         "utz"
