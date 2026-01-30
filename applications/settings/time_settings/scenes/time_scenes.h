@@ -5,7 +5,7 @@
 typedef enum {
     SceneIdMenu,
     SceneIdTimezone,
-    // SceneIdFormat,
+    SceneIdFormat,
     SceneIdsCount,
 } SceneId;
 

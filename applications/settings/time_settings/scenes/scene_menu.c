@@ -90,12 +90,11 @@ static bool scene_menu_on_event(const SceneManagerEvent* event, void* context) {
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case SceneEventTimezoneSelected:
-            FURI_LOG_D(TAG, "timezone selected");
             scene_manager_next_scene(instance->scene_manager, SceneIdTimezone);
             consumed = true;
             break;
         case SceneEventFormatSelected:
-            FURI_LOG_D(TAG, "format selected");
+            scene_manager_next_scene(instance->scene_manager, SceneIdFormat);
             consumed = true;
             break;
         default:
