@@ -4,6 +4,7 @@
 #include <furi_hal_rtc.h>
 #include <datetime.h>
 #include <furi.h>
+#include <tzutil.h>
 
 #define TAG "HttpTime"
 
@@ -146,54 +147,7 @@ static bool api_time_get_timezone_callback(
     return true;
 }
 
-typedef struct {
-    const char* name;
-    const char* abbr_formatter;
-    const char* abbr_param;
-    utz_offset_t offset;
-} ZoneInfo;
-
-static int compare_zone_info(const void* p1, const void* p2) {
-    const ZoneInfo* z1 = p1;
-    const ZoneInfo* z2 = p2;
-
-    int r = utz_offset_cmp(&z1->offset, &z2->offset);
-    if(r != 0) {
-        return r;
-    }
-    return strcmp(z1->name, z2->name);
-}
-
-static ZoneInfo* compile_zone_list(void) {
-    ZoneInfo* zone_infos = calloc(utz_num_zone_names, sizeof(ZoneInfo));
-    DateTimeMs dt = furi_hal_rtc_get_datetime();
-    size_t i = 0;
-    for(const char* name = utz_zone_names; name && i != utz_num_zone_names;
-        name = utz_next_zone_name(name), ++i) {
-        utz_zone_t zone;
-        bool ok = utz_get_zone_by_name(name, &zone);
-        if(!ok) {
-            // should never happen
-            FURI_LOG_E(TAG, "Cannot get zone %s", name);
-            break;
-        } else {
-            ZoneInfo* info = zone_infos + i;
-            info->abbr_param = utz_get_current_offset(&zone, &dt.dt, &info->offset);
-            info->name = zone.name;
-            info->abbr_formatter = zone.abrev_formatter;
-        }
-    }
-    if(i != utz_num_zone_names) {
-        FURI_LOG_E(TAG, "Failed to fetch zones");
-        free(zone_infos);
-        return NULL;
-    } else {
-        qsort(zone_infos, utz_num_zone_names, sizeof(ZoneInfo), compare_zone_info);
-        return zone_infos;
-    }
-}
-
-static FuriString* format_zone_info_json(const ZoneInfo* info) {
+static FuriString* format_zone_info_json(const TzutilTzInfo* info) {
     FuriString* abbr = furi_string_alloc_printf(info->abbr_formatter, info->abbr_param);
 
     char offset_buf[DATETIME_OFFSET_STR_LEN + 1];
@@ -209,14 +163,12 @@ static FuriString* format_zone_info_json(const ZoneInfo* info) {
     return result;
 }
 
-static FuriString* generate_zone_list_json(const ZoneInfo* infos) {
-    if(!infos) {
-        return NULL;
-    }
+static FuriString* generate_zone_list_json(const TzutilTzInfoList* infos) {
+    furi_check(infos);
 
     FuriString* r = furi_string_alloc_set("[");
-    for(size_t i = 0; i != utz_num_zone_names; ++i) {
-        FuriString* obj = format_zone_info_json(infos + i);
+    for(size_t i = 0; i != infos->count; ++i) {
+        FuriString* obj = format_zone_info_json(infos->entries + i);
 
         if(i != 0) {
             furi_string_cat(r, ",");
@@ -239,9 +191,11 @@ static bool api_time_get_timezone_list_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    ZoneInfo* infos = compile_zone_list();
+    DateTime now = furi_hal_rtc_get_datetime().dt;
 
-    FuriString* result = generate_zone_list_json(infos);
+    TzutilTzInfoList infos = tzutil_compile_zone_list(&now);
+
+    FuriString* result = generate_zone_list_json(&infos);
 
     if(result) {
         MG_REPLY_OK_BODY(conn, "%s", furi_string_get_cstr(result));
@@ -250,7 +204,7 @@ static bool api_time_get_timezone_list_callback(
         MG_REPLY_BAD_REQUEST(conn);
     }
 
-    free(infos);
+    tzutil_info_list_free(&infos);
 
     return true;
 }
