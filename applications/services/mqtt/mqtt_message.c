@@ -120,4 +120,5 @@ static const MqttPropertyDesc mqtt_property_desc_table[MqttPropertyTypeMax] = {
             .raw_id = MQTT_PROP_CORRELATION_DATA,
             .value_type = MqttPropertyValueTypeString,
         },
+    // Add more property types as needed
 };

@@ -8,6 +8,13 @@
 
 #define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/ca/cacert.pem")
 
+typedef struct {
+    const char* url;
+    bool use_tls;
+} MqttProfile;
+
+static const MqttProfile mqtt_profile_table[MqttProfileIdMax];
+
 static void mqtt_ping_timer_callback(void* data) {
     furi_assert(data);
     Mqtt* mqtt = data;
@@ -61,6 +68,44 @@ static void mqtt_start_reconnect_timer(Mqtt* instance) {
 
 static void mqtt_stop_reconnect_timer(Mqtt* instance) {
     mg_timer_free(&instance->mgr.timers, &instance->reconnect_timer);
+}
+
+static void mqtt_set_status(Mqtt* instance, MqttStatus status) {
+    if(status != instance->status) {
+        instance->status = status;
+
+        MqttEvent event = {
+            .type = MqttEventTypeStatusChanged,
+            .status_changed =
+                {
+                    .status = status,
+                },
+        };
+
+        furi_pubsub_publish(instance->event_pubsub, &event);
+    }
+}
+
+static bool mqtt_is_tls_enabled(const Mqtt* instance) {
+    const MqttSettings* settings = &instance->settings;
+    const MqttProfileId profile_id = settings->profile_id;
+
+    if(profile_id != MqttProfileIdCustom) {
+        return mqtt_profile_table[profile_id].use_tls;
+    } else {
+        return furi_string_start_with(settings->custom_url, MQTT_URL_TLS_PREFIX);
+    }
+}
+
+static const char* mqtt_get_server_url(const Mqtt* instance) {
+    const MqttSettings* settings = &instance->settings;
+    const MqttProfileId profile_id = settings->profile_id;
+
+    if(profile_id != MqttProfileIdCustom) {
+        return mqtt_profile_table[profile_id].url;
+    } else {
+        return furi_string_get_cstr(settings->custom_url);
+    }
 }
 
 static bool mqtt_load_ca_bundle(Mqtt* instance) {
@@ -199,7 +244,7 @@ static void mqtt_mqtt_cmd_mg_event_handler(
         const size_t packet_len = message->dgram.len;
         const uint8_t sub_reason = message->dgram.buf[packet_len - 1];
 
-        FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
+        FURI_LOG_T(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
 
         if(sub_reason >= MqttQosMax) {
             FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
@@ -214,7 +259,7 @@ static void mqtt_mqtt_cmd_mg_event_handler(
         mg_mqtt_pong(connection);
 
     } else {
-        FURI_LOG_D(TAG, "MQTT CMD: %u", cmd);
+        FURI_LOG_T(TAG, "MQTT CMD: %u", cmd);
     }
 }
 
@@ -310,8 +355,31 @@ void mqtt_connection_open(Mqtt* instance) {
 }
 
 void mqtt_connection_close(Mqtt* instance, bool reconnect_now) {
-    furi_assert(instance->conn);
-
-    instance->conn->is_draining = true;
-    instance->should_reconnect_now = reconnect_now;
+    if(instance->conn) {
+        instance->conn->is_draining = true;
+        instance->should_reconnect_now = reconnect_now;
+    }
 }
+
+static const MqttProfile mqtt_profile_table[MqttProfileIdMax] = {
+    [MqttProfileIdDevelopment] =
+        {
+            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
+            .use_tls = true,
+        },
+    [MqttProfileIdProduction] =
+        {
+            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
+            .use_tls = true,
+        },
+    [MqttProfileIdLocal] =
+        {
+            .url = MQTT_URL_PREFIX "10.0.4.21:1883",
+            .use_tls = false,
+        },
+    [MqttProfileIdCustom] =
+        {
+            .url = NULL,
+            .use_tls = false,
+        },
+};

@@ -180,19 +180,6 @@ void mqtt_connection_close(Mqtt* instance, bool reconnect_now);
 
 void mqtt_reset_saved_state(Mqtt* instance);
 
-const char* mqtt_get_server_url(const Mqtt* instance);
-
-void mqtt_set_status(Mqtt* instance, MqttStatus status);
-
-bool mqtt_is_tls_enabled(const Mqtt* instance);
-
-void mqtt_make_topic_path(
-    Mqtt* instance,
-    MqttScope scope,
-    const char* dir,
-    const char* topic,
-    FuriString* out);
-
 MqttSubscription* mqtt_subscribe_internal(
     Mqtt* instance,
     MqttScope scope,

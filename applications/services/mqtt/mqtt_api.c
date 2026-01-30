@@ -229,11 +229,7 @@ static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessage
     furi_assert(instance);
     furi_assert(data);
 
-    if(instance->conn) {
-        instance->conn->is_draining = 1;
-        instance->should_reconnect_now = true;
-    }
-
+    mqtt_connection_close(instance, true);
     mqtt_reset_saved_state(instance);
 }
 
@@ -319,10 +315,7 @@ static void mqtt_set_profile_api_message_handler(Mqtt* instance, const MqttApiMe
     }
 
     mqtt_settings_save(settings);
-
-    if(instance->conn) {
-        instance->conn->is_draining = 1;
-    }
+    mqtt_connection_close(instance, true);
 }
 
 static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
