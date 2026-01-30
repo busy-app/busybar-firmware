@@ -23,11 +23,13 @@ static err_t wifi_link_output_callback(struct netif* netif, struct pbuf* p) {
     const size_t tx_size =
         intercom_tx(instance->intercom_ch_data, p->payload, p->len, INTERCOM_TX_TIMEOUT_MS);
 
+    const bool success = (tx_size == p->len);
+
 #if(ETH_PAD_SIZE != 0)
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
 
-    if(tx_size != p->len) {
+    if(!success) {
         FURI_LOG_W(TAG, "intercom_tx timeout or incomplete send");
         return ERR_IF;
     }
