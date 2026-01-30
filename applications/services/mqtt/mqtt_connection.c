@@ -101,7 +101,7 @@ static void mqtt_connect_mg_event_handler(
 
     if(!mqtt_load_ca_bundle(instance)) {
         mqtt_connection_close(instance, false);
-        instance->status = MqttStatusError;
+        mqtt_set_status(instance, MqttStatusError);
         return;
     }
 
@@ -111,7 +111,7 @@ static void mqtt_connect_mg_event_handler(
 
         if(!mqtt_tls_init(connection, name, mg_str(instance->ca_bundle), has_custom_certs)) {
             mqtt_connection_close(instance, false);
-            instance->status = MqttStatusError;
+            mqtt_set_status(instance, MqttStatusError);
         }
     }
 }
@@ -122,7 +122,7 @@ static void mqtt_tls_handshake_mg_event_handler(
     const void* event_data) {
     UNUSED(event_data);
 
-    FURI_LOG_D(TAG, "TLS handshake done!");
+    FURI_LOG_D(TAG, "TLS handshake done");
     // Free CA bundle data
     mqtt_tls_free_ca(connection);
     free(instance->ca_bundle);
@@ -140,36 +140,19 @@ static void mqtt_open_mg_event_handler(
     if(status_code == 0) {
         FURI_LOG_I(TAG, "MQTT Connected");
 
-        FuriString* topic_path = furi_string_alloc();
+        if(mqtt_saved_state_is_valid(&instance->saved_state)) {
+            mqtt_set_status(instance, MqttStatusConnectedLinked);
+        } else {
+            mqtt_set_status(instance, MqttStatusConnectedNotLinked);
+        }
+
+        instance->reconnect_delay_ms = MQTT_RECONNECT_DELAY_MIN;
 
         MqttSubscriptionList_it_ct it;
         for(MqttSubscriptionList_it(it, instance->subscriptions); !MqttSubscriptionList_end_p(it);
             MqttSubscriptionList_next(it)) {
-            const MqttSubscription* subscription = MqttSubscriptionList_cref(it);
-
-            if(!mqtt_saved_state_is_valid(&instance->saved_state) &&
-               subscription->scope == MqttScopeSession) {
-                continue;
-            }
-
-            mqtt_make_topic_path(
-                instance,
-                subscription->scope,
-                "down",
-                furi_string_get_cstr(subscription->topic),
-                topic_path);
-
-            FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic_path));
-
-            const struct mg_mqtt_opts sub_opts = {
-                .topic = mg_str(furi_string_get_cstr(topic_path)),
-                .qos = subscription->qos,
-            };
-
-            mg_mqtt_sub(instance->conn, &sub_opts);
+            mqtt_subscription_activate(instance, MqttSubscriptionList_cref(it));
         }
-
-        furi_string_free(topic_path);
 
         mqtt_start_ping_timer(instance);
 
@@ -218,16 +201,7 @@ static void mqtt_mqtt_cmd_mg_event_handler(
 
         FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
 
-        if(sub_reason < MqttQosMax) {
-            if(mqtt_saved_state_is_valid(&instance->saved_state)) {
-                mqtt_set_status(instance, MqttStatusConnectedLinked);
-            } else {
-                mqtt_set_status(instance, MqttStatusConnectedNotLinked);
-            }
-
-            instance->reconnect_delay_ms = MQTT_RECONNECT_DELAY_MIN;
-
-        } else {
+        if(sub_reason >= MqttQosMax) {
             FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
             mqtt_connection_close(instance, false);
         }
@@ -329,7 +303,7 @@ void mqtt_connection_open(Mqtt* instance) {
         &instance->mgr, server_url, &opts, mqtt_connection_mg_event_callback, instance);
 
     if(!instance->conn) {
-        instance->status = MqttStatusError;
+        mqtt_set_status(instance, MqttStatusError);
     }
 
     furi_string_free(username);

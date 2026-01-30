@@ -46,17 +46,19 @@ static void mqtt_wifi_event_callback(const void* state, void* context) {
 }
 
 void mqtt_set_status(Mqtt* instance, MqttStatus status) {
-    instance->status = status;
+    if(status != instance->status) {
+        instance->status = status;
 
-    MqttEvent event = {
-        .type = MqttEventTypeStatusChanged,
-        .status_changed =
-            {
-                .status = status,
-            },
-    };
+        MqttEvent event = {
+            .type = MqttEventTypeStatusChanged,
+            .status_changed =
+                {
+                    .status = status,
+                },
+        };
 
-    furi_pubsub_publish(instance->event_pubsub, &event);
+        furi_pubsub_publish(instance->event_pubsub, &event);
+    }
 }
 
 bool mqtt_is_tls_enabled(const Mqtt* instance) {
@@ -264,6 +266,7 @@ MqttSubscription* mqtt_subscribe_internal(
     subscription->callback_context = context;
 
     MqttSubscriptionList_push_back(instance->subscriptions, subscription);
+    mqtt_subscription_activate(instance, subscription);
 
     return subscription;
 }
@@ -275,6 +278,43 @@ void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription) {
     mqtt_subscription_free(subscription);
     // NOTE: Used Mongoose version does not support unsubscription
     mqtt_connection_close(instance, true);
+}
+
+void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscription) {
+    // Subscribe only to Session-scoped topics when linked
+    if(instance->status == MqttStatusConnectedLinked) {
+        if(subscription->scope != MqttScopeSession) {
+            return;
+        }
+        // Subscribe only to Device-scoped topics when not linked
+    } else if(instance->status == MqttStatusConnectedNotLinked) {
+        if(subscription->scope != MqttScopeDevice) {
+            return;
+        }
+        // Do nothing when not connected
+    } else {
+        return;
+    }
+
+    FuriString* topic_path = furi_string_alloc();
+
+    mqtt_make_topic_path(
+        instance,
+        subscription->scope,
+        "down",
+        furi_string_get_cstr(subscription->topic),
+        topic_path);
+
+    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic_path));
+
+    const struct mg_mqtt_opts sub_opts = {
+        .topic = mg_str(furi_string_get_cstr(topic_path)),
+        .qos = subscription->qos,
+    };
+
+    mg_mqtt_sub(instance->conn, &sub_opts);
+
+    furi_string_free(topic_path);
 }
 
 static void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw_property) {

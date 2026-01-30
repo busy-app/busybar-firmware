@@ -192,6 +192,8 @@ MqttSubscription* mqtt_subscribe_internal(
 
 void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription);
 
+void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscription);
+
 void mqtt_publish_internal(
     Mqtt* instance,
     MqttScope scope,
