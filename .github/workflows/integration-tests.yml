@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - ssecsd/integration-fix
     tags:
       - '*-rc*'
   workflow_run:
