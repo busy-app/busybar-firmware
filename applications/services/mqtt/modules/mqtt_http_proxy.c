@@ -10,8 +10,6 @@
 #define HTTP_URI_API_PREFIX  "/api/"
 #define HTTP_CONN_TIMEOUT_MS (5000)
 
-#define RESPONSE_TOPIC_PREFIX "http/"
-
 #define SUB_QOS (MqttQosExactlyOnce)
 #define PUB_QOS (MqttQosExactlyOnce)
 
@@ -64,12 +62,6 @@ static MqttHttpProxyRequest*
         message, MqttPropertyTypeResponseTopic, context->response_topic);
     mqtt_message_get_string_property(
         message, MqttPropertyTypeCorrelationData, context->correlation_data);
-
-    //TODO: Only send the relevant part via response topic prop?
-    const size_t idx = furi_string_search(context->response_topic, RESPONSE_TOPIC_PREFIX);
-    if(idx != FURI_STRING_FAILURE) {
-        furi_string_right(context->response_topic, idx);
-    }
 
     return context;
 }

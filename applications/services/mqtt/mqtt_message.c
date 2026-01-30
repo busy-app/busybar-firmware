@@ -52,6 +52,18 @@ static bool mqtt_message_get_raw_property(
     return is_found;
 }
 
+static mg_str mqtt_message_trim_response_topic(mg_str response_topic) {
+    mg_str captures[3]; // NOTE: Should be number of captures + 1
+    const mg_str pattern = mg_str(MQTT_SESSION_ROOT_TOPIC "/*/up/" MQTT_API_VERSION "/#");
+
+    if(mg_match(response_topic, pattern, captures)) {
+        return captures[1];
+    } else {
+        FURI_LOG_W(TAG, "Response topic not on session");
+        return response_topic;
+    }
+}
+
 bool mqtt_message_get_string_property(
     const MqttMessage* message,
     MqttPropertyType property_type,
@@ -72,10 +84,14 @@ bool mqtt_message_get_string_property(
             break;
         }
 
-        const mg_str raw_val = string_prop.val;
+        mg_str raw_val = string_prop.val;
 
         if(raw_val.len == 0) {
             break;
+        }
+        // Special case
+        if(property_type == MqttPropertyTypeResponseTopic) {
+            raw_val = mqtt_message_trim_response_topic(raw_val);
         }
 
         furi_string_printf(value, "%.*s", raw_val.len, raw_val.buf);
