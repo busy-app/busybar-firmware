@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives import serialization
 
 from ecdsa.curves import NIST256p
 
+from flipper.cli import Cli
 from flipper.app import App, CatchExceptions
 from crypto_storage import CryptoStorage
 
@@ -170,7 +171,7 @@ class Main(App):
         self.info_parser.add_argument(
             "--serial-number",
             type=str,
-            default="1234567890",
+            default=None,
             help="Device serial number",
         )
         self.info_parser.add_argument(
@@ -277,6 +278,7 @@ class Main(App):
 
     @CatchExceptions
     def provision_info(self):
+        serial = self.args.serial_number or self.get_device_uid()
         data = {
             DeviceInfoKeyID.VENDOR_ID: struct.pack("<H", self.args.vid),
             DeviceInfoKeyID.PRODUCT_ID: struct.pack("<H", self.args.pid),
@@ -285,7 +287,7 @@ class Main(App):
             DeviceInfoKeyID.PART_NUMBER: to_terminated(self.args.part_number),
             DeviceInfoKeyID.PRODUCT_URL: to_terminated(self.args.product_url),
             DeviceInfoKeyID.PRODUCT_LABEL: to_terminated(self.args.product_label),
-            DeviceInfoKeyID.SERIAL_NUMBER: to_terminated(self.args.serial_number),
+            DeviceInfoKeyID.SERIAL_NUMBER: to_terminated(serial),
             DeviceInfoKeyID.MANUFACTURING_DATE: pack_current_date(),
             DeviceInfoKeyID.HARDWARE_VERSION: struct.pack(
                 "<H", self.args.hardware_version
@@ -295,6 +297,15 @@ class Main(App):
             ),
         }
         self.write_data(KeyType.DEVICE_INFO, data)
+
+    def get_device_uid(self):
+        with Cli(self.get_portname()) as cli:
+            cli.send("device_info\r")
+            cli.read.until("u5_hardware_uid")
+            cli.read.until(": ")
+            uid_str = cli.read.until(cli.CLI_EOL)
+            cli.read.until(cli.CLI_PROMPT)
+        return uid_str.decode("utf-8")
 
     def get_portname(self):
         return ("10.0.4.20", 23)
