@@ -42,6 +42,17 @@ typedef enum {
     MqttScopeMax,
 } MqttScope;
 
+typedef enum {
+    MqttPropertyValueTypeNumber,
+    MqttPropertyValueTypeString,
+    MqttPropertyValueTypeMax,
+} MqttPropertyValueType;
+
+typedef struct {
+    uint8_t raw_id;
+    MqttPropertyValueType value_type;
+} MqttPropertyDesc;
+
 struct MqttSubscription {
     FuriString* topic;
     MqttScope scope;
@@ -203,6 +214,8 @@ void mqtt_publish_internal(
     size_t data_size,
     const MqttProperty* props,
     uint32_t props_count);
+
+void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw_property);
 
 bool mqtt_tls_init(mg_connection* conn, mg_str name, mg_str ca, bool custom_certs);
 

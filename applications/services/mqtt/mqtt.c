@@ -13,20 +13,28 @@ typedef struct {
     bool use_tls;
 } MqttProfile;
 
-static const MqttProfile mqtt_profiles[MqttProfileIdMax];
-
-typedef enum {
-    MqttPropertyValueTypeNumber,
-    MqttPropertyValueTypeString,
-    MqttPropertyValueTypeMax,
-} MqttPropertyValueType;
-
-typedef struct {
-    uint8_t raw_id;
-    MqttPropertyValueType value_type;
-} MqttPropertyDesc;
-
-static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax];
+static const MqttProfile mqtt_profiles[MqttProfileIdMax] = {
+    [MqttProfileIdDevelopment] =
+        {
+            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
+            .use_tls = true,
+        },
+    [MqttProfileIdProduction] =
+        {
+            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
+            .use_tls = true,
+        },
+    [MqttProfileIdLocal] =
+        {
+            .url = MQTT_URL_PREFIX "10.0.4.21:1883",
+            .use_tls = false,
+        },
+    [MqttProfileIdCustom] =
+        {
+            .url = NULL,
+            .use_tls = false,
+        },
+};
 
 static void mqtt_wifi_event_callback(const void* state, void* context) {
     Mqtt* instance = context;
@@ -117,99 +125,6 @@ static void mqtt_load_saved_state(Mqtt* instance) {
         FURI_LOG_W(TAG, "Saved state invalid, resetting");
         mqtt_reset_saved_state(instance);
     }
-}
-
-const void* mqtt_message_get_data(const MqttMessage* message, size_t* data_size) {
-    furi_check(message);
-    const struct mg_str data = TO_RAW_MESSAGE(message)->data;
-
-    if(data_size) {
-        *data_size = data.len;
-    }
-
-    return data.buf;
-}
-
-static bool mqtt_message_get_raw_property(
-    const mg_mqtt_message* raw_message,
-    uint8_t raw_id,
-    mg_mqtt_prop* out_prop) {
-    bool is_found = false;
-
-    for(size_t prop_offs = 0;;) {
-        struct mg_mqtt_prop prop = {};
-        // NOTE: mg_mqtt_next_prop() does NOT mutate data pointed to by *msg
-        prop_offs = mg_mqtt_next_prop((mg_mqtt_message*)raw_message, &prop, prop_offs);
-
-        if(prop_offs <= 0) {
-            break;
-        }
-
-        if(prop.id == raw_id) {
-            *out_prop = prop;
-            is_found = true;
-            break;
-        }
-    }
-
-    return is_found;
-}
-
-bool mqtt_message_get_string_property(
-    const MqttMessage* message,
-    MqttPropertyType property_type,
-    FuriString* value) {
-    furi_check(message);
-    furi_check(value);
-    furi_check(property_type < MqttPropertyTypeMax);
-
-    bool success = false;
-
-    const MqttPropertyDesc* desc = &mqtt_property_table[property_type];
-    furi_check(desc->value_type == MqttPropertyValueTypeString);
-
-    do {
-        mg_mqtt_prop string_prop;
-
-        if(!mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &string_prop)) {
-            break;
-        }
-
-        const mg_str raw_val = string_prop.val;
-
-        if(raw_val.len == 0) {
-            break;
-        }
-
-        furi_string_printf(value, "%.*s", raw_val.len, raw_val.buf);
-
-        success = true;
-    } while(false);
-
-    return success;
-}
-
-bool mqtt_message_get_number_property(
-    const MqttMessage* message,
-    MqttPropertyType property_type,
-    int32_t* value) {
-    furi_check(message);
-    furi_check(value);
-    furi_check(property_type < MqttPropertyTypeMax);
-
-    const MqttPropertyDesc* desc = &mqtt_property_table[property_type];
-    furi_check(desc->value_type == MqttPropertyValueTypeNumber);
-
-    mg_mqtt_prop number_prop;
-
-    const bool success =
-        mqtt_message_get_raw_property(TO_RAW_MESSAGE(message), desc->raw_id, &number_prop);
-
-    if(success) {
-        *value = number_prop.iv;
-    }
-
-    return success;
 }
 
 void mqtt_make_topic_path(
@@ -318,20 +233,6 @@ void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscrip
     furi_string_free(topic_path);
 }
 
-static void mqtt_property_to_raw(const MqttProperty* property, mg_mqtt_prop* raw_property) {
-    const MqttPropertyDesc* desc = &mqtt_property_table[property->type];
-
-    raw_property->id = desc->raw_id;
-
-    if(desc->value_type == MqttPropertyValueTypeNumber) {
-        raw_property->iv = property->value.number;
-    } else if(desc->value_type == MqttPropertyValueTypeString) {
-        raw_property->val = mg_str(property->value.string);
-    } else {
-        furi_crash("Invalid MqttPropertyValueType value");
-    }
-}
-
 void mqtt_publish_internal(
     Mqtt* instance,
     MqttScope scope,
@@ -375,44 +276,6 @@ void mqtt_publish_internal(
 
     furi_string_free(path);
 }
-
-// Static lookup tables
-
-static const MqttProfile mqtt_profiles[MqttProfileIdMax] = {
-    [MqttProfileIdDevelopment] =
-        {
-            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
-            .use_tls = true,
-        },
-    [MqttProfileIdProduction] =
-        {
-            .url = MQTT_URL_TLS_PREFIX "mqtt.cloud.dev.busy.app:8883",
-            .use_tls = true,
-        },
-    [MqttProfileIdLocal] =
-        {
-            .url = MQTT_URL_PREFIX "10.0.4.21:1883",
-            .use_tls = false,
-        },
-    [MqttProfileIdCustom] =
-        {
-            .url = NULL,
-            .use_tls = false,
-        },
-};
-
-static const MqttPropertyDesc mqtt_property_table[MqttPropertyTypeMax] = {
-    [MqttPropertyTypeResponseTopic] =
-        {
-            .raw_id = MQTT_PROP_RESPONSE_TOPIC,
-            .value_type = MqttPropertyValueTypeString,
-        },
-    [MqttPropertyTypeCorrelationData] =
-        {
-            .raw_id = MQTT_PROP_CORRELATION_DATA,
-            .value_type = MqttPropertyValueTypeString,
-        },
-};
 
 // Service thread
 
