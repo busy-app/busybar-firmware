@@ -14,6 +14,8 @@
 #define API_QUEUE_SIZE  (4)
 #define FRAME_PERIOD_MS (500)
 
+#define EXPIRY_INTERVAL_DEFAULT_S (60)
+
 static void mqtt_streaming_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
@@ -23,7 +25,7 @@ static void mqtt_streaming_message_callback(const MqttMessage* message, void* co
     size_t data_size;
     mqtt_message_get_data(message, &data_size);
 
-    uint32_t expiry_interval = 0;
+    uint32_t expiry_interval = EXPIRY_INTERVAL_DEFAULT_S;
     mqtt_message_get_integer_property(message, MqttPropertyTypeExpiryInterval, &expiry_interval);
 
     const MqttStreamingApiMessage api_msg = {
