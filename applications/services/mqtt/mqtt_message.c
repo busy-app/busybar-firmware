@@ -8,7 +8,7 @@ void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw
     raw_property->id = desc->raw_id;
 
     if(desc->value_type == MqttPropertyValueTypeInteger) {
-        raw_property->iv = property->value.number;
+        raw_property->iv = property->value.integer;
     } else if(desc->value_type == MqttPropertyValueTypeString) {
         raw_property->val = mg_str(property->value.string);
     } else {
