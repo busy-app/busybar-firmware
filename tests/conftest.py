@@ -493,6 +493,14 @@ def device_health_monitor(request, device_flasher):
     if crash_info:
         request.node._crash_info = crash_info
 
+    # Check device availability after test
+    if not device_flasher.check_device_available():
+        logger.warning("Device unreachable after test!")
+        request.node._device_unavailable = True
+        # Attempt recovery for next test
+        with allure.step("Resetting unreachable device after test"):
+            device_flasher.reset_and_wait()
+
     # Check if test failed with connection error
     if hasattr(request.node, "_connection_error"):
         logger.warning("Test failed with connection error, resetting device...")
@@ -527,18 +535,27 @@ def pytest_runtest_makereport(item, call):
     # Check for crash info stored by device_health_monitor fixture
     crash_info = getattr(item, "_crash_info", None)
 
-    if crash_info and report.when == "call":
-        # If test passed but crash occurred, mark as failed
-        if report.outcome == "passed":
-            report.outcome = "failed"
-            crash_msg = (
-                f"DEVICE CRASH DETECTED!\n"
-                f"Processor: {crash_info.processor}\n"
-                f"Crash line: {crash_info.crash_line}\n"
-                f"Timestamp: {crash_info.timestamp}\n"
-                f"See allure report for full crash trace."
-            )
-            report.longrepr = crash_msg
+    if crash_info and report.when == "teardown":
+        report.outcome = "failed"
+        crash_msg = (
+            f"DEVICE CRASH DETECTED during test!\n"
+            f"Processor: {crash_info.processor}\n"
+            f"Crash line: {crash_info.crash_line}\n"
+            f"Timestamp: {crash_info.timestamp}\n"
+            f"See allure report for full crash trace."
+        )
+        report.longrepr = crash_msg
+
+    # Check for device unavailability (set by device_health_monitor fixture)
+    device_unavailable = getattr(item, "_device_unavailable", False)
+
+    if device_unavailable and report.when == "teardown":
+        report.outcome = "failed"
+        report.longrepr = (
+            "DEVICE UNAVAILABLE after test!\n"
+            "The device became unreachable during test execution.\n"
+            "This may indicate a crash, hang, or network issue."
+        )
 
 @pytest.fixture
 def api_factory(api_session, web_base_url):
