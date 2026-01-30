@@ -1,5 +1,5 @@
 #include "../firmware_i.h"
-#include "update_scenes.h"
+#include "scenes.h"
 
 #include <gui/modules/submenu.h>
 

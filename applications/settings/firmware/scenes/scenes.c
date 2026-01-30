@@ -1,4 +1,4 @@
-#include "update_scenes.h"
+#include "scenes.h"
 
 #include <furi/core/core_defines.h>
 

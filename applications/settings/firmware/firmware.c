@@ -1,5 +1,5 @@
 #include "firmware_i.h"
-#include "scenes/update_scenes.h"
+#include "scenes/scenes.h"
 
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
