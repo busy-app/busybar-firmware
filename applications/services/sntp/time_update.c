@@ -36,8 +36,7 @@ static void rtc_adjust_time(time_t timestamp_ms) {
     time_t timestamp_ms_old = furi_hal_rtc_get_timestamp_ms();
 
     /* update RTC with received time */
-    DateTime datetime_new;
-    datetime_timestamp_ms_to_datetime(timestamp_ms, &datetime_new);
+    DateTimeMs datetime_new = datetime_timestamp_ms_to_datetime(timestamp_ms);
     furi_hal_rtc_set_datetime(&datetime_new);
 
     /* log updated UTC time */
@@ -45,12 +44,12 @@ static void rtc_adjust_time(time_t timestamp_ms) {
         TAG,
         "Exact UTC time: %04" PRIu16 "-%02" PRIu8 "-%02" PRIu8 " %02" PRIu8 ":%02" PRIu8
         ":%02" PRIu8 ".%03" PRIu16,
-        datetime_new.year,
-        datetime_new.month,
-        datetime_new.day,
-        datetime_new.hour,
-        datetime_new.minute,
-        datetime_new.second,
+        datetime_new.dt.year,
+        datetime_new.dt.month,
+        datetime_new.dt.dayofmonth,
+        datetime_new.dt.hour,
+        datetime_new.dt.minute,
+        datetime_new.dt.second,
         datetime_new.millis);
 
     /* log count of seconds RTC was adjusted */

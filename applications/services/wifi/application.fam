@@ -4,6 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="wifi_srv",
     stack_size=4 * 1024,
+    cdefines=["SRV_WIFI"],
     order=110,
     targets=["f20", "f21", "f22"],
     requires=[

@@ -525,7 +525,11 @@ int32_t mqtt_client_start(void* p) {
     int default_profile = MqttClientProfileDev;
     JsonConfigStatus res =
         json_config_read_single_int(CONFIG_FILE, "profile", &mqtt->profile_id, &default_profile);
-    furi_assert(res != JsonConfigStatusError);
+    if(res == JsonConfigStatusError) {
+        FURI_LOG_E(TAG, "Storage error, service stopped");
+        furi_thread_suspend(furi_thread_get_current_id());
+    }
+
     if(mqtt->profile_id >= MqttClientProfileMax) {
         JsonConfigStatus res =
             json_config_write_single_int(CONFIG_FILE, "profile", default_profile);
