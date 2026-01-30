@@ -74,31 +74,39 @@ static MqttHttpProxyRequest*
     return context;
 }
 
-static void mqtt_http_proxy_request_free(MqttHttpProxyRequest* context) {
-    furi_string_free(context->response_topic);
-    furi_string_free(context->correlation_data);
+static void mqtt_http_proxy_request_free(MqttHttpProxyRequest* request) {
+    furi_string_free(request->response_topic);
+    furi_string_free(request->correlation_data);
 
-    if(context->data) {
-        free(context->data);
+    if(request->data) {
+        free(request->data);
     }
 
-    free(context);
+    free(request);
 }
 
-static bool mqtt_http_proxy_request_has_valid_props(const MqttHttpProxyRequest* context) {
-    bool is_valid = false;
+static bool mqtt_http_proxy_request_requires_response(const MqttHttpProxyRequest* request) {
+    bool requires_response = false;
 
     do {
-        if(furi_string_empty(context->response_topic)) {
+        if(furi_string_empty(request->response_topic)) {
             break;
         }
-        if(furi_string_empty(context->correlation_data)) {
+        if(furi_string_empty(request->correlation_data)) {
             break;
         }
-        is_valid = true;
+        requires_response = true;
     } while(false);
 
-    return is_valid;
+    return requires_response;
+}
+
+static bool mqtt_http_proxy_request_decrement_poll_counter(MqttHttpProxyRequest* request) {
+    if(request->poll_cnt > 0) {
+        request->poll_cnt--;
+    }
+
+    return request->poll_cnt > 0;
 }
 
 static bool mqtt_http_proxy_is_valid_uri(const struct mg_http_message* http_msg) {
@@ -168,14 +176,14 @@ static bool mqtt_http_proxy_is_websocket_upgrade(const struct mg_http_message* h
     return is_websocket;
 }
 
-static bool mqtt_http_proxy_request_has_valid_request(const MqttHttpProxyRequest* context) {
+static bool mqtt_http_proxy_request_is_valid(const MqttHttpProxyRequest* request) {
     bool is_valid = false;
 
     do {
         struct mg_http_message http_msg;
 
         const int req_len =
-            mg_http_parse((const char*)context->data, context->data_size, &http_msg);
+            mg_http_parse((const char*)request->data, request->data_size, &http_msg);
         if(req_len <= 0) {
             break;
         }
@@ -195,49 +203,47 @@ static bool mqtt_http_proxy_request_has_valid_request(const MqttHttpProxyRequest
     return is_valid;
 }
 
-static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_data) {
-    MqttHttpProxyRequest* request = conn->fn_data;
+static void mqtt_api_http_handler(struct mg_connection* connection, int event, void* event_data) {
+    MqttHttpProxyRequest* request = connection->fn_data;
     furi_assert(request);
 
-    if(ev == MG_EV_CONNECT) {
-        mg_send(conn, request->data, request->data_size);
+    if(event == MG_EV_CONNECT) {
+        mg_send(connection, request->data, request->data_size);
 
-    } else if(ev == MG_EV_HTTP_MSG) {
-        const struct mg_http_message* msg = (const struct mg_http_message*)ev_data;
+    } else if(event == MG_EV_HTTP_MSG) {
+        const struct mg_http_message* msg = (const struct mg_http_message*)event_data;
         FURI_LOG_T(TAG, "HTTP resp: %.*s", msg->body.len, msg->body.buf);
 
-        const MqttProperty props[] = {
-            {
-                .type = MqttPropertyTypeCorrelationData,
-                .value.string = furi_string_get_cstr(request->correlation_data),
-            },
-        };
+        if(mqtt_http_proxy_request_requires_response(request)) {
+            const MqttProperty props[] = {
+                {
+                    .type = MqttPropertyTypeCorrelationData,
+                    .value.string = furi_string_get_cstr(request->correlation_data),
+                },
+            };
 
-        mqtt_publish_ex(
-            request->mqtt,
-            MqttQosAtLeastOnce,
-            furi_string_get_cstr(request->response_topic),
-            msg->message.buf,
-            msg->message.len,
-            props,
-            COUNT_OF(props));
+            mqtt_publish_ex(
+                request->mqtt,
+                MqttQosAtLeastOnce,
+                furi_string_get_cstr(request->response_topic),
+                msg->message.buf,
+                msg->message.len,
+                props,
+                COUNT_OF(props));
+        }
 
-        conn->is_draining = 1;
+        connection->is_draining = 1;
 
-    } else if(ev == MG_EV_CLOSE) {
+    } else if(event == MG_EV_CLOSE) {
         FURI_LOG_T(TAG, "HTTP connection closed");
 
         mqtt_http_proxy_request_free(request);
-        conn->fn_data = NULL;
+        connection->fn_data = NULL;
 
-    } else if(ev == MG_EV_POLL) {
-        if(request->poll_cnt > 0) {
-            request->poll_cnt--;
-            if(request->poll_cnt == 0) {
-                // Should never happen with correct HTTP request
-                FURI_LOG_E(TAG, "HTTP timeout");
-                conn->is_draining = 1;
-            }
+    } else if(event == MG_EV_POLL) {
+        if(!mqtt_http_proxy_request_decrement_poll_counter(request)) {
+            FURI_LOG_E(TAG, "HTTP timeout");
+            connection->is_draining = 1;
         }
     }
 }
@@ -274,24 +280,18 @@ static void mqtt_http_proxy_message_callback(const MqttMessage* message, void* c
 
 static bool
     mqtt_http_proxy_process_request(MqttHttpProxySrv* instance, MqttHttpProxyRequest* request) {
-    bool success = false;
+    const bool success = mqtt_http_proxy_request_is_valid(request);
 
-    do {
-        if(!mqtt_http_proxy_request_has_valid_props(request)) {
-            FURI_LOG_W(TAG, "Missing msg properties");
-            break;
-        }
-
-        if(!mqtt_http_proxy_request_has_valid_request(request)) {
-            FURI_LOG_W(TAG, "Bad request");
-            mqtt_http_proxy_respond_error(request);
-            break;
-        }
-
+    if(success) {
         mg_http_connect(&instance->mgr, HTTP_HOST, mqtt_api_http_handler, request);
 
-        success = true;
-    } while(false);
+    } else {
+        FURI_LOG_W(TAG, "Bad request");
+
+        if(mqtt_http_proxy_request_requires_response(request)) {
+            mqtt_http_proxy_respond_error(request);
+        }
+    }
 
     return success;
 }
