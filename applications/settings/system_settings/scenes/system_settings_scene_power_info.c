@@ -68,7 +68,7 @@ static void system_settings_scene_power_info_on_enter(void* context) {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             widget_set_scrollbar_mode(windows[disp], WidgetScrollBarModeAuto);
             scene->power_info[disp] = label_alloc(windows[disp]);
-            lable_set_inline_text_color_formatting(scene->power_info[disp], true);
+            label_set_inline_text_color_formatting(scene->power_info[disp], true);
             system_settings_power_info_update_data(instance, scene->power_info_str);
             label_set_text(scene->power_info[disp], furi_string_get_cstr(scene->power_info_str));
         }

@@ -92,7 +92,7 @@ void label_set_text_color(Label* instance, Color color) {
     lv_obj_set_style_text_opa(instance->label, color.a, LV_PART_MAIN);
 }
 
-void lable_set_inline_text_color_formatting(Label* instance, bool enable) {
+void label_set_inline_text_color_formatting(Label* instance, bool enable) {
     furi_check(instance);
 
     lv_label_set_recolor(instance->label, enable);

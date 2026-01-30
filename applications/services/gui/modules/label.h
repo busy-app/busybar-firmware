@@ -91,7 +91,7 @@ void label_set_text_color(Label* instance, Color color);
  * @param[in,out] instance pointer to the Label instance to be modified
  * @param[in] enable true to enable recoloring, false otherwise 
 */
-void lable_set_inline_text_color_formatting(Label* instance, bool enable);
+void label_set_inline_text_color_formatting(Label* instance, bool enable);
 
 /**
  * @brief Set the label font size.
