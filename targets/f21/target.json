@@ -129,7 +129,8 @@
         "ext_applications",
         "firmware_applications_u5",
         "cli",
-        "containers"
+        "containers",
+        "utz"
     ],
     "fw_modules": [
         "fw_elf",

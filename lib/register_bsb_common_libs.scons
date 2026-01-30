@@ -29,6 +29,7 @@ for libname in [
     "firmware_applications_u5",
     "settings_helpers",
     "zlib",
+    "utz",
     ## SI917
     "sl_glue",
     "simplicity_sdk",
