@@ -4,6 +4,7 @@
 
 typedef enum {
     ThisSceneIdxMain,
+    ThisSceneIdxSettings,
 
     ThisSceneIdxsCount,
 } ThisSceneIdx;
