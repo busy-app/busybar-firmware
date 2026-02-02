@@ -270,22 +270,31 @@ static void mqtt_http_proxy_message_callback(const MqttMessage* message, void* c
         &instance->mgr, instance->api_connection_id, &request, sizeof(MqttHttpProxyRequest*));
 }
 
-static bool
+static void
     mqtt_http_proxy_process_request(MqttHttpProxySrv* instance, MqttHttpProxyRequest* request) {
-    const bool success = mqtt_http_proxy_request_is_valid(request);
+    bool success = false;
 
-    if(success) {
-        mg_http_connect(&instance->mgr, HTTP_HOST, mqtt_api_http_handler, request);
+    do {
+        if(!mqtt_http_proxy_request_is_valid(request)) {
+            FURI_LOG_E(TAG, "Bad request");
+            break;
+        }
 
-    } else {
-        FURI_LOG_W(TAG, "Bad request");
+        if(mg_http_connect(&instance->mgr, HTTP_HOST, mqtt_api_http_handler, request) == NULL) {
+            FURI_LOG_E(TAG, "Failed to process request");
+            break;
+        }
 
+        success = true;
+    } while(false);
+
+    if(!success) {
         if(mqtt_http_proxy_request_requires_response(request)) {
             mqtt_http_proxy_respond_error(request);
         }
-    }
 
-    return success;
+        mqtt_http_proxy_request_free(request);
+    }
 }
 
 static void
@@ -300,10 +309,7 @@ static void
         furi_assert(data->len == sizeof(MqttHttpProxyRequest*));
 
         MqttHttpProxyRequest* request = *(MqttHttpProxyRequest**)data->buf;
-
-        if(!mqtt_http_proxy_process_request(instance, request)) {
-            mqtt_http_proxy_request_free(request);
-        }
+        mqtt_http_proxy_process_request(instance, request);
     }
 }
 
