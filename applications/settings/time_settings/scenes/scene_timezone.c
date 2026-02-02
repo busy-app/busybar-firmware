@@ -6,11 +6,6 @@
 #include <furi.h>
 #include <furi_hal_rtc.h>
 
-// typedef enum {
-//     SceneEventModeChanged = AppEventSceneEventsStart,
-//     SceneEventBrightnessChanged,
-// } SceneEvent;
-
 #define TAG "TZ_SCENE"
 
 typedef struct {
@@ -25,12 +20,22 @@ static void scene_timezone_on_submenu_item(uint32_t index, void* context) {
     time_settings_send_custom_event(instance, index);
 }
 
-static void scene_timezone_fill_submenu(TimeSettings* instance, Submenu* menu, const TzutilTzInfoList *list, bool do_set_callbacks, size_t selected_index) {
+static void scene_timezone_fill_submenu(
+    TimeSettings* instance,
+    Submenu* menu,
+    const TzutilTzInfoList* list,
+    bool do_set_callbacks,
+    size_t selected_index) {
     for(size_t i = 0; i != list->count; ++i) {
         char offset_buf[DATETIME_OFFSET_STR_LEN + 1];
         datetime_format_offset(&list->entries[i].offset, offset_buf);
-        FuriString *s = furi_string_alloc_printf("UTC%s, %s", offset_buf, list->entries[i].name);
-        submenu_add_item(menu, furi_string_get_cstr(s), i, do_set_callbacks ? scene_timezone_on_submenu_item : NULL, instance);
+        FuriString* s = furi_string_alloc_printf("UTC%s, %s", offset_buf, list->entries[i].name);
+        submenu_add_item(
+            menu,
+            furi_string_get_cstr(s),
+            i,
+            do_set_callbacks ? scene_timezone_on_submenu_item : NULL,
+            instance);
         furi_string_free(s);
     }
     submenu_set_selected_item_index(menu, selected_index);
@@ -96,7 +101,7 @@ static bool scene_timezone_on_event(const SceneManagerEvent* event, void* contex
             scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
         consumed = true;
 
-        const char *zone_name = data->list.entries[event->event].name;
+        const char* zone_name = data->list.entries[event->event].name;
         FURI_LOG_D(TAG, "Selected: %s", zone_name);
         SntpSettings sntp_settings;
         sntp_get_settings(instance->sntp, &sntp_settings);

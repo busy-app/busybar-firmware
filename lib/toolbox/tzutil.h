@@ -16,8 +16,8 @@ typedef struct {
 } TzutilTzInfo;
 
 typedef struct {
-	TzutilTzInfo* entries;
-	size_t count;
+    TzutilTzInfo* entries;
+    size_t count;
 } TzutilTzInfoList;
 
 /**
@@ -25,6 +25,6 @@ typedef struct {
  *
  * @param[in] dt timestamp to get timezone offsets for.
  */
-TzutilTzInfoList tzutil_compile_zone_list(const DateTime *dt);
+TzutilTzInfoList tzutil_compile_zone_list(const DateTime* dt);
 
-void tzutil_info_list_free(const TzutilTzInfoList *list);
+void tzutil_info_list_free(const TzutilTzInfoList* list);

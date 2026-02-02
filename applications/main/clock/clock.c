@@ -93,7 +93,6 @@ const char* clock_get_time_string(Clock* instance) {
         break;
     }
 
-
     return furi_string_get_cstr(instance->time_string);
 }
 

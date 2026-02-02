@@ -18,7 +18,7 @@ static int compare_zone_info(const void* p1, const void* p2) {
     return strcmp(z1->name, z2->name);
 }
 
-TzutilTzInfoList tzutil_compile_zone_list(const DateTime *dt) {
+TzutilTzInfoList tzutil_compile_zone_list(const DateTime* dt) {
     TzutilTzInfo* zone_infos = calloc(utz_num_zone_names, sizeof(TzutilTzInfo));
     size_t i = 0;
     for(const char* name = utz_zone_names; name && i != utz_num_zone_names;
@@ -38,12 +38,9 @@ TzutilTzInfoList tzutil_compile_zone_list(const DateTime *dt) {
         }
     }
     qsort(zone_infos, i, sizeof(TzutilTzInfo), compare_zone_info);
-    return (TzutilTzInfoList){
-    	.entries = zone_infos,
-    	.count = i
-    };
+    return (TzutilTzInfoList){.entries = zone_infos, .count = i};
 }
 
-void tzutil_info_list_free(const TzutilTzInfoList *list) {
-	free(list->entries);
+void tzutil_info_list_free(const TzutilTzInfoList* list) {
+    free(list->entries);
 }

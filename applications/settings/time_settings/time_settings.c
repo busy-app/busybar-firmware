@@ -79,8 +79,8 @@ static TimeSettings* time_settings_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
-    instance->scene_manager = scene_manager_alloc(
-        time_settings_scenes, COUNT_OF(time_settings_scenes), instance);
+    instance->scene_manager =
+        scene_manager_alloc(time_settings_scenes, COUNT_OF(time_settings_scenes), instance);
 
     instance->sntp = furi_record_open(RECORD_SNTP);
     instance->desktop = furi_record_open(RECORD_DESKTOP);

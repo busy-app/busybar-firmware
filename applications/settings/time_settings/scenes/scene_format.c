@@ -7,14 +7,12 @@
 #define TAG "TIME_MENU"
 
 typedef struct {
-    VarItemList *front_list;
-    VarItemList *back_list;
+    VarItemList* front_list;
+    VarItemList* back_list;
 } SettingsSceneFormat;
 
-static const char* format_names[] = {
-    [SntpSettingTimeFormat24h] = "24h",
-    [SntpSettingTimeFormat12h] = "12h"
-};
+static const char* format_names[] =
+    {[SntpSettingTimeFormat24h] = "24h", [SntpSettingTimeFormat12h] = "12h"};
 
 static void scene_main_on_changed(VarItem* item, void* context) {
     TimeSettings* instance = context;
@@ -39,10 +37,24 @@ static void scene_format_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_list = var_item_list_alloc(instance->front_scene_window);
-        VarItem *item = var_item_list_add_selector(data->front_list, "Time format", NULL, format_names, COUNT_OF(format_names), scene_main_on_changed, instance);
+        VarItem* item = var_item_list_add_selector(
+            data->front_list,
+            "Time format",
+            NULL,
+            format_names,
+            COUNT_OF(format_names),
+            scene_main_on_changed,
+            instance);
         var_item_set_value(item, sntp_settings.time_format);
         data->back_list = var_item_list_alloc(instance->back_scene_window);
-        item = var_item_list_add_selector(data->back_list, "Time format", NULL, format_names, COUNT_OF(format_names), NULL, instance);
+        item = var_item_list_add_selector(
+            data->back_list,
+            "Time format",
+            NULL,
+            format_names,
+            COUNT_OF(format_names),
+            NULL,
+            instance);
         var_item_set_value(item, sntp_settings.time_format);
     });
 }
@@ -67,7 +79,6 @@ static bool scene_format_on_event(const SceneManagerEvent* event, void* context)
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
-
     } else if(event->type == SceneManagerEventTypeBack) {
         scene_manager_previous_scene(instance->scene_manager);
         consumed = true;
