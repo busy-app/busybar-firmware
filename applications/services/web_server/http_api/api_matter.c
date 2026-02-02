@@ -208,8 +208,6 @@ static bool api_matter_switch_set(
             };
             MatterSwitchStartupMode startup = value_index_string(
                 switch_startup, switch_startup_modes, COUNT_OF(switch_startup_modes));
-
-            furi_assert(startup >= MatterSwitchStartupModeMIN);
             furi_assert(startup < MatterSwitchStartupModeMAX);
 
             if(!matter_set_switch_startup_mode(ctx->matter, startup)) {
