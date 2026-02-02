@@ -422,7 +422,7 @@ static void
 
 void mqtt_api_init(Mqtt* instance) {
     // Create a dummy connection only for wakeup event
-    const struct mg_connection* api_connnection =
+    const struct mg_connection* api_connection =
         mg_wrapfd(&instance->mgr, MG_INVALID_SOCKET, mqtt_api_event_callback, instance);
-    instance->api_connection_id = api_connnection->id;
+    instance->api_connection_id = api_connection->id;
 }
