@@ -562,6 +562,36 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path);
 bool storage_simply_mkdir(Storage* storage, const char* path);
 
 /**
+ * @brief Simply read the entire file into memory.
+ * 
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the file path.
+ * @param buffer pointer to buffer to read the file into
+ * @param buf_sz size of the provided buffer. At most `buf_sz - 1` bytes will be read.
+ * @return number of bytes read, always 0 on failure
+ */
+size_t storage_simply_read_entire_file(
+    Storage* storage,
+    const char* path,
+    void* buffer,
+    size_t buf_sz);
+
+/**
+ * @brief Simply truncate and write the entire file from memory.
+ * 
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the file path.
+ * @param buffer pointer to buffer to write to the file
+ * @param length number of bytes to write from the buffer
+ * @return whether all of the requested bytes were written
+ */
+bool storage_simply_write_entire_file(
+    Storage* storage,
+    const char* path,
+    const void* buffer,
+    size_t length);
+
+/**
  * @brief Get the next free filename in a directory.
  *
  * Usage example:

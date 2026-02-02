@@ -10,6 +10,7 @@
 #include <status_lights/status_lights.h>
 #include <matter/matter.h>
 #include <busy_timer/busy_timer.h>
+#include <applications/system/updater/updater.h>
 
 #include "busy.h"
 #include "busy_theme.h"
@@ -76,6 +77,7 @@ struct BusyApp {
     StatusLights* status_lights;
     Audio* audio;
     Gui* gui;
+    Updater* updater;
     MatterSrv* matter;
     // Containers & application windows
     Widget* front_window;

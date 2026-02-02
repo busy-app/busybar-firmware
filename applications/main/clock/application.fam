@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.APP,
     order=20,
     entry_point="clock_app",
-    requires=["gui", "sntp"],
+    requires=["gui", "sntp", "updater"],
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],
 )

@@ -29,6 +29,7 @@
 
 #define RENDEZVOUS_FLAGS (RendezvousInformationFlags(chip::RendezvousInformationFlag::kOnNetwork))
 #define IDENTIFY_COLOR   ((Color)COLOR_MAKE_HEX(0xFFAA00))
+#define CD_AWAIT_TIMEOUT furi_ms_to_ticks(5000)
 
 using namespace chip;
 using namespace Credentials;
@@ -51,6 +52,7 @@ public:
 
     IntercomChannel* m_intercom_ch;
     StatusLights* m_status_lights;
+    FuriSemaphore* m_cd_available;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
@@ -71,6 +73,7 @@ static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
     static const size_t pattern[2] = {4, 3};
     const size_t original_len = strlen(buffer);
     const size_t orig_len_with_terminator = original_len + 1;
+    if(!original_len) return;
     furi_check((original_len == 11) || (original_len == 21));
 
     size_t pattern_step = 0;
@@ -130,7 +133,13 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
     const auto* frame = static_cast<const MatterIntercomFrame*>(data);
     auto* matter = static_cast<MatterSrv*>(context);
 
-    if(frame->type == MatterIntercomFrameTypeSwitchState) {
+    if(frame->type == MatterIntercomFrameTypeCdCertificate) {
+        FURI_LOG_D(TAG, "CdCertificate frame");
+        Credentials::BSB::GetDeviceAttestationCredentialsProvider()->SetCertificationDeclaration(
+            frame->cd_certificate.contents, frame->cd_certificate.contents_length);
+        furi_check(furi_semaphore_release(matter->m_cd_available) == FuriStatusOk);
+
+    } else if(frame->type == MatterIntercomFrameTypeSwitchState) {
         FURI_LOG_D(TAG, "SwitchState frame");
 
         PlatformMgr().ScheduleWork(
@@ -184,7 +193,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
         matter_send_frame(matter, &frame);
 
     } else {
-        furi_crash();
+        furi_crash(/* we shouldn't be receiving this frame */);
     }
 }
 
@@ -193,6 +202,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
  */
 static void matter_send_state_update(MatterSrv* matter, bool state) {
     MatterIntercomFrame frame = {
+        .type = MatterIntercomFrameTypeSwitchState,
         .switch_state =
             {
                 .value = state,
@@ -315,6 +325,7 @@ MatterSrv::MatterSrv(void)
           matter_stop_blinking,
           chip::app::Clusters::Identify::IdentifyTypeEnum::kVisibleIndicator)) {
     m_status_lights = static_cast<StatusLights*>(furi_record_open(RECORD_STATUS_LIGHTS));
+    m_cd_available = furi_semaphore_alloc(1, 0);
 }
 
 CHIP_ERROR MatterSrv::init(void) {
@@ -332,6 +343,15 @@ CHIP_ERROR MatterSrv::init(void) {
         }
 
         StackLock lock;
+
+        auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+        m_intercom_ch =
+            intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
+
+        if(furi_semaphore_acquire(m_cd_available, CD_AWAIT_TIMEOUT) != FuriStatusOk) {
+            err = CHIP_ERROR_TIMEOUT;
+            break;
+        }
 
         SetDeviceInfoProvider(DeviceLayer::BSB::GetDeviceInfoProvider());
         SetDeviceInstanceInfoProvider(DeviceLayer::BSB::GetDeviceInstanceInfoProvider());
@@ -355,11 +375,12 @@ CHIP_ERROR MatterSrv::init(void) {
         PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
-        auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
-        m_intercom_ch =
-            intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
+        MatterIntercomFrame notification = {
+            .type = MatterIntercomFrameTypeBackendReady,
+        };
+        matter_send_frame(this, &notification);
 
     } while(false);
 
