@@ -85,6 +85,15 @@ void label_set_text(Label* instance, const char* text);
 void label_set_text_color(Label* instance, Color color);
 
 /**
+ * @brief Enable or disable inline text color formatting
+ * Example: "This is a #ff0000 red# word"
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] enable true to enable recoloring, false otherwise 
+*/
+void label_set_inline_text_color_formatting(Label* instance, bool enable);
+
+/**
  * @brief Set the label font size.
  * @param[in,out] instance pointer to the Label instance to be modified
  * @param[in] size font size

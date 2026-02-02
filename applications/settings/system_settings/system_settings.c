@@ -1,14 +1,11 @@
-#include "debug_app_list.h"
-#include "scenes/debug_scenes.h"
+#include "system_settings.h"
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
-#include <furi_hal_nvm.h>
-
-static bool debug_app_list_thread_signal_callback(uint32_t signal, void* arg, void* context) {
+static bool system_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
 
-    DebugAppList* instance = context;
+    SystemSettings* instance = context;
 
     switch(signal) {
     case FuriSignalExit:
@@ -16,7 +13,7 @@ static bool debug_app_list_thread_signal_callback(uint32_t signal, void* arg, vo
         return true;
 
     case FuriSignalAboutToExit:
-        debug_app_list_send_custom_event(instance, AppEventAboutToExit);
+        system_settings_send_custom_event(instance, AppEventAboutToExit);
         return true;
 
     default:
@@ -24,12 +21,12 @@ static bool debug_app_list_thread_signal_callback(uint32_t signal, void* arg, vo
     }
 }
 
-static void debug_app_list_input_queue_callback(FuriEventLoopObject* object, void* context) {
+static void system_settings_input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
     furi_assert(context);
 
-    DebugAppList* instance = context;
+    SystemSettings* instance = context;
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
@@ -41,12 +38,12 @@ static void debug_app_list_input_queue_callback(FuriEventLoopObject* object, voi
     }
 }
 
-static void debug_app_list_event_queue_callback(FuriEventLoopObject* object, void* context) {
+static void system_settings_event_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
     furi_assert(context);
 
-    DebugAppList* instance = context;
+    SystemSettings* instance = context;
 
     uint32_t event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
@@ -54,11 +51,11 @@ static void debug_app_list_event_queue_callback(FuriEventLoopObject* object, voi
     }
 }
 
-static bool debug_app_list_gui_input_callback(const InputEvent* event, void* context) {
+static bool system_settings_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
-    DebugAppList* instance = context;
+    SystemSettings* instance = context;
 
     bool consumed = false;
     if(event->type == InputTypeShort) {
@@ -75,22 +72,23 @@ static bool debug_app_list_gui_input_callback(const InputEvent* event, void* con
     return consumed;
 }
 
-static DebugAppList* debug_app_list_alloc(void) {
-    DebugAppList* instance = malloc(sizeof(DebugAppList));
-
+static SystemSettings* system_settings_alloc() {
+    SystemSettings* instance = malloc(sizeof(SystemSettings));
     instance->event_loop = furi_event_loop_alloc();
-    instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
-    instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
-    instance->scene_manager = scene_manager_alloc(debug_scenes, COUNT_OF(debug_scenes), instance);
+    instance->input_queue = furi_message_queue_alloc(4, sizeof(InputEvent));
+    instance->event_queue = furi_message_queue_alloc(4, sizeof(uint32_t));
+    instance->scene_manager =
+        scene_manager_alloc(system_settings_scenes, COUNT_OF(system_settings_scenes), instance);
 
     instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
+    instance->power = furi_record_open(RECORD_POWER);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, debug_app_list_gui_input_callback, instance);
+        gui_layer_add_input_callback(layer, system_settings_gui_input_callback, instance);
 
         Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_scene_window = widget_alloc(front_root);
@@ -100,10 +98,9 @@ static DebugAppList* debug_app_list_alloc(void) {
 
         instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
         nav_bar_set_header_image(instance->back_nav_bar, SETTINGS_ICON_BACK);
-        nav_bar_set_header_text(instance->back_nav_bar, "SETTINGS");
-        nav_bar_push_location(instance->back_nav_bar, "DEBUG APPS");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
+        nav_bar_push_location(instance->back_nav_bar, "SYSTEM");
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -114,70 +111,87 @@ static DebugAppList* debug_app_list_alloc(void) {
         instance->event_loop,
         instance->input_queue,
         FuriEventLoopEventIn,
-        debug_app_list_input_queue_callback,
+        system_settings_input_queue_callback,
         instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->event_queue,
         FuriEventLoopEventIn,
-        debug_app_list_event_queue_callback,
+        system_settings_event_queue_callback,
         instance);
 
     scene_manager_next_scene(instance->scene_manager, SceneIdMain);
-
     return instance;
 }
 
-static void debug_app_list_free(DebugAppList* instance) {
+static void system_settings_free(SystemSettings* instance) {
+    furi_assert(instance);
+    scene_manager_free(instance->scene_manager);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer, debug_app_list_gui_input_callback);
+        gui_layer_remove_input_callback(layer, system_settings_gui_input_callback);
 
         widget_free(instance->front_scene_window);
+        widget_free(instance->back_scene_window);
         flex_layout_free(instance->back_container);
+
+        nav_bar_free(instance->back_nav_bar);
     });
 
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
+    furi_record_close(RECORD_POWER);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->input_queue);
     furi_message_queue_free(instance->event_queue);
-    furi_event_loop_free(instance->event_loop);
 
+    furi_event_loop_free(instance->event_loop);
     free(instance);
 }
 
-int32_t debug_app_list_entry(void* arg) {
+int32_t system_settings_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
+        furi_string_set_str(descriptor->front_title, "System");
+        furi_string_set_str(descriptor->back_title, "System");
 
-        furi_string_set_str(descriptor->front_title, "Debug apps");
-        furi_string_set_str(descriptor->back_title, "DEBUG APPS");
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("bug_front_7x7.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("bug_back_12x12.bin"));
-        descriptor->display_in_menu = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
-
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("system_settings_front_8x8.bin"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("system_settings_back_11x11.bin"));
         return 0;
     }
 
-    DebugAppList* instance = debug_app_list_alloc();
+    SystemSettings* instance = system_settings_alloc();
     FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, debug_app_list_thread_signal_callback, instance);
+    furi_thread_set_signal_callback(thread, system_settings_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
     furi_thread_set_signal_callback(thread, NULL, NULL);
-    debug_app_list_free(instance);
+    system_settings_free(instance);
 
     return 0;
 }
 
-void debug_app_list_send_custom_event(DebugAppList* instance, uint32_t event) {
+void system_settings_send_custom_event(SystemSettings* instance, uint32_t event) {
     furi_assert(instance);
 
     furi_check(
         furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
+
+void system_settings_push_location(SystemSettings* instance, const char* location_name) {
+    furi_assert(instance);
+    furi_assert(location_name);
+
+    with_gui(instance->gui, { nav_bar_push_location(instance->back_nav_bar, location_name); });
+}
+
+void system_settings_pop_location(SystemSettings* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, { nav_bar_pop_location(instance->back_nav_bar); });
 }

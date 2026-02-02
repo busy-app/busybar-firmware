@@ -41,6 +41,8 @@ static void settings_scene_main_on_enter(void* context) {
             const FlipperInternalApplication* app = &FLIPPER_SETTINGS_APPS[i];
             app->app(descriptor);
 
+            if(!descriptor->display_in_menu) continue;
+
             menu_add_item(
                 data->front_menu,
                 furi_string_get_cstr(descriptor->front_title),

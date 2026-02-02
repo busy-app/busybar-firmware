@@ -360,6 +360,14 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_busy_free,
         .on_request = http_api_busy_callback,
     },
+    {
+        .uri = "matter",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_matter_alloc,
+        .ctx_free = http_api_matter_free,
+        .on_request = http_api_matter_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {

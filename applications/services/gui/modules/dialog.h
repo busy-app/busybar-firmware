@@ -55,7 +55,7 @@ Widget* dialog_get_base(Dialog* instance);
  * @param[in] callback callback function pointer
  * @param[in] callback callback context
  */
-void dialog_set_calback(Dialog* instance, DialogCallback callback, void* context);
+void dialog_set_callback(Dialog* instance, DialogCallback callback, void* context);
 
 /**
  * @brief Set a text label value.
