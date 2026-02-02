@@ -1,7 +1,7 @@
 #include "timer_bar.h"
 
 #include <gui/widget_i.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_player.h>
 
 #define TROUGH_WIDTH  (70)
 #define TROUGH_HEIGHT (1)
@@ -10,7 +10,7 @@
 
 struct TimerBar {
     Widget base;
-    AnimImage* bar;
+    AnimPlayer* bar;
     int32_t prev_offset;
 };
 
@@ -25,7 +25,7 @@ static void timer_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     lv_obj_set_style_bg_color(obj, lv_color_black(), LV_PART_MAIN);
 
     TimerBar* instance = (TimerBar*)obj;
-    instance->bar = anim_image_alloc((Widget*)obj);
+    instance->bar = anim_player_alloc((Widget*)obj);
 
     lv_obj_align_to((lv_obj_t*)instance->bar, obj, LV_ALIGN_OUT_LEFT_MID, 1, 0);
 }
@@ -55,8 +55,8 @@ Widget* timer_bar_get_base(TimerBar* instance) {
 void timer_bar_set_preset(TimerBar* instance, const TimerBarPreset* preset) {
     furi_check(instance);
 
-    anim_image_set_source(instance->bar, preset->file_path);
-    anim_image_stop(instance->bar);
+    anim_player_set_source(instance->bar, preset->file_path);
+    anim_player_pause(instance->bar);
 
     lv_obj_set_style_bg_color(
         TO_LV_OBJ(instance), TO_LV_COLOR(preset->trough_color), LV_PART_MAIN);
@@ -73,7 +73,8 @@ void timer_bar_set_value(TimerBar* instance, float value) {
         lv_obj_set_x((lv_obj_t*)instance->bar, -offset);
     }
 
-    anim_image_set_range(instance->bar, 0, 59, false, false);
+    anim_player_set_section(instance->bar, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
+    anim_player_start(instance->bar);
 }
 
 // LVGL class descriptor

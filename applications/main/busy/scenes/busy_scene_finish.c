@@ -1,12 +1,12 @@
 #include "../busy_i.h"
 
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_player.h>
 
 #include "../widgets/prompt_overlay.h"
 #include "../widgets/summary_label.h"
 
 typedef struct {
-    AnimImage* front_anim;
+    AnimPlayer* front_anim;
     SummaryLabel* front_summary;
     PromptOverlay* front_prompt;
 } BusySceneFinish;
@@ -66,8 +66,8 @@ static void busy_scene_finish_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_finish_input_callback, instance);
 
-        data->front_anim = anim_image_alloc(instance->front_window);
-        anim_image_set_source(data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"));
+        data->front_anim = anim_player_alloc(instance->front_window);
+        anim_player_set_source(data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"));
 
         data->front_summary = summary_label_alloc(instance->front_window);
         widget_set_pos_y(summary_label_get_base(data->front_summary), 5);
@@ -100,7 +100,7 @@ static void busy_scene_finish_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_finish_input_callback);
 
-        anim_image_free(data->front_anim);
+        anim_player_free(data->front_anim);
         summary_label_free(data->front_summary);
         prompt_overlay_free(data->front_prompt);
     });
