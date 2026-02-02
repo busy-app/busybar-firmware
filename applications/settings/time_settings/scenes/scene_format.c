@@ -36,6 +36,7 @@ static void scene_format_on_enter(void* context) {
     sntp_get_settings(instance->sntp, &sntp_settings);
 
     with_gui(instance->gui, {
+        nav_bar_push_location(instance->back_nav_bar, "TIME FORMAT");
         data->front_list = var_item_list_alloc(instance->front_scene_window);
         VarItem* item = var_item_list_add_selector(
             data->front_list,
@@ -67,6 +68,7 @@ static void scene_format_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFormat);
 
     with_gui(instance->gui, {
+        nav_bar_pop_location(instance->back_nav_bar);
         var_item_list_free(data->front_list);
         var_item_list_free(data->back_list);
     });

@@ -68,6 +68,7 @@ static void scene_timezone_on_enter(void* context) {
     size_t selected_index = get_current_timezone_index(instance);
 
     with_gui(instance->gui, {
+        nav_bar_push_location(instance->back_nav_bar, "TIME ZONE");
         data->front_menu = submenu_alloc(instance->front_scene_window);
         scene_timezone_fill_submenu(instance, data->front_menu, &data->list, true, selected_index);
 
@@ -84,6 +85,7 @@ static void scene_timezone_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
 
     with_gui(instance->gui, {
+        nav_bar_pop_location(instance->back_nav_bar);
         submenu_free(data->front_menu);
         submenu_free(data->back_menu);
     });
