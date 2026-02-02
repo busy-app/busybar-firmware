@@ -1679,7 +1679,7 @@ components:
           description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image, countdown]
+          enum: [text, image, anim, countdown]
           description: Type of display element
         x:
           type: integer
@@ -1710,6 +1710,7 @@ components:
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
+          anim: "#/components/schemas/AnimElement"
           countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
@@ -1760,6 +1761,35 @@ components:
                   type: string
                   pattern: "^[a-z_]+/[a-z0-9_]+$"
                   description: Identifier of builtin image
+
+    AnimElement:
+      allOf:
+        - $ref: "#/components/schemas/DisplayElement"
+        - type: object
+          allOf:
+            - oneOf:
+              - properties:
+                  path:
+                    type: string
+                    pattern: "^[a-zA-Z0-9._/-]+$"
+                    description: Path to the animation file in the app's assets
+              - properties:
+                  builtin_anim:
+                    type: string
+                    pattern: "^[a-z_]+/[a-z0-9_]+$"
+                    description: Identifier of builtin animation
+            - properties:
+                loop:
+                  type: boolean
+                  description: Whether to loop the requested part of the animation
+                  default: false
+                await_previous_end:
+                  type: boolean
+                  description: If the element has been created before and this flag is true, the previous range will finish before the requested one starts.
+                  default: false
+                section_name:
+                  type: string
+                  description: Name of the section to play back. Specifying \"default\" selects the entire animation.
 
     CountdownElement:
       allOf:

@@ -130,6 +130,7 @@
         "lvgl_addons",
         "cli",
         "containers",
+        "anim_file",
         "utz"
     ],
     "fw_modules": [

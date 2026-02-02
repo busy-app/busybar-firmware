@@ -1,11 +1,11 @@
 #include "../busy_i.h"
 
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_player.h>
 
 #include "../widgets/overview_label.h"
 
 typedef struct {
-    AnimImage* front_bg_anim;
+    AnimPlayer* front_bg_anim;
     OverviewLabel* front_overview_label;
     RunLater* run_later;
 } BusySceneOverview;
@@ -55,9 +55,10 @@ static void busy_scene_overview_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_overview_input_callback, instance);
 
-        data->front_bg_anim = anim_image_alloc(instance->front_window);
-        anim_image_set_source(data->front_bg_anim, BUSY_ANIM_PATH("overview_72x16.anim"));
-        anim_image_set_loop(data->front_bg_anim, false);
+        data->front_bg_anim = anim_player_alloc(instance->front_window);
+        anim_player_set_source(data->front_bg_anim, BUSY_ANIM_PATH("overview_72x16.anim"));
+        anim_player_set_section(
+            data->front_bg_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
 
         data->front_overview_label = overview_label_alloc(instance->front_window);
         overview_label_set_intervals(
@@ -83,7 +84,7 @@ static void busy_scene_overview_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_overview_input_callback);
 
-        anim_image_free(data->front_bg_anim);
+        anim_player_free(data->front_bg_anim);
         overview_label_free(data->front_overview_label);
     });
 }

@@ -20,35 +20,9 @@ typedef struct {
     bool is_timer_initial_run;
 } AppsMenuSceneStart;
 
-typedef enum {
-    AppsMenuSceneStartInOutAnimTypeNone,
-
-    AppsMenuSceneStartInOutAnimTypeEnter,
-    AppsMenuSceneStartInOutAnimTypeExit,
-} AppsMenuSceneStartInOutAnimType;
-
-typedef struct {
-    uint32_t icon_start;
-    uint32_t icon_stop;
-} AppsMenuSceneStartInOutAnimInfo;
-
-static const AppsMenuSceneStartInOutAnimInfo in_out_anim_infos[] = {
-    [AppsMenuSceneStartInOutAnimTypeNone] =
-        {
-            .icon_start = 59,
-            .icon_stop = 59,
-        },
-    [AppsMenuSceneStartInOutAnimTypeEnter] =
-        {
-            .icon_start = 0,
-            .icon_stop = 59,
-        },
-    [AppsMenuSceneStartInOutAnimTypeExit] =
-        {
-            .icon_start = 60,
-            .icon_stop = 67,
-        },
-};
+#define ICON_SECTION_ENTER  "enter"
+#define ICON_SECTION_STEADY "steady"
+#define ICON_SECTION_EXIT   "exit"
 
 static bool apps_menu_scene_start_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -93,12 +67,10 @@ static void apps_menu_scene_start_timer_callback(void* context) {
     }
 }
 
-static void apps_menu_start_run_in_out_anim(AppsMenu* app, AppsMenuSceneStartInOutAnimType type) {
+static void apps_menu_start_run_icon_anim(AppsMenu* app, const char* section) {
     AppsMenuSceneStart* scene =
         scene_manager_get_scene_data(app->scene_manager, AppsMenuSceneIdStart);
-
-    const AppsMenuSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
-    anim_title_card_run_icon_anim(scene->front_card, anim_info->icon_start, anim_info->icon_stop);
+    anim_title_card_run_icon_anim(scene->front_card, section);
 }
 
 static void apps_menu_scene_start_on_enter(void* context) {
@@ -117,9 +89,9 @@ static void apps_menu_scene_start_on_enter(void* context) {
             scene->front_card, APPS_MENU_ANIM_PATH("apps_menu_front_13x13.anim"));
 
         if(scene->is_not_first_enter) {
-            apps_menu_start_run_in_out_anim(app, AppsMenuSceneStartInOutAnimTypeNone);
+            apps_menu_start_run_icon_anim(app, ICON_SECTION_STEADY);
         } else {
-            apps_menu_start_run_in_out_anim(app, AppsMenuSceneStartInOutAnimTypeEnter);
+            apps_menu_start_run_icon_anim(app, ICON_SECTION_ENTER);
             scene->is_not_first_enter = true;
         }
 
@@ -168,9 +140,7 @@ static bool apps_menu_scene_start_on_event(const SceneManagerEvent* event, void*
             break;
 
         case AppsMenuCustomEventAboutToExit:
-            with_gui(app->gui, {
-                apps_menu_start_run_in_out_anim(app, AppsMenuSceneStartInOutAnimTypeExit);
-            });
+            with_gui(app->gui, { apps_menu_start_run_icon_anim(app, ICON_SECTION_EXIT); });
             consumed = true;
             break;
 

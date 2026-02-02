@@ -4,6 +4,7 @@
 #include <m-array.h>
 #include <gui/gui.h>
 #include <gui/modules/countdown.h>
+#include <gui/modules/anim_player.h>
 #include <time.h>
 
 #define RECORD_CANVAS "CANVAS"
@@ -12,6 +13,7 @@ typedef struct CanvasApp CanvasApp;
 
 typedef enum {
     CanvasElementTypeImage,
+    CanvasElementTypeAnimPlayer,
     CanvasElementTypeText,
     CanvasElementTypeCountdown,
 } CanvasElementType;
@@ -25,10 +27,18 @@ typedef struct {
     GuiDisplayId display;
     Align align;
     CanvasElementType type;
+
     union {
         struct {
             FuriString* file_path;
         } image;
+
+        struct {
+            FuriString* file_path;
+            FuriString* section;
+            AnimFilePlayFlag flags;
+        } anim_player;
+
         struct {
             char* text_str;
             GuiFont font;
@@ -36,6 +46,7 @@ typedef struct {
             size_t width;
             size_t scroll_rate_cpm;
         } text;
+
         struct {
             time_t timestamp;
             Color color;
@@ -54,6 +65,9 @@ static inline void canvas_element_clear(CanvasElement* obj) {
         if(obj->image.file_path) furi_string_free(obj->image.file_path);
     } else if(obj->type == CanvasElementTypeText) {
         if(obj->text.text_str) free(obj->text.text_str);
+    } else if(obj->type == CanvasElementTypeAnimPlayer) {
+        if(obj->anim_player.file_path) furi_string_free(obj->anim_player.file_path);
+        if(obj->anim_player.section) furi_string_free(obj->anim_player.section);
     }
 }
 
@@ -67,6 +81,13 @@ static inline void canvas_element_clone(CanvasElement* obj, const CanvasElement*
     } else if(src->type == CanvasElementTypeText) {
         if(src->text.text_str) {
             obj->text.text_str = strdup(src->text.text_str);
+        }
+    } else if(src->type == CanvasElementTypeAnimPlayer) {
+        if(src->anim_player.file_path) {
+            obj->anim_player.file_path = furi_string_alloc_set(src->anim_player.file_path);
+        }
+        if(src->anim_player.section) {
+            obj->anim_player.section = furi_string_alloc_set(src->anim_player.section);
         }
     }
 }

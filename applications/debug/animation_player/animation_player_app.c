@@ -54,30 +54,44 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
 
     instance->gui = furi_record_open(RECORD_GUI);
 
+    FuriString* args_str = furi_string_alloc_set_str(args ? args : "");
+    size_t colon_index = furi_string_search_char(args_str, ':');
+
+    GuiDisplayId animation_display = GuiDisplayIdFront;
+    GuiDisplayId label_display = GuiDisplayIdBack;
+
+    if(colon_index != FURI_STRING_FAILURE) {
+        if(furi_string_start_with_str(args_str, "back:")) {
+            animation_display = GuiDisplayIdBack;
+            label_display = GuiDisplayIdFront;
+        }
+        furi_string_right(args_str, colon_index + 1);
+    }
+
+    const char* path_arg = furi_string_get_cstr(args_str);
+
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, animation_player_app_input_callback, instance);
 
         Widget* root;
-        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+        root = gui_layer_get_root_widget(main_layer, label_display);
         instance->label = label_alloc(root);
 
         widget_set_align(label_get_base(instance->label), AlignCenter);
 
-        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
-        instance->anim_image = anim_image_alloc(root);
+        root = gui_layer_get_root_widget(main_layer, animation_display);
+        instance->anim_player = anim_player_alloc(root);
 
-        const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;
-
-        if(!anim_image_set_source(instance->anim_image, path)) {
+        if(anim_player_set_source(instance->anim_player, path_arg)) {
+            label_set_text(instance->label, "Look at other\nscreen");
+        } else {
             FURI_LOG_E(TAG, "Failed to load animation");
             label_set_text(instance->label, "Failed to load animation");
-
-        } else {
-            label_set_text(instance->label, "Running animation");
-            anim_image_start(instance->anim_image);
         }
     });
+
+    furi_string_free(args_str);
 
     return instance;
 }
@@ -89,8 +103,7 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, animation_player_app_input_callback);
 
-        anim_image_stop(instance->anim_image);
-        anim_image_free(instance->anim_image);
+        anim_player_free(instance->anim_player);
         label_free(instance->label);
     });
 
