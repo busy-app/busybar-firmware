@@ -45,7 +45,7 @@ static void system_settings_scene_factory_reset_confirm_on_enter(void* context) 
         dialog_set_options(data->front_dialog, "Reset", "Cancel");
         dialog_set_options(data->back_dialog, "Reset", "Cancel");
 
-        dialog_set_calback(
+        dialog_set_callback(
             data->front_dialog, system_settings_scene_factory_reset_confirm_callback, instance);
     });
 }
