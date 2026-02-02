@@ -270,9 +270,11 @@ static void mqtt_http_proxy_message_callback(const MqttMessage* message, void* c
         &instance->mgr, instance->api_connection_id, &request, sizeof(MqttHttpProxyRequest*));
 }
 
-static void
+static bool
     mqtt_http_proxy_process_request(MqttHttpProxySrv* instance, MqttHttpProxyRequest* request) {
-    if(mqtt_http_proxy_request_is_valid(request)) {
+    const bool success = mqtt_http_proxy_request_is_valid(request);
+
+    if(success) {
         mg_http_connect(&instance->mgr, HTTP_HOST, mqtt_api_http_handler, request);
 
     } else {
@@ -281,9 +283,9 @@ static void
         if(mqtt_http_proxy_request_requires_response(request)) {
             mqtt_http_proxy_respond_error(request);
         }
-
-        mqtt_http_proxy_request_free(request);
     }
+
+    return success;
 }
 
 static void
@@ -298,7 +300,10 @@ static void
         furi_assert(data->len == sizeof(MqttHttpProxyRequest*));
 
         MqttHttpProxyRequest* request = *(MqttHttpProxyRequest**)data->buf;
-        mqtt_http_proxy_process_request(instance, request);
+
+        if(!mqtt_http_proxy_process_request(instance, request)) {
+            mqtt_http_proxy_request_free(request);
+        }
     }
 }
 
