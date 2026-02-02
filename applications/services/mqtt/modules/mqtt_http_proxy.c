@@ -312,9 +312,9 @@ static MqttHttpProxySrv* mqtt_http_proxy_alloc(void) {
     mg_mgr_init(&instance->mgr);
     mg_wakeup_init(&instance->mgr);
 
-    const struct mg_connection* api_connnection =
+    const struct mg_connection* api_connection =
         mg_wrapfd(&instance->mgr, MG_INVALID_SOCKET, mqtt_http_proxy_event_callback, instance);
-    instance->api_connection_id = api_connnection->id;
+    instance->api_connection_id = api_connection->id;
 
     mqtt_subscribe(instance->mqtt, SUB_QOS, SUB_TOPIC, mqtt_http_proxy_message_callback, instance);
     return instance;
