@@ -201,7 +201,7 @@ void dialog_set_option_colors(Dialog* instance, Color color_0, Color color_1) {
         ((DialogOption*)option)->label, TO_LV_COLOR(color_1), LV_STATE_FOCUSED);
 }
 
-void dialog_set_calback(Dialog* instance, DialogCallback callback, void* context) {
+void dialog_set_callback(Dialog* instance, DialogCallback callback, void* context) {
     furi_check(instance);
 
     instance->callback = callback;
