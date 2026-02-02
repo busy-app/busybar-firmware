@@ -91,7 +91,7 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     lv_obj_set_style_pad_gap(top_line, 3, LV_PART_MAIN);
 
     lv_obj_t* image_cont = lv_obj_create(top_line);
-    lv_obj_set_size(image_cont, LV_PCT(40), 13);
+    lv_obj_set_size(image_cont, LV_PCT(30), 13);
     lv_obj_set_style_pad_all(image_cont, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(image_cont, 0, LV_PART_MAIN);
     lv_obj_set_flex_grow(image_cont, 0);
@@ -163,8 +163,10 @@ void link_pin_view_set_state(LinkPinView* instance, const char* pin_code, time_t
 
     if(pin_code) {
         lv_obj_add_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
+
         lv_label_set_text(instance->code_label, pin_code);
         lv_obj_remove_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
+
         countdown_begin(
             instance->code_timer,
             valid_untill,
@@ -172,11 +174,19 @@ void link_pin_view_set_state(LinkPinView* instance, const char* pin_code, time_t
             CountdownShowHourWhenNonZero);
         lv_obj_remove_flag((lv_obj_t*)instance->code_timer, LV_OBJ_FLAG_HIDDEN);
     } else {
-        lv_obj_add_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag((lv_obj_t*)instance->code_timer, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
         lv_label_set_text(instance->code_label, "");
+
         lv_obj_remove_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_add_flag((lv_obj_t*)instance->code_timer, LV_OBJ_FLAG_HIDDEN);
+        countdown_stop(instance->code_timer);
     }
+}
+
+void link_pin_view_set_callback(LinkPinView* instance, LinkPinCallback callback, void* context) {
+    furi_check(instance);
+    countdown_set_callback(instance->code_timer, callback, context);
 }
 
 /* LVGL class descriptors */

@@ -4,6 +4,7 @@
 
 typedef enum {
     SceneEventRequestPin = AppEventSceneEventsStart,
+    SceneEventCountdownEnd,
 } SceneEvent;
 
 typedef struct {
@@ -40,6 +41,12 @@ static bool account_scene_link_pin_input_callback(const InputEvent* event, void*
     return consumed;
 }
 
+static void account_scene_link_pin_countdown_callback(void* context) {
+    furi_assert(context);
+    AccountSettings* instance = context;
+    account_settings_send_custom_event(instance, SceneEventCountdownEnd);
+}
+
 static void
     account_scene_link_pin_update(AccountSettings* instance, SceneLinkPin* data, bool pin_valid) {
     char* pin = pin_valid ? instance->link_pin : NULL;
@@ -61,6 +68,9 @@ static void account_scene_link_pin_on_enter(void* context) {
 
         data->front_view = link_pin_view_front_alloc(instance->front_scene_window);
         data->back_view = link_pin_view_back_alloc(instance->back_scene_window);
+
+        link_pin_view_set_callback(
+            data->front_view, account_scene_link_pin_countdown_callback, instance);
     });
 
     account_scene_link_pin_update(instance, data, false);
@@ -96,6 +106,9 @@ static bool account_scene_link_pin_on_event(const SceneManagerEvent* event, void
             account_scene_link_pin_update(instance, data, false);
             account_model_request_link_pin(instance->model);
             consumed = true;
+            break;
+        case SceneEventCountdownEnd:
+            scene_manager_previous_scene(instance->scene_manager);
             break;
         case AppEventAccountLinkPin:
             account_scene_link_pin_update(instance, data, true);

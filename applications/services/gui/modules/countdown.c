@@ -16,6 +16,9 @@ struct Countdown {
     uint8_t last_update_second;
     CountdownDirection direction;
     CountdownShowHour hours;
+
+    CountdownCallback callback;
+    void* context;
 };
 
 const lv_obj_class_t countdown_lvgl_class;
@@ -46,6 +49,10 @@ static void countdown_update(Countdown* countdown) {
         lv_label_set_text_fmt(countdown->label, "%02hhu:%02hhu:%02hhu", hours, minutes, seconds);
     } else {
         lv_label_set_text_fmt(countdown->label, "%02hhu:%02hhu", minutes, seconds);
+    }
+
+    if((countdown->direction == CountdownDirectionTimeLeft) && (delta == 0)) {
+        if(countdown->callback) countdown->callback(countdown->context);
     }
 }
 
@@ -79,6 +86,12 @@ Widget* countdown_get_base(Countdown* instance) {
     return (Widget*)instance;
 }
 
+void countdown_set_callback(Countdown* instance, CountdownCallback callback, void* context) {
+    furi_check(instance);
+    instance->callback = callback;
+    instance->context = context;
+}
+
 void countdown_set_text_color(Countdown* instance, Color color) {
     furi_check(instance);
     lv_obj_set_style_text_color((lv_obj_t*)instance->label, TO_LV_COLOR(color), LV_PART_MAIN);
@@ -100,6 +113,11 @@ void countdown_begin(
     countdown_update(instance);
 
     lv_timer_resume(instance->timer);
+}
+
+void countdown_stop(Countdown* instance) {
+    furi_check(instance);
+    lv_timer_pause(instance->timer);
 }
 
 // ==========
