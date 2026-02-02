@@ -3,7 +3,6 @@
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
-
 static void input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 

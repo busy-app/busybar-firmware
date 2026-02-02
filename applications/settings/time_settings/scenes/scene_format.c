@@ -11,7 +11,7 @@ typedef struct {
     VarItemList* back_list;
 } SettingsSceneFormat;
 
-static const char* format_names[] =
+const char* time_settings_format_names[SntpSettingTimeFormatCount] =
     {[SntpSettingTimeFormat24h] = "24h", [SntpSettingTimeFormat12h] = "12h"};
 
 static void scene_main_on_changed(VarItem* item, void* context) {
@@ -42,8 +42,8 @@ static void scene_format_on_enter(void* context) {
             data->front_list,
             "Time format",
             NULL,
-            format_names,
-            COUNT_OF(format_names),
+            time_settings_format_names,
+            COUNT_OF(time_settings_format_names),
             scene_main_on_changed,
             instance);
         var_item_set_value(item, sntp_settings.time_format);
@@ -52,8 +52,8 @@ static void scene_format_on_enter(void* context) {
             data->back_list,
             "Time format",
             NULL,
-            format_names,
-            COUNT_OF(format_names),
+            time_settings_format_names,
+            COUNT_OF(time_settings_format_names),
             NULL,
             instance);
         var_item_set_value(item, sntp_settings.time_format);

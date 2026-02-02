@@ -52,21 +52,38 @@ static void scene_menu_on_enter(void* context) {
     char zone_abbr[8];
     snprintf(zone_abbr, sizeof(zone_abbr), sntp_settings.timezone.abrev_formatter, letters);
 
+    char front_tz_text[18];
+    snprintf(front_tz_text, sizeof(front_tz_text), "Time zone%7.7s>", zone_abbr);
+    char back_tz_text[26];
+    snprintf(
+        back_tz_text, sizeof(back_tz_text), "Time zone %14.14s>", sntp_settings.timezone.name);
+    char front_time_format_text[19];
+    snprintf(
+        front_time_format_text,
+        sizeof(front_time_format_text),
+        "Time format%6.6s>",
+        time_settings_format_names[sntp_settings.time_format]);
+    char back_time_format_text[25];
+    snprintf(
+        back_time_format_text,
+        sizeof(back_time_format_text),
+        "Time format%12.12s>",
+        time_settings_format_names[sntp_settings.time_format]);
+
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
-        char front_tz_text[18];
-        snprintf(front_tz_text, sizeof(front_tz_text), "Time zone%7.7s>", zone_abbr);
         submenu_add_item(
             data->front_menu, front_tz_text, IdxTimeZone, scene_menu_on_submenu_item, instance);
         submenu_add_item(
-            data->front_menu, "Time format", IdxTimeFormat, scene_menu_on_submenu_item, instance);
+            data->front_menu,
+            front_time_format_text,
+            IdxTimeFormat,
+            scene_menu_on_submenu_item,
+            instance);
 
-        char back_tz_text[26];
-        snprintf(
-            back_tz_text, sizeof(back_tz_text), "Time zone %14.14s>", sntp_settings.timezone.name);
         data->back_menu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(data->back_menu, back_tz_text, IdxTimeZone, NULL, instance);
-        submenu_add_item(data->back_menu, "Time format", IdxTimeFormat, NULL, instance);
+        submenu_add_item(data->back_menu, back_time_format_text, IdxTimeFormat, NULL, instance);
     });
 }
 
