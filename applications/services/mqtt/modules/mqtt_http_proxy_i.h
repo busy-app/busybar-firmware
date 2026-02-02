@@ -19,7 +19,6 @@ typedef struct {
 typedef struct {
     Mqtt* mqtt;
     struct mg_mgr mgr;
-    struct mg_timer timer;
     unsigned long api_connection_id;
 } MqttHttpProxySrv;
 
