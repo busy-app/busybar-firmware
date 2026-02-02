@@ -134,6 +134,7 @@ typedef enum {
     MqttStatusNotConnected, /**< Not connected to MQTT broker */
     MqttStatusConnectedNotLinked, /**< Connected to MQTT broker, but not linked to an account */
     MqttStatusConnectedLinked, /**< Connected to MQTT broker, and linked to an account */
+    MqttStatusMax, /**< Special value, internal use */
 } MqttStatus;
 
 /**
