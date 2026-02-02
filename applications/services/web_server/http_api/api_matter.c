@@ -105,7 +105,9 @@ static bool api_matter_enable_commissioning(
 
     furi_string_free(qr_code);
     furi_string_free(manual_code);
-    return success;
+
+    bool handled = true;
+    return handled;
 }
 
 static bool api_matter_factory_reset(
@@ -128,7 +130,8 @@ static bool api_matter_factory_reset(
         MG_REPLY_ERROR(conn, 503, "Matter unavailable");
     }
 
-    return success;
+    bool handled = true;
+    return handled;
 }
 
 static bool api_matter_switch_get(
@@ -137,6 +140,7 @@ static bool api_matter_switch_get(
     struct mg_http_message* msg,
     void* untyped_ctx) {
     UNUSED(msg);
+    bool handled = true;
     ApiMatterRequestCtx* ctx = untyped_ctx;
     furi_assert(ctx);
 
@@ -145,7 +149,7 @@ static bool api_matter_switch_get(
     bool state;
     if(!matter_get_switch_state(ctx->matter, &state)) {
         MG_REPLY_ERROR(conn, 503, "Matter unavailable");
-        return false;
+        return handled;
     }
 
     cJSON* object = cJSON_CreateObject();
@@ -157,7 +161,7 @@ static bool api_matter_switch_get(
     cJSON_Delete(object);
     MG_REPLY_OK_BODY(conn, serialized);
     free(serialized);
-    return true;
+    return handled;
 }
 
 static bool api_matter_switch_set(
@@ -165,7 +169,6 @@ static bool api_matter_switch_set(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* untyped_ctx) {
-    UNUSED(msg);
     ApiMatterRequestCtx* ctx = untyped_ctx;
     furi_assert(ctx);
 
@@ -205,6 +208,10 @@ static bool api_matter_switch_set(
             };
             MatterSwitchStartupMode startup = value_index_string(
                 switch_startup, switch_startup_modes, COUNT_OF(switch_startup_modes));
+
+            furi_assert(startup >= MatterSwitchStartupModeMIN);
+            furi_assert(startup < MatterSwitchStartupModeMAX);
+
             if(!matter_set_switch_startup_mode(ctx->matter, startup)) {
                 matter_request_error = true;
                 break;
@@ -227,7 +234,8 @@ static bool api_matter_switch_set(
         }
     }
 
-    return success;
+    bool handled = true;
+    return handled;
 }
 
 static const HttpHandler handlers_matter[] = {
