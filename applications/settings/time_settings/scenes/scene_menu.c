@@ -7,7 +7,7 @@
 #define TAG "TIME_MENU"
 
 typedef enum {
-    SceneEventTimezoneSelected = AppEventSceneEventsStart,
+    SceneEventTimezoneSelected,
     SceneEventFormatSelected,
 } SceneEvent;
 

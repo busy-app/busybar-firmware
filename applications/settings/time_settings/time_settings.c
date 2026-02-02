@@ -3,24 +3,6 @@
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
-static bool thread_signal_callback(uint32_t signal, void* arg, void* context) {
-    UNUSED(arg);
-
-    TimeSettings* instance = context;
-
-    switch(signal) {
-    case FuriSignalExit:
-        furi_event_loop_stop(instance->event_loop);
-        return true;
-
-    case FuriSignalAboutToExit:
-        time_settings_send_custom_event(instance, AppEventAboutToExit);
-        return true;
-
-    default:
-        return false;
-    }
-}
 
 static void input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -160,7 +142,7 @@ int32_t time_settings_entry(void* arg) {
         SettingsAppDescriptor* descriptor = arg;
 
         furi_string_set_str(descriptor->front_title, "Time");
-        furi_string_set_str(descriptor->back_title, "TIME");
+        furi_string_set_str(descriptor->back_title, "Time");
         furi_string_set_str(descriptor->front_icon, IMG_PATH("clock_front_8x8.bin"));
         furi_string_set_str(descriptor->back_icon, IMG_PATH("clock_back_11x11.bin"));
 
@@ -169,7 +151,6 @@ int32_t time_settings_entry(void* arg) {
 
     TimeSettings* instance = time_settings_alloc();
     FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
     furi_thread_set_signal_callback(thread, NULL, NULL);
     time_settings_free(instance);
