@@ -6,10 +6,6 @@
 
 #define SYSTEM_SETTINGS_POWER_INFO_UPDATE_PERIOD_MS (500)
 
-typedef enum {
-    SceneEventPowerInfoStatusChangedEvent = AppEventSceneEventsStart,
-} SceneEventPowerInfoEvent;
-
 typedef struct {
     Label* power_info[GuiDisplayIdMax];
     FuriString* power_info_str;
