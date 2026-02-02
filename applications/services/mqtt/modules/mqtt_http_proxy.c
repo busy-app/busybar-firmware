@@ -101,46 +101,41 @@ static bool mqtt_http_proxy_request_decrement_poll_counter(MqttHttpProxyRequest*
     return request->poll_cnt > 0;
 }
 
-static bool mqtt_http_proxy_is_valid_uri(const struct mg_http_message* http_msg) {
+static bool mqtt_http_proxy_trim_uri(struct mg_str* uri) {
     bool is_valid = false;
 
     do {
-        const struct mg_str uri = http_msg->uri;
-        const size_t prefix_len = strlen(HTTP_URI_API_PREFIX);
-
-        if(uri.len < prefix_len) {
+        struct mg_str captures[2];
+        if(!mg_match(*uri, mg_str(HTTP_URI_API_PREFIX "#"), captures)) {
             break;
         }
-
-        if(strncmp(uri.buf, HTTP_URI_API_PREFIX, prefix_len) != 0) {
+        // Remove URI prefix
+        struct mg_str tmp = captures[0];
+        if(tmp.len == 0) {
             break;
-        };
+        }
+        // Remove possible trailing slash
+        if(tmp.buf[tmp.len - 1] == '/') {
+            tmp.len -= 1;
+        }
 
+        *uri = tmp;
         is_valid = true;
+
     } while(false);
 
     return is_valid;
 }
 
-static bool mqtt_http_proxy_method_is_blocked(const struct mg_http_message* http_msg) {
+static bool
+    mqtt_http_proxy_method_is_blocked(const struct mg_str uri, const struct mg_str method) {
     bool is_blocked = false;
-
-    struct mg_str uri_mask = http_msg->uri;
-    const size_t prefix_len = strlen(HTTP_URI_API_PREFIX);
-    // Remove URI prefix
-    uri_mask.buf += prefix_len;
-    uri_mask.len -= prefix_len;
-    // Remove possible trailing slash
-    if(uri_mask.buf[uri_mask.len - 1] == '/') {
-        uri_mask.len -= 1;
-    }
 
     for(uint32_t i = 0; i < COUNT_OF(mqtt_http_proxy_blocklist); i++) {
         const MqttHttpProxyBlocklistEntry* const block_entry = &mqtt_http_proxy_blocklist[i];
 
-        if(mg_strcmp(uri_mask, mg_str(block_entry->name)) == 0) {
-            const MqttHttpProxyMethodId id =
-                mqtt_http_proxy_get_method_id_by_name(http_msg->method);
+        if(mg_strcmp(uri, mg_str(block_entry->name)) == 0) {
+            const MqttHttpProxyMethodId id = mqtt_http_proxy_get_method_id_by_name(method);
 
             if(id != MqttHttpProxyMethodIdMax) {
                 if(id == block_entry->id) {
@@ -179,12 +174,17 @@ static bool mqtt_http_proxy_request_is_valid(const MqttHttpProxyRequest* request
         if(req_len <= 0) {
             break;
         }
-        if(!mqtt_http_proxy_is_valid_uri(&http_msg)) {
+
+        struct mg_str uri = http_msg.uri;
+        if(!mqtt_http_proxy_trim_uri(&uri)) {
             break;
         }
-        if(mqtt_http_proxy_method_is_blocked(&http_msg)) {
+
+        const struct mg_str method = http_msg.method;
+        if(mqtt_http_proxy_method_is_blocked(uri, method)) {
             break;
         }
+
         if(mqtt_http_proxy_is_websocket_upgrade(&http_msg)) {
             break;
         }
