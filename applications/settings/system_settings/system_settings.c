@@ -136,6 +136,8 @@ static void system_settings_free(SystemSettings* instance) {
         widget_free(instance->front_scene_window);
         widget_free(instance->back_scene_window);
         flex_layout_free(instance->back_container);
+
+        nav_bar_free(instance->back_nav_bar);
     });
 
     furi_record_close(RECORD_DESKTOP);
