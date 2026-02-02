@@ -22,35 +22,9 @@ typedef struct {
     bool is_timer_initial_run;
 } SettingsSceneStart;
 
-typedef enum {
-    SettingsSceneStartInOutAnimTypeNone,
-
-    SettingsSceneStartInOutAnimTypeEnter,
-    SettingsSceneStartInOutAnimTypeExit,
-} SettingsSceneStartInOutAnimType;
-
-typedef struct {
-    uint32_t icon_start;
-    uint32_t icon_stop;
-} SettingsSceneStartInOutAnimInfo;
-
-static const SettingsSceneStartInOutAnimInfo in_out_anim_infos[] = {
-    [SettingsSceneStartInOutAnimTypeNone] =
-        {
-            .icon_start = 59,
-            .icon_stop = 59,
-        },
-    [SettingsSceneStartInOutAnimTypeEnter] =
-        {
-            .icon_start = 0,
-            .icon_stop = 59,
-        },
-    [SettingsSceneStartInOutAnimTypeExit] =
-        {
-            .icon_start = 60,
-            .icon_stop = 67,
-        },
-};
+#define ICON_SECTION_ENTER  "enter"
+#define ICON_SECTION_STEADY "steady"
+#define ICON_SECTION_EXIT   "exit"
 
 static bool settings_scene_start_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -95,13 +69,10 @@ static void settings_scene_start_timer_callback(void* context) {
     }
 }
 
-static void
-    settings_start_run_in_out_anim(SettingsApp* instance, SettingsSceneStartInOutAnimType type) {
+static void settings_start_run_icon_anim(SettingsApp* instance, const char* section) {
     SettingsSceneStart* data =
         scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdStart);
-
-    const SettingsSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
-    anim_title_card_run_icon_anim(data->front_card, anim_info->icon_start, anim_info->icon_stop);
+    anim_title_card_run_icon_anim(data->front_card, section);
 }
 
 static void settings_scene_start_on_enter(void* context) {
@@ -121,9 +92,9 @@ static void settings_scene_start_on_enter(void* context) {
             data->front_card, SETTINGS_ANIM_PATH("settings_front_13x13.anim"));
 
         if(data->is_not_first_enter) {
-            settings_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeNone);
+            settings_start_run_icon_anim(instance, ICON_SECTION_STEADY);
         } else {
-            settings_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeEnter);
+            settings_start_run_icon_anim(instance, ICON_SECTION_ENTER);
             data->is_not_first_enter = true;
         }
 
@@ -177,7 +148,7 @@ static bool settings_scene_start_on_event(const SceneManagerEvent* event, void* 
 
         case SettingsCustomEventAboutToExit:
             with_gui(instance->gui, {
-                settings_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeExit);
+                settings_start_run_icon_anim(instance, ICON_SECTION_EXIT);
             });
             consumed = true;
             break;

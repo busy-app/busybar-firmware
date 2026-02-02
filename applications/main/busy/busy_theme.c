@@ -20,7 +20,7 @@ typedef struct {
 static const BusyThemeFileSpec busy_theme_bg_specs[] = {
     {.extension = "bin", .type = BusyThemeFileTypeImage},
     {.extension = "png", .type = BusyThemeFileTypeImage},
-    {.extension = "anim", .type = BusyThemeFileTypeAnimImage},
+    {.extension = "anim", .type = BusyThemeFileTypeAnim},
 };
 
 // Implementation
@@ -125,7 +125,7 @@ void busy_theme_set_default(BusyTheme* instance) {
 
     furi_string_set(instance->name, DEFAULT_NAME);
     furi_string_set(instance->bg_path, BUSY_ANIM_PATH("indicator_busy_72x16.anim"));
-    instance->bg_type = BusyThemeFileTypeAnimImage;
+    instance->bg_type = BusyThemeFileTypeAnim;
 }
 
 bool busy_theme_read(BusyTheme* instance, const char* name) {

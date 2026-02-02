@@ -6,6 +6,7 @@ import requests
 import time
 import json
 from flipper.app import App
+from flipper import rle
 
 
 class Main(App):
@@ -39,30 +40,6 @@ class Main(App):
             i += 1
             j += 2
         return b8_bytes
-
-    @staticmethod
-    def rle_decompress(data: bytes, blksize: int) -> bytearray:
-        index = 0
-        data_len = len(data)
-        decompressed = bytearray()
-
-        while index < data_len:
-            ctrl_byte = data[index]
-            index += 1
-
-            if int(ctrl_byte) & 0x80:
-                # Unique blocks: ctrl_byte & 0x7F = unique sequence length
-                count = ctrl_byte & 0x7F
-                block_data = data[index : index + count * blksize]
-                decompressed.extend(block_data)
-                index += count * blksize
-            else:
-                # Repeated block: ctrl_byte = repeat count
-                count = ctrl_byte
-                block = data[index : index + blksize]
-                decompressed.extend(block * count)
-                index += blksize
-        return decompressed
 
     @staticmethod
     def manual_rescale(value, original_min, original_max, new_min, new_max):
@@ -124,7 +101,7 @@ class Main(App):
     def get_frame(self):
         compressed = self.ws.recv()
         try:
-            decompressed = Main.rle_decompress(compressed, self.blk_size)
+            decompressed = rle.decompress(compressed, self.blk_size)
 
             if self.display_index == 0:
                 self.data = decompressed
