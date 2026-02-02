@@ -1,0 +1,10 @@
+App(
+    appid="time_settings",
+    name="Time settings",
+    apptype=FlipperAppType.SETTINGS,
+    entry_point="time_settings_entry",
+    requires=["gui", "front_display", "back_display", "sntp"],
+    stack_size=4 * 1024,
+    order=55,
+    targets=["f20", "f21", "f22"],
+)
