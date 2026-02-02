@@ -10,7 +10,7 @@ typedef enum {
 typedef struct {
     Dialog* front_dialog;
     Dialog* back_dialog;
-} SceneSystemFactoryResetConfirm;
+} SceneSystemPowerShutDownConfirm;
 
 static void system_settings_scene_power_shut_down_confirm_callback(uint8_t result, void* context) {
     SystemSettings* instance = context;
@@ -25,7 +25,7 @@ static void system_settings_scene_shut_down_confirm_on_enter(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
-    SceneSystemFactoryResetConfirm* data =
+    SceneSystemPowerShutDownConfirm* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPowerShutDownConfirm);
 
     with_gui(instance->gui, {
@@ -51,7 +51,7 @@ static void system_settings_scene_shut_down_confirm_on_exit(void* context) {
     furi_assert(context);
 
     SystemSettings* instance = context;
-    SceneSystemFactoryResetConfirm* data =
+    SceneSystemPowerShutDownConfirm* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPowerShutDownConfirm);
 
     with_gui(instance->gui, {
@@ -94,5 +94,5 @@ const Scene system_settings_scene_power_shut_down_confirm = {
     .enter_callback = system_settings_scene_shut_down_confirm_on_enter,
     .exit_callback = system_settings_scene_shut_down_confirm_on_exit,
     .event_callback = system_settings_scene_shut_down_confirm_on_event,
-    .data_size = sizeof(SceneSystemFactoryResetConfirm),
+    .data_size = sizeof(SceneSystemPowerShutDownConfirm),
 };
