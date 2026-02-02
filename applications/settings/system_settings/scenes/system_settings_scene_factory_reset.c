@@ -4,7 +4,8 @@
 #include <settings_helpers/status_view.h>
 #include <toolbox/update_lib/factory_reset.h>
 
-#define REBOOT_TIMER_MS (2500)
+#define REBOOT_TIMER_MS       (2500)
+#define WAIT_UPDATE_UNLOCK_MS (5000)
 
 typedef struct {
     StatusView* statuses[GuiDisplayIdMax];
@@ -41,7 +42,7 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
     Updater* updater = furi_record_open(RECORD_UPDATER);
     UpdaterStatus update_status = updater_session_start(updater);
     while(update_status != UpdaterStatusOk) {
-        furi_delay_ms(5000);
+        furi_delay_ms(WAIT_UPDATE_UNLOCK_MS);
         update_status = updater_session_start(updater);
     }
     factory_reset_perform(updater, false);
