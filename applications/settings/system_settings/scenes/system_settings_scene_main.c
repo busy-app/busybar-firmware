@@ -39,7 +39,7 @@ static void system_settings_scene_main_on_enter(void* context) {
             instance);
         submenu_add_item(
             data->front_menu,
-            "Debug apps",
+            "Debug",
             SceneEventDebug,
             system_settings_scene_main_menu_item_callback,
             instance);
@@ -53,7 +53,7 @@ static void system_settings_scene_main_on_enter(void* context) {
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(data->back_menu, "Power", SceneEventPower, NULL, instance);
-        submenu_add_item(data->back_menu, "Debug apps", SceneEventDebug, NULL, instance);
+        submenu_add_item(data->back_menu, "Debug", SceneEventDebug, NULL, instance);
         submenu_add_item(data->back_menu, "Factory reset", SceneEventFactoryReset, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
