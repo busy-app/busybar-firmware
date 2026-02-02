@@ -72,8 +72,6 @@ MqttSubscription* mqtt_subscribe_internal(
 }
 
 void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription) {
-    UNUSED(instance);
-
     MqttSubscriptionList_unlink(subscription);
     mqtt_subscription_free(subscription);
     // NOTE: Current Mongoose version does not support unsubscription
@@ -101,6 +99,7 @@ void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscrip
         .qos = subscription->qos,
     };
 
+    furi_check(instance->conn);
     mg_mqtt_sub(instance->conn, &sub_opts);
 
     furi_string_free(topic_path);
@@ -141,6 +140,7 @@ bool mqtt_publish_internal(
     };
 
     // TODO: Implement proper QoS handling
+    furi_check(instance->conn);
     mg_mqtt_pub(instance->conn, &opts);
 
     if(raw_props) {
