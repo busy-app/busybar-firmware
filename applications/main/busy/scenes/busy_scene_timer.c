@@ -395,6 +395,8 @@ static void busy_scene_timer_on_enter(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
+    updater_pause_autoupdates(instance->updater);
+
     busy_scene_timer_apply_theme(instance);
 
     BusySceneTimer* data =
@@ -456,6 +458,8 @@ static void busy_scene_timer_on_exit(void* context) {
         timer_label_free(data->timer_label);
         pause_overlay_free(data->pause_overlay);
     });
+
+    updater_resume_autoupdates(instance->updater);
 }
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {

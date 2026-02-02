@@ -15,43 +15,48 @@ static inline bool are_millis_equal(int16_t expected, int16_t actual) {
 
 MU_TEST(rtc_test_set_get_datetime) {
     furi_delay_ms(1500);
-    DateTime test = {
-        .year = 2025,
-        .month = 1,
-        .day = 15,
-        .hour = 12,
-        .minute = 30,
-        .second = 45,
+    DateTimeMs test = {
+        .dt =
+            {
+                .year = 2025,
+                .month = 1,
+                .dayofmonth = 15,
+                .hour = 12,
+                .minute = 30,
+                .second = 45,
+                .dayofweek = 3,
+            },
         .millis = 500,
-        .weekday = 3,
     };
 
     furi_hal_rtc_set_datetime(&test);
 
-    DateTime result;
-    furi_hal_rtc_get_datetime(&result);
+    DateTimeMs result = furi_hal_rtc_get_datetime();
 
-    mu_assert_int_eq(test.year, result.year);
-    mu_assert_int_eq(test.month, result.month);
-    mu_assert_int_eq(test.day, result.day);
-    mu_assert_int_eq(test.hour, result.hour);
-    mu_assert_int_eq(test.minute, result.minute);
-    mu_assert_int_eq(test.second, result.second);
-    mu_assert_int_eq(test.weekday, result.weekday);
+    mu_assert_int_eq(test.dt.year, result.dt.year);
+    mu_assert_int_eq(test.dt.month, result.dt.month);
+    mu_assert_int_eq(test.dt.dayofmonth, result.dt.dayofmonth);
+    mu_assert_int_eq(test.dt.hour, result.dt.hour);
+    mu_assert_int_eq(test.dt.minute, result.dt.minute);
+    mu_assert_int_eq(test.dt.second, result.dt.second);
+    mu_assert_int_eq(test.dt.dayofweek, result.dt.dayofweek);
     mu_check(are_millis_equal(test.millis, result.millis));
 }
 
 MU_TEST(rtc_test_time_progression) {
     uint32_t delay = 1500;
-    DateTime test = {
-        .year = 2025,
-        .month = 1,
-        .day = 15,
-        .hour = 12,
-        .minute = 30,
-        .second = 45,
+    DateTimeMs test = {
+        .dt =
+            {
+                .year = 2025,
+                .month = 1,
+                .dayofmonth = 15,
+                .hour = 12,
+                .minute = 30,
+                .second = 45,
+                .dayofweek = 3,
+            },
         .millis = 0,
-        .weekday = 3,
     };
 
     furi_hal_rtc_set_datetime(&test);
@@ -65,61 +70,67 @@ MU_TEST(rtc_test_time_progression) {
 }
 
 MU_TEST(rtc_test_millis_low) {
-    DateTime test = {
-        .year = 2025,
-        .month = 1,
-        .day = 15,
-        .hour = 12,
-        .minute = 30,
-        .second = 45,
+    DateTimeMs test = {
+        .dt =
+            {
+                .year = 2025,
+                .month = 1,
+                .dayofmonth = 15,
+                .hour = 12,
+                .minute = 30,
+                .second = 45,
+                .dayofweek = 3,
+            },
         .millis = 100,
-        .weekday = 3,
     };
 
     furi_hal_rtc_set_datetime(&test);
 
-    DateTime result;
-    furi_hal_rtc_get_datetime(&result);
+    DateTimeMs result = furi_hal_rtc_get_datetime();
 
     mu_check(are_millis_equal(test.millis, result.millis));
 }
 
 MU_TEST(rtc_test_millis_middle) {
-    DateTime test = {
-        .year = 2025,
-        .month = 1,
-        .day = 15,
-        .hour = 12,
-        .minute = 30,
-        .second = 45,
+    DateTimeMs test = {
+        .dt =
+            {
+                .year = 2025,
+                .month = 1,
+                .dayofmonth = 15,
+                .hour = 12,
+                .minute = 30,
+                .second = 45,
+                .dayofweek = 3,
+            },
         .millis = 500,
-        .weekday = 3,
     };
 
     furi_hal_rtc_set_datetime(&test);
 
-    DateTime result;
-    furi_hal_rtc_get_datetime(&result);
+    DateTimeMs result = furi_hal_rtc_get_datetime();
 
     mu_check(are_millis_equal(test.millis, result.millis));
 }
 
 MU_TEST(rtc_test_millis_high) {
-    DateTime test = {
-        .year = 2025,
-        .month = 1,
-        .day = 15,
-        .hour = 12,
-        .minute = 30,
-        .second = 45,
+    DateTimeMs test = {
+        .dt =
+            {
+                .year = 2025,
+                .month = 1,
+                .dayofmonth = 15,
+                .hour = 12,
+                .minute = 30,
+                .second = 45,
+                .dayofweek = 3,
+            },
         .millis = 900,
-        .weekday = 3,
     };
 
     furi_hal_rtc_set_datetime(&test);
 
-    DateTime result;
-    furi_hal_rtc_get_datetime(&result);
+    DateTimeMs result = furi_hal_rtc_get_datetime();
 
     mu_check(are_millis_equal(test.millis, result.millis));
 }

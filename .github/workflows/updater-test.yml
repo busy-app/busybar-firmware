@@ -91,7 +91,7 @@ jobs:
         if: always()
         run: |
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
-          LOG_FILE="/opt/logs/${{ runner.name }}/latest/runlog.log"
+          LOG_FILE="${RUNNER_LOG_DIR}/latest/runlog.log"
           S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/updater-test/$RUN_ID/runlog.log"
           PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/updater-test/$RUN_ID/runlog.log"
 

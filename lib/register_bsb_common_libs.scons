@@ -30,6 +30,7 @@ for libname in [
     "settings_helpers",
     "anim_file",
     "zlib",
+    "utz",
     ## SI917
     "sl_glue",
     "simplicity_sdk",
