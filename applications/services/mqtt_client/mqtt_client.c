@@ -95,12 +95,13 @@ static void
     mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message) {
     if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
         char* pin = mg_json_get_str(*message, "$.code");
-        int32_t pin_expires_at = mg_json_get_long(*message, "$.expires_at", -1);
+        double pin_expires_at = 0.;
+        mg_json_get_num(*message, "$.expires_at", &pin_expires_at);
         if(pin) {
             FURI_LOG_I(TAG, "Link PIN: %s", pin);
             MqttClientEvent pub_event = {
                 .type = MqttClientEventLinkPin,
-                .link = {.pin = pin, .expires_at = pin_expires_at}};
+                .link = {.pin = pin, .expires_at = (time_t)pin_expires_at}};
             furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
             free(pin);
         }

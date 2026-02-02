@@ -32,8 +32,6 @@ static void account_scene_connecting_on_exit(void* context) {
     SceneConnecting* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdConnecting);
 
-    instance->link_reconnect_pending = false;
-
     with_gui(instance->gui, {
         status_view_free(data->back_status);
         status_view_free(data->front_status);
@@ -51,13 +49,9 @@ static bool account_scene_connecting_on_event(const SceneManagerEvent* event, vo
         case AppEventAccountStateChange:
             AccountModelState state = account_model_get_state(instance->model);
             if(state == AccountModelStateConnectedNotLinked) {
-                scene_manager_replace_current_scene(instance->scene_manager, SceneIdNotLinked);
+                scene_manager_replace_current_scene(instance->scene_manager, SceneIdNotLinkedMenu);
             } else if(state == AccountModelStateConnectedLinked) {
-                if(instance->link_reconnect_pending) {
-                    scene_manager_replace_current_scene(instance->scene_manager, SceneIdLinkDone);
-                } else {
-                    scene_manager_replace_current_scene(instance->scene_manager, SceneIdLinked);
-                }
+                scene_manager_replace_current_scene(instance->scene_manager, SceneIdLinkedInfo);
             }
             consumed = true;
             break;

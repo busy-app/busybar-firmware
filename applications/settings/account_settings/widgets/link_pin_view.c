@@ -4,16 +4,19 @@
 #include <storage/storage.h>
 #include <gui/widget_i.h>
 #include <gui/modules/anim_image_i.h>
+#include <gui/modules/countdown.h>
 
 #define LINK_PIN_BACK_CLASS  (&link_pin_view_back_lvgl_class)
 #define LINK_PIN_FRONT_CLASS (&link_pin_view_front_lvgl_class)
 
 #define COLOR_BOTTOM_TEXT lv_color_hex(0x888888)
+#define COLOR_COUNTDOWN   (0xA0A0A0)
 
 struct LinkPinView {
     Widget base;
     lv_obj_t* code_label;
     AnimImage* loading_spinner;
+    Countdown* code_timer;
 };
 
 const lv_obj_class_t link_pin_view_back_lvgl_class;
@@ -33,7 +36,7 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_set_style_pad_gap(obj, 2, LV_PART_MAIN);
 
     lv_obj_t* image_cont = lv_obj_create(obj);
-    lv_obj_set_size(image_cont, lv_pct(33), LV_SIZE_CONTENT);
+    lv_obj_set_size(image_cont, 12, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_all(image_cont, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(image_cont, 0, LV_PART_MAIN);
     lv_obj_set_flex_grow(image_cont, 0);
@@ -43,6 +46,12 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_set_style_pad_all(code_cont, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(code_cont, 0, LV_PART_MAIN);
     lv_obj_set_flex_grow(code_cont, 0);
+
+    lv_obj_t* timer_cont = lv_obj_create(obj);
+    lv_obj_set_size(timer_cont, LV_SIZE_CONTENT, LV_PCT(100));
+    lv_obj_set_style_pad_all(timer_cont, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_width(timer_cont, 0, LV_PART_MAIN);
+    lv_obj_set_flex_grow(timer_cont, 1);
 
     lv_obj_t* lock_image = lv_img_create(image_cont);
     lv_img_set_src(lock_image, IMG_PATH("lock_front_12x12.bin"));
@@ -56,6 +65,10 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_set_style_text_font(instance->code_label, font, LV_PART_MAIN);
     lv_obj_align(instance->code_label, LV_ALIGN_LEFT_MID, 0, 0);
     lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
+
+    instance->code_timer = countdown_alloc((Widget*)timer_cont);
+    lv_obj_align((lv_obj_t*)instance->code_timer, LV_ALIGN_RIGHT_MID, 0, 0);
+    countdown_set_text_color(instance->code_timer, color_hex_to_rgb(COLOR_COUNTDOWN));
 
     instance->loading_spinner = anim_image_alloc((Widget*)code_cont);
     anim_image_set_source(instance->loading_spinner, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
@@ -107,6 +120,9 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     anim_image_set_source(instance->loading_spinner, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
     lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
 
+    instance->code_timer = countdown_alloc((Widget*)top_line);
+    countdown_set_text_color(instance->code_timer, color_hex_to_rgb(COLOR_COUNTDOWN));
+
     font = lv_theme_get_font_normal(obj);
     lv_obj_t* bottom_label = lv_label_create(obj);
     lv_label_set_text(bottom_label, "Enter this code on\nwww.cloud.busy.app");
@@ -142,15 +158,22 @@ void link_pin_view_free(LinkPinView* instance) {
     lv_obj_delete(TO_LV_OBJ(instance));
 }
 
-void link_pin_view_set_state(LinkPinView* instance, const char* pin_code) {
+void link_pin_view_set_state(LinkPinView* instance, const char* pin_code, time_t valid_untill) {
     furi_check(instance);
 
     if(pin_code) {
         lv_obj_add_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
         lv_label_set_text(instance->code_label, pin_code);
         lv_obj_remove_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
+        countdown_begin(
+            instance->code_timer,
+            valid_untill,
+            CountdownDirectionTimeLeft,
+            CountdownShowHourWhenNonZero);
+        lv_obj_remove_flag((lv_obj_t*)instance->code_timer, LV_OBJ_FLAG_HIDDEN);
     } else {
-        lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag((lv_obj_t*)instance->code_timer, LV_OBJ_FLAG_HIDDEN);
         lv_label_set_text(instance->code_label, "");
         lv_obj_remove_flag((lv_obj_t*)instance->loading_spinner, LV_OBJ_FLAG_HIDDEN);
     }

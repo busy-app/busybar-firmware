@@ -25,21 +25,24 @@ static void account_model_event_callback(const void* message, void* context) {
 
     if(mqtt_event->type == MqttClientEventLinkPin) {
         furi_timer_stop(model->link_timeout_timer);
-        // TODO: PIN expire time
-        model->callback(AccountModelEventPinGot, mqtt_event->link.pin, model->context);
+        model->callback(
+            AccountModelEventPinGot,
+            mqtt_event->link.pin,
+            mqtt_event->link.expires_at,
+            model->context);
     } else if(mqtt_event->type == MqttClientEventLinkDone) {
-        model->callback(AccountModelEventLinkDone, NULL, model->context);
+        model->callback(AccountModelEventLinkDone, NULL, 0, model->context);
     } else if(mqtt_event->type == MqttClientEventUnlinked) {
-        model->callback(AccountModelEventUnlinked, NULL, model->context);
+        model->callback(AccountModelEventUnlinked, NULL, 0, model->context);
     } else {
-        model->callback(AccountModelEventStateChange, NULL, model->context);
+        model->callback(AccountModelEventStateChange, NULL, 0, model->context);
     }
 }
 
 static void account_model_link_timeout_callback(void* ctx) {
     AccountModel* model = ctx;
     if(model->callback) {
-        model->callback(AccountModelEventPinTimeout, NULL, model->context);
+        model->callback(AccountModelEventPinTimeout, NULL, 0, model->context);
     }
 }
 

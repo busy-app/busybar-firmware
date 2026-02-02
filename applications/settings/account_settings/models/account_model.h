@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include <furi.h>
+#include <time.h>
 
 #define ACCOUNT_MODEL_LINK_PIN_LEN 4
 
@@ -28,7 +29,11 @@ typedef enum {
     AccountModelEventUnlinked,
 } AccountModelEvent;
 
-typedef void (*AccountModelEventCallback)(AccountModelEvent event, const char* pin, void* context);
+typedef void (*AccountModelEventCallback)(
+    AccountModelEvent event,
+    const char* pin,
+    time_t pin_valid_untill,
+    void* context);
 
 AccountModel* account_model_alloc(void);
 

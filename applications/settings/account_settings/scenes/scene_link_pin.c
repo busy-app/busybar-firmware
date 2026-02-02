@@ -41,10 +41,11 @@ static bool account_scene_link_pin_input_callback(const InputEvent* event, void*
 }
 
 static void
-    account_scene_link_pin_update(AccountSettings* instance, SceneLinkPin* data, char* pin_code) {
+    account_scene_link_pin_update(AccountSettings* instance, SceneLinkPin* data, bool pin_valid) {
+    char* pin = pin_valid ? instance->link_pin : NULL;
     with_gui(instance->gui, {
-        link_pin_view_set_state(data->back_view, pin_code);
-        link_pin_view_set_state(data->front_view, pin_code);
+        link_pin_view_set_state(data->back_view, pin, instance->pin_valid_untill);
+        link_pin_view_set_state(data->front_view, pin, instance->pin_valid_untill);
     });
 }
 
@@ -62,7 +63,7 @@ static void account_scene_link_pin_on_enter(void* context) {
         data->back_view = link_pin_view_back_alloc(instance->back_scene_window);
     });
 
-    account_scene_link_pin_update(instance, data, NULL);
+    account_scene_link_pin_update(instance, data, false);
     account_model_request_link_pin(instance->model);
 }
 
@@ -92,12 +93,12 @@ static bool account_scene_link_pin_on_event(const SceneManagerEvent* event, void
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case SceneEventRequestPin:
-            account_scene_link_pin_update(instance, data, NULL);
+            account_scene_link_pin_update(instance, data, false);
             account_model_request_link_pin(instance->model);
             consumed = true;
             break;
         case AppEventAccountLinkPin:
-            account_scene_link_pin_update(instance, data, instance->link_pin);
+            account_scene_link_pin_update(instance, data, true);
             consumed = true;
             break;
         case AppEventAccountLinkPinTimeout:
@@ -105,7 +106,6 @@ static bool account_scene_link_pin_on_event(const SceneManagerEvent* event, void
             consumed = true;
             break;
         case AppEventAccountLinkDone:
-            instance->link_reconnect_pending = true;
             scene_manager_replace_current_scene(instance->scene_manager, SceneIdConnecting);
             consumed = true;
             break;

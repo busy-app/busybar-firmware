@@ -3,13 +3,14 @@
 #include <gui/scene_manager.h>
 
 typedef enum {
-    SceneIdConnecting,
-    SceneIdNotLinked,
-    SceneIdLinkPin,
-    SceneIdLinked,
-    SceneIdError,
-    SceneIdLinkDone,
     SceneIdNoWifi,
+    SceneIdConnecting,
+    SceneIdNotLinkedMenu,
+    SceneIdLinkPin,
+    SceneIdLinkedInfo,
+    SceneIdLinkedMenu,
+    SceneIdUnlink,
+    SceneIdError,
     SceneIdsCount,
 } SceneId;
 

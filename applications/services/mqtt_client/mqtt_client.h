@@ -1,6 +1,7 @@
 #pragma once
 
 #include <furi.h>
+#include <furi_hal_rtc.h>
 
 #define RECORD_MQTT "MQTT"
 
@@ -32,7 +33,7 @@ typedef struct {
     union {
         struct {
             const char* pin;
-            uint32_t expires_at;
+            time_t expires_at;
         } link;
         MqttClientStatus status;
     };

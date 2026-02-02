@@ -6,7 +6,10 @@
 typedef struct {
     AppEvent event;
     union {
-        char link_pin[ACCOUNT_MODEL_LINK_PIN_LEN + 1];
+        struct {
+            char pin[ACCOUNT_MODEL_LINK_PIN_LEN + 1];
+            time_t valid_untill;
+        } link;
     };
 } AccountSettingsEvent;
 
@@ -56,7 +59,8 @@ static void account_settings_event_queue_callback(FuriEventLoopObject* object, v
     AccountSettingsEvent event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
         if(event.event == AppEventAccountLinkPin) {
-            strncpy(instance->link_pin, event.link_pin, ACCOUNT_MODEL_LINK_PIN_LEN);
+            strncpy(instance->link_pin, event.link.pin, ACCOUNT_MODEL_LINK_PIN_LEN);
+            instance->pin_valid_untill = event.link.valid_untill;
         }
         scene_manager_handle_custom_event(instance->scene_manager, event.event);
     }
@@ -86,6 +90,7 @@ static bool account_settings_gui_input_callback(const InputEvent* event, void* c
 static void account_settings_account_event_callback(
     AccountModelEvent event,
     const char* pin,
+    time_t pin_valid_untill,
     void* context) {
     AccountSettings* instance = context;
 
@@ -97,7 +102,8 @@ static void account_settings_account_event_callback(
     case AccountModelEventPinGot:
         evt.event = AppEventAccountLinkPin;
         furi_assert(pin);
-        strncpy(evt.link_pin, pin, ACCOUNT_MODEL_LINK_PIN_LEN);
+        strncpy(evt.link.pin, pin, ACCOUNT_MODEL_LINK_PIN_LEN);
+        evt.link.valid_untill = pin_valid_untill;
         break;
     case AccountModelEventPinTimeout:
         evt.event = AppEventAccountLinkPinTimeout;
@@ -167,7 +173,7 @@ static AccountSettings* account_settings_alloc() {
         instance->model, account_settings_account_event_callback, instance);
 
     if(account_model_is_linked(instance->model)) {
-        scene_manager_next_scene(instance->scene_manager, SceneIdLinked);
+        scene_manager_next_scene(instance->scene_manager, SceneIdLinkedInfo);
     } else {
         // TODO: Use wifi model?
         WifiInfo wifi_info;
@@ -178,7 +184,7 @@ static AccountSettings* account_settings_alloc() {
         } else {
             AccountModelState state = account_model_get_state(instance->model);
             if(state == AccountModelStateConnectedNotLinked) {
-                scene_manager_next_scene(instance->scene_manager, SceneIdNotLinked);
+                scene_manager_next_scene(instance->scene_manager, SceneIdNotLinkedMenu);
             } else {
                 scene_manager_next_scene(instance->scene_manager, SceneIdConnecting);
             }
@@ -245,6 +251,21 @@ int32_t account_settings_entry(void* arg) {
     account_settings_free(instance);
 
     return 0;
+}
+
+void account_settings_get_short_email(AccountSettings* instance, FuriString* mail_str) {
+    FuriString* temp_str = furi_string_alloc();
+    account_model_get_email(instance->model, temp_str);
+    do {
+        if(furi_string_empty(temp_str)) break;
+        char first_char = furi_string_get_char(temp_str, 0);
+        size_t domain_start = furi_string_search_char(temp_str, '@', 0);
+        if(domain_start == FURI_STRING_FAILURE) break;
+        furi_string_right(temp_str, domain_start);
+
+        furi_string_printf(mail_str, "%c...%s", first_char, furi_string_get_cstr(temp_str));
+    } while(0);
+    furi_string_free(temp_str);
 }
 
 void account_settings_send_custom_event(AccountSettings* instance, uint32_t event) {

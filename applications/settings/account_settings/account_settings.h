@@ -21,6 +21,8 @@
 #include "scenes/account_scenes.h"
 #include "models/account_model.h"
 
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -60,10 +62,12 @@ typedef struct {
     AccountModel* model;
 
     char link_pin[ACCOUNT_MODEL_LINK_PIN_LEN + 1];
-    bool link_reconnect_pending;
+    time_t pin_valid_untill;
 } AccountSettings;
 
 void account_settings_send_custom_event(AccountSettings* instance, uint32_t event);
+
+void account_settings_get_short_email(AccountSettings* instance, FuriString* mail_str);
 
 #ifdef __cplusplus
 }

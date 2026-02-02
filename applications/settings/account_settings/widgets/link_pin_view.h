@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gui/widget.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +15,7 @@ LinkPinView* link_pin_view_back_alloc(Widget* parent);
 
 void link_pin_view_free(LinkPinView* instance);
 
-void link_pin_view_set_state(LinkPinView* instance, const char* pin_code);
+void link_pin_view_set_state(LinkPinView* instance, const char* pin_code, time_t valid_untill);
 
 #ifdef __cplusplus
 }
