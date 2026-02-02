@@ -129,6 +129,7 @@ typedef struct {
     const MqttProperty* props;
     uint32_t props_count;
     MqttQos qos;
+    bool* is_success;
 } MqttApiMessagePublish;
 
 typedef struct {
@@ -187,7 +188,7 @@ void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription);
 
 void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscription);
 
-void mqtt_publish_internal(
+bool mqtt_publish_internal(
     Mqtt* instance,
     MqttScope scope,
     MqttQos qos,

@@ -106,7 +106,7 @@ void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* cust
     mqtt_send_message(instance, &message);
 }
 
-void mqtt_publish(
+bool mqtt_publish(
     Mqtt* instance,
     MqttQos qos,
     const char* topic,
@@ -118,6 +118,8 @@ void mqtt_publish(
     furi_check(data_size);
     furi_check(qos < MqttQosMax);
 
+    bool is_success = false;
+
     MqttApiMessage message = {
         .type = MqttApiMessageTypePublish,
         .data.publish =
@@ -126,13 +128,15 @@ void mqtt_publish(
                 .data = data,
                 .data_size = data_size,
                 .qos = qos,
+                .is_success = &is_success,
             },
     };
 
     mqtt_send_message(instance, &message);
+    return is_success;
 }
 
-void mqtt_publish_ex(
+bool mqtt_publish_ex(
     Mqtt* instance,
     MqttQos qos,
     const char* topic,
@@ -148,6 +152,8 @@ void mqtt_publish_ex(
     furi_check(props_count);
     furi_check(qos < MqttQosMax);
 
+    bool is_success = false;
+
     MqttApiMessage message = {
         .type = MqttApiMessageTypePublish,
         .data.publish =
@@ -158,10 +164,12 @@ void mqtt_publish_ex(
                 .props = props,
                 .props_count = props_count,
                 .qos = qos,
+                .is_success = &is_success,
             },
     };
 
     mqtt_send_message(instance, &message);
+    return is_success;
 }
 
 MqttSubscription* mqtt_subscribe(
@@ -323,8 +331,9 @@ static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessag
     furi_assert(data);
 
     const MqttApiMessagePublish* publish = &data->publish;
+    furi_assert(publish->is_success);
 
-    mqtt_publish_internal(
+    *publish->is_success = mqtt_publish_internal(
         instance,
         MqttScopeSession,
         publish->qos,

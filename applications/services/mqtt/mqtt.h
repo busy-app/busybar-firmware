@@ -9,7 +9,7 @@
  *
  * Limitations:
  * - Wildcard subscriptions are NOT supported,
- * - Messages published when offline will be silently ignored,
+ * - Attempts to publish when offline or not linked will result in an error,
  * - Unsubscribing from a topic will cause a reconnection to the MQTT broker.
  *
  * Topic format:
@@ -252,8 +252,9 @@ void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* cust
  * @param[in] topic C-string containing the specific topic part
  * @param[in] data pointer to arbitrary data to be published
  * @param[in] data_size size (or length) of the @p data to be published
+ * @returns @c true if publishing was successful, false otherwise
  */
-void mqtt_publish(
+bool mqtt_publish(
     Mqtt* instance,
     MqttQos qos,
     const char* topic,
@@ -273,8 +274,9 @@ void mqtt_publish(
  * @param[in] data_size size (or length) of the @p data to be published
  * @param[in] props pointer to the array of MQTT message properties
  * @param[in] props_count number of properties contained in the @p props array
+ * @returns @c true if publishing was successful, false otherwise
  */
-void mqtt_publish_ex(
+bool mqtt_publish_ex(
     Mqtt* instance,
     MqttQos qos,
     const char* topic,

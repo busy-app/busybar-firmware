@@ -14,7 +14,7 @@ static void mqtt_subscription_free(MqttSubscription* subscription) {
     free(subscription);
 }
 
-static bool mqtt_is_valid_scope_for_current_state(Mqtt* instance, MqttScope scope) {
+static bool mqtt_is_valid_scope_for_current_status(Mqtt* instance, MqttScope scope) {
     bool is_valid = false;
 
     if(instance->status == MqttStatusConnectedLinked && scope == MqttScopeSession) {
@@ -76,12 +76,12 @@ void mqtt_unsubscribe_internal(Mqtt* instance, MqttSubscription* subscription) {
 
     MqttSubscriptionList_unlink(subscription);
     mqtt_subscription_free(subscription);
-    // NOTE: Used Mongoose version does not support unsubscription
+    // NOTE: Current Mongoose version does not support unsubscription
     mqtt_connection_close(instance, true);
 }
 
 void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscription) {
-    if(!mqtt_is_valid_scope_for_current_state(instance, subscription->scope)) {
+    if(!mqtt_is_valid_scope_for_current_status(instance, subscription->scope)) {
         return;
     }
 
@@ -106,7 +106,7 @@ void mqtt_subscription_activate(Mqtt* instance, const MqttSubscription* subscrip
     furi_string_free(topic_path);
 }
 
-void mqtt_publish_internal(
+bool mqtt_publish_internal(
     Mqtt* instance,
     MqttScope scope,
     MqttQos qos,
@@ -115,9 +115,9 @@ void mqtt_publish_internal(
     size_t data_size,
     const MqttProperty* props,
     uint32_t props_count) {
-    if(!mqtt_is_valid_scope_for_current_state(instance, scope)) {
-        // TODO: return error
-        return;
+    if(!mqtt_is_valid_scope_for_current_status(instance, scope)) {
+        FURI_LOG_E(TAG, "Unable to publish: scope: %d, status: %d", scope, instance->status);
+        return false;
     }
 
     FuriString* path = furi_string_alloc();
@@ -148,4 +148,6 @@ void mqtt_publish_internal(
     }
 
     furi_string_free(path);
+
+    return true;
 }
