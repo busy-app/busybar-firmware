@@ -87,57 +87,6 @@ void transition_overlay_set_preset(
     const TransitionOverlayPreset* preset);
 
 /**
- * @brief Set the animation segment times for a TransitionOverlay instance.
- *
- * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
- * @param[in] in_ms time for the fade-in animation segment, in milliseconds
- * @param[in] out_ms time for the fade-out animation segment, in milliseconds
- */
-// void transition_overlay_set_timings(TransitionOverlay* instance, uint32_t in_ms, uint32_t out_ms);
-
-/**
- * @brief Set the overlay color for a TransitionOverlay instance.
- *
- * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
- * @param[in] color color value for the overlay transition effect
- */
-// void transition_overlay_set_color(TransitionOverlay* instance, Color color);
-
-/**
- * @brief Set the color blending mode for a TransitionOverlay instance.
- *
- * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
- * @param[in] mode blending mode for the color overlay effect
- */
-// void transition_overlay_set_color_mode(
-// TransitionOverlay* instance,
-// TransitionOverlayColorMode mode);
-
-/**
- * @brief Set the animated overlay mask for a TransitionOverlay instance.
- *
- * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
- * @param[in] file_path full path to the mask animation file
- */
-// void transition_overlay_set_mask(TransitionOverlay* instance, const char* file_path);
-
-/**
- * @brief Set the mask blending mode for a TransitionOverlay instance.
- *
- * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
- * @param[in] mode blending mode for the mask overlay effect
- */
-// void transition_overlay_set_mask_mode(TransitionOverlay* instance, TransitionOverlayMaskMode mode);
-
-/**
- * @brief Enable or disable the press effect for a TransitionOverlay instance.
- *
- * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
- * @param[in] enable enable press effect if @c true, disable it if @c false
- */
-// void transition_overlay_enable_press_effect(TransitionOverlay* instance, bool enable);
-
-/**
  * @brief Set the widget to participate in the press effect for a TransitionOverlay instance.
  *
  * @param[in,out] instance pointer to the TransitionOverlay instance to be modified

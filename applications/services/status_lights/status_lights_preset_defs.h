@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-extern const StatusLightsPresetBase* const status_lights_preset_list[StatusLightsPresetMax];
+extern const StatusLightsPresetBase* const status_lights_preset_list[StatusLightsPresetsCount];
 
 #ifdef __cplusplus
 }

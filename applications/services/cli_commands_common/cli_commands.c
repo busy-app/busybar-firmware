@@ -11,8 +11,8 @@ void cli_command_uptime(PipeSide* pipe, FuriString* args, void* context) {
     printf(
         "Uptime: %02lud %02luh %02lum %02lus",
         uptime / 60 / 60 / 24,
-        uptime / 60 / 60,
-        uptime / 60 % 60,
+        (uptime / 60 / 60) % 24,
+        (uptime / 60) % 60,
         uptime % 60);
 }
 

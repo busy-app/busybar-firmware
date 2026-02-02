@@ -5,6 +5,7 @@
 typedef enum {
     BleServiceIndexDeviceInfo,
     BleServiceIndexBattery,
-    BleServiceIndexUart,
-    BleServiceIndexSilabsUart,
+    BleServiceIndexNordicUart,
+    BleServiceIndexHm10Uart,
+    BleServiceIndexDeviceEvents,
 } BleServiceIndex;

@@ -20,3 +20,8 @@ void assertEFM(const char* file, int line) {
     UNUSED(line);
     furi_crash("AssertEFM");
 }
+
+// TODO: Find out what's trying to link with write()
+int __wrap__write_r(void) {
+    furi_crash("write_r()");
+}

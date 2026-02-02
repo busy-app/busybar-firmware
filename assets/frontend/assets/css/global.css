@@ -2,35 +2,41 @@
 @import "@nuxt/ui";
 
 @theme static {
-  /* orange: '249 115 22', // '249 115 22', */
-  --color-brand: #ff7b37;
-  --color-brand-50: #fff5ed;
-  --color-brand-100: #ffe8d4;
-  --color-brand-200: #ffcda8;
-  --color-brand-300: #ffaa70;
-  --color-brand-400: #ff7b37;
-  --color-brand-500: #ff5c16;
-  --color-brand-600: #f03c06;
-  --color-brand-700: #c72a07;
-  --color-brand-800: #9e220e;
-  --color-brand-900: #7f200f;
-  --color-brand-950: #450c05;
+  --color-brand: #2B7FFF;
+  --color-brand-50: #EAF2FF;
+  --color-brand-100: #D5E5FF;
+  --color-brand-200: #AACCFF;
+  --color-brand-300: #80B2FF;
+  --color-brand-400: #5599FF;
+  --color-brand-500: #2B7FFF;
+  --color-brand-600: #2266CC;
+  --color-brand-700: #1A4C99;
+  --color-brand-800: #113366;
+  --color-brand-900: #091933;
+  --color-brand-950: #050F20;
 
-  --font-sans: 'PP Neue Montreal', sans-serif;
+  --font-sans: 'Inter', sans-serif;
 }
 
 :root {
   --ui-text: var(--color-black);
+  --ui-container: 1440px;
+
+  --glass-ring-inner: --alpha(var(--color-white) / 10%);
+  --glass-ring-outer: --alpha(var(--color-black) / 4%);
 }
 
 .dark {
   --ui-text: var(--color-white);
+
+  --glass-ring-inner: --alpha(var(--color-white) / 10%);
+  --glass-ring-outer: --alpha(var(--color-white) / 4%);
 }
 
 body {
   overscroll-behavior: none;
 
-  @apply bg-white dark:bg-[#121212]
+  @apply bg-white dark:bg-[#0A0A0A]
 }
 
 input[aria-invalid="true"] {
@@ -39,6 +45,47 @@ input[aria-invalid="true"] {
 
 button {
   @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
+}
+
+@theme {
+  --ring-glass: 1px;
+  --ring-glass-0: 0px;
+  --ring-glass-1: 1px;
+  --ring-glass-2: 2px;
+  --ring-glass-3: 3px;
+  --ring-glass-4: 4px;
+  --ring-glass-6: 6px;
+  --ring-glass-8: 8px;
+}
+
+@utility ring {
+  --ring-glass-width: var(--ring-glass);
+}
+
+@utility ring-* {
+  --ring-glass-width: --value(--ring-glass-*, [length]);
+}
+
+@utility inset-ring {
+  --ring-glass-width: var(--ring-glass);
+}
+
+@utility inset-ring-* {
+  --ring-glass-width: --value(--ring-glass-*, [length]);
+}
+
+@utility ring-glass {
+  --ring-glass-inner: var(--glass-ring-inner);
+  --ring-glass-outer: var(--glass-ring-outer);
+
+  --ring-shadow:
+    inset 0 var(--ring-glass-width) var(--ring-glass-width) 0 var(--ring-glass-inner),
+    inset 0 0 0 var(--ring-glass-width) var(--ring-glass-outer);
+
+  box-shadow:
+    var(--tw-ring-offset-shadow),
+    var(--ring-shadow),
+    var(--tw-shadow) !important;
 }
 
 @layer utilities {
@@ -51,7 +98,17 @@ button {
     }
   }
 
-  .animate-spin {
-    animation: -spin 1s linear infinite; 
+  .rounded-group > * {
+    border-radius: 6px;
+  }
+  
+  .rounded-group > *:first-child {
+    border-top-left-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-xl);
+  }
+
+  .rounded-group > *:last-child {
+    border-bottom-left-radius: var(--radius-xl);
+    border-bottom-right-radius: var(--radius-xl);
   }
 }

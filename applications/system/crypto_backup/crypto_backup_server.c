@@ -1,11 +1,10 @@
 #include <furi.h>
 #include <cli/args.h>
 #include <cli/cli_ansi.h>
+#include <wifi/wifi_common.h>
 #include <intercom/intercom.h>
 
-#include "sl_si91x_driver.h"
-#include <furi_hal_nwp.h>
-
+#include <sl_si91x_driver.h>
 #include <furi_hal_crypto_storage.h>
 
 #include "crypto_backup_common.h"
@@ -13,7 +12,7 @@
 #define TAG "CryptoBackupServer"
 
 typedef struct {
-    Intercom* intercom;
+    IntercomChannel* intercom_ch;
     FuriSemaphore* access_semaphore;
     uint32_t buffer_size;
     uint8_t* buffer;
@@ -25,12 +24,8 @@ static void crypto_backup_server_tx(CryptoBackupServer* instance, CryptoBackupEv
     furi_check(instance);
     furi_check(event_tx);
 
-    size_t tx_size = intercom_tx(
-        instance->intercom,
-        IntercomChannelCryptoBackup,
-        event_tx,
-        sizeof(CryptoBackupEvent),
-        FuriWaitForever);
+    size_t tx_size =
+        intercom_tx(instance->intercom_ch, event_tx, sizeof(CryptoBackupEvent), FuriWaitForever);
     furi_check(tx_size == sizeof(CryptoBackupEvent), "Failed to send data");
 }
 
@@ -38,6 +33,8 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
     furi_assert(context);
     CryptoBackupServer* instance = context;
     FURI_LOG_D(TAG, "Start");
+
+    furi_record_open(RECORD_WIFI);
 
     CryptoBackupEvent* event_rx = (CryptoBackupEvent*)instance->buffer;
     furi_assert(event_rx);
@@ -48,13 +45,6 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
     switch(event_rx->cmd) {
     case CryptoBackupCmdWrite:
         FURI_LOG_D(TAG, "Set command received");
-
-        if(!furi_hal_nwp_is_initialized()) {
-            FURI_LOG_E(TAG, "NWP is not initialized");
-            event_tx->cmd = CryptoBackupCmdNack;
-            crypto_backup_server_tx(instance, event_tx);
-            break;
-        }
 
         event_tx->cmd = CryptoBackupCmdAsk;
         event_tx->data_size = 0;
@@ -75,12 +65,6 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
         FURI_LOG_D(TAG, "Get command received");
 
         event_tx->data_size = 0;
-        if(!furi_hal_nwp_is_initialized()) {
-            FURI_LOG_E(TAG, "NWP is not initialized");
-            event_tx->cmd = CryptoBackupCmdNack;
-            crypto_backup_server_tx(instance, event_tx);
-            break;
-        }
         event_tx->cmd = CryptoBackupCmdAsk;
         crypto_backup_server_tx(instance, event_tx);
         // ToDo add some delay to avoid flooding
@@ -109,24 +93,17 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
             furi_delay_ms(10);
         }
         break;
+    // TODO: Remove below 2 commands from client and from here
     case CryptoBackupCmdNwpInit:
         FURI_LOG_D(TAG, "NWP Init command received");
         event_tx->cmd = CryptoBackupCmdAsk;
-
         event_tx->data_size = 0;
-        if(!furi_hal_nwp_init()) {
-            FURI_LOG_E(TAG, "NWP is not initialized");
-            event_tx->cmd = CryptoBackupCmdNack;
-        }
         crypto_backup_server_tx(instance, event_tx);
         break;
     case CryptoBackupCmdNwpDeinit:
         FURI_LOG_D(TAG, "NWP Deinit command received");
         event_tx->cmd = CryptoBackupCmdAsk;
         event_tx->data_size = 0;
-
-        furi_hal_nwp_deinit();
-
         crypto_backup_server_tx(instance, event_tx);
         break;
     case CryptoBackupCmdUserDataWipe:
@@ -155,6 +132,8 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
     free(event_tx);
 
     FURI_LOG_D(TAG, "Stopping thread");
+
+    furi_record_close(RECORD_WIFI);
 
     return 0;
 }
@@ -206,12 +185,14 @@ int32_t crypto_backup_server_init(void* arg) {
     crypto_backup_server.access_semaphore = furi_semaphore_alloc(1, 1);
     crypto_backup_server.buffer_size = 0;
     crypto_backup_server.buffer = NULL;
-    crypto_backup_server.intercom = furi_record_open(RECORD_INTERCOM);
 
-    intercom_set_rx_callback(
-        crypto_backup_server.intercom,
-        IntercomChannelCryptoBackup,
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+
+    crypto_backup_server.intercom_ch = intercom_channel_open(
+        intercom,
+        IntercomChannelIdCryptoBackup,
         crypto_backup_server_rx_callback,
         &crypto_backup_server);
+
     return 0;
 }

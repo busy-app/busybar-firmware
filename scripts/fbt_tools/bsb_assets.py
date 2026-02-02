@@ -17,6 +17,7 @@ def generate(env):
         ANIM_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/seq2anim.py"),
         IMAGE_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/image.py"),
         SWAGGER_GENERATOR=env.Real("${FBT_SCRIPT_DIR}/swagger.py"),
+        SWAGGER_DIST_DIR=env.Dir("swagger-dist"),
     )
 
     if not env["VERBOSE"]:
@@ -96,6 +97,8 @@ def generate(env):
                             "${SOURCE}",
                             "-o",
                             "${TARGET.dir}",
+                            "--dist-dir",
+                            "${SWAGGER_DIST_DIR}",
                             "-q",
                         ],
                     ],

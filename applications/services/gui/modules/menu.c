@@ -125,6 +125,7 @@ static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
@@ -233,8 +234,14 @@ uint32_t menu_get_selected_item_index(const Menu* instance) {
 void menu_set_selected_item_index(Menu* instance, uint32_t index) {
     furi_check(instance);
     furi_check(index < lv_group_get_obj_count(instance->group));
+    lv_obj_t* target = lv_group_get_obj_by_index(instance->group, index);
 
-    lv_group_focus_obj(lv_group_get_obj_by_index(instance->group, index));
+    lv_group_focus_obj(target);
+
+    if(lv_obj_get_scroll_snap_y((lv_obj_t*)instance) == LV_SCROLL_SNAP_NONE) {
+        lv_coord_t y = lv_obj_get_y(target);
+        lv_obj_scroll_to_y((lv_obj_t*)instance, y, LV_ANIM_OFF);
+    }
 }
 
 // LVGL class descriptors

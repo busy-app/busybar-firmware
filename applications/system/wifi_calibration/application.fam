@@ -1,7 +1,7 @@
 App(
     appid="wifi_calibration",
     name="wifi_calibration",
-    targets=["f64"],
+    targets=["f64", "f65"],
     apptype=FlipperAppType.CLICMD,
     entry_point="wifi_calibration_command",
 )

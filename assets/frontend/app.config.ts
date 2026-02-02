@@ -1,31 +1,33 @@
 export default defineAppConfig({
   ui: {
     icons: {
-      arrowLeft: 'i-tabler-arrow-left',
-      arrowRight: 'i-tabler-arrow-right',
-      check: 'i-tabler-check',
-      chevronDoubleLeft: 'i-tabler-chevrons-left',
-      chevronDoubleRight: 'i-tabler-chevrons-right',
-      chevronDown: 'i-tabler-chevron-down',
-      chevronLeft: 'i-tabler-chevron-left',
-      chevronRight: 'i-tabler-chevron-right',
-      chevronUp: 'i-tabler-chevron-up',
-      close: 'i-tabler-x',
-      ellipsis: 'i-tabler-dots',
-      external: 'i-tabler-external-link',
-      folder: 'i-tabler-folder',
-      folderOpen: 'i-tabler-folder-open',
-      loading: 'i-tabler-refresh',
-      minus: 'i-tabler-minus',
-      plus: 'i-tabler-plus',
-      search: 'i-tabler-search'
+      arrowLeft: 'i-ri-arrow-left-line',
+      arrowRight: 'i-ri-arrow-right-line',
+      check: 'i-ri-check-line',
+      chevronDoubleLeft: 'i-ri-arrow-left-double-fill',
+      chevronDoubleRight: 'i-ri-arrow-right-double-fill',
+      chevronDown: 'i-ri-arrow-down-s-fill',
+      chevronLeft: 'i-ri-arrow-left-s-fill',
+      chevronRight: 'i-ri-arrow-right-s-fill',
+      chevronUp: 'i-ri-arrow-up-s-fill',
+      close: 'i-ri-close-line',
+      ellipsis: 'i-ri-more-fill',
+      external: 'i-ri-external-link-line',
+      file: 'i-ri-file-2-line',
+      folder: 'i-ri-folder-2-line',
+      folderOpen: 'i-ri-folder-open-line',
+      loading: 'i-busy-loader',
+      minus: 'i-ri-subtract-fill',
+      plus: 'i-ri-add-fill',
+      search: 'i-ri-search-line',
+      upload: 'i-ri-upload-2-line'
     },
     colors: {
-      primary: 'sky',
-      neutral: 'zinc'
+      primary: 'brand',
+      neutral: 'neutral'
     },
     container: {
-      base: 'max-w-[1920px]'
+      base: 'p-0 sm:p-0 lg:p-0'
     },
     badge: {
       compoundVariants: [
@@ -38,10 +40,13 @@ export default defineAppConfig({
     },
     button: {
       slots: {
-        base: 'rounded-lg cursor-pointer'
+        base: 'rounded-full cursor-pointer'
       },
       variants: {
         size: {
+          md: {
+            base: 'px-3 py-2.5'
+          },
           xl: {
             base: 'py-3'
           }
@@ -51,7 +56,7 @@ export default defineAppConfig({
         {
           color: 'primary',
           variant: 'solid',
-          class: '!text-white dark:text-white'
+          class: '!text-white dark:text-white dark:bg-primary-500'
         }
       ]
     },
@@ -85,6 +90,11 @@ export default defineAppConfig({
             content: 'rounded-3xl'
           }
         }
+      }
+    },
+    switch: {
+      slots: {
+        thumb: 'bg-white dark:bg-white'
       }
     }
   }

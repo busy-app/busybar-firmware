@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "bsb-automation-tests"
+version = "0.1.0"
+description = "Automated test suite for BSB CLI and Web Frontend"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pytest = "^7.4.0"
+pytest-xdist = "^3.3.1"
+allure-pytest = "^2.13.2"
+requests = "^2.31.0"
+pydantic = "^2.0.0"
+python-dotenv = "^1.0.0"
+structlog = "^23.1.0"
+colorlog = "^6.7.0"
+pytest-asyncio = ">=0.20,<0.24"
+beautifulsoup4 = "^4.13.5"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.0.0"
+flake8 = "^6.0.0"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --alluredir=allure-results --clean-alluredir"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "cli: marks tests as CLI command tests",
+    "frontend: marks tests as web frontend tests",
+    "ui: marks tests as UI automation tests (Playwright)",
+    "ui_validation: marks tests as UI validation",
+    "interface_status: marks tests as interface status tests",
+    "commands_check: marks tests as command validation",
+    "mqtt: marks tests as MQTT functionality",
+    "asyncio: marks tests as async tests",
+    "story_commands_check: marks tests for commands check story",
+    "story_ui_validation: marks tests for UI validation story",
+]
+
+[tool.allure.pytest_plugin]
+clean_alluredir = true

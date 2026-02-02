@@ -124,6 +124,24 @@ bool loader_get_application_name(Loader* loader, FuriString* name) {
     return result.value;
 }
 
+bool loader_send_signal(Loader* loader, uint32_t signal, void* arg) {
+    furi_check(loader);
+
+    LoaderMessageBoolResult result;
+
+    LoaderMessage message = {
+        .type = LoaderMessageTypeSendCustomSignal,
+        .api_lock = api_lock_alloc_locked(),
+        .custom_signal = {.signal = signal, .arg = arg},
+        .bool_value = &result,
+    };
+
+    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
+    api_lock_wait_unlock_and_free(message.api_lock);
+
+    return result.value;
+}
+
 // implementation
 
 static bool loader_is_locked_internal(const Loader* loader) {
@@ -318,7 +336,7 @@ static void loader_stop_handler(Loader* loader, const LoaderMessage* message) {
         }
 
         if(!furi_thread_signal(loader->app.thread, FuriSignalExit, NULL)) {
-            status = LoaderStatusErrorInternal;
+            status = LoaderStatusErrorNoSignalHandler;
             break;
         }
 
@@ -394,6 +412,15 @@ static void loader_do_get_application_name(Loader* loader, const LoaderMessage* 
     }
 }
 
+static void loader_do_send_custom_signal(Loader* loader, const LoaderMessage* message) {
+    message->bool_value->value = false;
+
+    if(loader_is_application_running(loader)) {
+        message->bool_value->value = furi_thread_signal(
+            loader->app.thread, message->custom_signal.signal, message->custom_signal.arg);
+    }
+}
+
 static void loader_message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Loader* loader = context;
@@ -435,8 +462,20 @@ static int32_t loader_startup_hook_thread(void* context) {
     return 0;
 }
 
+static void loader_startup_hook_thread_state_callback(
+    FuriThread* thread,
+    FuriThreadState state,
+    void* context) {
+    furi_assert(thread);
+    UNUSED(context);
+
+    if(state == FuriThreadStateStopped) {
+        furi_thread_free(thread);
+    }
+}
+
 static void loader_do_on_start(void) {
-    FURI_LOG_I(TAG, "Executing system start hooks");
+    FURI_LOG_I(TAG, "Executing %d system start hooks", FLIPPER_ON_SYSTEM_START_COUNT);
 
     FuriThread* hook_threads[FLIPPER_ON_SYSTEM_START_COUNT];
 
@@ -444,15 +483,9 @@ static void loader_do_on_start(void) {
         FlipperInternalOnStartHook hook = FLIPPER_ON_SYSTEM_START[i];
         hook_threads[i] =
             furi_thread_alloc_ex("Hook thread", 2048, loader_startup_hook_thread, hook);
+        furi_thread_set_state_callback(hook_threads[i], loader_startup_hook_thread_state_callback);
         furi_thread_start(hook_threads[i]);
     }
-
-    for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
-        furi_thread_join(hook_threads[i]);
-        furi_thread_free(hook_threads[i]);
-    }
-
-    FURI_LOG_I(TAG, "All start hooks returned");
 }
 
 static void loader_do_autorun(Loader* loader) {
@@ -488,4 +521,5 @@ static const LoaderMessageHandler loader_handlers[LoaderMessageTypeMax] = {
     [LoaderMessageTypeUnlock] = loader_unlock_handler,
     [LoaderMessageTypeIsLocked] = loader_is_locked_handler,
     [LoaderMessageTypeGetApplicationName] = loader_do_get_application_name,
+    [LoaderMessageTypeSendCustomSignal] = loader_do_send_custom_signal,
 };

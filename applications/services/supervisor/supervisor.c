@@ -255,6 +255,7 @@ static void
             gui->ok_callback = warning->ok_callback;
 
             GuiLayer* main_layer = gui_get_layer(gui->gui, GuiLayerIdSystem);
+            Color background = COLOR_MAKE_HEXA(0x000000E5);
 
             // back display label
             {
@@ -274,7 +275,7 @@ static void
                     screen_height_half,
                     screen_height_half);
                 widget_set_align(widget, AlignCenter);
-                widget_set_background_color(widget, (Color){0, 0, 0}, 0.90f);
+                widget_set_background_color(widget, background);
 
                 label_set_text_fmt(gui->back_label, warning->back_text);
                 label_set_text_align(gui->back_label, TextAlignCenter);
@@ -299,7 +300,7 @@ static void
                     screen_height_half,
                     screen_height_half);
                 widget_set_align(widget, AlignCenter);
-                widget_set_background_color(widget, (Color){0, 0, 0}, 0.90f);
+                widget_set_background_color(widget, background);
 
                 label_set_text_fmt(gui->front_label, warning->front_text);
                 label_set_text_align(gui->front_label, TextAlignCenter);

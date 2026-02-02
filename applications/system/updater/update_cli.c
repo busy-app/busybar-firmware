@@ -1,16 +1,23 @@
-#include "sl_updater.h"
-#include "sl_update_params.h"
+#include "updater.h"
+#include "sl_updater/sl_updater.h"
+#include "sl_updater/sl_update_params.h"
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
 
-#include <storage/storage.h>
 #include <cli/cli_command.h>
 #include <cli/args.h>
 
 #include <toolbox/update_lib/update_config.h>
 #include <toolbox/update_lib/common_vals.h>
+#include <toolbox/tar/tar_archive.h>
+#include <toolbox/path.h>
+#include <applications/system/fetch/fetch.h>
+
+#define TAG                 "UpdaterCli"
+#define UPDATE_STAGING_ROOT "update"
+#define UPDATE_TAR_TEMP     "upload.tar"
 
 static void
     updater_cli_progress_callback(SlUpdaterProgressPhase phase, uint8_t percentage, void* context) {
@@ -30,7 +37,9 @@ static void
 static void updater_cli_command_print_usage(void) {
     bool is_debug = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
     printf("Usage:\r\n");
-    printf("update <917|917_ta%s|install> path\r\n", is_debug ? "|917_probe" : "");
+    printf(
+        "update <917|917_ta%s|install|install_tar|install_web> path\r\n",
+        is_debug ? "|917_probe" : "");
 }
 
 static bool
@@ -68,36 +77,113 @@ static void updater_cli_execute_917probe() {
 }
 
 static void updater_cli_execute_install(const char* manifest_path) {
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+
     printf("Installing update bundle from: %s\r\n", manifest_path);
 
-    UpdateConfig* state = update_config_alloc();
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    UpdaterStatus update_status = updater_session_start(updater);
+    if(update_status == UpdaterStatusOk) {
+        do {
+            update_status = updater_installation_prepare(updater, manifest_path, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update preparation failed: %s\r\n", updater_get_status_string(update_status));
 
-    do {
-        UpdateConfigValidation config_state = update_config_load(state, manifest_path);
-        if(config_state != UpdateConfigValidationOK) {
-            printf(
-                "Failed to load updater configuration: %s\r\n",
-                update_config_validation_get_error_str(config_state));
-            break;
-        }
+                break;
+            }
 
-        printf("Updater configuration valid\r\n");
+            printf("Update preparation successful, rebooting...\r\n");
 
-        if(!update_config_write_pointer_file(storage, manifest_path)) {
-            printf("Failed to write manifest path to pointer file.\r\n");
-            break;
-        }
+            updater_installation_apply(updater, true);
+        } while(false);
 
-        printf("Manifest path written to %s\r\n", EXT_PATH(UPDATE_POINTER_FILE_NAME));
+        updater_session_stop(updater);
+    } else {
+        printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
+    }
 
-        furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
-        printf("Boot mode set to Update. Rebooting...\r\n");
-        furi_hal_power_reset();
-    } while(false);
+    furi_record_close(RECORD_UPDATER);
+}
 
-    furi_record_close(RECORD_STORAGE);
-    update_config_free(state);
+static void updater_cli_execute_install_tar(const char* tar_path) {
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+
+    printf("Installing update bundle from: %s\r\n", tar_path);
+
+    UpdaterStatus update_status = updater_session_start(updater);
+    if(update_status == UpdaterStatusOk) {
+        do {
+            update_status = updater_unpack(updater, tar_path, NULL, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update unpack TAR failed: %s\r\n", updater_get_status_string(update_status));
+
+                break;
+            }
+
+            update_status = updater_installation_prepare(updater, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update preparation failed: %s\r\n", updater_get_status_string(update_status));
+
+                break;
+            }
+
+            printf("Update preparation successful, rebooting...\r\n");
+
+            updater_installation_apply(updater, true);
+        } while(false);
+
+        updater_session_stop(updater);
+    } else {
+        printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
+    }
+
+    furi_record_close(RECORD_UPDATER);
+}
+
+static void updater_cli_execute_install_web(const char* link) {
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+
+    printf("Installing update bundle from: %s\r\n", link);
+
+    UpdaterStatus update_status = updater_session_start(updater);
+    if(update_status == UpdaterStatusOk) {
+        do {
+            update_status = updater_download(updater, link, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf("Download failed: %s\r\n", updater_get_status_string(update_status));
+
+                break;
+            }
+
+            update_status = updater_unpack(updater, NULL, NULL, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update unpack TAR failed: %s\r\n", updater_get_status_string(update_status));
+
+                break;
+            }
+
+            update_status = updater_installation_prepare(updater, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update preparation failed: %s\r\n", updater_get_status_string(update_status));
+
+                break;
+            }
+
+            printf("Update preparation successful, rebooting...\r\n");
+
+            updater_installation_apply(updater, true);
+        } while(false);
+
+        updater_session_stop(updater);
+    } else {
+        printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
+    }
+
+    furi_record_close(RECORD_UPDATER);
 }
 
 void update_cli_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -125,6 +211,16 @@ void update_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
         if(furi_string_equal_str(cmd, "install")) {
             updater_cli_execute_install(furi_string_get_cstr(path));
+            break;
+        }
+
+        if(furi_string_equal_str(cmd, "install_tar")) {
+            updater_cli_execute_install_tar(furi_string_get_cstr(path));
+            break;
+        }
+
+        if(furi_string_equal_str(cmd, "install_web")) {
+            updater_cli_execute_install_web(furi_string_get_cstr(path));
             break;
         }
 

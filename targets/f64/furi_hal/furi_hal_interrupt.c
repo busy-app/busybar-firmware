@@ -44,6 +44,13 @@ void furi_hal_interrupt_init(void) {
     NVIC_SetPriority(SVCall_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
     NVIC_SetPriority(PendSV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
 
+    // Enable UsageFault
+    SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
+    // Enable BusFault
+    SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
+    // Enable MemManage fault
+    SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
+
     FURI_LOG_I(TAG, "Init OK");
 }
 
@@ -304,11 +311,76 @@ void MemManage_Handler(void) {
     furi_crash("MemManage");
 }
 
-void BusFault_Handler(void) {
+void BusFault_Handler() {
+    furi_log_puts("\r\n" _FURI_LOG_CLR_E "Bus fault:\r\n");
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_LSPERR_Pos)) {
+        furi_log_puts(" - lazy stacking for exception entry\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_STKERR_Pos)) {
+        furi_log_puts(" - stacking for exception entry\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_UNSTKERR_Pos)) {
+        furi_log_puts(" - unstacking for exception return\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_IMPRECISERR_Pos)) {
+        furi_log_puts(" - imprecise data access\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_PRECISERR_Pos)) {
+        furi_log_puts(" - precise data access\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_IBUSERR_Pos)) {
+        furi_log_puts(" - instruction\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_BFARVALID_Pos)) {
+        uint32_t busfault_address = SCB->BFAR;
+        furi_log_puts(" -- at 0x");
+        furi_log_puthex32(busfault_address);
+        furi_log_puts("\r\n");
+
+        if(busfault_address == (uint32_t)NULL) {
+            furi_log_puts(" -- NULL pointer dereference");
+        }
+    }
+    furi_log_puts(_FURI_LOG_CLR_RESET "\r\n");
+
     furi_crash("BusFault");
 }
 
 void UsageFault_Handler(void) {
+    furi_log_puts("\r\n" _FURI_LOG_CLR_E "Usage fault\r\n");
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_DIVBYZERO_Pos)) {
+        furi_log_puts(" - division by zero\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_UNALIGNED_Pos)) {
+        furi_log_puts(" - unaligned access\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_NOCP_Pos)) {
+        furi_log_puts(" - no coprocessor\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_INVPC_Pos)) {
+        furi_log_puts(" - invalid PC\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_INVSTATE_Pos)) {
+        furi_log_puts(" - invalid state\r\n");
+    }
+
+    if(FURI_BIT(SCB->CFSR, SCB_CFSR_UNDEFINSTR_Pos)) {
+        furi_log_puts(" - undefined instruction\r\n");
+    }
+
+    furi_log_puts("possible stack overflow\r\n");
+    furi_log_puts(_FURI_LOG_CLR_RESET);
+
     furi_crash("UsageFault");
 }
 

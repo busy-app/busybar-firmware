@@ -15,7 +15,7 @@ typedef enum {
     LoaderStatusErrorAppStarted,
     LoaderStatusErrorAppNotRunning,
     LoaderStatusErrorUnknownApp,
-    LoaderStatusErrorInternal,
+    LoaderStatusErrorNoSignalHandler,
 } LoaderStatus;
 
 typedef enum {
@@ -82,6 +82,15 @@ FuriPubSub* loader_get_pubsub(Loader* instance);
  * @return true if it was possible to get an application name, false otherwise
  */
 bool loader_get_application_name(Loader* instance, FuriString* name);
+
+/**
+ * @brief Send a signal to the currently running application
+ * @param[in] instance pointer to the loader instance
+ * @param[in] signal signal value
+ * @param[in] arg optional argument to pass with the signal
+ * @return true if signal was sent and consumed, false otherwise
+ */
+bool loader_send_signal(Loader* instance, uint32_t signal, void* arg);
 
 #ifdef __cplusplus
 }

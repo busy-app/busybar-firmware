@@ -4,8 +4,9 @@
  */
 #pragma once
 
-#include <furi_hal_resources.h>
 #include "input_common.h"
+
+#include <furi_hal_resources.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,8 +17,6 @@ extern "C" {
 
 #define INPUT_SEQUENCE_SOURCE_HARDWARE (0U)
 #define INPUT_SEQUENCE_SOURCE_SOFTWARE (1U)
-
-typedef struct Input Input;
 
 /** Input Types
  * Some of them are physical events and some logical
@@ -78,14 +77,15 @@ void input_key_release(Input* input, InputKey key);
 void input_key_toggle(Input* input, InputKey key);
 
 /**
- * @brief Gets the state of all absolute controls, i.e. the buttons and the mode
- *        switch
+ * @brief Get the reference to a FuriState with the mode switch position.
+ * 
+ * The FuriState stores a `InputSwitchPosition` type. `InputSwitchPositionMAX`
+ * means that state is unknown yet.
  * 
  * @param [in] input Input instance
- * 
- * @returns State of all absolute controls
+ * @returns `FuriState` as described above.
  */
-InputAbsoluteState input_get_absolute_state(Input* input);
+FuriState* input_get_switch_pos(Input* input);
 
 #ifdef __cplusplus
 }

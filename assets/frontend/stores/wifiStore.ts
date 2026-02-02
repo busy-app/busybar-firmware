@@ -1,210 +1,94 @@
 import { defineStore } from 'pinia';
-
-type WifiSecurity =
-  | 'Open'
-  | 'WPA'
-  | 'WPA2'
-  | 'WEP'
-  | 'WPA Enterprise'
-  | 'WPA2 Enterprise'
-  | 'WPA WPA2 Mixed'
-  | 'WPA3'
-  | 'WPA3 Transition'
-  | 'WPA3 Enterprise'
-  | 'WPA3 Transition Enterprise';
-
-export interface wifiState {
-  state: 'enabled' | 'disabled' | 'connected';
-  ssid?: string;
-  security?: WifiSecurity;
-  ip_config?: {
-    ip_method: 'dhcp' | 'static';
-    ip_type: 'ipv4' | 'ipv6';
-    address?: string;
-  };
-}
-
-export type WifiNetwork = {
-  ssid: string;
-  security: WifiSecurity;
-  rssi: number;
-};
-
-export type WifiConnectOptions = {
-  ssid: string;
-  password?: string;
-  security: WifiSecurity;
-  ip_config: {
-    ip_method: 'dhcp' | 'static';
-    ip_type: 'ipv4' | 'ipv6';
-    address?: string;
-    mask?: string;
-    gateway?: string;
-  };
-};
+import type {
+  WifiStatusResponse as WifiState,
+  WifiNetwork,
+  WifiConnectParams
+} from '@busy-app/busy-lib';
 
 export const useWifiStore = defineStore('wifi', () => {
-  const barUrl = useRuntimeConfig().public.barUrl;
-  const toast = useToast();
+  const deviceStore = useDeviceStore();
+  const wifi = ref<WifiState | undefined>(undefined);
 
-  const wifi = ref<wifiState>({
-    state: 'disabled'
-  });
-
-  async function updateWifiState () {
-    const state = await $fetch<wifiState>(`${barUrl}/api/wifi/status`)
+  async function fetchWifiState (): Promise<WifiState | undefined> {
+    const state = await deviceStore.busyBar.statusWifi()
       .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
+        wifi.value = response;
         return response;
       })
-      .catch(error => {
-        console.error('Error fetching WiFi state:', error);
-        toast.add({
-          id: 'wifi-status-error',
-          title: 'Failed to fetch WiFi state',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t fetch WiFi state', true);
         return wifi.value;
       });
 
-    wifi.value = state;
+    return state;
   }
 
-  async function enableWifi () {
-    await $fetch(`${barUrl}/api/wifi/enable`, {
-      method: 'POST'
-    })
-      .then(() => {
-        wifi.value.state = 'enabled';
-      })
-      .catch(error => {
-        console.error('Error enabling WiFi:', error);
-        toast.add({
-          id: 'wifi-enable-error',
-          title: 'Failed to enable WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
-          color: 'error',
-          duration: 10000
-        });
-      });
-  }
-
-  async function disableWifi () {
-    await $fetch(`${barUrl}/api/wifi/disable`, {
-      method: 'POST'
-    })
-      .then(() => {
-        wifi.value.state = 'disabled';
-      })
-      .catch(error => {
-        console.error('Error disabling WiFi:', error);
-        toast.add({
-          id: 'wifi-disable-error',
-          title: 'Failed to disable WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
-          color: 'error',
-          duration: 10000
-        });
-      });
+  async function getWifiState (): Promise<WifiState | undefined> {
+    if (wifi.value === undefined) {
+      wifi.value = await fetchWifiState();
+    }
+    return wifi.value;
   }
 
   async function listWifiNetworks () {
-    interface WifiNetworkListResponse {
-      count: number;
-      networks: WifiNetwork[];
-    }
-
-    return await $fetch<WifiNetworkListResponse>(`${barUrl}/api/wifi/networks`)
+    deviceStore.clearRefreshInterval();
+    return await deviceStore.busyBar.networksWifi()
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
         }
+        // dedupe networks by SSID, keeping the one with the highest signal level
+        response.networks = response.networks.reduce<WifiNetwork[]>((acc, curr) => {
+          const existing = acc.find(n => n.ssid === curr.ssid);
+          if (!existing) {
+            acc.push(curr);
+          } else if (curr.rssi && existing.rssi && curr.rssi < existing.rssi) {
+            const index = acc.indexOf(existing);
+            acc[index] = curr;
+          }
+          return acc;
+        }, []);
         return response.networks;
       })
-      .catch(error => {
-        console.error('Error fetching WiFi networks:', error);
-        toast.add({
-          id: 'wifi-networks-error',
-          title: 'Failed to fetch WiFi networks',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t list WiFi networks', false, 0);
         return [];
+      })
+      .finally(() => {
+        deviceStore.setRefreshInterval();
       });
   }
 
-  async function connectToWifiNetwork (options: WifiConnectOptions) {
-    return await $fetch(`${barUrl}/api/wifi/connect`, {
-      method: 'POST',
-      body: options
-    })
-      .catch(error => {
-        console.error('Error connecting to WiFi:', error);
-        toast.add({
-          id: 'wifi-connect-error',
-          title: 'Failed to connect to WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
-          color: 'error',
-          duration: 10000
-        });
+  async function connectToWifiNetwork (params: WifiConnectParams) {
+    deviceStore.clearRefreshInterval();
+    return await deviceStore.busyBar.connectWifi(params)
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t connect to WiFi network', false, 0);
         return false;
+      })
+      .finally(() => {
+        deviceStore.setRefreshInterval();
       });
   }
 
   async function disconnectFromWifiNetwork () {
-    return await $fetch(`${barUrl}/api/wifi/disconnect`, {
-      method: 'POST'
-    })
-      .catch(error => {
-        console.error('Error disconnecting from WiFi:', error);
-        toast.add({
-          id: 'wifi-disconnect-error',
-          title: 'Failed to disconnect from WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
-          color: 'error',
-          duration: 10000
-        });
+    deviceStore.clearRefreshInterval();
+    return await deviceStore.busyBar.disconnectWifi()
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network', false, 0);
         return false;
-      });
-  }
-
-  async function forgetSavedWifiNetwork () {
-    return await $fetch(`${barUrl}/api/wifi/forget`, {
-      method: 'POST'
-    })
-      .catch(error => {
-        console.error('Error forgetting WiFi network:', error);
-        toast.add({
-          id: 'wifi-forget-error',
-          title: 'Failed to forget WiFi network',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
-          color: 'error',
-          duration: 10000
-        });
-        return false;
+      })
+      .finally(() => {
+        deviceStore.setRefreshInterval();
       });
   }
 
   return {
     wifi,
-    updateWifiState,
-    enableWifi,
-    disableWifi,
+    fetchWifiState,
+    getWifiState,
     listWifiNetworks,
     connectToWifiNetwork,
-    disconnectFromWifiNetwork,
-    forgetSavedWifiNetwork
+    disconnectFromWifiNetwork
   };
 });

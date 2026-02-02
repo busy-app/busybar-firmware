@@ -38,6 +38,27 @@ typedef enum {
     AlignMax, /**< Special value, not to be used in application code */
 } Align;
 
+/** Like `Align`, but with coded axes for ease of processing */
+typedef enum {
+    AlignBitmaskLeft = (1 << 0),
+    AlignBitmaskHorCenter = (1 << 1),
+    AlignBitmaskRight = (1 << 2),
+
+    AlignBitmaskTop = (1 << 3),
+    AlignBitmaskVerCenter = (1 << 4),
+    AlignBitmaskBottom = (1 << 5),
+} AlignBitmask;
+
+/**
+ * @brief Convert `Align` into `AlignBitmask`
+ * 
+ * `AlignBitmask` may be easier to manually parse in some cases.
+ * 
+ * @param[in] align `Align` value
+ * @returns Converted `AlignBitmap` value
+ */
+AlignBitmask widget_align_to_bitmask(Align align);
+
 /** Enumeration of possible scrollbar modes for widget */
 typedef enum {
     WidgetScrollBarModeOff, /**< Never show scrollbars*/
@@ -46,6 +67,17 @@ typedef enum {
     WidgetScrollBarModeAuto, /**< Show scroll bars when the content is large enough to be scrolled*/
     WidgetScrollBarModeCount /**< Special value, not to be used in application code */
 } WidgetScrollBarMode;
+
+/** Enumeration of possible blend modes for widget */
+typedef enum {
+    WidgetBlendModeNormal, /**< Simply mix according to the opacity value */
+    WidgetBlendModeAdditive, /**< Add the respective color channels */
+    WidgetBlendModeSubtractive, /**< Subtract the foreground from the background */
+    WidgetBlendModeMultiply, /**< Multiply the foreground and background */
+    WidgetBlendModeDifference, /**< Absolute difference between foreground and background */
+
+    WidgetBlendModesCount /**< Special value, not to be used in application code */
+} WidgetBlendMode;
 
 /**
  * @brief Create a new widget instance.
@@ -86,9 +118,9 @@ bool widget_is_visible(const Widget* instance);
  * @brief Make widget ignore layout (e.g. flex layout).
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
- * @param[in] igonre_layout make the Widget @p instance igonre layout if true, otherwise acknowledge it
+ * @param[in] ignore_layout make the Widget @p instance ignore layout if true, otherwise acknowledge it
  */
-void widget_set_ignore_layout(Widget* instance, bool igonre_layout);
+void widget_set_ignore_layout(Widget* instance, bool ignore_layout);
 
 /**
  * @brief Check if a Widget instance ignores layout.
@@ -138,6 +170,52 @@ int32_t widget_get_height(const Widget* instance);
  * @param[in] height new height in pixels
  */
 void widget_set_size(Widget* instance, int32_t width, int32_t height);
+
+/**
+ * @brief Set the maximum width of a Widget.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] max_width new width in pixels
+ */
+void widget_set_max_width(Widget* instance, int32_t max_width);
+
+/**
+ * @brief Set the maximum height of a Widget.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] max_height new height in pixels
+ */
+void widget_set_max_height(Widget* instance, int32_t max_height);
+
+/**
+ * @brief Set the maximum width and height of a Widget.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] max_width new width in pixels
+ * @param[in] max_height new height in pixels
+ */
+void widget_set_max_size(Widget* instance, int32_t max_width, int32_t max_height);
+
+/**
+ * @brief Set both the width and height of a Widget to fit its content.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ */
+void widget_set_size_content(Widget* instance);
+
+/**
+ * @brief Set the width of a Widget to fit its content.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ */
+void widget_set_width_content(Widget* instance);
+
+/**
+ * @brief Set the height of a Widget to fit its content.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ */
+void widget_set_height_content(Widget* instance);
 
 /**
  * @brief Set the Widget x (horizontal) position.
@@ -204,10 +282,9 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
  * @brief Set the background color and opacity of a Widget instance.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
- * @param[in] color new background color
- * @param[in] opacity new background opacity (0.0 - 1.0)
+ * @param[in] color new background color including opacity
  */
-void widget_set_background_color(Widget* instance, Color color, float opacity);
+void widget_set_background_color(Widget* instance, Color color);
 
 /**
  * @brief Set the padding for a Widget instance.
@@ -230,6 +307,22 @@ void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t t
  * @param[in] bottom margin on the bottom side in pixels
 */
 void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom);
+
+/**
+ * @brief Set the blend mode for a Widget instance.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] blend_mode new blend mode from the WidgetBlendMode enumeration
+ */
+void widget_set_blend_mode(Widget* instance, WidgetBlendMode blend_mode);
+
+/**
+ * @brief Get the blend mode for a Widget instance.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns current blend mode from the WidgetBlendMode enumeration
+ */
+WidgetBlendMode widget_get_blend_mode(const Widget* instance);
 
 #ifdef __cplusplus
 }

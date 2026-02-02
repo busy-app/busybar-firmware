@@ -2,6 +2,8 @@
 #include <toolbox/dsp.h>
 #include <drivers/bq25798/bq25798.h>
 
+#include <furi_hal_nvm.h>
+
 #define TAG "Power"
 
 #define POWER_IRQ_GPIO (&gpio_bq25798_irq)
@@ -335,16 +337,17 @@ static bool power_charger_is_charged(Bq25798ChargerStatusChargeStat status) {
 }
 
 static void power_update_info(Power* power) {
-    UNUSED(power);
+    furi_assert(power);
+
     furi_hal_i2c_acquire(POWER_I2C);
     Bq25798ChargerStatus status = {0};
-    assert(bq25798_get_charger_status(POWER_I2C, &status) == true);
+    furi_check(bq25798_get_charger_status(POWER_I2C, &status));
 
-    assert(bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault) == true);
-    memcpy(&power->info.debug.charger_status, &status, sizeof(Bq25798ChargerStatus));
+    furi_check(bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault));
+    power->info.debug.charger_status = status;
 
     Bq25798AdcValues adc_val = {0};
-    assert(bq25798_get_adc_values(POWER_I2C, &adc_val) == true);
+    furi_check(bq25798_get_adc_values(POWER_I2C, &adc_val));
 
     furi_hal_i2c_release(POWER_I2C);
 
@@ -373,6 +376,13 @@ static void power_update_info(Power* power) {
         if(status.ts_warm_stat) FURI_LOG_I(TAG, "Thermal sensor warm");
         if(status.ts_cool_stat) FURI_LOG_I(TAG, "Thermal sensor cool");
         if(status.ts_cold_stat) FURI_LOG_I(TAG, "Thermal sensor cold");
+    }
+#endif
+
+#ifndef FURI_RAM_EXEC
+    if(power->shipping_mode_wait && !status.vbus_present) {
+        FURI_LOG_I(TAG, "Entering shipping mode...");
+        power_handle_shutdown(power, false);
     }
 #endif
 
@@ -523,6 +533,22 @@ void power_run(Power* power) {
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
     bq25798_set_charge_voltage_limit(POWER_I2C, POWER_CHARGE_VOLTAGE);
     furi_hal_i2c_release(POWER_I2C);
+
+#ifndef FURI_RAM_EXEC
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagRebootIntoShippingMode)) {
+        furi_hal_nvm_reset_flag(FuriHalNvmFlagRebootIntoShippingMode);
+        power->shipping_mode_wait = true;
+
+        if(power->state.usb_connected) {
+            FURI_LOG_I(TAG, "Awaiting for USB to be disconnected to enter shipping mode...");
+        } else {
+            FURI_LOG_I(TAG, "Entering shipping mode...");
+            power_handle_shutdown(power, false);
+        }
+    } else {
+        power->shipping_mode_wait = false;
+    }
+#endif
 
     furi_record_create(RECORD_POWER, power);
 

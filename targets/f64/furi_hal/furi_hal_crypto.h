@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include <stddef.h>
+
 typedef enum {
     FuriHalCryptoWrappingModeOff,
     FuriHalCryptoWrappingModeOn,
@@ -193,7 +196,7 @@ void furi_hal_crypto_ecdsa_deinit(FuriHalCryptoEcdsa* handle);
  */
 bool furi_hal_crypto_ecdsa_sign(
     FuriHalCryptoEcdsa* handle,
-    uint8_t* input,
+    const uint8_t* input,
     uint16_t input_length,
     uint8_t* output,
     size_t* output_length);

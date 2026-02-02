@@ -8,10 +8,12 @@
 #include <loader/loader.h>
 #include <gui/gui.h>
 
+#include <busy/busy.h>
+
 #define TAG "Desktop"
 
-// Time to wait for the rotary switch steady state
-#define SWITCH_DELAY_MS   (300)
+// Time to wait for the rotary switch steady state.
+#define SWITCH_DELAY_MS   (100)
 // Maximum and initial counts for synchronisation primitives
 #define INPUT_QUEUE_COUNT (8)
 #define START_QUEUE_COUNT (3)
@@ -40,31 +42,26 @@ struct Desktop {
     DesktopOverlay* overlay;
     DesktopStartRequest* current_request;
     InputSwitchPosition switch_pos;
+    DesktopSwitchDirection switch_direction;
     bool pin_current_app;
 };
 
 static const DesktopDefaultApp desktop_default_apps[];
+static const DesktopDefaultApp power_on_app = {"power_on", NULL};
+#define POWER_ON_APP_FULL_NAME "Power On"
 
-// Called by the Input service thread when the user interacts with the rotary switch/buttons
-static void desktop_input_pubsub_callback(const void* message, void* context) {
+// Called by the Input service thread when the user interacts with the rotary switch
+static void desktop_input_switch_state_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    const InputEvent* event = message;
+    const InputSwitchPosition* position = message;
     Desktop* instance = context;
 
     if(!instance->pin_current_app) {
-        if(event->type == InputTypePress) {
-            const InputKey key = event->key;
-            // Only react to rotary switch events
-            if(key >= InputKeyBusy && key < InputKeyMAX) {
-                const InputSwitchPosition pos = key - InputKeyBusy;
-
-                furi_check(
-                    furi_message_queue_put(instance->input_queue, &pos, FuriWaitForever) ==
-                    FuriStatusOk);
-            }
-        }
+        furi_check(
+            furi_message_queue_put(instance->input_queue, position, FuriWaitForever) ==
+            FuriStatusOk);
     }
 }
 
@@ -141,7 +138,13 @@ static bool desktop_enqueue_start_request(Desktop* instance, const char* name, c
 static void desktop_handle_switch_start(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction started");
 
-    desktop_overlay_show(instance->overlay);
+    DesktopOverlayTransitionType transition_type =
+        (instance->switch_direction == DesktopSwitchDirectionUp) ?
+            DesktopOverlayTransitionTypeUp :
+            DesktopOverlayTransitionTypeDown;
+
+    desktop_overlay_show(instance->overlay, transition_type);
+    loader_send_signal(instance->loader, FuriSignalAboutToExit, NULL);
 }
 
 // Called on each new position of the rotary switch if steady state has not been reached
@@ -155,12 +158,32 @@ static void desktop_handle_switch_update(Desktop* instance) {
 static void desktop_handle_switch_finished(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction finished");
 
-    desktop_overlay_hide(instance->overlay);
+    DesktopOverlayTransitionType transition_type =
+        (instance->switch_pos == InputSwitchPositionOff) ? DesktopOverlayTransitionTypeNone :
+        (instance->switch_direction == DesktopSwitchDirectionUp) ?
+                                                           DesktopOverlayTransitionTypeUp :
+                                                           DesktopOverlayTransitionTypeDown;
+
+    desktop_overlay_hide(instance->overlay, transition_type);
+}
+
+static void desktop_prepare_power_on_app(Desktop* instance) {
+    desktop_start_request_set_name(instance->current_request, power_on_app.name);
+    desktop_start_request_set_args(instance->current_request, power_on_app.args);
+}
+
+static bool desktop_power_on_app_is_running(Desktop* instance) {
+    FuriString* current_app = furi_string_alloc();
+    loader_get_application_name(instance->loader, current_app);
+    bool result = furi_string_equal_str(current_app, POWER_ON_APP_FULL_NAME);
+    furi_string_free(current_app);
+    return result;
 }
 
 // Check if desktop_handle_switch_start() should be called
 static bool desktop_should_handle_switch_start(Desktop* instance) {
-    return !desktop_overlay_show_requested(instance->overlay);
+    return (!desktop_overlay_show_requested(instance->overlay)) &&
+           (!desktop_power_on_app_is_running(instance));
 }
 
 // Called if the requested app failed to start (Shows error message via the Message app)
@@ -201,35 +224,53 @@ static void desktop_start_current_app(Desktop* instance) {
 
 // Start the pending app using two strategies depending on the loader state
 static void desktop_do_replace_current_app(Desktop* instance) {
-    const LoaderStatus status = loader_stop(instance->loader);
+    const size_t tries = 2;
 
-    if(status == LoaderStatusOk) {
-        // App will be started asynchronously after
-        // the currently running one will have stopped
-    } else if(status == LoaderStatusErrorAppNotRunning) {
-        // App will be started immediately
-        desktop_start_current_app(instance);
-        desktop_prepare_default_app(instance);
-    } else if(status == LoaderStatusErrorInternal) {
-        furi_crash("Update app to support signals");
-    } else {
-        furi_crash("Unexpected loader status");
+    for(size_t i = 0; i < tries; i++) {
+        const LoaderStatus status = loader_stop(instance->loader);
+
+        if(status == LoaderStatusOk) {
+            // App will be started asynchronously after
+            // the currently running one will have stopped
+            break;
+
+        } else if(status == LoaderStatusErrorAppNotRunning) {
+            // App will be started immediately
+            desktop_start_current_app(instance);
+            desktop_prepare_default_app(instance);
+            break;
+
+        } else if(status == LoaderStatusErrorNoSignalHandler) {
+            // TODO [FW-429]: this should never happen with `app_platform`, and we can crash
+            // furi_crash("update app to use app_platform");
+            FURI_LOG_W(TAG, "no signal handler installed");
+
+        } else {
+            furi_crash("Unexpected loader status");
+        }
     }
 }
 
 // Called in the Desktop thread when there are input events to process
-static void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
+void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
     Desktop* instance = context;
     furi_assert(instance->input_queue == object);
 
-    if(desktop_should_handle_switch_start(instance)) {
-        desktop_handle_switch_start(instance);
-    }
+    InputSwitchPosition next_switch_pos;
 
-    while(furi_message_queue_get(instance->input_queue, &instance->switch_pos, 0) ==
-          FuriStatusOk) {
+    while(furi_message_queue_get(instance->input_queue, &next_switch_pos, 0) == FuriStatusOk) {
+        instance->switch_direction = (next_switch_pos > instance->switch_pos) ?
+                                         DesktopSwitchDirectionDown :
+                                         DesktopSwitchDirectionUp;
+
+        if(desktop_should_handle_switch_start(instance)) {
+            desktop_handle_switch_start(instance);
+        }
+
+        instance->switch_pos = next_switch_pos;
+
         desktop_handle_switch_update(instance);
     }
 
@@ -241,7 +282,7 @@ static void desktop_switch_timer_callback(void* context) {
     furi_assert(context);
     Desktop* instance = context;
 
-    furi_assert(instance->switch_pos < InputSwitchPositionMAX);
+    if(instance->switch_pos == InputSwitchPositionMAX) return;
     const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
 
     desktop_enqueue_start_request(instance, default_app->name, default_app->args);
@@ -316,10 +357,6 @@ static Desktop* desktop_alloc(void) {
     Gui* gui = furi_record_open(RECORD_GUI);
     instance->overlay = desktop_overlay_alloc(gui);
 
-    Input* input = furi_record_open(RECORD_INPUT);
-    instance->current_request = desktop_start_request_alloc();
-    instance->switch_pos = input_get_absolute_state(input).switch_position;
-
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->input_queue,
@@ -344,17 +381,19 @@ static Desktop* desktop_alloc(void) {
     FuriPubSub* loader_events = loader_get_pubsub(instance->loader);
     furi_pubsub_subscribe(loader_events, desktop_loader_pubsub_callback, instance);
 
-#if defined(SRV_INPUT)
-    FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
-    furi_pubsub_subscribe(input_events, desktop_input_pubsub_callback, instance);
-#else
-    UNUSED(desktop_input_pubsub_callback);
-#endif
-
-    desktop_prepare_default_app(instance);
+    instance->current_request = desktop_start_request_alloc();
+    desktop_prepare_power_on_app(instance);
     if(!loader_is_locked(instance->loader)) {
         desktop_start_current_app(instance);
     }
+
+#if defined(SRV_INPUT)
+    Input* input = furi_record_open(RECORD_INPUT);
+    furi_state_subscribe(
+        input_get_switch_pos(input), desktop_input_switch_state_callback, instance);
+#else
+    UNUSED(desktop_input_switch_state_callback);
+#endif
 
     furi_record_create(RECORD_DESKTOP, instance);
     return instance;
@@ -373,6 +412,12 @@ void desktop_pin_current_app(Desktop* instance, bool pin) {
     instance->pin_current_app = pin;
 }
 
+DesktopSwitchDirection desktop_get_switch_direction(Desktop* instance) {
+    furi_check(instance);
+
+    return instance->switch_direction;
+}
+
 int32_t desktop_srv(void* arg) {
     UNUSED(arg);
 
@@ -385,8 +430,8 @@ int32_t desktop_srv(void* arg) {
 
 static const DesktopDefaultApp desktop_default_apps[] = {
     [InputSwitchPositionBusy] = {"busy", NULL},
-    [InputSwitchPositionStatus] = {"dummy", "Status"},
+    [InputSwitchPositionStatus] = {"busy", BUSY_APP_CUSTOM_MODE},
     [InputSwitchPositionOff] = {"soft_off", NULL},
     [InputSwitchPositionApps] = {"apps_menu", NULL},
-    [InputSwitchPositionSettings] = {"settings", NULL},
+    [InputSwitchPositionSettings] = {"settings_menu", NULL},
 };

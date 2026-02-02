@@ -1,7 +1,7 @@
 App(
     appid="ble_test",
     name="ble_test",
-    targets=["f64"],
+    targets=["f64", "f65"],
     apptype=FlipperAppType.CLICMD,
     entry_point="ble_test_command",
 )

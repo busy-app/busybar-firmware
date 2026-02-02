@@ -96,7 +96,7 @@ bool storage_has_file(const File* file, StorageData* storage) {
     return storage_get_file(file, storage) != NULL;
 }
 
-bool storage_path_already_open(FuriString* path, StorageData* storage) {
+bool storage_path_already_open(FuriString* path, FS_AccessMode access_mode, StorageData* storage) {
     bool open = false;
 
     StorageFileList_it_t it;
@@ -106,8 +106,10 @@ bool storage_path_already_open(FuriString* path, StorageData* storage) {
         const StorageFile* storage_file = StorageFileList_cref(it);
 
         if(furi_string_cmp(storage_file->path, path) == 0) {
-            open = true;
-            break;
+            if((storage_file->access_mode != access_mode) || (access_mode != FSAM_READ)) {
+                open = true;
+                break;
+            }
         }
     }
 
@@ -126,11 +128,16 @@ void* storage_get_storage_file_data(const File* file, StorageData* storage) {
     return storage_file_ref->file_data;
 }
 
-void storage_push_storage_file(File* file, FuriString* path, StorageData* storage) {
+void storage_push_storage_file(
+    File* file,
+    FuriString* path,
+    FS_AccessMode access_mode,
+    StorageData* storage) {
     StorageFile* storage_file = StorageFileList_push_new(storage->files);
     file->file_id = (uint32_t)storage_file;
     storage_file->file = file;
     furi_string_set(storage_file->path, path);
+    storage_file->access_mode = access_mode;
 }
 
 bool storage_pop_storage_file(File* file, StorageData* storage) {

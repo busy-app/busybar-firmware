@@ -15,6 +15,7 @@ struct AnimMenu {
     uint32_t idle_frames;
     uint32_t transition_frames;
     uint32_t current_idx;
+    bool is_loaded;
 };
 
 typedef struct {
@@ -24,22 +25,29 @@ typedef struct {
 
 const lv_obj_class_t anim_menu_lvgl_class;
 
-static inline void anim_menu_calc_idle_range(const AnimMenu* instance, AnimMenuFrameRange* range) {
+static inline AnimMenuFrameRange
+    anim_menu_calc_idle_range(const AnimMenu* instance, uint32_t idx) {
     furi_assert(instance->idle_frames);
     furi_assert(instance->transition_frames);
 
-    range->begin = instance->current_idx * (instance->idle_frames + instance->transition_frames);
-    range->end = range->begin + instance->idle_frames - 1;
+    AnimMenuFrameRange range;
+    range.begin = idx * (instance->idle_frames + instance->transition_frames);
+    range.end = range.begin + instance->idle_frames - 1;
+
+    return range;
 }
 
-static inline void
-    anim_menu_calc_transition_range(const AnimMenu* instance, AnimMenuFrameRange* range) {
+static inline AnimMenuFrameRange
+    anim_menu_calc_transition_range(const AnimMenu* instance, uint32_t idx) {
     furi_assert(instance->idle_frames);
     furi_assert(instance->transition_frames);
 
-    range->begin = instance->idle_frames +
-                   (instance->current_idx * (instance->idle_frames + instance->transition_frames));
-    range->end = range->begin + instance->transition_frames - 1;
+    AnimMenuFrameRange range;
+    range.begin =
+        instance->idle_frames + (idx * (instance->idle_frames + instance->transition_frames));
+    range.end = range.begin + instance->transition_frames - 1;
+
+    return range;
 }
 
 static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
@@ -48,42 +56,62 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
     bool consumed = false;
 
     if(event->type == InputTypeShort) {
-        if(event->key == InputKeyUp) {
-            if(!instance->current_idx) {
-                AnimMenuFrameRange range;
-                // Transition from item 0 to item 1
-                anim_menu_calc_transition_range(instance, &range);
-                anim_image_set_range((AnimImage*)instance, range.begin, range.end, false, false);
-                // Important: read the code before attempting to move the below line
+        switch(event->key) {
+        case InputKeyUp:
+            if(instance->current_idx == 0) {
                 instance->current_idx = 1;
-                // Item 1 idle
-                anim_menu_calc_idle_range(instance, &range);
-                anim_image_set_range((AnimImage*)instance, range.begin, range.end, true, true);
+
+                if(instance->is_loaded) {
+                    AnimMenuFrameRange transition_range =
+                        anim_menu_calc_transition_range(instance, 0);
+                    anim_image_set_range(
+                        (AnimImage*)instance,
+                        transition_range.begin,
+                        transition_range.end,
+                        false,
+                        false);
+
+                    AnimMenuFrameRange idle_range = anim_menu_calc_idle_range(instance, 1);
+                    anim_image_set_range(
+                        (AnimImage*)instance, idle_range.begin, idle_range.end, true, true);
+                }
             }
-
             consumed = true;
+            break;
 
-        } else if(event->key == InputKeyDown) {
-            if(instance->current_idx) {
-                AnimMenuFrameRange range;
-                // Transition from item 1 to item 0
-                anim_menu_calc_transition_range(instance, &range);
-                anim_image_set_range((AnimImage*)instance, range.begin, range.end, false, false);
-                // Important: read the code before attempting to move the below line
+        case InputKeyDown:
+            if(instance->current_idx == 1) {
                 instance->current_idx = 0;
-                // Item 0 idle
-                anim_menu_calc_idle_range(instance, &range);
-                anim_image_set_range((AnimImage*)instance, range.begin, range.end, true, true);
+
+                if(instance->is_loaded) {
+                    AnimMenuFrameRange transition_range =
+                        anim_menu_calc_transition_range(instance, 1);
+                    anim_image_set_range(
+                        (AnimImage*)instance,
+                        transition_range.begin,
+                        transition_range.end,
+                        false,
+                        false);
+
+                    AnimMenuFrameRange idle_range = anim_menu_calc_idle_range(instance, 0);
+                    anim_image_set_range(
+                        (AnimImage*)instance, idle_range.begin, idle_range.end, true, true);
+                }
             }
-
             consumed = true;
+            break;
 
-        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
+        case InputKeyOk:
+        /* fall-through */
+        case InputKeyStart:
             if(instance->callback) {
                 instance->callback(instance->current_idx, instance->context);
             }
-
             consumed = true;
+            break;
+
+        default:
+            break;
         }
     }
 
@@ -141,9 +169,9 @@ bool anim_menu_set_source(
     furi_check(idle_frames > 0);
     furi_check(transition_frames > 0);
 
-    const bool success = anim_image_set_source((AnimImage*)instance, file_path);
+    instance->is_loaded = anim_image_set_source((AnimImage*)instance, file_path);
 
-    if(success) {
+    if(instance->is_loaded) {
         instance->idle_frames = idle_frames;
         instance->transition_frames = transition_frames;
 
@@ -151,7 +179,7 @@ bool anim_menu_set_source(
         anim_image_start((AnimImage*)instance);
     }
 
-    return success;
+    return instance->is_loaded;
 }
 
 void anim_menu_set_callback(AnimMenu* instance, AnimMenuCallback callback, void* context) {

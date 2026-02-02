@@ -1,0 +1,200 @@
+#include "device_name.h"
+#include "device_name_i.h"
+
+#include <storage/storage.h>
+#include <toolbox/path.h>
+
+#define TAG "Name"
+
+#define MAX_NAME_LENGTH (20U)
+
+#define SETTINGS_PATH  EXT_PATH("apps_data/settings")
+#define NAME_FILE_PATH SETTINGS_PATH "/name.txt"
+
+#define DEVICE_NAME_SET_ERROR(error, format, ...)                   \
+    ({                                                              \
+        if(error) furi_string_printf(error, format, ##__VA_ARGS__); \
+    })
+
+struct DeviceName {
+    FuriMutex* lock;
+    FuriPubSub* on_change;
+};
+
+static bool device_name_validate_char(char c) {
+    // TODO: !@#$%^&*()-_=+[]{};:,.?/"'<>\| once escaping concerns are addressed
+    static const char* const allowed_special_chars = " !()-_=+;:,.?'|";
+
+    bool allowed_ascii = isalnum(c) || strchr(allowed_special_chars, c);
+    bool utf8 = c >= 128;
+    bool null = c == 0;
+    return allowed_ascii && !utf8 && !null;
+}
+
+bool device_name_validate(FuriString* name, FuriString* error) {
+    furi_assert(name);
+
+    if(furi_string_empty(name)) {
+        DEVICE_NAME_SET_ERROR(error, "Name is empty");
+        return false;
+    }
+
+    if(furi_string_size(name) > MAX_NAME_LENGTH) {
+        DEVICE_NAME_SET_ERROR(error, "Name exceeds %d characters", MAX_NAME_LENGTH);
+        return false;
+    }
+
+    bool only_contains_spaces = true;
+
+    for(size_t i = 0; i < furi_string_size(name); i++) {
+        char c = furi_string_get_char(name, i);
+
+        if(c != ' ') only_contains_spaces = false;
+
+        if(!device_name_validate_char(c)) {
+            DEVICE_NAME_SET_ERROR(error, "Disallowed character: %c", c);
+            return false;
+        }
+    }
+
+    if(only_contains_spaces) {
+        DEVICE_NAME_SET_ERROR(error, "Name can't consist of only spaces");
+        return false;
+    }
+
+    return true;
+}
+
+static bool settings_dir_create_if_not_exist(Storage* storage) {
+    FuriString* dir_path = furi_string_alloc_set(SETTINGS_PATH);
+    bool result = path_recursive_create_dir(storage, dir_path) == FSE_OK;
+    furi_string_free(dir_path);
+    return result;
+}
+
+static bool device_name_save_config(Storage* storage, FuriString* name) {
+    bool result = false;
+    File* file = storage_file_alloc(storage);
+    do {
+        if(!settings_dir_create_if_not_exist(storage)) {
+            FURI_LOG_W(TAG, "Unable to create settings dir");
+            break;
+        }
+
+        if(!storage_file_open(file, NAME_FILE_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+            FURI_LOG_W(TAG, "Unable to create name file");
+            break;
+        }
+
+        if(!storage_file_write(file, furi_string_get_cstr(name), furi_string_size(name))) {
+            FURI_LOG_W(TAG, "Unable to write name");
+            break;
+        }
+        result = true;
+    } while(false);
+    storage_file_free(file);
+
+    return result;
+}
+
+static bool device_name_read_config(Storage* storage, FuriString* name) {
+    bool result = false;
+    File* file = storage_file_alloc(storage);
+    do {
+        if(!storage_file_open(file, NAME_FILE_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_W(TAG, "Unable to open file config");
+            break;
+        }
+
+        uint64_t file_size = storage_file_size(file);
+        if(file_size == 0) {
+            FURI_LOG_W(TAG, "File is empty");
+            break;
+        }
+
+        char buf[MAX_NAME_LENGTH + 1] = {0};
+        size_t name_size = MIN(file_size, MAX_NAME_LENGTH);
+
+        if(!storage_file_read(file, buf, name_size)) {
+            FURI_LOG_W(TAG, "Unable to read name from file");
+            break;
+        }
+        furi_string_set_str(name, buf);
+
+        if(!device_name_validate(name, NULL)) {
+            FURI_LOG_W(TAG, "Disallowed device name in storage");
+            break;
+        }
+
+        result = true;
+    } while(false);
+    storage_file_free(file);
+    return result;
+}
+
+void device_name_get(DeviceName* instance, FuriString* name) {
+    furi_assert(instance);
+    furi_assert(name);
+
+    furi_mutex_acquire(instance->lock, FuriWaitForever);
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    if(!storage_file_exists(storage, NAME_FILE_PATH) || !device_name_read_config(storage, name)) {
+        furi_string_set_str(name, DEVICE_NAME_DEFAULT);
+        FURI_LOG_I(TAG, "Default name used");
+
+        if(!device_name_save_config(storage, name)) {
+            FURI_LOG_E(TAG, "Failed to save name");
+        }
+    }
+
+    furi_record_close(RECORD_STORAGE);
+    furi_mutex_release(instance->lock);
+}
+
+bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) {
+    furi_assert(instance);
+    furi_assert(name);
+
+    bool result = false;
+    furi_mutex_acquire(instance->lock, FuriWaitForever);
+
+    do {
+        if(!device_name_validate(name, error)) break;
+
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        if(device_name_save_config(storage, name)) {
+            FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(name));
+            result = true;
+            furi_pubsub_publish(instance->on_change, name);
+        } else {
+            DEVICE_NAME_SET_ERROR(error, "Failed to save name");
+        }
+        furi_record_close(RECORD_STORAGE);
+    } while(false);
+
+    furi_mutex_release(instance->lock);
+    return result;
+}
+
+FuriPubSub* device_name_get_pubsub(DeviceName* instance) {
+    furi_assert(instance);
+    return instance->on_change;
+}
+
+int device_name_startup(void* arg) {
+    UNUSED(arg);
+
+    DeviceName* instance = malloc(sizeof(DeviceName));
+    instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
+    instance->on_change = furi_pubsub_alloc();
+
+    furi_record_create(RECORD_DEVICE_NAME, instance);
+
+    FuriString* name = furi_string_alloc();
+    device_name_get(instance, name);
+    FURI_LOG_I(TAG, "Device name: %s", furi_string_get_cstr(name));
+    furi_string_free(name);
+
+    return 0;
+}

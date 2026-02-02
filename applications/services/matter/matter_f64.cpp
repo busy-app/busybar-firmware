@@ -1,0 +1,412 @@
+#include <furi.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+
+#include <platform/PlatformManager.h>
+
+#include <app/server/Server.h>
+#include <app/server/OnboardingCodesUtil.h>
+#include <app/clusters/on-off-server/on-off-server.h>
+#include <app/clusters/identify-server/identify-server.h>
+#include <app-common/zap-generated/attributes/Accessors.h>
+
+#include <platform/bsb/BSBDeviceInfoProvider.hpp>
+#include <platform/bsb/BSBCommissionableDataProvider.hpp>
+#include <platform/bsb/BSBDeviceInstanceInfoProvider.hpp>
+#include <platform/bsb/BSBDeviceAttestationCredsProvider.hpp>
+
+#include <network/network.h>
+#include <wifi/wifi_common.h>
+#include <intercom/intercom.h>
+#include <status_lights/status_lights_backend.h>
+
+#include "matter_common_i.h"
+
+#define TAG "MatterSrv"
+
+#define RENDEZVOUS_FLAGS (RendezvousInformationFlags(chip::RendezvousInformationFlag::kOnNetwork))
+#define IDENTIFY_COLOR   ((Color)COLOR_MAKE_HEX(0xFFAA00))
+#define CD_AWAIT_TIMEOUT furi_ms_to_ticks(5000)
+
+using namespace chip;
+using namespace Credentials;
+using namespace Platform;
+using namespace DeviceLayer;
+using namespace Transport;
+using namespace chip::app::Clusters;
+using namespace chip::System::Clock;
+
+static constexpr EndpointId onOffEndpointId = 1;
+
+class BsbFabricTableDelegate : public FabricTable::Delegate {
+    void OnFabricRemoved(const FabricTable& fabricTable, FabricIndex fabricIndex) override;
+};
+
+class MatterSrv {
+public:
+    MatterSrv(void);
+    CHIP_ERROR init(void);
+
+    IntercomChannel* m_intercom_ch;
+    StatusLights* m_status_lights;
+    FuriSemaphore* m_cd_available;
+
+private:
+    CommonCaseDeviceServerInitParams m_server_init_params;
+    BsbFabricTableDelegate m_fabric_delegate;
+    ::Identify m_identify;
+};
+
+// sorry - the MatterPostAttributeChangeCallback can't accept any context
+static MatterSrv* matter_global_srv;
+
+// =========
+// Utilities
+// =========
+
+static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
+    furi_check(buf_size >= (MATTER_MAX_MAN_CODE_LEN + 1));
+
+    static const size_t pattern[2] = {4, 3};
+    const size_t original_len = strlen(buffer);
+    const size_t orig_len_with_terminator = original_len + 1;
+    if(!original_len) return;
+    furi_check((original_len == 11) || (original_len == 21));
+
+    size_t pattern_step = 0;
+    size_t i = 0;
+
+    while(1) {
+        i += pattern[pattern_step];
+        pattern_step = (pattern_step + 1) % COUNT_OF(pattern);
+
+        if(buffer[i] == '\0') break;
+
+        memmove(buffer + i + 1, buffer + i, orig_len_with_terminator - i);
+        buffer[i] = '-';
+
+        i++;
+    }
+}
+
+void matter_start_blinking(::Identify* identify) {
+    furi_assert(identify);
+    MatterSrv* matter = matter_global_srv;
+    status_lights_run_preset(matter->m_status_lights, StatusLightsPresetBlink, IDENTIFY_COLOR);
+}
+
+void matter_stop_blinking(::Identify* identify) {
+    furi_assert(identify);
+    MatterSrv* matter = matter_global_srv;
+    status_lights_run_preset(matter->m_status_lights, StatusLightsPresetOff, IDENTIFY_COLOR);
+}
+
+/**
+ * @warning Requires Matter stack to be locked
+ */
+void matter_restart_dnssd(void) {
+    ChipDeviceEvent event;
+    event.Type = DeviceEventType::kDnssdRestartNeeded;
+    PlatformMgr().PostEventOrDie(&event);
+}
+
+// =====================
+// Communication with u5
+// =====================
+
+static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
+    furi_check(
+        intercom_tx(matter->m_intercom_ch, frame, sizeof(*frame), FuriWaitForever) ==
+        sizeof(*frame));
+}
+
+/**
+ * @brief Handles an intercom frame
+ */
+static void matter_handle_frame(const void* data, size_t data_size, void* context) {
+    furi_check(data);
+    furi_check(data_size == sizeof(MatterIntercomFrame));
+    furi_check(context);
+    const auto* frame = static_cast<const MatterIntercomFrame*>(data);
+    auto* matter = static_cast<MatterSrv*>(context);
+
+    if(frame->type == MatterIntercomFrameTypeCdCertificate) {
+        FURI_LOG_D(TAG, "CdCertificate frame");
+        Credentials::BSB::GetDeviceAttestationCredentialsProvider()->SetCertificationDeclaration(
+            frame->cd_certificate.contents, frame->cd_certificate.contents_length);
+        furi_check(furi_semaphore_release(matter->m_cd_available) == FuriStatusOk);
+
+    } else if(frame->type == MatterIntercomFrameTypeSwitchState) {
+        FURI_LOG_D(TAG, "SwitchState frame");
+
+        PlatformMgr().ScheduleWork(
+            [](intptr_t arg) {
+                OnOffServer::Instance().setOnOffValue(
+                    onOffEndpointId, static_cast<bool>(arg), false);
+            },
+            frame->switch_state.value);
+
+    } else if(frame->type == MatterIntercomFrameTypeSwitchStartupMode) {
+        FURI_LOG_D(TAG, "SwitchStartupMode frame");
+
+        PlatformMgr().ScheduleWork(
+            [](intptr_t arg) {
+                const auto startup_mode = static_cast<OnOff::StartUpOnOffEnum>(arg);
+
+                if(startup_mode < OnOff::StartUpOnOffEnum::kUnknownEnumValue) {
+                    OnOff::Attributes::StartUpOnOff::Set(onOffEndpointId, startup_mode);
+                } else {
+                    OnOff::Attributes::StartUpOnOff::SetNull(onOffEndpointId);
+                }
+            },
+            frame->startup.mode);
+
+    } else if(frame->type == MatterIntercomFrameTypeReset) {
+        FURI_LOG_D(TAG, "Reset frame");
+        Server::GetInstance().ScheduleFactoryReset();
+
+    } else if(frame->type == MatterIntercomFrameTypeCommission) {
+        FURI_LOG_D(TAG, "Commission frame");
+
+        PlatformMgr().ScheduleWork(
+            [](intptr_t arg) {
+                Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow(
+                    Seconds32(MATTER_COMMISSION_TIME_SECONDS));
+            },
+            0);
+
+        MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypePairingCodes,
+        };
+        auto qr_code = MutableCharSpan(frame.codes.qr_code, sizeof(frame.codes.qr_code));
+        auto manual_code =
+            MutableCharSpan(frame.codes.manual_code, sizeof(frame.codes.manual_code));
+
+        StackLock lock;
+        GetQRCode(qr_code, RENDEZVOUS_FLAGS);
+        GetManualPairingCode(manual_code, RENDEZVOUS_FLAGS);
+
+        matter_hyphenate_manual_code(frame.codes.manual_code, sizeof(frame.codes.manual_code));
+        matter_send_frame(matter, &frame);
+
+    } else {
+        furi_crash(/* we shouldn't be receiving this frame */);
+    }
+}
+
+/**
+ * @brief Notifies u5 about an updated state 
+ */
+static void matter_send_state_update(MatterSrv* matter, bool state) {
+    MatterIntercomFrame frame = {
+        .type = MatterIntercomFrameTypeSwitchState,
+        .switch_state =
+            {
+                .value = state,
+            },
+    };
+    matter_send_frame(matter, &frame);
+}
+
+/**
+ * @brief Sends current count of commissioned fabrics to u5
+ * @warning Requires Matter stack to be locked
+ */
+static void matter_send_fabric_count_update(MatterSrv* matter) {
+    MatterIntercomFrame frame = {
+        .type = MatterIntercomFrameTypeFabricCountUpdate,
+        .fabric_count =
+            {
+                .fabric_count = Server::GetInstance().GetFabricTable().FabricCount(),
+            },
+    };
+    matter_send_frame(matter, &frame);
+}
+
+/**
+ * @brief Receives updates about cluster attribute changes in the Matter stack
+ * @note Overrides an `__attribute__((weak))` stub callback in the Matter SDK
+ */
+void MatterPostAttributeChangeCallback(
+    const chip::app::ConcreteAttributePath& attributePath,
+    uint8_t type,
+    uint16_t size,
+    uint8_t* value) {
+    EndpointId endpoint = attributePath.mEndpointId;
+    ClusterId cluster = attributePath.mClusterId;
+    AttributeId attribute = attributePath.mAttributeId;
+
+    // Matter likes to update attributes before fully initializing
+    if(!matter_global_srv->m_intercom_ch) return;
+
+    if(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id) {
+        matter_send_state_update(matter_global_srv, static_cast<bool>(*value));
+    }
+}
+
+/**
+ * @brief Sends the current state to u5
+ */
+static void matter_send_current_state(MatterSrv* matter) {
+    bool state;
+
+    if(OnOffServer::Instance().getOnOffValue(onOffEndpointId, &state) ==
+       Protocols::InteractionModel::Status::Success) {
+        matter_send_state_update(matter, state);
+    }
+}
+
+// =============
+// Service setup
+// =============
+
+void BsbFabricTableDelegate::OnFabricRemoved(
+    const FabricTable& fabricTable,
+    FabricIndex fabricIndex) {
+    UNUSED(fabricTable);
+    UNUSED(fabricIndex);
+    matter_restart_dnssd();
+    matter_send_fabric_count_update(matter_global_srv);
+}
+
+static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
+    auto matter = (MatterSrv*)arg;
+
+    if(event->Type == DeviceEventType::kSecureSessionEstablished) {
+        if(event->SecureSessionEstablished.SecureSessionType ==
+           (uint8_t)SecureSession::Type::kPASE) {
+            FURI_LOG_D(TAG, "PASE established");
+            // Matter doesn't provide a "Commissioning started" event,
+            // but the earliest commissioning step that we can detect is the
+            // establishment of a passcode-authenticated session. So we do that.
+            MatterIntercomFrame frame = {
+                .type = MatterIntercomFrameTypeCommissionStatus,
+                .commission_status =
+                    {
+                        .status = MatterCommissioningStatusStarted,
+                    },
+            };
+            matter_send_frame(matter, &frame);
+        }
+
+    } else if(event->Type == DeviceEventType::kFailSafeTimerExpired) {
+        FURI_LOG_D(TAG, "Fail-safe expired");
+        MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypeCommissionStatus,
+            .commission_status =
+                {
+                    .status = MatterCommissioningStatusFailed,
+                },
+        };
+        matter_send_frame(matter, &frame);
+
+    } else if(event->Type == DeviceEventType::kCommissioningComplete) {
+        FURI_LOG_D(TAG, "Commissioning complete");
+        matter_restart_dnssd();
+        MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypeCommissionStatus,
+            .commission_status =
+                {
+                    .status = MatterCommissioningStatusComplete,
+                },
+        };
+        matter_send_frame(matter, &frame);
+        matter_send_fabric_count_update(matter);
+    }
+}
+
+MatterSrv::MatterSrv(void)
+    : m_identify(::Identify(
+          onOffEndpointId,
+          matter_start_blinking,
+          matter_stop_blinking,
+          chip::app::Clusters::Identify::IdentifyTypeEnum::kVisibleIndicator)) {
+    m_status_lights = static_cast<StatusLights*>(furi_record_open(RECORD_STATUS_LIGHTS));
+    m_cd_available = furi_semaphore_alloc(1, 0);
+}
+
+CHIP_ERROR MatterSrv::init(void) {
+    CHIP_ERROR err;
+
+    do {
+        err = MemoryInit();
+        if(err != CHIP_NO_ERROR) {
+            break;
+        }
+
+        err = PlatformMgr().InitChipStack();
+        if(err != CHIP_NO_ERROR) {
+            break;
+        }
+
+        StackLock lock;
+
+        auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+        m_intercom_ch =
+            intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
+
+        if(furi_semaphore_acquire(m_cd_available, CD_AWAIT_TIMEOUT) != FuriStatusOk) {
+            err = CHIP_ERROR_TIMEOUT;
+            break;
+        }
+
+        SetDeviceInfoProvider(DeviceLayer::BSB::GetDeviceInfoProvider());
+        SetDeviceInstanceInfoProvider(DeviceLayer::BSB::GetDeviceInstanceInfoProvider());
+        SetCommissionableDataProvider(DeviceLayer::BSB::GetCommissionableDataProvider());
+        SetDeviceAttestationCredentialsProvider(
+            Credentials::BSB::GetDeviceAttestationCredentialsProvider());
+
+        err = m_server_init_params.InitializeStaticResourcesBeforeServerInit();
+        if(err != CHIP_NO_ERROR) {
+            break;
+        }
+
+        err = Server::GetInstance().Init(m_server_init_params);
+        if(err != CHIP_NO_ERROR) {
+            break;
+        }
+
+        DeviceLayer::BSB::GetDeviceInfoProvider()->SetStorageDelegate(
+            &Server::GetInstance().GetPersistentStorage());
+
+        PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
+        Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
+
+        matter_send_current_state(this);
+        matter_send_fabric_count_update(this);
+        MatterIntercomFrame notification = {
+            .type = MatterIntercomFrameTypeBackendReady,
+        };
+        matter_send_frame(this, &notification);
+
+    } while(false);
+
+    return err;
+}
+
+extern "C" {
+int matter_srv(void* arg);
+}
+
+int matter_srv(void* arg) {
+    UNUSED(arg);
+
+    matter_global_srv = new MatterSrv;
+
+    const auto err = matter_global_srv->init();
+
+    if(err == CHIP_NO_ERROR) {
+        PlatformMgr().RunEventLoop();
+
+    } else {
+        FURI_LOG_E(TAG, "Failed to start: 0x%lx", err.Format());
+        furi_thread_suspend(furi_thread_get_current_id());
+    }
+
+    return 0;
+}
+
+#pragma GCC diagnostic pop

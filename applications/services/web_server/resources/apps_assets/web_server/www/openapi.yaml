@@ -1,8 +1,8 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: Busy Bar HTTP API
-  description: HTTP API for Busy Bar web server
-  version: 0.2.0
+  title: BUSY Bar HTTP API
+  description: HTTP API for BUSY Bar web server
+  version: 4.1.0
   contact:
     name: tbd
 
@@ -15,7 +15,7 @@ paths:
       tags:
         - System
       summary: Get API version information
-      description: Retrieves api version
+      description: Retrieves API version
       operationId: getVersion
       responses:
         "200":
@@ -35,8 +35,8 @@ paths:
     get:
       tags:
         - Settings
-      summary: HTTP API access over Wi-Fi configuration get
-      description: HTTP API access over Wi-Fi configuration get
+      summary: Get HTTP API access over Wi-Fi configuration
+      description: Get HTTP API access over Wi-Fi configuration
       operationId: getHttpAccess
       responses:
         "200":
@@ -48,8 +48,8 @@ paths:
     post:
       tags:
         - Settings
-      summary: HTTP API access over Wi-Fi configuration set
-      description: HTTP API access over Wi-Fi configuration set
+      summary: Set HTTP API access over Wi-Fi configuration
+      description: Set HTTP API access over Wi-Fi configuration
       operationId: setHttpAccess
       parameters:
         - name: mode
@@ -66,7 +66,7 @@ paths:
           schema:
             type: string
             pattern: "^[0-9]+$"
-          description: Access key (4-10 digits len)
+          description: Access key (4-10 digits length)
           example: "12345678"
       responses:
         "200":
@@ -82,22 +82,53 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/name:
+    get:
+      tags:
+        - Settings
+      summary: Get current device name
+      description: Get current device name
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NameInfo"
+
+    post:
+      tags:
+        - Settings
+      summary: Set new device name
+      description: Set new device name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NameInfo"
+      responses:
+        "200":
+          description: New name successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid name parameter, or failed to store new name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/update:
     post:
       tags:
-        - System
+        - Updater
       summary: Update firmware
       description: Uploads a firmware update package (TAR file) and initiates the update process.
       operationId: updateFirmware
-      parameters:
-        - name: name
-          in: query
-          required: false
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-          description: Name for the update package. The update will be unpacked to /ext/update/<name>.
-          example: "firmware"
+      parameters: []
       requestBody:
         required: true
         content:
@@ -131,6 +162,146 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /api/update/check:
+    post:
+      tags:
+        - Updater
+      summary: Start firmware update check
+      description: Initiates an asynchronous check for available firmware updates.
+      operationId: checkFirmwareUpdate
+      responses:
+        "200":
+          description: Update check started successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "409":
+          description: Update check already in progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to start update check
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/update/status:
+    get:
+      tags:
+        - Updater
+      summary: Get firmware update status
+      description: Returns current update and check status including progress information.
+      operationId: getFirmwareUpdateStatus
+      responses:
+        "200":
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateStatus"
+
+  /api/update/changelog:
+    get:
+      tags:
+        - Updater
+      summary: Get update changelog
+      description: Returns the changelog for a specific firmware version.
+      operationId: getUpdateChangelog
+      parameters:
+        - name: version
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Firmware version to get changelog for
+          example: "1.2.3"
+      responses:
+        "200":
+          description: Changelog retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  changelog:
+                    type: string
+                    description: Changelog text
+        "400":
+          description: Version parameter missing, update not available, or version mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/update/install:
+    post:
+      tags:
+        - Updater
+      summary: Install firmware update
+      description: |
+        Starts asynchronous firmware installation from a remote URL.
+        The update process (download, SHA verification, unpack, prepare, reboot) runs in the background.
+        Use /api/update/status to monitor progress.
+      operationId: installFirmwareUpdate
+      parameters:
+        - name: version
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Firmware version to install
+          example: "1.2.3"
+      responses:
+        "200":
+          description: Update installation started successfully in background
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Version parameter missing, update not available, or version mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Update already in progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to start background installation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Battery too low for update
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/update/abort_download:
+    post:
+      tags:
+        - Updater
+      summary: Abort ongoing firmware download
+      description: Signals the updater to abort an ongoing download operation.
+      operationId: abortFirmwareDownload
+      responses:
+        "200":
+          description: Abort signal sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
 
   /api/assets/upload:
     post:
@@ -275,7 +446,7 @@ paths:
           example: "/ext/test.png"
       responses:
         "200":
-          description: File uploaded successfully
+          description: File downloaded successfully
           content:
             application/octet-stream:
               schema:
@@ -294,7 +465,6 @@ paths:
       tags:
         - Storage
       summary: List files on internal storage
-      description: Downloads a file from a specified path
       operationId: listStorageFiles
       parameters:
         - name: path
@@ -313,7 +483,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/StorageList"
         "400":
-          description: Invalid parameters or directory not exists
+          description: Invalid parameters or directory does not exist
           content:
             application/json:
               schema:
@@ -373,7 +543,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid path or deletion failed
+          description: Invalid path or creation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/status:
+    get:
+      tags:
+        - Storage
+      summary: Show storage usage
+      operationId: getStorageStatus
+      responses:
+        "200":
+          description: Storage status queried successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageStatus"
+        "400":
+          description: Invalid parameters or storage doesn't exist
           content:
             application/json:
               schema:
@@ -419,6 +609,14 @@ paths:
       summary: Clear display
       description: Clears the display and stops the Canvas application if running
       operationId: clearDisplay
+      parameters:
+        - name: app_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Application identifier
+          example: "my_app"
       responses:
         "200":
           description: Display cleared successfully
@@ -569,7 +767,7 @@ paths:
       tags:
         - Settings
       summary: Set audio volume
-      description: Get audio volume value
+      description: Set audio volume value
       operationId: setAudioVolume
       parameters:
         - name: volume
@@ -598,7 +796,7 @@ paths:
       tags:
         - Input
 
-      summary: Input evnts streaming
+      summary: Input events streaming
       description: Start WebSocket session for input events streaming
       operationId: connectInputWebSocket
       responses:
@@ -636,7 +834,7 @@ paths:
                 "back",
                 "start",
                 "busy",
-                "status",
+                "custom",
                 "off",
                 "apps",
                 "settings",
@@ -704,7 +902,7 @@ paths:
       tags:
         - System
       summary: Get power status
-      description: Get system status
+      description: Get power status
       operationId: getStatusPower
       responses:
         "200":
@@ -720,76 +918,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /ws_test:
-    get:
-      tags:
-        - WebSocket
-      summary: WebSocket test endpoint
-      description: |
-        WebSocket connection for real-time communication and testing.
-        Upgrade from HTTP to WebSocket protocol is required.
-      operationId: connectWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: WebSocket upgrade failed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "426":
-          description: Upgrade required
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/wifi/enable:
-    post:
-      tags:
-        - Wifi
-      description: Enables wifi module
-      parameters: []
-      responses:
-        "200":
-          description: Wifi enabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Wifi already enabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/wifi/disable:
-    post:
-      tags:
-        - Wifi
-      description: Disables wifi module
-      parameters: []
-      responses:
-        "200":
-          description: Wifi disabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Not initialized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
   /api/wifi/status:
     get:
       tags:
-        - Wifi
-      description: Returns current wifi status
+        - Wi-Fi
+      description: Returns current Wi-Fi status
       parameters: []
       responses:
         "200":
@@ -802,8 +935,8 @@ paths:
   /api/wifi/connect:
     post:
       tags:
-        - Wifi
-      description: Attempts to connect to wifi using config
+        - Wi-Fi
+      description: Attempts to connect to Wi-Fi using config
       parameters: []
       requestBody:
         required: true
@@ -819,7 +952,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Wifi already connected
+          description: Already connected
           content:
             application/json:
               schema:
@@ -828,8 +961,8 @@ paths:
   /api/wifi/disconnect:
     post:
       tags:
-        - Wifi
-      description: Attempts to connect to wifi using config
+        - Wi-Fi
+      description: Disconnects from Wi-Fi
       parameters: []
       responses:
         "200":
@@ -839,7 +972,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Command issued in an invalid state
+          description: Already disconnected
           content:
             application/json:
               schema:
@@ -848,8 +981,8 @@ paths:
   /api/wifi/networks:
     get:
       tags:
-        - Wifi
-      description: Scans environment for available wifi networks
+        - Wi-Fi
+      description: Scans environment for available Wi-Fi networks
       parameters: []
       responses:
         "200":
@@ -859,21 +992,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/NetworkResponse"
         "400":
-          description: Wifi already connected
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/wifi/forget:
-    post:
-      tags:
-        - Wifi
-      description: Forgets saved Wifi config
-      parameters: []
-      responses:
-        "400":
-          description: Not implemented
+          description: Scan not possible when connected
           content:
             application/json:
               schema:
@@ -883,7 +1002,7 @@ paths:
     get:
       tags:
         - Streaming
-      summary: Get single frame for required screen
+      summary: Get single frame for requested screen
       parameters:
         - name: display
           in: query
@@ -915,8 +1034,8 @@ paths:
       description: |
         WebSocket connection for real-time screen streaming.
         Upgrade from HTTP to WebSocket protocol is required.
-        After connection client must send desired display id
-        as json {"display": 0}
+        After connection, client must send desired display ID
+        as JSON {"display": 0}
       operationId: connectWebSocket
       responses:
         "101":
@@ -931,12 +1050,13 @@ paths:
   /api/ble/enable:
     post:
       tags:
-        - Ble
-      description: Enables ble module
+        - BLE
+      summary: Enable BLE
+      description: Enables BLE module and starts advertising
       parameters: []
       responses:
         "200":
-          description: Ble enabled
+          description: BLE enabled
           content:
             application/json:
               schema:
@@ -945,16 +1065,333 @@ paths:
   /api/ble/disable:
     post:
       tags:
-        - Ble
-      description: Disables ble module
+        - BLE
+      summary: Disable BLE
+      description: Stops advertising
       parameters: []
       responses:
         "200":
-          description: Ble disabled
+          description: BLE disabled
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+
+  /api/ble/pairing:
+    delete:
+      tags:
+        - BLE
+      summary: Remove pairing
+      description: Remove pairing with previous device
+      parameters: []
+      responses:
+        "200":
+          description: Pairing removed, now device is discoverable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Failed to remove because BLE is not initialized or pairing was already removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/ble/status:
+    get:
+      tags:
+        - BLE
+      description: Returns current BLE status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BleStatusResponse"
+
+  /api/time:
+    get:
+      tags:
+        - Time
+      summary: Get current timestamp with timezone
+      description: Retrieves the current timestamp from RTC with timezone in ISO 8601 format
+      operationId: getTime
+      responses:
+        "200":
+          description: Timestamp retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimestampInfo"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/account:
+    delete:
+      tags:
+        - Account
+      summary: Unlink device from account
+      description: Removes account linking data
+      operationId: unlinkAccount
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/account/link:
+    post:
+      tags:
+        - Account
+      summary: Link device to account
+      description: Requests account link PIN. Works only if device is connected to MQTT and is not linked to account
+      operationId: linkAccount
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountLink"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/account/info:
+    get:
+      tags:
+        - Account
+      summary: Get linked account info
+      description: Retrieves linked account data
+      operationId: getAccountInfo
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
+
+  /api/account/status:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT status info
+      description: Retrieves MQTT status
+      operationId: getAccountState
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountState"
+
+  /api/account/profile:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT profile
+      description: Retrieves MQTT backend type (dev/prod/local)
+      operationId: getAccountProfile
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountProfile"
+    post:
+      tags:
+        - Account
+      summary: Set MQTT profile
+      description: Sets MQTT backend type (dev/prod/local)
+      operationId: setAccountProfile
+      parameters:
+        - name: profile
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["dev", "prod", "local", "custom"]
+          example: "dev"
+        - name: custom_url
+          in: query
+          schema:
+            type: string
+            example: "mqtts://mqtt.example.com:8883"
+      responses:
+        "200":
+          description: Set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/time/timestamp:
+    post:
+      tags:
+        - Time
+      summary: Set current timestamp
+      description: |
+        Sets the RTC timestamp in ISO 8601 format. Time zone qualifier (e.g. Z of UTC or +hh:mm for local time) is required.
+      operationId: setTimeTimestamp
+      parameters:
+        - name: timestamp
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9]{4}(-?)[0-9]{2}\\1[0-9]{2}T[0-9]{2}(:?)[0-9]{2}\\2[0-9]{2}(Z|([+-][0-9]{2}(:?[0-9]{2})?))$"
+          description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45+02:00 for local time or 2025-10-02T14:30:45Z for UTC)
+          example: "2025-10-02T14:30:45+0100"
+      responses:
+        "200":
+          description: Timestamp set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid timestamp format or value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/time/timezone:
+    get:
+      tags:
+        - Time
+      summary: Get timezone
+      description: Get current timezone name
+      operationId: getTimeTimezone
+      responses:
+        "200":
+          description: Timezone got successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimezoneInfo"
+        "400":
+          description: Invalid timezone offset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Time
+      summary: Set timezone
+      description: Sets the timezone name. Use /api/time/tzlist to get available names list.
+      operationId: setTimeTimezone
+      parameters:
+        - name: timezone
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^.+$"
+          description: Timezone name
+          example: "Stuttgart"
+      responses:
+        "200":
+          description: Timezone set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid timezone offset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/time/tzlist:
+    get:
+      tags:
+        - Time
+      summary: Get list of supported time zones
+      description: Retrieves the list of time zones accepted by /api/time/timezone
+      operationId: getTimeTzlist
+      responses:
+        "200":
+          description: Got the list successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimezoneListResponse"
+        "400":
+          description: Error getting time zone list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/busy/snapshot:
+    get:
+      tags:
+        - Busy
+      summary: Get BUSY timer snapshot
+      description: Gets the current state of the BUSY timer in snapshot form
+      operationId: getBusySnapshot
+      responses:
+        "200":
+          description: Got snapshot successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusySnapshot"
+        "400":
+          description: Error getting snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags:
+        - Busy
+      summary: Set BUSY time snapshot
+      description: Run the timer starting from the given snapshot
+      operationId: setBusySnapshot
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusySnapshot"
+      responses:
+        "200":
+          description: Snapshot successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Error setting snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   securitySchemes:
@@ -994,12 +1431,90 @@ components:
       properties:
         api_semver:
           type: string
-          description: Api SemVer
+          description: API SemVer
           example: "0.0.0"
       required:
         - api_semver
       example:
         api_semver: "0.0.0"
+
+    UpdateStatus:
+      type: object
+      properties:
+        install:
+          type: object
+          properties:
+            is_allowed:
+              type: boolean
+              description: Whether update installation is allowed (battery check)
+            event:
+              type: string
+              enum: ["session_start", "session_stop", "action_begin", "action_done", "detail_change", "action_progress", "none"]
+              description: Current update event
+            action:
+              type: string
+              enum: ["download", "sha_verification", "unpack", "prepare", "apply", "none"]
+              description: Current update action
+            status:
+              type: string
+              enum: ["ok", "battery_low", "busy", "download_failure", "download_abort", "sha_mismatch", "unpack_staging_dir_failure", "unpack_archive_open_failure", "unpack_archive_unpack_failure", "install_manifest_not_found", "install_manifest_invalid", "install_session_config_failure", "install_pointer_setup_failure", "unknown_failure"]
+              description: Current or last operation status
+            detail:
+              type: string
+              description: Optional status detail string
+            download:
+              type: object
+              properties:
+                speed_bytes_per_sec:
+                  type: integer
+                  description: Current download speed in bytes per second
+                received_bytes:
+                  type: integer
+                  description: Bytes received so far
+                total_bytes:
+                  type: integer
+                  description: Total download size in bytes
+        check:
+          type: object
+          properties:
+            available_version:
+              type: string
+              description: Version of available update (empty if none)
+            event:
+              type: string
+              enum: ["start", "stop", "none"]
+              description: Current check event
+            result:
+              type: string
+              enum: ["available", "not_available", "failure", "none"]
+              description: Check result status
+      example:
+        install:
+          is_allowed: true
+          event: "none"
+          action: "none"
+          status: "ok"
+          detail: ""
+          download:
+            speed_bytes_per_sec: 0
+            received_bytes: 0
+            total_bytes: 0
+        check:
+          available_version: "1.2.3"
+          event: "stop"
+          result: "available"
+
+    NameInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Device name
+          example: "BUSY bar"
+      required:
+        - name
+      example:
+        name: "BUSY bar"
 
     HttpAccessInfo:
       type: object
@@ -1010,7 +1525,7 @@ components:
           description: Access mode
           example: "key"
         key_valid:
-          type: bool
+          type: boolean
           description: Access key was set and is valid
           example: true
 
@@ -1031,6 +1546,20 @@ components:
             size: 65535
           - type: "dir"
             name: "assets"
+
+    StorageStatus:
+      type: object
+      properties:
+        used_bytes:
+          type: integer
+          example: 123456
+        free_bytes:
+          type: integer
+          example: 654321
+        total_bytes:
+          type: integer
+          description: "Total size of the partition"
+          example: 777777
 
     StorageListElement:
       type: object
@@ -1103,13 +1632,28 @@ components:
         app_id: "my_app"
         elements:
           - id: "0"
-            timeout: 5
-            type: "text"
-            text: "Hello, world!"
-            x: 0
-            y: 0
-            display: "front"
+            timeout: 10
+            align: center
+            x: 36
+            y: 10
+            type: text
+            text: "Hello, World! Long text"
+            font: medium
+            color: "#FFFFFFFF"
+            width: 72
+            scroll_rate: 1000
+            display: front
           - id: "1"
+            timeout: 6
+            align: top_mid
+            x: 36
+            y: 0
+            type: text
+            text: "top_mid"
+            font: small
+            color: "#AAFF00FF"
+            display: "front"
+          - id: "2"
             timeout: 6
             type: "image"
             path: "data.png"
@@ -1122,8 +1666,6 @@ components:
       required:
         - id
         - type
-        - x
-        - y
       properties:
         id:
           type: string
@@ -1131,27 +1673,44 @@ components:
         timeout:
           type: integer
           minimum: 0
-          description: Time in seconds the element should be displayed (0 for no timeout)
+          description: Time in seconds the element should be displayed (0 for no timeout). Mutually exclusive with display_until.
+        display_until:
+          type: string
+          description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image]
+          enum: [text, image, countdown]
           description: Type of display element
         x:
           type: integer
-          description: X coordinate for placement on display
+          description: X coordinate of selected anchor point relative to top-left of display
         y:
           type: integer
-          description: Y coordinate for placement on display
+          description: Y coordinate of selected anchor point relative to top-left of display
         display:
           type: string
           enum: [front, back]
           description: Which display to show the element on (for dual-display devices)
           default: front
+        align:
+          type: string
+          description: Anchor point of element. Also use `x` and `y` to position element.
+          enum:
+            - top_left
+            - top_mid
+            - top_right
+            - mid_left
+            - center
+            - mid_right
+            - bottom_left
+            - bottom_mid
+            - bottom_right
       discriminator:
         propertyName: type
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
+          countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
       allOf:
@@ -1163,6 +1722,26 @@ components:
             text:
               type: string
               description: Text content to display
+            font:
+              type: string
+              description: One of the available fonts to display the text in
+              enum:
+                - small
+                - medium
+                - medium_condensed
+                - big
+              default: tiny5_8
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            width:
+              type: integer
+              description: Width of the label
+            scroll_rate:
+              type: integer
+              description: Scroll rate in pixels per minute
 
     ImageElement:
       allOf:
@@ -1170,11 +1749,43 @@ components:
         - type: object
           required:
             - path
+          oneOf:
+            - properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - properties:
+                builtin_image:
+                  type: string
+                  pattern: "^[a-z_]+/[a-z0-9_]+$"
+                  description: Identifier of builtin image
+
+    CountdownElement:
+      allOf:
+        - $ref: "#/components/schemas/DisplayElement"
+        - type: object
+          required:
+            - timestamp
+            - direction
+            - show_hours
           properties:
-            path:
+            timestamp:
               type: string
-              pattern: "^[a-zA-Z0-9._/-]+$"
-              description: Path to the image file in the app's assets
+              description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            direction:
+              type: string
+              enum: [time_left, time_since]
+              description: Whether to count up or down
+            show_hours:
+              type: string
+              enum: [when_non_zero, always]
+              description: When to show the hours position
 
     DisplayBrightnessInfo:
       type: object
@@ -1195,6 +1806,26 @@ components:
           type: number
           description: Audio volume value (0-100)
           example: "50"
+
+    TimestampInfo:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: ISO 8601 formatted timestamp with timezone
+          example: "2025-10-02T14:30:45+04:00"
+      required:
+        - timestamp
+
+    TimezoneInfo:
+      type: object
+      properties:
+        timezone:
+          type: string
+          description: Timezone name
+          example: "Berlin"
+      required:
+        - timezone
 
     Status:
       type: object
@@ -1256,20 +1887,7 @@ components:
     WifiSecurityMethod:
       type: string
       example: "WPA3"
-      enum:
-        [
-          Open,
-          WPA,
-          WPA2,
-          WEP,
-          WPA (Enterprise),
-          WPA2 (Enterprise),
-          WPA/WPA2,
-          WPA3,
-          WPA2/WPA3,
-          WPA3 (Enterprise),
-          WPA2/WPA3 (Enterprise),
-        ]
+      enum: [Open, WPA, WPA2, WEP, WPA/WPA2, WPA3, WPA2/WPA3]
 
     WifiIpMethod:
       type: string
@@ -1298,14 +1916,27 @@ components:
       properties:
         state:
           type: string
-          example: enabled
+          example: disconnected
           enum:
-            - disabled
-            - enabled
+            - unknown
+            - disconnected
             - connected
+            - connecting
+            - disconnecting
+            - reconnecting
         ssid:
           type: string
           example: Your_WIFI_SSID
+        bssid:
+          type: string
+          pattern: "^([A-F0-9]:){5}[A-F0-9]$"
+          example: "EC:5A:00:0B:55:1D"
+        channel:
+          type: integer
+          example: "3"
+        rssi:
+          type: integer
+          example: "-43"
         security:
           $ref: "#/components/schemas/WifiSecurityMethod"
         ip_config:
@@ -1335,8 +1966,6 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
-            ip_type:
-              $ref: "#/components/schemas/WifiIpType"
             address:
               type: string
               example: 192.168.50.5
@@ -1363,20 +1992,233 @@ components:
       description: Frame for requested display encoded in base64
       format: base64
 
+    AccountInfo:
+      type: object
+      properties:
+        linked:
+          type: boolean
+          example: true
+        id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
+        email:
+          type: string
+          example: "name@example.com"
+        user_id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
+
+    AccountState:
+      type: object
+      properties:
+        state:
+          type: string
+          example: "connected"
+          enum: ["error", "disconnected", "connected"]
+
+    AccountProfile:
+      type: object
+      properties:
+        state:
+          type: string
+          example: "dev"
+          enum: ["dev", "prod", "local", "custom"]
+        custom_url:
+          type: string
+          example: "mqtts://mqtt.example.com:8883"
+
+    AccountLink:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "ABCD"
+        expires_at:
+          type: integer
+          example: 1761060863
+
+    BleStatusResponse:
+      type: object
+      properties:
+        state:
+          type: string
+          enum:
+            [
+              "reset",
+              "initialization",
+              "disabled",
+              "enabled",
+              "connected",
+              "internal error",
+            ]
+          example: connected
+        address:
+          type: string
+          example: 50:DA:D6:FE:DD:A9
+        pairing:
+          type: string
+          enum: ["unknown", "not paired", "paired"]
+          example: paired
+
+    BusySnapshot:
+      type: object
+      properties:
+        snapshot:
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/BusySnapshotNotStarted"
+            - $ref: "#/components/schemas/BusySnapshotInfinite"
+            - $ref: "#/components/schemas/BusySnapshotSimple"
+            - $ref: "#/components/schemas/BusySnapshotInterval"
+        snapshot_timestamp_ms:
+          type: integer
+          example: 1761582532251
+      required:
+        - snapshot
+        - snapshot_timestamp_ms
+
+    BusySnapshotNotStarted:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["NOT_STARTED"]
+          example: "NOT_STARTED"
+      required:
+        - type
+
+    BusySnapshotInfinite:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["INFINITE"]
+          example: "INFINITE"
+        card_id:
+          type: string
+          example: "00000000-0000-0000-0000-000000000000"
+        is_paused:
+          type: boolean
+          example: false
+      required:
+        - type
+        - card_id
+        - is_paused
+
+    BusySnapshotSimple:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["SIMPLE"]
+          example: "SIMPLE"
+        card_id:
+          type: string
+          example: "00000000-0000-0000-0000-000000000000"
+        time_left_ms:
+          type: integer
+          example: 9000
+        is_paused:
+          type: boolean
+          example: false
+      required:
+        - type
+        - card_id
+        - time_left_ms
+        - is_paused
+
+    BusySnapshotInterval:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["INTERVAL"]
+          example: "INTERVAL"
+        card_id:
+          type: string
+          example: "00000000-0000-0000-0000-000000000000"
+        current_interval:
+          type: integer
+          example: 1
+        current_interval_time_total_ms:
+          type: integer
+          example: 60000
+        current_interval_time_left_ms:
+          type: integer
+          example: 42690
+        is_paused:
+          type: boolean
+          example: false
+        interval_settings:
+          $ref: "#/components/schemas/BusySnapshotIntervalSettings"
+      required:
+        - type
+        - card_id
+        - current_interval
+        - current_interval_time_total_ms
+        - current_interval_time_left_ms
+        - is_paused
+        - interval_settings
+
+    BusySnapshotIntervalSettings:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["INTERVAL"]
+          example: "INTERVAL"
+        interval_work_ms:
+          type: integer
+          example: 120000
+        interval_rest_ms:
+          type: integer
+          example: 60000
+        interval_work_cycles_count:
+          type: integer
+          example: 3
+        is_autostart_enabled:
+          type: boolean
+          example: false
+
+    TimezoneListResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: "Time zone name"
+            example: "Bangalore"
+          offset:
+            type: string
+            description: "Time zone offset from UTC"
+            example: "+05:30"
+          abbr:
+            type: string
+            description: "Time zone abbreviation"
+            example: "IST"
+
+
 tags:
   - name: System
     description: System information and control
-  - name: Wifi
-    description: Allows to operate with Wifi
+  - name: Time
+    description: Time-related methods
+  - name: Updater
+    description: Firmware update control
+  - name: Wi-Fi
+    description: Allows to operate with Wi-Fi
   - name: Assets
     description: Asset file management and display control
-  - name: WebSocket
-    description: Real-time communication via WebSocket
   - name: Streaming
     description: Screen streaming
   - name: Settings
     description: Device settings
   - name: Input
     description: Input events
-  - name: Ble
+  - name: BLE
     description: Allows to operate with BLE
+  - name: Account
+    description: Account linking and MQTT status
+  - name: Busy
+    description: BUSY timer control

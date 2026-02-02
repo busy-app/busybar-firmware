@@ -5,7 +5,18 @@
 
 #define TAG "HttpApi"
 
-#define ACCESS_CFG_FILE APP_DATA_PATH("access.json")
+#define ACCESS_CFG_FILE    APP_DATA_PATH("access.json")
+#define ACCESS_KEY_LEN_MIN 4
+#define ACCESS_KEY_LEN_MAX 10
+
+// Always accessible API endpoints
+static const struct {
+    const char* uri;
+    const char* method;
+} api_access_whitelist[] = {
+    {"version", "GET"},
+    {"access", "GET"},
+};
 
 typedef struct {
     HttpHandlersList_t handlers;
@@ -50,7 +61,7 @@ static bool http_api_access_get_callback(ApiRootCtx* context, struct mg_connecti
     furi_string_cat_printf(json_str, "\"mode\":\"%s\",", access_mode_str);
 
     size_t key_len = furi_string_size(context->access_key);
-    bool key_valid = (key_len > 4) && (key_len < 10);
+    bool key_valid = (key_len > ACCESS_KEY_LEN_MIN) && (key_len < ACCESS_KEY_LEN_MAX);
     furi_string_cat_printf(json_str, "\"key_valid\":%s", key_valid ? "true" : "false");
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
@@ -68,28 +79,29 @@ static bool http_api_access_set_callback(
 
         char mode_str[11];
         uint8_t access_mode;
-        char access_key[12];
+        char access_key[ACCESS_KEY_LEN_MAX + 1];
 
-        int mode_len = mg_http_get_var(&msg->query, "mode", mode_str, sizeof(mode_str));
-        int key_len = mg_http_get_var(&msg->query, "key", access_key, sizeof(access_key));
+        int mode_status = mg_http_get_var(&msg->query, "mode", mode_str, sizeof(mode_str));
+        int key_status = mg_http_get_var(&msg->query, "key", access_key, sizeof(access_key));
 
-        if(mode_len <= 0) break;
+        if(mode_status <= 0) break;
 
-        if(mode_len > 0) {
+        if(mode_status > 0) {
             if(strcmp(mode_str, "disabled") == 0) {
                 access_mode = ApiAccessDisabled;
             } else if(strcmp(mode_str, "enabled") == 0) {
                 access_mode = ApiAccessEnabled;
             } else if(strcmp(mode_str, "key") == 0) {
                 access_mode = ApiAccessKeyRequired;
-                if(key_len <= 0) break;
+                if(key_status <= 0) break;
             } else {
                 break;
             }
         }
 
-        if(key_len > 0) {
-            if((key_len < 4) || (key_len > 10)) {
+        if(key_status > 0) {
+            size_t key_len = strlen(access_key);
+            if((key_len < ACCESS_KEY_LEN_MIN) || (key_len > ACCESS_KEY_LEN_MAX)) {
                 break;
             }
             furi_string_set(context->access_key, access_key);
@@ -124,8 +136,16 @@ static bool http_api_access_callback(
 
 static bool http_api_is_access_allowed(
     ApiRootCtx* context,
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
+    for(size_t i = 0; i < COUNT_OF(api_access_whitelist); i++) {
+        if(furi_string_equal(path, api_access_whitelist[i].uri) &&
+           (mg_strcmp(msg->method, mg_str(api_access_whitelist[i].method)) == 0)) {
+            return true;
+        }
+    }
+
     uint8_t* ip = conn->rem.ip;
     UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
     bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, ip);
@@ -138,10 +158,26 @@ static bool http_api_is_access_allowed(
             return true;
         } else if(context->access_mode == ApiAccessKeyRequired) {
             furi_assert(context->access_key);
-            struct mg_str* header_key = mg_http_get_header(msg, "X-API-Token");
-            if(header_key != NULL) {
+            struct mg_str request_key_temp;
+
+            struct mg_str* request_key = NULL;
+            char key_str[ACCESS_KEY_LEN_MAX];
+            if(mg_match(msg->method, mg_str("GET"), NULL) &&
+               (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL)) {
+                // Upgrade to WebSocket - get key from URI
+                int key_len =
+                    mg_http_get_var(&msg->query, "x-api-token", key_str, ACCESS_KEY_LEN_MAX);
+                if(key_len > 0) {
+                    request_key_temp = mg_str_n(key_str, key_len);
+                    request_key = &request_key_temp;
+                }
+            } else {
+                // Usual request - get key from header
+                request_key = mg_http_get_header(msg, "X-API-Token");
+            }
+            if(request_key != NULL) {
                 struct mg_str access_key = mg_str(furi_string_get_cstr(context->access_key));
-                if(mg_strcmp(*header_key, access_key) == 0) {
+                if(mg_strcmp(*request_key, access_key) == 0) {
                     return true;
                 }
             }
@@ -152,13 +188,31 @@ static bool http_api_is_access_allowed(
 }
 
 static bool http_api_is_version_allowed(struct mg_connection* conn, struct mg_http_message* msg) {
-    struct mg_str* header_semver = mg_http_get_header(msg, "X-API-Sem-Ver");
-    if(header_semver) {
+    struct mg_str* request_semver = NULL;
+
+    char ver_str[8];
+    struct mg_str ver_str_temp;
+    if(mg_match(msg->method, mg_str("GET"), NULL) &&
+       (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL)) {
+        // Upgrade to WebSocket - get version from URI
+        int ver_len = mg_http_get_var(&msg->query, "x-api-sem-ver", ver_str, sizeof(ver_str));
+        if(ver_len > 0) {
+            ver_str_temp = mg_str_n(ver_str, ver_len);
+            request_semver = &ver_str_temp;
+        }
+    } else {
+        // Usual request - get version from header
+        request_semver = mg_http_get_header(msg, "X-API-Sem-Ver");
+    }
+    if(request_semver) {
+        if(mg_match(msg->uri, mg_str("*/version"), NULL)) {
+            return true;
+        }
         uint8_t major_ver;
         const uint8_t api_ver[] = API_VERSION;
 
         struct mg_str major_ver_str;
-        if(!mg_span(*header_semver, &major_ver_str, NULL, '.')) {
+        if(!mg_span(*request_semver, &major_ver_str, NULL, '.')) {
             MG_REPLY_BAD_REQUEST(conn);
             return false;
         }
@@ -241,9 +295,12 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "update",
-        .method = "POST",
+        .method = "*",
         .type = HttpHandlerCustom,
-        .on_headers = http_api_update_hdr_callback,
+        .ctx_alloc = http_api_update_alloc,
+        .ctx_free = http_api_update_free,
+        .on_request = http_api_update_callback,
+        .on_headers = http_api_update_hdr_callback_root,
     },
     {
         .uri = "screen",
@@ -267,6 +324,42 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_ble_free,
         .on_request = http_api_ble_callback,
     },
+    {
+        .uri = "time",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_time_alloc,
+        .ctx_free = http_api_time_free,
+        .on_request = http_api_time_callback,
+    },
+    {
+        .uri = "name",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_name_callback,
+    },
+    {
+        .uri = "name",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_name_callback,
+    },
+    {
+        .uri = "account",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_account_alloc,
+        .ctx_free = http_api_account_free,
+        .on_request = http_api_account_callback,
+    },
+    {
+        .uri = "busy",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_busy_alloc,
+        .ctx_free = http_api_busy_free,
+        .on_request = http_api_busy_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {
@@ -288,7 +381,8 @@ void* http_api_root_alloc(void) {
         context->access_mode = access_mode;
         status = json_config_read_str(cfg, "access_key", context->access_key, NULL);
         size_t key_len = furi_string_size(context->access_key);
-        if((status == JsonConfigStatusMissing) || (key_len < 4) || (key_len > 10)) {
+        if((status == JsonConfigStatusMissing) || (key_len < ACCESS_KEY_LEN_MIN) ||
+           (key_len > ACCESS_KEY_LEN_MAX)) {
             context->access_mode = ApiAccessDisabled;
         }
     } else {
@@ -313,11 +407,6 @@ bool http_api_root_callback(
     struct mg_http_message* msg,
     void* ctx) {
     ApiRootCtx* context = ctx;
-    FURI_LOG_D(TAG, "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
-    if(msg->query.len > 0) {
-        FURI_LOG_D(TAG, "Query %.*s", msg->query.len, msg->query.buf);
-    }
-
     if(furi_string_equal(path, "access")) {
         return http_api_access_callback(context, conn, msg);
     }
@@ -347,7 +436,7 @@ bool http_api_root_hdr_callback(
         FURI_LOG_D(TAG, "Query %.*s", msg->query.len, msg->query.buf);
     }
 
-    if(!http_api_is_access_allowed(context, conn, msg)) {
+    if(!http_api_is_access_allowed(context, path, conn, msg)) {
         MG_REPLY_FORBIDDEN(conn);
         mg_iobuf_del(&conn->recv, 0, msg->head.len);
         conn->pfn = NULL;

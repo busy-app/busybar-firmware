@@ -3,31 +3,14 @@ App(
     name="Basic applications for main menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "storage_benchmark",
-        # "crash_test",
-        "light_sensor_test",
-        "front_display_test",
-        "back_display_test",
-        "gui_test",
-        "input_test",
-        # "led_indicator",
-        "power_test",
-        # "wifi_setup",
-        # "https_test",
-        # "sntp_test",
         "canvas",
-        "animation_player",
-        "lottie_player",
         "busy",
-        "dummy",
-        "sound",
-        "ble_per_test",
-        "wifi_per_test",
-        "wifi_adaptive_test",
-        "clock",
         "soft_off",
+        "power_on",
+        "clock",
+        "settings_menu",
     ],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(
@@ -35,7 +18,7 @@ App(
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(
@@ -43,7 +26,7 @@ App(
     name="Basic applications for main menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[],
-    targets=["f64"],
+    targets=["f64", "f65"],
 )
 
 App(
@@ -51,5 +34,5 @@ App(
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[],
-    targets=["f64"],
+    targets=["f64", "f65"],
 )

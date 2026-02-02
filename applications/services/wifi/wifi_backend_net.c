@@ -8,14 +8,199 @@
 #include <sli_net_common_utility.h>
 #include <sli_wifi_constants.h>
 
-#include <furi.h>
-#include <intercom/intercom.h>
-#include <wifi/wifi_common_i.h>
+#include <lwip/tcpip.h>
+#include <lwip/ethip6.h>
+#include <lwip/prot/ethernet.h>
+
+#include "wifi_backend_i.h"
 
 #define LWIP_FRAME_ALIGNMENT (60U)
 #define ETHERTYPE_IPV6       (0xDD86)
+#define MAX_TRANSFER_UNIT    (1500U)
+#define IP6_READY_TIMEOUT_MS (5000U)
 
-static Intercom* intercom;
+static Wifi* instance;
+
+// Tcpip thread synchronisation
+
+static void wifi_net_tcpip_unlock(void) {
+    furi_check(furi_semaphore_release(instance->tcpip_lock) == FuriStatusOk);
+}
+
+static void wifi_net_tcpip_wait_unlock(void) {
+    furi_check(furi_semaphore_acquire(instance->tcpip_lock, FuriWaitForever) == FuriStatusOk);
+}
+
+static void wifi_net_tcpip_callback(tcpip_callback_fn callback, void* context) {
+    tcpip_callback(callback, context);
+    wifi_net_tcpip_wait_unlock();
+}
+
+// Hosted Lwip stack
+
+static err_t wifi_net_tcpip_output_callback(struct netif* netif, struct pbuf* p) {
+    UNUSED(netif);
+
+    const sl_status_t status =
+        sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, p->payload, p->len);
+
+    return status != SL_STATUS_OK ? ERR_IF : ERR_OK;
+}
+
+static err_t wifi_net_tcpip_netif_init_callback(struct netif* netif) {
+    furi_assert(netif);
+
+    netif->name[0] = 'W';
+    netif->name[1] = 'L';
+
+    netif->output_ip6 = ethip6_output;
+    netif->linkoutput = wifi_net_tcpip_output_callback;
+
+    netif->mtu = MAX_TRANSFER_UNIT;
+    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_MLD6;
+
+    return ERR_OK;
+}
+
+static void wifi_net_tcpip_input(const uint8_t* data, uint16_t data_len) {
+    furi_check(instance);
+
+    struct netif* netif = &instance->netif;
+    // Drop packets originated from the same interface and is not destined for the said interface
+    // TODO: is this necessary?
+    const uint8_t* src_mac = data + netif->hwaddr_len;
+    const uint8_t* dst_mac = data;
+
+    if(!(ip6_addr_ispreferred(netif_ip6_addr_state(netif, 0))) &&
+       (memcmp(netif->hwaddr, src_mac, netif->hwaddr_len) == 0) &&
+       (memcmp(netif->hwaddr, dst_mac, netif->hwaddr_len) != 0)) {
+        FURI_LOG_W(TAG, "Dropping packet");
+        return;
+    }
+
+    struct pbuf* p = pbuf_alloc(PBUF_RAW, data_len, PBUF_POOL);
+
+    if(p != NULL) {
+        struct pbuf* q;
+        uint32_t offset;
+
+        for(q = p, offset = 0; q != NULL; q = q->next) {
+            memcpy((uint8_t*)q->payload, data + offset, q->len);
+            offset += q->len;
+        }
+
+        if(netif->input(p, netif) != ERR_OK) {
+            pbuf_free(p);
+        }
+    }
+}
+
+static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
+    furi_check(instance);
+
+    const size_t tx_size =
+        intercom_tx(instance->intercom_ch_data, data, data_len, FuriWaitForever);
+    furi_check(tx_size == data_len);
+}
+
+static void wifi_net_tcpip_netif_status_callback(struct netif* netif) {
+    furi_assert(netif);
+
+    const uint8_t addr_state = netif_ip6_addr_state(netif, 0);
+    FURI_LOG_D(TAG, "Netif ipv6 addr status changed: 0x%02x", addr_state);
+
+    if(ip6_addr_isvalid(addr_state)) {
+        FURI_LOG_D(TAG, "IPv6 address is valid");
+    } else if(ip6_addr_isduplicated(addr_state)) {
+        FURI_LOG_W(TAG, "Duplicate IPv6 address detected (possible false positive)");
+    } else {
+        return;
+    }
+
+    furi_semaphore_release(instance->ipv6_ready_semaphore);
+}
+
+static void wifi_net_tcpip_netif_up_callback(void* context) {
+    UNUSED(context);
+
+    struct netif* netif = &instance->netif;
+
+    netif_set_up(netif);
+    netif_set_link_up(netif);
+
+    netif_set_ip6_autoconfig_enabled(netif, 1);
+    netif_create_ip6_linklocal_address(netif, 1);
+
+    wifi_net_tcpip_unlock();
+}
+
+static void wifi_net_tcpip_netif_down_callback(void* context) {
+    UNUSED(context);
+
+    struct netif* netif = &instance->netif;
+
+    netif_set_link_down(netif);
+    netif_set_down(netif);
+
+    wifi_net_tcpip_unlock();
+}
+
+static void wifi_net_tcpip_add_netif_callback(void* context) {
+    furi_assert(context);
+    const sl_mac_address_t* mac_addr = context;
+
+    struct netif* netif = &instance->netif;
+    netif_add(netif, NULL, wifi_net_tcpip_netif_init_callback, tcpip_input);
+    netif_set_default(netif);
+
+    netif->hwaddr_len = ETH_HWADDR_LEN;
+    memcpy(netif->hwaddr, mac_addr, ETH_HWADDR_LEN);
+
+    wifi_net_tcpip_unlock();
+}
+
+// Private API
+
+void wifi_net_tcpip_init(Wifi* wifi, sl_mac_address_t* mac_addr) {
+    // TODO: Is it possible to store the instance not in a global variable?
+    furi_check(instance == NULL);
+    instance = wifi;
+
+    wifi_net_tcpip_callback(wifi_net_tcpip_add_netif_callback, mac_addr);
+}
+
+void wifi_net_tcpip_netif_up(Wifi* instance) {
+    struct netif* netif = &instance->netif;
+
+    LOCK_TCPIP_CORE();
+    netif_set_status_callback(netif, wifi_net_tcpip_netif_status_callback);
+    UNLOCK_TCPIP_CORE();
+
+    wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, NULL);
+
+    const FuriStatus status = furi_semaphore_acquire(
+        instance->ipv6_ready_semaphore, furi_ms_to_ticks(IP6_READY_TIMEOUT_MS));
+
+    LOCK_TCPIP_CORE();
+    netif_set_status_callback(netif, NULL);
+    UNLOCK_TCPIP_CORE();
+
+    if(status == FuriStatusErrorTimeout) {
+        FURI_LOG_W(
+            TAG, "IPv6 configuration failed in %d ms, continuing anyway", IP6_READY_TIMEOUT_MS);
+    } else if(status != FuriStatusOk) {
+        furi_crash();
+    }
+
+    FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
+}
+
+void wifi_net_tcpip_netif_down(Wifi* instance) {
+    UNUSED(instance);
+    wifi_net_tcpip_callback(wifi_net_tcpip_netif_down_callback, NULL);
+}
+
+// Public API
 
 sl_status_t sl_net_wifi_ap_init(
     sl_net_interface_t interface,
@@ -51,22 +236,10 @@ sl_status_t sl_net_wifi_client_init(
     void* context,
     sl_net_event_handler_t event_handler) {
     UNUSED(interface);
+    UNUSED(context);
     UNUSED(event_handler);
 
-    sl_status_t status;
-
-    do {
-        status = sl_wifi_init(configuration, NULL, sl_wifi_default_event_handler);
-
-        if(status != SL_STATUS_OK) {
-            break;
-        }
-
-        intercom = context;
-
-    } while(false);
-
-    return status;
+    return sl_wifi_init(configuration, NULL, sl_wifi_default_event_handler);
 }
 
 sl_status_t sl_net_wifi_client_deinit(sl_net_interface_t interface) {
@@ -75,9 +248,8 @@ sl_status_t sl_net_wifi_client_deinit(sl_net_interface_t interface) {
 }
 
 sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_id_t profile_id) {
+    furi_check(instance);
     UNUSED(interface);
-    // TODO: What is SL_NET_AUTO_JOIN for?
-    furi_check(profile_id != SL_NET_AUTO_JOIN);
 
     sl_status_t status;
 
@@ -91,6 +263,11 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
 
         status =
             sl_wifi_connect(SL_WIFI_CLIENT_INTERFACE, &profile.config, SLI_WIFI_CONNECT_TIMEOUT);
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+
+        wifi_net_tcpip_netif_up(instance);
 
     } while(false);
 
@@ -98,7 +275,11 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
 }
 
 sl_status_t sl_net_wifi_client_down(sl_net_interface_t interface) {
+    furi_check(instance);
     UNUSED(interface);
+
+    wifi_net_tcpip_netif_down(instance);
+
     return sl_wifi_disconnect(SL_WIFI_CLIENT_INTERFACE);
 }
 
@@ -107,15 +288,16 @@ sl_status_t
     UNUSED(interface);
 
     const sl_wifi_system_packet_t* pkt = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
-    const uint16_t ethertype = *((const uint16_t*)&pkt->data[12]);
+
+    const uint8_t* data = pkt->data;
+    const uint16_t data_len = MAX(pkt->length, LWIP_FRAME_ALIGNMENT);
+
+    const uint16_t ethertype = *((const uint16_t*)&data[12]);
 
     if(ethertype == ETHERTYPE_IPV6) {
-        // TODO: forward to matter
+        wifi_net_tcpip_input(data, data_len);
     } else {
-        const size_t len = MAX(pkt->length, LWIP_FRAME_ALIGNMENT);
-        const size_t tx_size =
-            intercom_tx(intercom, IntercomChannelWifiData, pkt->data, len, FuriWaitForever);
-        furi_check(tx_size == len);
+        wifi_net_intercom_input(data, data_len);
     }
 
     return SL_STATUS_OK;

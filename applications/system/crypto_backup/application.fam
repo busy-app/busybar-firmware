@@ -1,7 +1,7 @@
 App(
     appid="crypto_backup",
     name="crypto_backup",
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     apptype=FlipperAppType.CLICMD,
     entry_point="crypto_backup_client_command",
     stack_size=1024 * 4,
@@ -16,6 +16,6 @@ App(
     requires=["intercom"],
     stack_size=1 * 1024,
     order=80,
-    targets=["f64"],
+    targets=["f64", "f65"],
     sources=["crypto_backup_server.c"],
 )

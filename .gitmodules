@@ -9,7 +9,7 @@
 	url = https://github.com/cesanta/mongoose.git
 [submodule "lib/lwip"]
 	path = lib/lwip
-	url = https://github.com/lwip-tcpip/lwip.git
+	url = https://github.com/flipperdevices/lwip.git
 [submodule "targets/lib/simplicity_sdk"]
 	path = lib/simplicity_sdk
 	url = https://github.com/SiliconLabs/simplicity_sdk.git
@@ -53,3 +53,9 @@
 [submodule "lib/thorvg"]
 	path = lib/thorvg
 	url = https://github.com/thorvg/thorvg.git
+[submodule "lib/matter_zap"]
+	path = lib/matter_zap
+	url = https://github.com/flipperdevices/bsb-matter-zap.git
+[submodule "lib/zlib"]
+	path = lib/zlib
+	url = https://github.com/madler/zlib.git

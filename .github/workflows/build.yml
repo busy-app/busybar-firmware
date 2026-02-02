@@ -10,7 +10,7 @@ on:
 
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
-  DEFAULT_TARGET: 21
+  DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
@@ -58,36 +58,27 @@ jobs:
       - name: 'Get commit details'
         id: names
         run: |
-          BUILD_TYPE='DEBUG=1 COMPACT=0'
-          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+          set -euo pipefail
+          PROFILE='debug'
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
             TYPE="pull"
-          elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TYPE="tag"
             BUILD_TYPE='DEBUG=0 COMPACT=1'
           else
             TYPE="other"
           fi
-          echo "event_type=$TYPE" >> $GITHUB_OUTPUT
+          echo "event_type=$TYPE" >> "$GITHUB_OUTPUT"
+          echo "build_profile=$PROFILE" >> "$GITHUB_OUTPUT"
           python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
-          echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
-          echo "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')" >> $GITHUB_ENV
 
-      - name: 'Build update package (unsigned)'
+      - name: 'Build firmware artifacts'
         id: build-fw
-        run: |
-          source ./scripts/toolchain/fbtenv.sh
-          export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
-
-      - name: 'Check for uncommitted changes'
-        run: |
-          git diff --exit-code
-
-      - name: 'Copy build artifacts'
-        run: |
-          rm -rf artifacts
-          mkdir -p artifacts
-          cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
+        uses: ./.github/actions/build-artifacts
+        with:
+          target_spec: ${{ matrix.target_spec }}
+          build_type: ${{ steps.names.outputs.build_profile }}
+          artifact_path: artifacts
 
       - name: 'Calculate hashsums for artifacts'
         working-directory: artifacts
@@ -103,15 +94,19 @@ jobs:
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
         id: build-update
         run: |
-          FILES=$(for ARTIFACT in $(find artifacts -maxdepth 1 -not -type d); do echo "-F files=@${ARTIFACT}"; done)
+          ARTIFACT_DIR="${{ steps.build-fw.outputs.artifact_path }}"
+          FILE_ARGS=()
+          while IFS= read -r -d '' ARTIFACT; do
+            FILE_ARGS+=("-F" "files=@${ARTIFACT}")
+          done < <(find "$ARTIFACT_DIR" -maxdepth 1 -type f -print0)
           curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
               -F "branch=${BRANCH_NAME}" \
               -F "version_token=${COMMIT_SHA}" \
-              ${FILES[@]} \
+              "${FILE_ARGS[@]}" \
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
 
       - name: Handle u5 map files
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success'  && matrix.u5_target == env.DEFAULT_TARGET}}
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success'  && matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
           rm -rf map_analyser_files
           mkdir -p map_analyser_files
@@ -125,7 +120,7 @@ jobs:
               "--analyser_token=${{ secrets.U5_ANALYSER_TOKEN }}";
 
       - name: Handle silabs map files
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' && matrix.u5_target == env.DEFAULT_TARGET }}
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' && matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
           rm -rf map_analyser_files
           mkdir -p map_analyser_files
@@ -138,7 +133,7 @@ jobs:
               "--analyser_token=${{ secrets.SIL_ANALYSER_TOKEN }}";
 
       - name: 'Find previous comment'
-        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
         uses: peter-evans/find-comment@v3
         id: find-comment
         with:
@@ -147,14 +142,14 @@ jobs:
           body-includes: 'Compiled f${{ matrix.u5_target }} firmware for commit'
 
       - name: 'Create or update comment'
-        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            **Compiled f${{ matrix.u5_target }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
-            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{matrix.u5_target}}-update-${{steps.names.outputs.suffix}}.tar)
+            **Compiled f${{ matrix.target_spec }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
+            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{steps.build-fw.outputs.u5_target_hw}}-update-${{steps.names.outputs.suffix}}.tar)
             - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
             - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
           edit-mode: replace

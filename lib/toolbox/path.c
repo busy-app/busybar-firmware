@@ -1,6 +1,8 @@
 #include "path.h"
 #include <stddef.h>
 
+#define TAG "Path"
+
 void path_extract_filename_no_ext(const char* path, FuriString* filename) {
     furi_check(path);
     furi_check(filename);
@@ -132,4 +134,29 @@ bool path_contains_only_ascii(const char* path) {
     }
 
     return true;
+}
+
+FS_Error path_recursive_create_dir(Storage* storage, FuriString* path) {
+    if(storage_dir_exists(storage, furi_string_get_cstr(path))) {
+        return FSE_OK;
+    }
+    FS_Error status = FSE_OK;
+    FuriString* parent_path = furi_string_alloc();
+    path_extract_dirname(furi_string_get_cstr(path), parent_path);
+    if(furi_string_get_cstr(parent_path)[0] != '\0') {
+        status = path_recursive_create_dir(storage, parent_path);
+    }
+
+    furi_string_free(parent_path);
+    if(status != FSE_OK) {
+        FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(path));
+    } else {
+        if(!(!furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) ||
+             !furi_string_cmp_str(path, STORAGE_BACKUP_PATH_PREFIX))) {
+            FURI_LOG_D(TAG, "Created directory: %s", furi_string_get_cstr(path));
+            status = storage_common_mkdir(storage, furi_string_get_cstr(path));
+        }
+    }
+
+    return status;
 }

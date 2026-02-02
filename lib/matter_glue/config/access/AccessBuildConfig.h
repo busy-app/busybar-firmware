@@ -1,0 +1,3 @@
+#pragma once
+
+#define CHIP_CONFIG_USE_ACCESS_RESTRICTIONS 0

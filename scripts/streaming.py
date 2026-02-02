@@ -2,6 +2,7 @@
 
 import pygame
 import websocket
+import requests
 import time
 import json
 from flipper.app import App
@@ -12,6 +13,9 @@ class Main(App):
     def init(self):
         self.parser.add_argument(
             "display", help="Required display", choices=["front", "back"]
+        )
+        self.parser.add_argument(
+            "--ip", help="BUSY Bar IP address", required=False, default="10.0.4.20"
         )
         self.parser.add_argument(
             "--timeout",
@@ -110,7 +114,7 @@ class Main(App):
         pygame.init()
         self._running = True
         self.ws = websocket.WebSocket()
-        self.ws.connect("ws://10.0.4.20/api/screen/ws")
+        self.ws.connect(f"ws://{self.args.ip}/api/screen/ws")
         if self.args.display == "front":
             self.switch_display(0)
         else:
@@ -139,6 +143,10 @@ class Main(App):
             self.ws.ping()
             self.time = current_time
 
+    def send_key(self, key):
+        response = requests.post(f"http://{self.args.ip}/api/input?key={key}", data="")
+        assert response.status_code == 200
+
     def on_loop(self):
         if self.new_display_index != self.display_index:
             self.switch_display(self.new_display_index)
@@ -152,6 +160,23 @@ class Main(App):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 self.new_display_index = self.new_display_index ^ 1
+            else:
+                keyboard_mapping = {
+                    pygame.K_BACKSPACE: "back",
+                    pygame.K_UP: "up",
+                    pygame.K_LEFT: "up",
+                    pygame.K_DOWN: "down",
+                    pygame.K_RIGHT: "down",
+                    pygame.K_RETURN: "ok",
+                    pygame.K_BACKSLASH: "start",
+                    pygame.K_q: "busy",
+                    pygame.K_w: "custom",
+                    pygame.K_e: "off",
+                    pygame.K_r: "apps",
+                    pygame.K_t: "settings",
+                }
+                if bsb_key := keyboard_mapping.get(event.key):
+                    self.send_key(bsb_key)
 
     def on_render(self):
         if len(self.data) > 0:

@@ -59,7 +59,7 @@ env.Append(
         "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER",
         "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2",
         # SDK Wifi Silabs
-        "SL_SI91X_SI917_RAM_MEM_CONFIG=2",
+        "SL_SI91X_SI917_RAM_MEM_CONFIG=3",
         "SL_WIFI_COMPONENT_INCLUDED=1",
         "SLI_SI91X_ENABLE_OS",
         "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
@@ -67,11 +67,21 @@ env.Append(
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
         "__FREERTOS_OS_WISECONNECT",
+        # Matter compatibility
+        "NVM3_LOCK_OVERRIDE",
+        # Call static class constructors
+        "SUPPORT_CPLUSPLUS",
     ],
 )
 
 libenv = env.Clone(FW_LIB_NAME="wiseconnect")
 libenv.ApplyLibFlags()
+
+libenv.AppendUnique(
+    CPPFLAGS=[
+        "-Wno-deprecated-declarations",
+    ],
+)
 
 sources = [
     f"{MCU_DIR}/core/chip/src/system_si91x.c",
@@ -108,7 +118,6 @@ sources = [
     f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_callback_framework.c",
     f"{WIRELESS_DIR}/sl_net/src/sli_net_si91x_utility.c",
-    f"{WIRELESS_DIR}/firmware_upgrade/firmware_upgradation.c",
     # SDK BLE Silabs
     f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_bt_ble.c",

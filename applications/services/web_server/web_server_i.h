@@ -1,6 +1,7 @@
 #pragma once
 #include <furi.h>
 #include <mongoose.h>
+#include <mongoose_glue.h>
 #include <network/network.h>
 #include <storage/storage.h>
 #include <m-list.h>
@@ -8,7 +9,7 @@
 #define WEB_ROOT APP_ASSETS_PATH("www/")
 
 #define HEADER_CORS_ORIGIN        "Access-Control-Allow-Origin: *\r\n"
-#define HEADER_CORS_METHODS       "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
+#define HEADER_CORS_METHODS       "Access-Control-Allow-Methods: GET, POST, PUT, DELETE\r\n"
 #define HEADER_CORS_HEADERS       "Access-Control-Allow-Headers: *\r\n"
 #define HEADER_CORS               HEADER_CORS_ORIGIN HEADER_CORS_METHODS HEADER_CORS_HEADERS
 #define HEADER_CONTENT_TYPE_JSON  "Content-Type: application/json\r\n"
@@ -110,8 +111,6 @@ typedef union {
     uint8_t data[MG_DATA_SIZE];
 } ConnectionContext;
 static_assert(sizeof(ConnectionContext) == MG_DATA_SIZE);
-
-struct mg_fs* http_fs_get(void);
 
 bool http_handle_request(
     FuriString* path,

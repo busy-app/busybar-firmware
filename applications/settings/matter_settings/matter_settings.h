@@ -1,0 +1,73 @@
+/**
+ * @brief Matter settings UI
+ */
+
+#pragma once
+
+#include <furi.h>
+
+#include <matter/matter.h>
+#include <desktop/desktop.h>
+#include <gui/gui.h>
+#include <front_display/front_display.h>
+#include <back_display/back_display.h>
+
+#include <gui/scene_manager.h>
+#include <gui/modules/nav_bar.h>
+#include <gui/modules/flex_layout.h>
+#include <settings_helpers/gui_params.h>
+
+#include "scenes/matter_scenes.h"
+#include "helpers/wifi_poller.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef enum {
+    AppEventAboutToExit,
+
+    AppEventMatterCommStart,
+    AppEventMatterCommComplete,
+    AppEventMatterCommFail,
+
+    AppEventRequiredWifiNotAvailable,
+
+    AppEventSceneEventsStart,
+} AppEvent;
+
+#define THIS_SETTINGS_APP "matter_settings"
+#define ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_SETTINGS_APP) "/" path
+#define IMG_PATH(path)    ASSETS_PATH("images") "/" path
+#define ANIM_PATH(path)   ASSETS_PATH("animations") "/" path
+
+typedef struct {
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* input_queue;
+    FuriMessageQueue* event_queue;
+    SceneManager* scene_manager;
+    WifiPoller* wifi_poller;
+
+    MatterSrv* matter;
+    FuriPubSubSubscription* matter_subscription;
+    Desktop* desktop;
+    Gui* gui;
+    FrontDisplaySrv* front_display;
+    BackDisplaySrv* back_display;
+
+    Widget* front_scene_window;
+
+    FlexLayout* back_container;
+    NavBar* back_nav_bar;
+    Widget* back_scene_window;
+} MatterSettings;
+
+void matter_settings_send_custom_event(MatterSettings* instance, uint32_t event);
+
+bool matter_settings_check_wifi_connectivity(MatterSettings* instance);
+
+void matter_settings_exit_if_last(MatterSettings* instance);
+
+#ifdef __cplusplus
+}
+#endif

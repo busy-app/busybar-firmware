@@ -24,6 +24,7 @@ typedef enum {
     LoaderMessageTypeUnlock,
     LoaderMessageTypeIsLocked,
     LoaderMessageTypeGetApplicationName,
+    LoaderMessageTypeSendCustomSignal,
     LoaderMessageTypeMax,
 } LoaderMessageType;
 
@@ -32,6 +33,11 @@ typedef struct {
     const char* args;
     FuriString* error_message;
 } LoaderMessageStartByName;
+
+typedef struct {
+    uint32_t signal;
+    void* arg;
+} LoaderMessageLoaderSendCustomSignal;
 
 typedef struct {
     LoaderStatus value;
@@ -47,6 +53,7 @@ typedef struct {
 
     union {
         LoaderMessageStartByName start;
+        LoaderMessageLoaderSendCustomSignal custom_signal;
         FuriString* application_name;
     };
 

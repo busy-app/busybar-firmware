@@ -34,9 +34,13 @@ extern const lv_obj_class_t timer_card_lvgl_class;
 // TimerLabel
 extern const lv_obj_class_t timer_label_lvgl_class;
 
-// AppTitleCard
-extern const lv_obj_class_t app_title_card_lvgl_class;
-extern const lv_obj_class_t app_title_card_label_lvgl_class;
+// TitleCard
+extern const lv_obj_class_t title_card_lvgl_class;
+extern const lv_obj_class_t title_card_label_lvgl_class;
+
+// AnimTitleCard
+extern const lv_obj_class_t anim_title_card_lvgl_class;
+extern const lv_obj_class_t anim_title_card_label_lvgl_class;
 
 // SliderView
 extern const lv_obj_class_t slider_view_lvgl_class;
@@ -44,3 +48,25 @@ extern const lv_obj_class_t slider_view_bar_lvgl_class;
 extern const lv_obj_class_t slider_view_image_lvgl_class;
 extern const lv_obj_class_t slider_view_text_container_lvgl_class;
 extern const lv_obj_class_t slider_view_arrow_label_lvgl_class;
+
+// ProgressBar
+extern const lv_obj_class_t progress_bar_lvgl_class;
+extern const lv_obj_class_t progress_bar_fill_lvgl_class;
+
+// QRCode
+extern const lv_obj_class_t qr_code_card_lvgl_class;
+
+// StatusView
+extern const lv_obj_class_t status_view_lvgl_class;
+extern const lv_obj_class_t status_view_icon_lvgl_class;
+extern const lv_obj_class_t status_view_header_lvgl_class;
+extern const lv_obj_class_t status_view_additional_text_lvgl_class;
+
+// Countdown
+extern const lv_obj_class_t countdown_lvgl_class;
+
+// Dialog
+extern const lv_obj_class_t dialog_lvgl_class;
+extern const lv_obj_class_t dialog_text_lvgl_class;
+extern const lv_obj_class_t dialog_option_lvgl_class;
+extern const lv_obj_class_t dialog_cursor_lvgl_class;

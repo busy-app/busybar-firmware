@@ -5,6 +5,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #include <thorvg_capi.h>
 #pragma GCC diagnostic pop
 
@@ -80,9 +81,9 @@ struct LottieServiceTask {
     LottieService* owner;
     FuriEventLoopTimer* timer;
     uint32_t* canvas_buf;
-    Tvg_Paint* tvg_paint;
-    Tvg_Canvas* tvg_canvas;
-    Tvg_Animation* tvg_anim;
+    Tvg_Paint tvg_paint;
+    Tvg_Canvas tvg_canvas;
+    Tvg_Animation tvg_anim;
     LottieServiceTaskCallback callback;
     void* callback_context;
     LottieServiceTaskInfo info;
@@ -139,11 +140,13 @@ static void lottie_service_task_alloc_handler(
     task->owner = instance;
     task->timer = furi_event_loop_timer_alloc(
         instance->event_loop, lottie_service_task_update, FuriEventLoopTimerTypePeriodic, task);
-    task->tvg_anim = tvg_animation_new();
+    task->tvg_anim = tvg_lottie_animation_new();
     task->tvg_paint = tvg_animation_get_picture(task->tvg_anim);
-    task->tvg_canvas = tvg_swcanvas_create();
+    task->tvg_canvas = tvg_swcanvas_create(TVG_ENGINE_OPTION_SMART_RENDER);
     task->callback = request->alloc.callback;
     task->callback_context = request->alloc.callback_context;
+
+    tvg_lottie_animation_set_quality(task->tvg_anim, 0);
 
     *result->task = task;
 }
@@ -230,9 +233,35 @@ static void lottie_service_task_override_slot_handler(
     const LottieServiceResult* result) {
     UNUSED(instance);
 
+    bool success = false;
+
     LottieServiceTask* task = request->override_slot.task;
-    *result->boolean = tvg_lottie_animation_override(
-                           task->tvg_anim, request->override_slot.slot_str) == TVG_RESULT_SUCCESS;
+
+    uint32_t slot_id = 0;
+
+    do {
+        // Reset all applied slots
+        if(tvg_lottie_animation_apply_slot(task->tvg_anim, 0) != TVG_RESULT_SUCCESS) {
+            break;
+        }
+
+        slot_id = tvg_lottie_animation_gen_slot(task->tvg_anim, request->override_slot.slot_str);
+        if(slot_id == 0) {
+            break;
+        }
+
+        if(tvg_lottie_animation_apply_slot(task->tvg_anim, slot_id) != TVG_RESULT_SUCCESS) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    if(!success && slot_id) {
+        tvg_lottie_animation_del_slot(task->tvg_anim, slot_id);
+    }
+
+    *result->boolean = success;
 }
 
 static void lottie_service_task_get_info_handler(
@@ -304,7 +333,7 @@ static LottieService* lottie_service_alloc(void) {
         lottie_service_message_queue_callback,
         instance);
 
-    furi_check(tvg_engine_init(TVG_ENGINE_SW, 0) == TVG_RESULT_SUCCESS);
+    furi_check(tvg_engine_init(0) == TVG_RESULT_SUCCESS);
 
     furi_record_create(RECORD_LOTTIE, instance);
     return instance;

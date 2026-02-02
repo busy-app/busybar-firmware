@@ -5,7 +5,7 @@ App(
     entry_point="gui_srv",
     cdefines=["SRV_GUI"],
     stack_size=8 * 1024,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     requires=["front_display", "back_display"],
     order=200,
 )

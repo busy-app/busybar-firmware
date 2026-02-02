@@ -8,6 +8,9 @@
 
 #define MAX_DATA_LEN (1019UL) // Limited by Intercom
 #define WIRELESS_MTU (MAX_DATA_LEN - SIZEOF_ETH_HDR + ETH_PAD_SIZE)
+#define DHCP_WAIT_MS (30 * 1000)
+
+#define INTERCOM_TX_TIMEOUT_MS (500)
 
 static err_t wifi_link_output_callback(struct netif* netif, struct pbuf* p) {
     Wifi* instance = netif->state;
@@ -17,13 +20,19 @@ static err_t wifi_link_output_callback(struct netif* netif, struct pbuf* p) {
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
-    const size_t tx_size = intercom_tx(
-        instance->intercom, IntercomChannelWifiData, p->payload, p->len, FuriWaitForever);
-    furi_check(tx_size == p->len);
+    const size_t tx_size =
+        intercom_tx(instance->intercom_ch_data, p->payload, p->len, INTERCOM_TX_TIMEOUT_MS);
+
+    const bool success = (tx_size == p->len);
 
 #if(ETH_PAD_SIZE != 0)
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
+
+    if(!success) {
+        FURI_LOG_W(TAG, "intercom_tx timeout or incomplete send");
+        return ERR_IF;
+    }
 
     return ERR_OK;
 }
@@ -42,41 +51,14 @@ static err_t wifi_init_netif_callback(struct netif* netif) {
     return ERR_OK;
 }
 
-static void wifi_enable_netif_callback(void* arg) {
-    furi_assert(arg);
-    Wifi* instance = arg;
+static void wifi_netif_status_callback(struct netif* netif) {
+    Wifi* instance = netif->state;
+    furi_assert(instance);
 
-    const WifiIpConfig* ip_config = &instance->settings.ip_config;
-    const WifiIpManagement mgmt = ip_config->mgmt;
-
-    struct netif* netif = &instance->netif;
-
-    if(mgmt == WifiIpManagementStatic) {
-        const WifiIpv4Settings* ip4_settings = &ip_config->ip4;
-
-        netif->ip_addr.addr = ip4_settings->address.value;
-        netif->netmask.addr = ip4_settings->mask.value;
-        netif->gw.addr = ip4_settings->gateway.value;
+    if(dhcp_supplied_address(netif)) {
+        furi_check(furi_semaphore_release(instance->dhcp_semaphore) == FuriStatusOk);
+        netif_set_status_callback(netif, NULL);
     }
-
-    netif_set_link_up(netif);
-    netif_set_up(netif);
-
-    if(mgmt == WifiIpManagementDynamic) {
-        furi_check(dhcp_start(netif) == ERR_OK);
-    }
-}
-
-static void wifi_disable_netif_callback(void* arg) {
-    furi_assert(arg);
-    Wifi* instance = arg;
-
-    struct netif* netif = &instance->netif;
-
-    dhcp_stop(netif);
-
-    netif_set_down(netif);
-    netif_set_link_down(netif);
 }
 
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -120,63 +102,91 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
     }
 }
 
-static void wifi_add_netif_callback(void* arg) {
-    furi_assert(arg);
-    Wifi* instance = arg;
+void wifi_net_init(Wifi* instance, const uint8_t* hw_addr) {
+    furi_record_open(RECORD_USB_NETWORK);
+
+    struct netif* netif = &instance->netif;
 
     const ip_addr_t ip = {0};
     const ip_addr_t netmask = {0};
     const ip4_addr_t gateway = {0};
 
-    struct netif* netif = &instance->netif;
+    LOCK_TCPIP_CORE();
 
     netif_add(netif, &ip, &netmask, &gateway, instance, wifi_init_netif_callback, tcpip_input);
     netif_set_default(netif);
 
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
-}
-
-void wifi_net_init(Wifi* instance) {
-    furi_record_open(RECORD_USB_NETWORK);
-    tcpip_callback(wifi_add_netif_callback, instance);
-}
-
-void wifi_net_set_hw_address(Wifi* instance, const WifiHardwareAddress* addr) {
-    struct netif* netif = &instance->netif;
-
     netif->hwaddr_len = ETH_HWADDR_LEN;
-    memcpy(netif->hwaddr, addr, ETH_HWADDR_LEN);
+    memcpy(netif->hwaddr, hw_addr, ETH_HWADDR_LEN);
+
+    UNLOCK_TCPIP_CORE();
+
+    instance->intercom_ch_data = intercom_channel_open(
+        instance->intercom, IntercomChannelIdWifiData, wifi_net_intercom_rx_callback, instance);
 }
 
-void wifi_net_up(Wifi* instance) {
-    tcpip_callback(wifi_enable_netif_callback, instance);
-
+bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
     struct netif* netif = &instance->netif;
-    const WifiIpConfig* ip_config = &instance->settings.ip_config;
+
+    LOCK_TCPIP_CORE();
+
+    if(ip_config->mgmt == WifiIpManagementStatic) {
+        const WifiIpv4Settings* ip4_settings = &ip_config->ip4;
+
+        netif->ip_addr.addr = ip4_settings->address.value;
+        netif->netmask.addr = ip4_settings->mask.value;
+        netif->gw.addr = ip4_settings->gateway.value;
+    }
+
+    netif_set_link_up(netif);
+    netif_set_up(netif);
 
     if(ip_config->mgmt == WifiIpManagementDynamic) {
-        while(!dhcp_supplied_address(netif)) {
-            FURI_LOG_D(TAG, "Waiting for IP configuration...");
-            furi_delay_ms(1000);
+        furi_check(dhcp_start(netif) == ERR_OK);
+    }
+
+    UNLOCK_TCPIP_CORE();
+
+    bool success = true;
+
+    if(ip_config->mgmt == WifiIpManagementDynamic) {
+        FURI_LOG_I(TAG, "Waiting for IP configuration");
+
+        LOCK_TCPIP_CORE();
+        netif_set_status_callback(netif, wifi_netif_status_callback);
+        UNLOCK_TCPIP_CORE();
+
+        if(furi_semaphore_acquire(instance->dhcp_semaphore, DHCP_WAIT_MS) != FuriStatusOk) {
+            FURI_LOG_E(TAG, "Failed to receive IP configuration");
+            success = false;
         }
     }
+
+    return success;
 }
 
 void wifi_net_down(Wifi* instance) {
-    tcpip_callback(wifi_disable_netif_callback, instance);
+    struct netif* netif = &instance->netif;
+
+    LOCK_TCPIP_CORE();
+
+    dhcp_release_and_stop(netif);
+
+    netif_set_down(netif);
+    netif_set_link_down(netif);
+
+    UNLOCK_TCPIP_CORE();
 }
 
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {
-    const WifiIpConfig* cfg = &instance->settings.ip_config;
-
-    ip_config->type = cfg->type;
-    ip_config->mgmt = cfg->mgmt;
-
-    WifiIpv4Settings* settings = &ip_config->ip4;
     const struct netif* netif = &instance->netif;
 
-    settings->address.value = netif->ip_addr.addr;
-    settings->mask.value = netif->netmask.addr;
-    settings->gateway.value = netif->gw.addr;
+    ip_config->type = WifiIpTypeV4;
+    ip_config->mgmt = dhcp_supplied_address(netif) ? WifiIpManagementDynamic :
+                                                     WifiIpManagementStatic;
+    WifiIpv4Settings* ip4 = &ip_config->ip4;
+
+    ip4->address.value = netif->ip_addr.addr;
+    ip4->mask.value = netif->netmask.addr;
+    ip4->gateway.value = netif->gw.addr;
 }

@@ -26,7 +26,9 @@
 #define HM10_UART_TX_CHAR_UUID \
     {0x00, 0x00, 0xFF, 0xE1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
 #define HM10_UART_RX_CHAR_UUID \
-    {0x00, 0x00, 0xFF, 0xE1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
+    {0x00, 0x00, 0xFF, 0xE2, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
+
+#define NORDIC_UART_INITIAL_DATA_SIZE (237) //RSI_DEV_ATT_LEN - ATTRIBUTE_HEADER_SIZE (240-3 = 237)
 
 typedef enum {
     BleSrvDeviceUartCharacterRx,
@@ -46,21 +48,21 @@ static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] =
     {
         .intercom_index = BleSrvDeviceUartCharacterRx,
         .name = "Uart Rx",
-        .initial_data_size = 5,
-#if defined(SI917)
+        .initial_data_size = NORDIC_UART_INITIAL_DATA_SIZE,
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = UART_RX_CHAR_UUID},
         .uuid_size = 16,
-        .char_properties = BLE_ATT_PROPERTY_READ | BLE_ATT_PROPERTY_WRITE,
+        .char_properties = BLE_ATT_PROPERTY_WRITE,
 #endif
     },
     {
         .intercom_index = BleSrvDeviceUartCharacterTx,
         .name = "Uart Tx",
-        .initial_data_size = 5,
-#if defined(SI917)
+        .initial_data_size = NORDIC_UART_INITIAL_DATA_SIZE,
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = UART_TX_CHAR_UUID},
         .uuid_size = 16,
-        .char_properties = BLE_ATT_PROPERTY_READ | BLE_ATT_PROPERTY_NOTIFY,
+        .char_properties = BLE_ATT_PROPERTY_READ | BLE_ATT_PROPERTY_INDICATE,
 #endif
     },
 };
@@ -69,11 +71,11 @@ static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] =
 
 const BleServiceDescriptor ble_service_config_nordic_uart = {
     .name = "Nordic UART",
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_128 = UART_SERVICE_UUID},
     .uuid_size = 16,
 #endif
-    .index = BleServiceIndexUart,
+    .index = BleServiceIndexNordicUart,
     .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(nordic_uart_service_characteristics),
     .char_descriptors = nordic_uart_service_characteristics,
@@ -87,8 +89,8 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
     {
         .intercom_index = BleSrvDeviceUartCharacterRx,
         .name = "HM10 Rx",
-        .initial_data_size = 5,
-#if defined(SI917)
+        .initial_data_size = 100,
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = HM10_UART_RX_CHAR_UUID},
         .uuid_size = 16,
         .char_properties = BLE_ATT_PROPERTY_READ | BLE_ATT_PROPERTY_WRITE,
@@ -97,8 +99,8 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
     {
         .intercom_index = BleSrvDeviceUartCharacterTx,
         .name = "HM10 Tx",
-        .initial_data_size = 5,
-#if defined(SI917)
+        .initial_data_size = 100,
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = HM10_UART_TX_CHAR_UUID},
         .uuid_size = 16,
         .char_properties = BLE_ATT_PROPERTY_READ | BLE_ATT_PROPERTY_NOTIFY,
@@ -110,11 +112,11 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
 
 const BleServiceDescriptor ble_service_config_hm10_uart = {
     .name = "HM10 UART",
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_128 = HM10_UART_SERVICE_UUID},
     .uuid_size = 16,
 #endif
-    .index = BleServiceIndexSilabsUart,
+    .index = BleServiceIndexHm10Uart,
     .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(hm10_uart_service_characteristics),
     .char_descriptors = hm10_uart_service_characteristics,

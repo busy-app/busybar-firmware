@@ -1,0 +1,10 @@
+App(
+    appid="ble_settings",
+    name="Ble settings",
+    apptype=FlipperAppType.SETTINGS,
+    entry_point="ble_settings_entry",
+    requires=["gui", "front_display", "back_display", "status_lights"],
+    stack_size=4 * 1024,
+    order=0,
+    targets=["f20", "f21", "f22"],
+)

@@ -15,6 +15,7 @@ libenv.ApplyLibFlags()
 
 sources = libenv.Glob("lwip/src/core/*.c", source=True)
 sources += libenv.Glob("lwip/src/core/ipv4/*.c", source=True)
+sources += libenv.Glob("lwip/src/core/ipv6/*.c", source=True)
 sources += libenv.Glob("lwip/src/netif/*.c", source=True)
 sources += libenv.Glob("lwip/src/api/*.c", source=True)
 

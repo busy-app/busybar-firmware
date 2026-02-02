@@ -1,6 +1,6 @@
 #include "application_manifest.h"
 
-#include <furi_hal_version.h>
+#include <version/version.h>
 #include <furi.h>
 
 bool flipper_application_manifest_is_valid(const FlipperApplicationManifest* manifest) {
@@ -45,6 +45,6 @@ bool flipper_application_manifest_is_too_new(
 bool flipper_application_manifest_is_target_compatible(const FlipperApplicationManifest* manifest) {
     furi_check(manifest);
 
-    const Version* version = furi_hal_version_get_firmware_version();
+    const Version* version = version_get();
     return version_get_target(version) == manifest->base.hardware_target_id;
 }

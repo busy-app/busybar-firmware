@@ -77,6 +77,10 @@ struct Power {
     uint32_t charger_current_limit;
     bool charger_enabled;
     PowerBatteryState battery_state;
+
+#ifndef FURI_RAM_EXEC
+    bool shipping_mode_wait;
+#endif
 };
 
 PowerUsbPd* power_usb_pd_alloc(FuriMessageQueue** pd_queue);

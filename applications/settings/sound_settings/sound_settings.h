@@ -1,0 +1,63 @@
+/**
+ * @brief Sound settings app
+ */
+
+#pragma once
+
+#include <furi.h>
+
+#include <audio/audio.h>
+#include <storage/storage.h>
+#include <desktop/desktop.h>
+#include <gui/gui.h>
+#include <front_display/front_display.h>
+#include <back_display/back_display.h>
+
+#include <gui/scene_manager.h>
+#include <gui/modules/nav_bar.h>
+#include <gui/modules/flex_layout.h>
+
+#include "models/volume.h"
+#include "scenes/sound_scenes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef enum {
+    AppEventAboutToExit,
+    AppEventSceneEventsStart,
+} AppEvent;
+
+#define THIS_SETTINGS_APP "sound_settings"
+#define ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_SETTINGS_APP) "/" path
+#define IMG_PATH(path)    ASSETS_PATH("images") "/" path
+#define ANIM_PATH(path)   ASSETS_PATH("animations") "/" path
+#define SOUND_PATH(path)  ASSETS_PATH("sounds") "/" path
+
+typedef struct {
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* input_queue;
+    FuriMessageQueue* event_queue;
+    SceneManager* scene_manager;
+
+    Audio* audio;
+    Desktop* desktop;
+    Gui* gui;
+    FrontDisplaySrv* front_display;
+    BackDisplaySrv* back_display;
+
+    Widget* front_scene_window;
+
+    FlexLayout* back_container;
+    NavBar* back_nav_bar;
+    Widget* back_scene_window;
+
+    VolumeModel* model;
+} SoundSettings;
+
+void sound_settings_send_custom_event(SoundSettings* instance, uint32_t event);
+
+#ifdef __cplusplus
+}
+#endif

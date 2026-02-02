@@ -1,131 +1,174 @@
-#include <furi.h>
+#include "apps_menu_i.h"
+#include "storage_macros.h"
+#include "scenes/apps_menu_scenes.h"
+
 #include <applications.h>
 
-#include <desktop/desktop.h>
-
-#include <gui/gui.h>
 #include <gui/modules/submenu.h>
 
 #define TAG "AppsMenu"
 
-#ifndef APPS_MENU_ERROR_TEST
-#define APPS_MENU_ERROR_TEST 0
-#endif
+#define APPS_MENU_NAV_BAR_HEIGHT 20
 
-typedef struct {
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* queue;
-    Desktop* desktop;
-    Gui* gui;
-    Submenu* submenus[GuiDisplayIdMax];
-} AppsMenu;
+static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
+    UNUSED(arg);
 
-static void apps_menu_submenu_item_callback(uint32_t index, void* context) {
-    furi_assert(context);
     AppsMenu* instance = context;
 
-    furi_check(furi_message_queue_put(instance->queue, &index, FuriWaitForever) == FuriStatusOk);
+    switch(signal) {
+    case FuriSignalExit:
+        furi_event_loop_stop(instance->event_loop);
+        return true;
+
+    case FuriSignalAboutToExit:
+        apps_menu_send_custom_event(instance, AppsMenuCustomEventAboutToExit);
+        return true;
+
+    default:
+        return false;
+    }
 }
 
-static void apps_menu_queue_callback(FuriEventLoopObject* object, void* context) {
+static void apps_menu_input_queue_callback(FuriEventLoopObject* object, void* context) {
+    UNUSED(object);
+
     furi_assert(context);
-    AppsMenu* instance = context;
 
-    furi_assert(object == instance->queue);
+    AppsMenu* app = context;
 
-    uint32_t index;
-    furi_check(furi_message_queue_get(instance->queue, &index, 0) == FuriStatusOk);
+    InputEvent event;
+    while(furi_message_queue_get(app->input_queue, &event, 0) == FuriStatusOk) {
+        if(event.type == InputTypeShort) {
+            if(event.key == InputKeyBack) {
+                scene_manager_handle_back_event(app->scene_manager);
+            }
+        }
+    }
+}
 
-    const char* app_name = "";
+static void apps_menu_event_queue_callback(FuriEventLoopObject* object, void* context) {
+    UNUSED(object);
 
-    if(index < FLIPPER_APPS_COUNT) {
-        app_name = FLIPPER_APPS[index].name;
+    furi_assert(context);
+
+    AppsMenu* app = context;
+
+    uint32_t event;
+    while(furi_message_queue_get(app->event_queue, &event, 0) == FuriStatusOk) {
+        scene_manager_handle_custom_event(app->scene_manager, event);
+    }
+}
+
+static bool apps_menu_gui_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+    AppsMenu* app = context;
+
+    bool consumed = false;
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyBack) {
+            consumed = true;
+        }
     }
 
-    if(desktop_replace_current_app(instance->desktop, app_name, NULL)) {
-        FURI_LOG_D(TAG, "Selected app %s", app_name);
-    } else {
-        FURI_LOG_E(TAG, "Failed to select app %s", app_name);
+    if(consumed) {
+        furi_check(
+            furi_message_queue_put(app->input_queue, event, FuriWaitForever) == FuriStatusOk);
     }
+
+    return consumed;
 }
 
 static AppsMenu* apps_menu_alloc(void) {
-    AppsMenu* instance = malloc(sizeof(AppsMenu));
+    AppsMenu* app = malloc(sizeof(AppsMenu));
+    FuriThread* thread = furi_thread_get_current();
 
-    instance->event_loop = furi_event_loop_alloc();
-    instance->queue = furi_message_queue_alloc(1, sizeof(uint32_t));
-    instance->desktop = furi_record_open(RECORD_DESKTOP);
-    instance->gui = furi_record_open(RECORD_GUI);
+    app->event_loop = furi_event_loop_alloc();
+    app->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
+    app->event_queue = furi_message_queue_alloc(1, sizeof(AppsMenuCustomEvent));
+    furi_thread_set_signal_callback(thread, apps_menu_thread_signal_callback, app);
+
+    app->scene_manager = scene_manager_alloc(apps_menu_scenes, COUNT_OF(apps_menu_scenes), app);
+    app->gui = furi_record_open(RECORD_GUI);
+    app->desktop = furi_record_open(RECORD_DESKTOP);
 
     furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->queue,
+        app->event_loop,
+        app->input_queue,
         FuriEventLoopEventIn,
-        apps_menu_queue_callback,
-        instance);
+        apps_menu_input_queue_callback,
+        app);
 
-    with_gui(instance->gui, {
-        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+    furi_event_loop_subscribe_message_queue(
+        app->event_loop,
+        app->event_queue,
+        FuriEventLoopEventIn,
+        apps_menu_event_queue_callback,
+        app);
 
-        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-            Widget* root = gui_layer_get_root_widget(main_layer, id);
+    with_gui(app->gui, {
+        GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, apps_menu_gui_input_callback, app);
 
-            instance->submenus[id] = submenu_alloc(root);
+        Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+        app->front_scene_window = widget_alloc(front_root);
 
-            for(uint32_t i = 0; i < FLIPPER_APPS_COUNT; ++i) {
-                const FlipperInternalApplication* app = &FLIPPER_APPS[i];
-                if(id == GuiDisplayIdFront) {
-                    submenu_add_item(
-                        instance->submenus[id],
-                        app->name,
-                        i,
-                        apps_menu_submenu_item_callback,
-                        instance);
-                } else {
-                    submenu_add_item(instance->submenus[id], app->name, i, NULL, NULL);
-                }
-            }
+        Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
+        app->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
+        flex_layout_set_spacing(app->back_container, 2);
 
-#if APPS_MENU_ERROR_TEST
-            if(id == GuiDisplayIdFront) {
-                submenu_add_item(
-                    instance->submenu,
-                    "Error Test",
-                    UINT32_MAX,
-                    apps_menu_submenu_item_callback,
-                    instance);
-            } else {
-                submenu_add_item(instance->submenu, "Error Test", UINT32_MAX, NULL, NULL);
-            }
-#endif
-        }
+        app->back_nav_bar = nav_bar_alloc(flex_layout_get_base(app->back_container));
+        nav_bar_set_header_image(app->back_nav_bar, APPS_MENU_IMG_PATH("apps_menu_back_7x7.bin"));
+        nav_bar_set_header_text(app->back_nav_bar, "APPS");
+        widget_set_height(nav_bar_get_base(app->back_nav_bar), APPS_MENU_NAV_BAR_HEIGHT);
+        widget_set_padding(nav_bar_get_base(app->back_nav_bar), 6, 6, 0, 0);
+
+        app->back_scene_window = widget_alloc(flex_layout_get_base(app->back_container));
+        flex_layout_set_child_widget_grow(app->back_container, app->back_scene_window, 1);
     });
 
-    return instance;
+    scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdStart);
+
+    return app;
 }
 
-static void apps_menu_free(AppsMenu* instance) {
-    with_gui(instance->gui, {
-        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-            submenu_free(instance->submenus[id]);
-        }
+static void apps_menu_free(AppsMenu* app) {
+    FuriThread* thread = furi_thread_get_current();
+    scene_manager_free(app->scene_manager);
+
+    with_gui(app->gui, {
+        GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, apps_menu_gui_input_callback);
+
+        widget_free(app->front_scene_window);
+        flex_layout_free(app->back_container);
     });
 
-    furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_DESKTOP);
+    furi_record_close(RECORD_GUI);
 
-    furi_event_loop_unsubscribe(instance->event_loop, instance->queue);
-    furi_message_queue_free(instance->queue);
-    furi_event_loop_free(instance->event_loop);
-    free(instance);
+    furi_event_loop_unsubscribe(app->event_loop, app->input_queue);
+    furi_event_loop_unsubscribe(app->event_loop, app->event_queue);
+
+    furi_thread_set_signal_callback(thread, NULL, NULL);
+    furi_message_queue_free(app->input_queue);
+    furi_message_queue_free(app->event_queue);
+    furi_event_loop_free(app->event_loop);
+
+    free(app);
+}
+
+void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
+    furi_assert(app);
+    furi_check(furi_message_queue_put(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
 int32_t apps_menu_app(void* arg) {
     UNUSED(arg);
 
-    AppsMenu* instance = apps_menu_alloc();
-    furi_event_loop_run(instance->event_loop);
-    apps_menu_free(instance);
+    AppsMenu* app = apps_menu_alloc();
+    furi_event_loop_run(app->event_loop);
+    apps_menu_free(app);
 
     return 0;
 }

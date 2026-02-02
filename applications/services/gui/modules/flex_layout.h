@@ -22,15 +22,14 @@ typedef enum {
     FlexLayoutTypeMax, /**< Special value, not to be used in user code */
 } FlexLayoutType;
 
-/** Enumeration of possible alignment types.  */
+/** Enumeration of possible item alignments. See `flex_layout_set_align` for more info */
 typedef enum {
-    FlexLayoutAlignStart, /**< Align children to the start of the axis */
-    FlexLayoutAlignEnd, /**< Align children to the end of the axis */
-    FlexLayoutAlignCenter, /**< Center children along the axis */
-    FlexLayoutAlignSpaceEvenly, /**< Distribute children evenly, with equal space between all items and edges */
-    FlexLayoutAlignSpaceAround, /**< Distribute children with equal space around each item */
-    FlexLayoutAlignSpaceBetween, /**< Distribute children with equal space between items, but no space at the edges */
-    FlexLayoutAlignMax, /**< Special value, not to be used in user code */
+    FlexLayoutAlignStart, /**< Align items to start of axis */
+    FlexLayoutAlignEnd, /**< Align items to start of axis */
+    FlexLayoutAlignCenter, /**< Align items to middle of axis */
+    FlexLayoutAlignSpaceEvenly, /**< Distribute items evenly along axis, with equal spacing between them, and equal spacing between them and ends of the axis */
+    FlexLayoutAlignSpaceAround, /**< Distribute items evenly along axis, with equal spacing between them, and half spacing between them and ends of the axis */
+    FlexLayoutAlignSpaceBetween, /**< Distribute items evenly along axis, with equal spacing between them, and zero spacing between them and ends of the axis */
 } FlexLayoutAlign;
 
 /**
@@ -69,20 +68,6 @@ Widget* flex_layout_get_base(FlexLayout* instance);
 void flex_layout_set_spacing(FlexLayout* instance, int32_t spacing);
 
 /**
- * @brief set the alignment options for the FlexLayout.
- *
- * @param[in,out] instance pointer to the FlexLayout instance to be modified.
- * @param[in] main_place_align alignment of children along the main axis (e.g., start, end, center, space evenly, etc.).
- * @param[in] cross_place_align alignment of children along the cross axis.
- * @param[in] track_cross_place_align alignment of tracks along the cross axis (used for multi-line layouts).
- */
-void flex_layout_set_align(
-    FlexLayout* instance,
-    FlexLayoutAlign main_place_align,
-    FlexLayoutAlign cross_place_align,
-    FlexLayoutAlign track_cross_place_align);
-
-/**
  * @brief Set the wrap behaviour of a FlexLayout instance.
  *
  * @param[in,out] instance pointer to the FlexLayout instance to be modified
@@ -96,9 +81,27 @@ void flex_layout_set_wrap(FlexLayout* instance, bool wrap);
  * If @p reverse is @c false (the default), the widgets will be shown in the order of addition.
  *
  * @param[in,out] instance pointer to the FlexLayout instance to be modified
- * @param[in] revers arrange elements in reverse order if true, regular order otherwise
+ * @param[in] reverse arrange elements in reverse order if true, regular order otherwise
  */
 void flex_layout_set_reverse(FlexLayout* instance, bool reverse);
+
+/**
+ * @brief Sets alignment, distribution and placement of child items.
+ * 
+ * Resources:
+ *   - https://docs.lvgl.io/master/details/common-widget-features/layouts/flex.html
+ *   - https://css-tricks.com/snippets/css/a-guide-to-flexbox
+ * 
+ * @param[in,out] instance pointer to the FlexLayout instance to be modified
+ * @param[in] main Placement of items along main axis. See https://css-tricks.com/snippets/css/a-guide-to-flexbox/#aa-justify-content
+ * @param[in] cross Placement of items along cross axis. Doesn't accept the `FlexLayoutAlignSpaceX` variants of the enum. See https://css-tricks.com/snippets/css/a-guide-to-flexbox/#aa-align-items
+ * @param[in] track_cross Placement of tracks along the cross axis. See https://css-tricks.com/snippets/css/a-guide-to-flexbox/#aa-align-content
+ */
+void flex_layout_set_align(
+    FlexLayout* instance,
+    FlexLayoutAlign main,
+    FlexLayoutAlign cross,
+    FlexLayoutAlign track_cross);
 
 /**
  * @brief Set how much space child widget will take in flex layout

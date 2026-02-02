@@ -73,6 +73,7 @@ env.Append(
         "DEBUG_EFM",
         ("MBEDTLS_CONFIG_FILE", '\\"sl_mbedtls_config.h\\"'),
         ("MBEDTLS_PSA_CRYPTO_CONFIG_FILE", '\\"psa_crypto_config.h\\"'),
+        ("MBEDTLS_USER_CONFIG_FILE", '\\"siwx917-chip-mbedtls-config.h\\"'),
         "SL_CODE_COMPONENT_PSEC_OSAL=psec_osal",
         "SLI_AEAD_DEVICE_SI91X=1",
         #"SLI_CODE_CLASSIFICATION_DISABLE=1",
@@ -82,6 +83,10 @@ env.Append(
         "SLI_SECURE_KEY_STORAGE_DEVICE_SI91X=1",
         "SLI_SHA_DEVICE_SI91X=1",
         "SLI_TRNG_DEVICE_SI91X=1",
+        # Matter compatibility
+        "NVM3_DEFAULT_MAX_OBJECT_SIZE=4092",
+        "NVM3_DEFAULT_NVM_SIZE=40960",
+        "FLASH_PAGE_SIZE=4096",
     ],
 )
 

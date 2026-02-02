@@ -1,9 +1,11 @@
-#include "../busy.h"
+#include "../busy_i.h"
 #include "../widgets/anim_menu.h"
 
 #include <gui/modules/menu.h>
 #include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
+
+#include <lvgl.h>
 
 #define ANIM_MENU_IDLE_FRAMES       (120)
 #define ANIM_MENU_TRANSITION_FRAMES (10)
@@ -33,16 +35,21 @@ static void busy_scene_start_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdStart);
 
     with_gui(instance->gui, {
+        nav_bar_reset_location(instance->nav_bar);
+
         widget_set_visible(timer_card_get_base(instance->timer_card), false);
         widget_set_visible(nav_bar_get_base(instance->nav_bar), true);
 
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
 
         data->front_logo = anim_image_alloc(flex_layout_get_base(data->front_layout));
-        anim_image_set_source(data->front_logo, BUSY_ANIM_PATH("start_logo_41x16.anim"));
+
+        anim_image_set_source(data->front_logo, busy_get_global_preset(instance)->start_anim_path);
+
         anim_image_set_loop(data->front_logo, false);
 
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
@@ -67,7 +74,8 @@ static void busy_scene_start_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdStart);
 
     with_gui(instance->gui, {
         flex_layout_free(data->front_layout);
@@ -107,6 +115,8 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
         }
 
+        consumed = true;
+    } else if(event->type == SceneManagerEventTypeBack) {
         consumed = true;
     }
 

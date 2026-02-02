@@ -6,108 +6,20 @@
 
 #define TAG "BusySettings"
 
-#define BUSY_SETTINGS_FILE APP_DATA_PATH("settings.json")
-
 #define BUSY_SETTINGS_CURRENT_VERSION (0)
 
 #define VERSION_KEY "version"
+#define THEME_KEY   "theme"
 
-#define BUSY_TIMER_KEY "timer"
+static const char* busy_settings_file_paths[BusySettingsProfileIdMax] = {
+    [BusySettingsProfileIdBusy] = APP_DATA_PATH("settings_busy.json"),
+    [BusySettingsProfileIdCustom] = APP_DATA_PATH("settings_custom.json"),
+};
 
-#define BUSY_TIMER_MODE_KEY             "mode"
-#define BUSY_TIMER_TIME_KEY             "time"
-#define BUSY_TIMER_WORK_TIME_KEY        "work_time"
-#define BUSY_TIMER_REST_TIME_KEY        "rest_time"
-#define BUSY_TIMER_CYCLE_COUNT_KEY      "cycle_count"
-#define BUSY_TIMER_ENABLE_AUTOSTART_KEY "enable_autostart"
-#define BUSY_TIMER_ENABLE_DEMO_MODE_KEY "enable_demo_mode"
-
-#define BUSY_TIMER_INFINITE_MODE_KEY "infinite"
-#define BUSY_TIMER_SIMPLE_MODE_KEY   "simple"
-#define BUSY_TIMER_INTERVAL_MODE_KEY "interval"
-
-static bool busy_settings_parse_timer_config(const cJSON* json, BusyTimerConfig* config) {
-    bool success = false;
-
-    do {
-        if(!cJSON_IsObject(json)) {
-            break;
-        }
-
-        cJSON* item;
-
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_MODE_KEY);
-
-        if(!cJSON_IsString(item)) {
-            break;
-        }
-
-        const char* str = item->valuestring;
-
-        if(strcasecmp(str, BUSY_TIMER_INFINITE_MODE_KEY) == 0) {
-            config->mode = BusyTimerModeInfinite;
-        } else if(strcasecmp(str, BUSY_TIMER_SIMPLE_MODE_KEY) == 0) {
-            config->mode = BusyTimerModeSimple;
-        } else if(strcasecmp(str, BUSY_TIMER_INTERVAL_MODE_KEY) == 0) {
-            config->mode = BusyTimerModeInterval;
-        } else {
-            break;
-        }
-
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_TIME_KEY);
-
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        config->time_mn = item->valueint;
-
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_WORK_TIME_KEY);
-
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        config->work_time_mn = item->valueint;
-
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_REST_TIME_KEY);
-
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        config->rest_time_mn = item->valueint;
-
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_CYCLE_COUNT_KEY);
-
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        config->cycle_count = item->valueint;
-
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_ENABLE_AUTOSTART_KEY);
-
-        if(!cJSON_IsBool(item)) {
-            break;
-        }
-
-        config->enable_autostart = cJSON_IsTrue(item);
-
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_ENABLE_DEMO_MODE_KEY);
-
-        if(!cJSON_IsBool(item)) {
-            break;
-        }
-
-        config->enable_demo_mode = cJSON_IsTrue(item);
-
-        success = true;
-
-    } while(false);
-
-    return success;
-}
+static const char* busy_settings_default_theme_names[BusySettingsProfileIdMax] = {
+    [BusySettingsProfileIdBusy] = "default",
+    [BusySettingsProfileIdCustom] = "keep_out",
+};
 
 static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
     bool success = false;
@@ -129,11 +41,19 @@ static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
             break;
         }
 
-        item = cJSON_GetObjectItem(json, BUSY_TIMER_KEY);
+        item = cJSON_GetObjectItem(json, THEME_KEY);
 
-        if(!busy_settings_parse_timer_config(item, &settings->timer_config)) {
+        if(!cJSON_IsString(item)) {
             break;
         }
+
+        const char* str = item->valuestring;
+
+        if(strlen(str) >= BUSY_SETTINGS_THEME_NAME_LEN) {
+            break;
+        }
+
+        strcpy(settings->theme_name, item->valuestring);
 
         success = true;
 
@@ -142,8 +62,9 @@ static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
     return success;
 }
 
-bool busy_settings_load(BusySettings* settings) {
+bool busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id) {
     furi_check(settings);
+    furi_check(profile_id < BusySettingsProfileIdMax);
 
     bool success = false;
 
@@ -151,7 +72,9 @@ bool busy_settings_load(BusySettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_SETTINGS_FILE, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        const char* file_path = busy_settings_file_paths[profile_id];
+
+        if(!storage_file_open(file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
             break;
         }
 
@@ -182,32 +105,9 @@ bool busy_settings_load(BusySettings* settings) {
     return success;
 }
 
-static void busy_settings_serialize_timer_config(cJSON* json, const BusyTimerConfig* config) {
-    cJSON* timer_json = cJSON_AddObjectToObject(json, BUSY_TIMER_KEY);
-
-    const char* mode_str;
-
-    if(config->mode == BusyTimerModeInfinite) {
-        mode_str = BUSY_TIMER_INFINITE_MODE_KEY;
-    } else if(config->mode == BusyTimerModeSimple) {
-        mode_str = BUSY_TIMER_SIMPLE_MODE_KEY;
-    } else if(config->mode == BusyTimerModeInterval) {
-        mode_str = BUSY_TIMER_INTERVAL_MODE_KEY;
-    } else {
-        furi_crash();
-    }
-
-    cJSON_AddStringToObject(timer_json, BUSY_TIMER_MODE_KEY, mode_str);
-    cJSON_AddNumberToObject(timer_json, BUSY_TIMER_TIME_KEY, config->time_mn);
-    cJSON_AddNumberToObject(timer_json, BUSY_TIMER_WORK_TIME_KEY, config->work_time_mn);
-    cJSON_AddNumberToObject(timer_json, BUSY_TIMER_REST_TIME_KEY, config->rest_time_mn);
-    cJSON_AddNumberToObject(timer_json, BUSY_TIMER_CYCLE_COUNT_KEY, config->cycle_count);
-    cJSON_AddBoolToObject(timer_json, BUSY_TIMER_ENABLE_AUTOSTART_KEY, config->enable_autostart);
-    cJSON_AddBoolToObject(timer_json, BUSY_TIMER_ENABLE_DEMO_MODE_KEY, config->enable_demo_mode);
-}
-
-bool busy_settings_save(const BusySettings* settings) {
+bool busy_settings_save(const BusySettings* settings, BusySettingsProfileId profile_id) {
     furi_check(settings);
+    furi_check(profile_id < BusySettingsProfileIdMax);
 
     bool success = false;
 
@@ -215,15 +115,16 @@ bool busy_settings_save(const BusySettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_SETTINGS_FILE, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        const char* file_path = busy_settings_file_paths[profile_id];
+
+        if(!storage_file_open(file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
             break;
         }
 
         cJSON* root = cJSON_CreateObject();
 
         cJSON_AddNumberToObject(root, VERSION_KEY, BUSY_SETTINGS_CURRENT_VERSION);
-
-        busy_settings_serialize_timer_config(root, &settings->timer_config);
+        cJSON_AddStringToObject(root, THEME_KEY, settings->theme_name);
 
         char* buffer = cJSON_Print(root);
 
@@ -241,4 +142,11 @@ bool busy_settings_save(const BusySettings* settings) {
     furi_record_close(RECORD_STORAGE);
 
     return success;
+}
+
+void busy_settings_set_default(BusySettings* settings, BusySettingsProfileId profile_id) {
+    furi_check(settings);
+    furi_check(profile_id < BusySettingsProfileIdMax);
+
+    strcpy(settings->theme_name, busy_settings_default_theme_names[profile_id]);
 }
