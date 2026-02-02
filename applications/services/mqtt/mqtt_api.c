@@ -252,7 +252,7 @@ static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMe
     if(instance->status == MqttStatusConnectedNotLinked) {
         const char* empty = "{}";
 
-        mqtt_publish_internal(
+        is_success = mqtt_publish_internal(
             instance,
             MqttScopeDevice,
             MqttQosExactlyOnce,
@@ -261,8 +261,6 @@ static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMe
             strlen(empty),
             NULL,
             0);
-
-        is_success = true;
     }
 
     *(request_pin->is_success) = is_success;
