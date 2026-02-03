@@ -87,12 +87,15 @@ AccountModelState account_model_get_state(AccountModel* model) {
 }
 
 bool account_model_is_linked(AccountModel* model) {
-    return mqtt_is_linked(model->mqtt);
+    MqttSessionInfo info = {.session_id = NULL, .email = NULL, .user_id = NULL};
+    mqtt_get_session_info(model->mqtt, &info);
+    return info.is_valid;
 }
 
 void account_model_get_email(AccountModel* model, FuriString* email) {
     furi_assert(email);
-    mqtt_get_session_info(model->mqtt, NULL, email, NULL);
+    MqttSessionInfo info = {.session_id = NULL, .email = email, .user_id = NULL};
+    mqtt_get_session_info(model->mqtt, &info);
 }
 
 void account_model_unlink(AccountModel* model) {

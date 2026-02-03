@@ -86,7 +86,6 @@ struct Mqtt {
 
 typedef enum {
     MqttApiMessageTypeGetStatus,
-    MqttApiMessageTypeIsLinked,
     MqttApiMessageTypeUnlink,
     MqttApiMessageTypeRequestPin,
     MqttApiMessageTypeGetSessionInfo,
@@ -102,10 +101,6 @@ typedef enum {
 typedef struct {
     MqttStatus* status;
 } MqttApiMessageGetStatus;
-
-typedef struct {
-    bool* is_linked;
-} MqttApiMessageIsLinked;
 
 typedef struct {
     bool* is_success;
@@ -125,6 +120,7 @@ typedef struct {
     FuriString* session_id;
     FuriString* user_id;
     FuriString* email;
+    bool* is_valid;
 } MqttApiMessageGetSessionInfo;
 
 typedef struct {
@@ -155,7 +151,6 @@ typedef struct {
 
 typedef union {
     MqttApiMessageGetStatus get_status;
-    MqttApiMessageIsLinked is_linked;
     MqttApiMessageRequestPin request_pin;
     MqttApiMessageGetProfile get_profile;
     MqttApiMessageSetProfile set_profile;

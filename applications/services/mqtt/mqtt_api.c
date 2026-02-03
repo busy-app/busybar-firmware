@@ -25,23 +25,6 @@ MqttStatus mqtt_get_status(Mqtt* instance) {
     return status;
 }
 
-bool mqtt_is_linked(Mqtt* instance) {
-    furi_check(instance);
-
-    bool is_linked;
-
-    MqttApiMessage message = {
-        .type = MqttApiMessageTypeIsLinked,
-        .data.is_linked =
-            {
-                .is_linked = &is_linked,
-            },
-    };
-
-    mqtt_send_message(instance, &message);
-    return is_linked;
-}
-
 bool mqtt_request_link_pin(Mqtt* instance) {
     furi_check(instance);
 
@@ -69,20 +52,17 @@ void mqtt_unlink(Mqtt* instance) {
     mqtt_send_message(instance, &message);
 }
 
-void mqtt_get_session_info(
-    Mqtt* instance,
-    FuriString* session_id,
-    FuriString* email,
-    FuriString* user_id) {
+void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info) {
     furi_check(instance);
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeGetSessionInfo,
         .data.get_session_info =
             {
-                .session_id = session_id,
-                .user_id = user_id,
-                .email = email,
+                .session_id = info->session_id,
+                .user_id = info->user_id,
+                .email = info->email,
+                .is_valid = &info->is_valid,
             },
     };
 
@@ -250,14 +230,6 @@ static void mqtt_get_status_api_message_handler(Mqtt* instance, const MqttApiMes
     *(get_status->status) = instance->status;
 }
 
-static void mqtt_is_linked_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
-    furi_assert(instance);
-    furi_assert(data);
-
-    const MqttApiMessageIsLinked* is_linked = &data->is_linked;
-    *(is_linked->is_linked) = mqtt_saved_state_is_valid(&instance->saved_state);
-}
-
 static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
@@ -314,6 +286,9 @@ static void
     if(get_session_info->email) {
         furi_string_set(get_session_info->email, saved_state->email);
     }
+
+    furi_assert(get_session_info->is_valid);
+    *get_session_info->is_valid = mqtt_saved_state_is_valid(&instance->saved_state);
 }
 
 static void mqtt_get_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
@@ -417,7 +392,6 @@ typedef void (*MqttApiMessageHandler)(Mqtt* instance, const MqttApiMessageData* 
 
 static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeMax] = {
     [MqttApiMessageTypeGetStatus] = mqtt_get_status_api_message_handler,
-    [MqttApiMessageTypeIsLinked] = mqtt_is_linked_api_message_handler,
     [MqttApiMessageTypeUnlink] = mqtt_unlink_api_message_handler,
     [MqttApiMessageTypeRequestPin] = mqtt_request_pin_api_message_handler,
     [MqttApiMessageTypeGetSessionInfo] = mqtt_get_session_info_api_message_handler,
