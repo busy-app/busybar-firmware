@@ -885,7 +885,7 @@ static int32_t ble_worker_thread_callback(void* context) {
                     ble_worker_instance->on_connection_changed_ctx,
                     ble_worker_instance->connected,
                     ble_worker_instance->str_remote_address);
-                BLE_LOG_I("Security data saved");
+                BLE_LOG_I("Security keys saved");
             } while(false);
         }
     }
