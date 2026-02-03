@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 #include <gui/modules/image.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_player.h>
 #include <gui/modules/lottie_animation.h>
 
 #define MY_CLASS (&timer_indicator_lvgl_class)
@@ -21,7 +21,7 @@
 
 struct TimerIndicator {
     Widget base;
-    AnimImage* bg_anim;
+    AnimPlayer* bg_anim;
     LottieAnimation* progress_lottie;
     Image* fg_image;
     char slot_store[SLOT_STR_LEN];
@@ -58,7 +58,7 @@ static void timer_indicator_lvgl_anim_completed_callback(lv_anim_t* anim) {
 
 static void timer_indicator_reset(TimerIndicator* instance) {
     if(instance->bg_anim) {
-        anim_image_free(instance->bg_anim);
+        anim_player_free(instance->bg_anim);
         instance->bg_anim = NULL;
     }
     if(instance->progress_lottie) {
@@ -76,9 +76,8 @@ static void timer_indicator_start_transition(
     const TimerIndicatorTransition* transition) {
     timer_indicator_reset(instance);
 
-    instance->bg_anim = anim_image_alloc(&instance->base);
-    anim_image_set_source(instance->bg_anim, transition->anim_path);
-    anim_image_set_loop(instance->bg_anim, false);
+    instance->bg_anim = anim_player_alloc(&instance->base);
+    anim_player_set_source(instance->bg_anim, transition->anim_path);
 
     lv_anim_t anim;
     lv_anim_init(&anim);
@@ -105,8 +104,8 @@ static void timer_indicator_apply_bg_animation(TimerIndicator* instance) {
     const TimerIndicatorBgConfig* config = &instance->current_preset->background_config;
 
     if(config->anim_path) {
-        instance->bg_anim = anim_image_alloc(&instance->base);
-        anim_image_set_source(instance->bg_anim, config->anim_path);
+        instance->bg_anim = anim_player_alloc(&instance->base);
+        anim_player_set_source(instance->bg_anim, config->anim_path);
     }
 }
 

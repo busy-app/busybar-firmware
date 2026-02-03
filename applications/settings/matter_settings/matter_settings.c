@@ -240,9 +240,11 @@ bool matter_settings_check_wifi_connectivity(MatterSettings* instance) {
     }
 }
 
-void matter_settings_exit_if_last(MatterSettings* instance) {
+bool matter_settings_exit_if_last(MatterSettings* instance) {
     furi_assert(instance);
     if(!scene_manager_has_previous_scene(instance->scene_manager, SceneIdMain)) {
         desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
+        return true;
     }
+    return false;
 }

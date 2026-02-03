@@ -3,6 +3,7 @@
 #include <storage/storage.h>
 #include <gui/gui.h>
 #include <gui/modules/image.h>
+#include <gui/modules/anim_player.h>
 #include <gui/modules/label.h>
 #include <gui/modules/countdown.h>
 #include <m-dict.h>
@@ -37,6 +38,7 @@ typedef struct {
     GuiDisplayId display;
     union {
         Image* image;
+        AnimPlayer* anim_player;
         Label* text;
         Countdown* countdown;
     };
@@ -101,6 +103,9 @@ static void canvas_element_timeout(void* context) {
         if(widget->type == CanvasElementTypeImage) {
             furi_assert(widget->image);
             image_free(widget->image);
+        } else if(widget->type == CanvasElementTypeAnimPlayer) {
+            furi_assert(widget->anim_player);
+            anim_player_free(widget->anim_player);
         } else if(widget->type == CanvasElementTypeText) {
             furi_assert(widget->text);
             label_free(widget->text);
@@ -139,6 +144,8 @@ static void canvas_widget_destroy(CanvasApp* canvas, CanvasWidget* widget) {
     with_gui(canvas->gui, {
         if(widget->type == CanvasElementTypeImage) {
             image_free(widget->image);
+        } else if(widget->type == CanvasElementTypeAnimPlayer) {
+            anim_player_free(widget->anim_player);
         } else if(widget->type == CanvasElementTypeText) {
             label_free(widget->text);
         } else if(widget->type == CanvasElementTypeCountdown) {
@@ -184,6 +191,19 @@ static Widget* canvas_element_update_specific(
         }
         image_set_source(widget->image, furi_string_get_cstr(element->image.file_path));
         return image_get_base(widget->image);
+
+    } else if(widget->type == CanvasElementTypeAnimPlayer) {
+        if(!widget->anim_player) {
+            widget->anim_player = anim_player_alloc(root);
+        }
+        if(anim_player_set_source(
+               widget->anim_player, furi_string_get_cstr(element->anim_player.file_path))) {
+            anim_player_set_section(
+                widget->anim_player,
+                element->anim_player.flags,
+                furi_string_get_cstr(element->anim_player.section));
+        }
+        return anim_player_get_base(widget->anim_player);
 
     } else if(widget->type == CanvasElementTypeText) {
         if(!widget->text) {

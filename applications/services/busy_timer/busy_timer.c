@@ -12,6 +12,9 @@
 #define POLL_TIMER_PERIOD_MS    (S_TO_MS(1) / 30)
 #define DEBOUNCE_TIMER_DELAY_MS (S_TO_MS(1))
 
+#define TIMER_SNAPSHOT_MQTT_TOPIC "busy/snapshot"
+#define TIMER_SNAPSHOT_MQTT_QOS   MqttQosAtLeastOnce
+
 // TODO: Support card IDs
 #define DEFAULT_CARD_ID "00000000-0000-0000-0000-000000000000"
 
@@ -141,20 +144,6 @@ static void busy_timer_notify_paused(const BusyTimer* instance) {
         .timer_paused =
             {
                 .is_paused = !instance->timer_running,
-            },
-    };
-
-    furi_pubsub_publish(instance->event_pubsub, &event);
-}
-
-static void busy_timer_notify_user_interacted(BusyTimer* instance) {
-    FURI_LOG_D(TAG, "User interacted: %s", busy_timer_get_state_name(instance->state));
-
-    BusyTimerEvent event = {
-        .type = BusyTimerEventTypeUserInteracted,
-        .user_interacted =
-            {
-                .snapshot = instance->user_snapshot,
             },
     };
 
@@ -482,7 +471,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     busy_timer_notify_paused(instance);
 }
 
-static void busy_timer_schedule_notify_user_interacted(BusyTimer* instance) {
+static void busy_timer_schedule_send_snapshot(BusyTimer* instance) {
     busy_timer_make_snapshot(instance, &instance->user_snapshot);
     furi_event_loop_timer_start(instance->debounce_timer, DEBOUNCE_TIMER_DELAY_MS);
 }
@@ -509,8 +498,19 @@ static void busy_timer_poll_timer_callback(void* context) {
 
 static void busy_timer_debounce_timer_callback(void* context) {
     furi_assert(context);
-    BusyTimer* instance = context;
-    busy_timer_notify_user_interacted(instance);
+    const BusyTimer* instance = context;
+
+    char* snapshot_str = busy_timer_snapshot_serialize(&instance->user_snapshot);
+    furi_check(snapshot_str);
+
+    mqtt_publish(
+        instance->mqtt,
+        TIMER_SNAPSHOT_MQTT_QOS,
+        TIMER_SNAPSHOT_MQTT_TOPIC,
+        snapshot_str,
+        strlen(snapshot_str));
+
+    free(snapshot_str);
 }
 
 static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -525,6 +525,20 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
 
         busy_timer_message_handlers[message.type](instance, &message.data);
         api_lock_unlock(message.lock);
+    }
+}
+
+static void busy_timer_mqtt_subscription_callback(const MqttMessage* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+    BusyTimer* instance = context;
+
+    BusyTimerSnapshot snapshot;
+    // TODO: take data size into account
+    if(busy_timer_snapshot_deserialize(&snapshot, mqtt_message_get_data(message, NULL))) {
+        busy_timer_set_snapshot(instance, &snapshot);
+    } else {
+        FURI_LOG_W(TAG, "Invalid snapshot data");
     }
 }
 
@@ -562,7 +576,7 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
         FURI_LOG_I(TAG, "Resumed");
     }
 
-    busy_timer_schedule_notify_user_interacted(instance);
+    busy_timer_schedule_send_snapshot(instance);
 }
 
 static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -573,7 +587,7 @@ static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessag
 
     FURI_LOG_I(TAG, "Stopped");
 
-    busy_timer_schedule_notify_user_interacted(instance);
+    busy_timer_schedule_send_snapshot(instance);
 }
 
 static void
@@ -655,7 +669,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
 
     busy_timer_start_timer(instance);
     busy_timer_notify_tick(instance);
-    busy_timer_schedule_notify_user_interacted(instance);
+    busy_timer_schedule_send_snapshot(instance);
 
     FURI_LOG_I(TAG, "Interval override");
 }
@@ -673,7 +687,7 @@ static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMess
     }
 
     busy_timer_notify_paused(instance);
-    busy_timer_schedule_notify_user_interacted(instance);
+    busy_timer_schedule_send_snapshot(instance);
 }
 
 static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -681,7 +695,7 @@ static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessag
 
     if(busy_timer_is_running(instance)) {
         busy_timer_next_state(instance, true);
-        busy_timer_schedule_notify_user_interacted(instance);
+        busy_timer_schedule_send_snapshot(instance);
     }
 }
 
@@ -721,6 +735,14 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
     instance->event_pubsub = furi_pubsub_alloc();
+
+    instance->mqtt = furi_record_open(RECORD_MQTT);
+    mqtt_subscribe(
+        instance->mqtt,
+        TIMER_SNAPSHOT_MQTT_QOS,
+        TIMER_SNAPSHOT_MQTT_TOPIC,
+        busy_timer_mqtt_subscription_callback,
+        instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,

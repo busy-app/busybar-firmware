@@ -15,6 +15,11 @@ void unit_tests_cli_command(PipeSide* pipe, FuriString* args, void* context) {
         printf("ERROR: Failed to create \"" UNIT_TESTS_FOLDER "\" folder\r\n");
     }
 
+    minunit_run = 0;
+    minunit_assert = 0;
+    minunit_fail = 0;
+    minunit_status = 0;
+
     int32_t heap_before = memmgr_get_free_heap();
     uint32_t time_before = furi_get_tick();
 

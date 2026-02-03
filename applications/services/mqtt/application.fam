@@ -1,0 +1,41 @@
+App(
+    appid="mqtt",
+    name="MqttSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="mqtt_srv",
+    stack_size=8 * 1024,
+    order=160,
+    requires=[
+        "mqtt_http_proxy",
+        "mqtt_streaming",
+    ],
+    targets=["f20", "f21", "f22"],
+)
+
+App(
+    appid="mqtt_streaming",
+    name="MqttStreamingSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="mqtt_streaming_srv",
+    stack_size=1.5 * 1024,
+    order=260,
+    requires=[
+        "gui",
+        "mqtt"
+    ],
+    targets=["f20", "f21", "f22"],
+)
+
+App(
+    appid="mqtt_http_proxy",
+    name="MqttHttpProxySrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="mqtt_http_proxy_srv",
+    stack_size=4 * 1024,
+    order=270,
+    requires=[
+        "web_server",
+        "mqtt",
+    ],
+    targets=["f20", "f21", "f22"],
+)

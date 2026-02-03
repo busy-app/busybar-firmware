@@ -5,6 +5,8 @@
 
 #include <furi.h>
 
+#include <mqtt/mqtt.h>
+
 #include <toolbox/api_lock.h>
 
 #define TAG "BusyTimer"
@@ -57,6 +59,7 @@ struct BusyTimer {
     FuriEventLoopTimer* debounce_timer;
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
+    Mqtt* mqtt;
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
     BusyTimerConfig config;

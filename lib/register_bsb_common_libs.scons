@@ -28,6 +28,7 @@ for libname in [
     "ext_applications",
     "firmware_applications_u5",
     "settings_helpers",
+    "anim_file",
     "zlib",
     "utz",
     ## SI917

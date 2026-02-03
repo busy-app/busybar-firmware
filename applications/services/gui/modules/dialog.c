@@ -248,7 +248,7 @@ void dialog_select_option(Dialog* instance, uint8_t index) {
     lv_group_focus_obj(target);
 }
 
-void dialog_set_calback(Dialog* instance, DialogCallback callback, void* context) {
+void dialog_set_callback(Dialog* instance, DialogCallback callback, void* context) {
     furi_check(instance);
 
     instance->callback = callback;
