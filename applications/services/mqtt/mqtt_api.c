@@ -288,7 +288,7 @@ static void
     }
 
     furi_assert(get_session_info->is_valid);
-    *get_session_info->is_valid = mqtt_saved_state_is_valid(&instance->saved_state);
+    *get_session_info->is_valid = mqtt_saved_state_is_valid(saved_state);
 }
 
 static void mqtt_get_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
