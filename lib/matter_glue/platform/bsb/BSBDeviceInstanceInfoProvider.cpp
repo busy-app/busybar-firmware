@@ -107,7 +107,7 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersionString(char* buf, s
 }
 
 CHIP_ERROR
-    DeviceInstanceInfoProviderImpl::SetHardwareVersion(uint16_t number, const char* string) {
+DeviceInstanceInfoProviderImpl::SetHardwareVersion(uint16_t number, const char* string) {
     m_hw_version = number;
     strncpy(m_hw_version_str, string, sizeof(m_hw_version_str) - 1);
     return CHIP_NO_ERROR;
