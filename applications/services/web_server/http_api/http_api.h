@@ -21,6 +21,11 @@ bool http_api_options_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
+bool http_api_options_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
 
 // Assets
 void* http_api_assets_alloc(void);
