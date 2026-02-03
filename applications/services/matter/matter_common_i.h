@@ -92,7 +92,7 @@ typedef struct FURI_PACKED {
 
 typedef enum {
     MatterIntercomFrameTypeBase =
-        (MATTER_INTERCOM_PROTOCOL_VERSION * 16), //<! Used to enforce protocol versions
+        (MATTER_INTERCOM_PROTOCOL_VERSION * 256), //<! Used to enforce protocol versions
 
     MatterIntercomFrameTypeInitialization, //<! Initialization parameters. Direction: u5->917
     MatterIntercomFrameTypeBackendReady, //<! Backend has fully initialized. Direction: 917->u5
