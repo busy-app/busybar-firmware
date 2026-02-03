@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "settings/settings.h"
+
 #include <furi.h>
 
 #ifdef __cplusplus
@@ -311,6 +313,29 @@ void updater_resume_autoupdates(Updater* instance);
  * @return     Version string
  */
 const char* updater_get_active_version(void);
+
+/** Get the current updater settings
+ *
+ * Retrieves the current configuration of the updater service including
+ * check URL, channel ID, sync intervals, and autoupdate settings.
+ *
+ * @param[in]  instance  Updater instance
+ * @param[out] settings  Pointer to a structure to be filled with current settings
+ */
+void updater_get_settings(const Updater* instance, UpdaterSettings* settings);
+
+/** Set new updater settings
+ *
+ * Updates the updater service configuration. Changes take effect immediately
+ * and will trigger a reconfiguration of the background update task if the
+ * service is enabled.
+ *
+ * @param[in,out] instance  Updater instance
+ * @param[in]     settings  Pointer to a structure containing the new settings
+ *
+ * @return     true if settings were successfully applied, false otherwise
+ */
+bool updater_set_settings(Updater* instance, const UpdaterSettings* settings);
 
 #ifdef __cplusplus
 }

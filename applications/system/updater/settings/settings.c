@@ -1,4 +1,4 @@
-#include "settings.h"
+#include "settings_i.h"
 
 #include <storage/storage.h>
 
@@ -40,4 +40,18 @@ bool updater_settings_save(const UpdaterSettings* settings) {
     setting_provider_free(provider);
 
     return is_success;
+}
+
+void updater_settings_copy(UpdaterSettings* target, const UpdaterSettings* source) {
+    furi_check(source);
+    furi_check(target);
+
+    target->check_startup_interval = source->check_startup_interval;
+    target->check_interval = source->check_interval;
+    target->autoupdate_enabled = source->autoupdate_enabled;
+    target->autoupdate_interval_start = source->autoupdate_interval_start;
+    target->autoupdate_interval_end = source->autoupdate_interval_end;
+
+    furi_string_set(target->check_url, source->check_url);
+    furi_string_set(target->check_channel_id, source->check_channel_id);
 }

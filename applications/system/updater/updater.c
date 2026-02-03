@@ -1,6 +1,6 @@
 #include "updater.h"
 #include "updater_paths.h"
-#include "settings/settings.h"
+#include "settings/settings_i.h"
 #include "update_checker/update_checker.h"
 #include "session/session_config.h"
 
@@ -76,6 +76,8 @@ typedef enum {
     MessageTypeInstallationPrepare,
     MessageTypeInstallationApply,
     MessageTypeCheckForUpdate,
+    MessageTypeGetSettings,
+    MessageTypeSetSettings,
 
     MessageTypesCount
 } MessageType;
@@ -105,6 +107,14 @@ typedef struct {
         struct {
             UpdateCheckInfo* info;
         } as_get_check_info;
+
+        struct {
+            UpdaterSettings* get_settings;
+        } as_get_settings;
+
+        struct {
+            const UpdaterSettings* set_settings;
+        } as_set_settings;
     };
 
     FuriApiLock api_lock;
@@ -300,6 +310,31 @@ static UpdaterStatus do_session_stop(Updater* instance, UpdaterMessage* message)
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
     update_state->event = UpdaterUpdateEventSessionStop;
     furi_state_release(instance->update_state);
+
+    return UpdaterStatusOk;
+}
+
+static UpdaterStatus do_get_settings(Updater* instance, UpdaterMessage* message) {
+    updater_settings_copy(message->as_get_settings.get_settings, &instance->settings);
+
+    return UpdaterStatusOk;
+}
+
+static UpdaterStatus do_set_settings(Updater* instance, UpdaterMessage* message) {
+    if(!updater_settings_save(message->as_set_settings.set_settings))
+        return UpdaterStatusUnknownFailure;
+
+    updater_settings_copy(&instance->settings, message->as_set_settings.set_settings);
+
+    furi_event_loop_timer_start(
+        instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
+
+    if(instance->settings.autoupdate_enabled) {
+        furi_event_loop_timer_start(
+            instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
+    } else {
+        furi_event_loop_timer_stop(instance->autoupdate_timer);
+    }
 
     return UpdaterStatusOk;
 }
@@ -930,6 +965,30 @@ const char* updater_get_active_version(void) {
     return version_get_githash(version);
 }
 
+void updater_get_settings(const Updater* instance, UpdaterSettings* settings) {
+    furi_check(instance);
+    furi_check(settings);
+
+    UpdaterMessage message = {
+        .as_get_settings.get_settings = settings,
+        .type = MessageTypeGetSettings,
+    };
+
+    invoke_sync((Updater*)instance, &message);
+}
+
+bool updater_set_settings(Updater* instance, const UpdaterSettings* settings) {
+    furi_check(instance);
+    furi_check(settings);
+
+    UpdaterMessage message = {
+        .as_set_settings.set_settings = settings,
+        .type = MessageTypeSetSettings,
+    };
+
+    return invoke_sync(instance, &message) == UpdaterStatusOk;
+}
+
 static Updater* updater_alloc(void) {
     Updater* instance = malloc(sizeof(*instance));
 
@@ -1084,6 +1143,16 @@ static const MessageHandler message_handlers[] = {
     [MessageTypeCheckForUpdate] =
         {
             .callback = do_check_for_update,
+            .action = UpdaterUpdateActionNone,
+        },
+    [MessageTypeGetSettings] =
+        {
+            .callback = do_get_settings,
+            .action = UpdaterUpdateActionNone,
+        },
+    [MessageTypeSetSettings] =
+        {
+            .callback = do_set_settings,
             .action = UpdaterUpdateActionNone,
         },
 };
