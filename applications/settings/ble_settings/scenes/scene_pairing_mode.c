@@ -2,7 +2,7 @@
 #include "../widgets/named_label_view.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_player.h>
 #include <gui/modules/image.h>
 #include <gui/modules/label.h>
 
@@ -20,7 +20,7 @@ typedef enum {
 
 typedef struct {
     FlexLayout* front_flex;
-    AnimImage* front_anim;
+    AnimPlayer* front_anim;
     Label* front_label;
 
     FlexLayout* back_flex;
@@ -66,10 +66,9 @@ static void scene_pairing_mode_on_enter(void* context) {
         widget_set_height_content(flex_layout_get_base(data->front_flex));
         widget_set_align(flex_layout_get_base(data->front_flex), AlignLeftMid);
 
-        data->front_anim = anim_image_alloc(flex_layout_get_base(data->front_flex));
-        anim_image_set_source(data->front_anim, ANIM_PATH("ble_pairing_8x8.anim"));
-        anim_image_set_range(data->front_anim, 0, 3, true, false);
-        widget_set_height_content(anim_image_get_base(data->front_anim));
+        data->front_anim = anim_player_alloc(flex_layout_get_base(data->front_flex));
+        anim_player_set_source(data->front_anim, ANIM_PATH("ble_pairing_8x8.anim"));
+        widget_set_height_content(anim_player_get_base(data->front_anim));
 
         data->front_label = label_alloc(flex_layout_get_base(data->front_flex));
         label_set_text(data->front_label, pairing_text);
@@ -114,7 +113,7 @@ static void scene_pairing_mode_on_exit(void* context) {
     ble_model_set_state_callback(instance->model, NULL, NULL);
 
     with_gui(instance->gui, {
-        anim_image_free(data->front_anim);
+        anim_player_free(data->front_anim);
         label_free(data->front_label);
         flex_layout_free(data->front_flex);
 
