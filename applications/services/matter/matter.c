@@ -343,7 +343,7 @@ const char* matter_get_de_facto_cd_selection(MatterSrv* matter) {
 // Service setup
 // =============
 
-static bool matter_send_cd_and_await_ready(MatterSrv* matter) {
+static bool matter_send_initialization_and_await_ready(MatterSrv* matter) {
     furi_assert(matter);
     matter_cd_init(&matter->cd);
 
@@ -397,7 +397,8 @@ MatterSrv* matter_srv_alloc(void) {
     matter->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdMatter, matter_forward_frame_to_thread, matter);
 
-    if(!matter_send_cd_and_await_ready(matter)) FURI_LOG_E(TAG, "initialization timed out");
+    if(!matter_send_initialization_and_await_ready(matter))
+        FURI_LOG_E(TAG, "initialization timed out");
 
     furi_record_create(RECORD_MATTER, matter);
     return matter;
