@@ -198,7 +198,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
         matter_send_frame(matter, &frame);
 
     } else {
-        furi_crash(/* we shouldn't be receiving this frame */);
+        FURI_LOG_E(TAG, "Other side is using a different Intercom protocol version");
     }
 }
 

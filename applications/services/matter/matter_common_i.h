@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#define MATTER_INTERCOM_PROTOCOL_VERSION (1)
+
 #define MATTER_COMMISSION_TIME_SECONDS (60 * 15)
 #define MATTER_MAX_QR_CODE_LEN         (255) // Spec paragraph 5.1.3
 #define MATTER_MAX_MAN_CODE_LEN \
@@ -24,7 +26,7 @@ extern "C" {
 /**
  * @brief Initialization parameters
  */
-typedef struct {
+typedef struct FURI_PACKED {
     uint8_t hardware_version_num;
 
     char hardware_version_str[16];
@@ -36,51 +38,51 @@ typedef struct {
 /**
  * @brief Backend has fully initialized
  */
-typedef struct {
+typedef struct FURI_PACKED {
 } MatterIntercomBackendReadyFrame;
 
 /**
  * @brief Request to change state
  */
-typedef struct {
+typedef struct FURI_PACKED {
     bool value;
 } MatterIntercomSwitchStateFrame;
 
 /**
  * @brief Request to change startup mode
  */
-typedef struct {
+typedef struct FURI_PACKED {
     uint8_t mode;
 } MatterIntercomStartupModeFrame;
 
 /**
  * @brief Request to wipe all Matter-related data (factory reset)
  */
-typedef struct {
+typedef struct FURI_PACKED {
 } MatterIntercomResetFrame;
 
 /**
  * @brief Request to open basic commissioning window
  */
-typedef struct {
+typedef struct FURI_PACKED {
 } MatterIntercomCommissionFrame;
 
 /**
  * @brief Number of commissioned fabrics
  */
-typedef struct {
+typedef struct FURI_PACKED {
     uint8_t fabric_count;
 } MatterIntercomFabricCountUpdateFrame;
 
 /**
  * @brief Pairing codes
  */
-typedef struct {
+typedef struct FURI_PACKED {
     char qr_code[MATTER_MAX_QR_CODE_LEN + 1];
     char manual_code[MATTER_MAX_MAN_CODE_LEN + 1];
 } MatterIntercomPairingCodesFrame;
 
-typedef struct {
+typedef struct FURI_PACKED {
     MatterCommissioningStatus status;
 } MatterIntercomCommissionStatusFrame;
 
@@ -89,6 +91,9 @@ typedef struct {
 // =============
 
 typedef enum {
+    MatterIntercomFrameTypeBase =
+        (MATTER_INTERCOM_PROTOCOL_VERSION * 16), //<! Used to enforce protocol versions
+
     MatterIntercomFrameTypeInitialization, //<! Initialization parameters. Direction: u5->917
     MatterIntercomFrameTypeBackendReady, //<! Backend has fully initialized. Direction: 917->u5
 
