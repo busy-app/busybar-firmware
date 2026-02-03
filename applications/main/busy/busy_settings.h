@@ -12,6 +12,7 @@ typedef enum {
 
 typedef struct {
     char theme_name[BUSY_SETTINGS_THEME_NAME_LEN + 1];
+    bool is_smart_home_enabled;
 } BusySettings;
 
 bool busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id);
