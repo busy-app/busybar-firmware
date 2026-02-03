@@ -9,7 +9,7 @@
 #include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
 
-#include "busy_settings.h"
+#include "settings/busy_settings_common.h"
 
 typedef enum {
     BusyTransitionTypeDefault,

@@ -15,7 +15,8 @@
 #include "busy.h"
 #include "busy_theme.h"
 #include "busy_presets.h"
-#include "busy_settings.h"
+
+#include "settings/busy_settings.h"
 
 #include "storage_macros.h"
 

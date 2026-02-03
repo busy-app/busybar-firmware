@@ -321,11 +321,7 @@ void busy_load_settings(BusyApp* instance) {
     const BusyTimerProfileId timer_profile_id = preset->timer_profile_id;
     const BusySettingsProfileId settings_profile_id = preset->settings_profile_id;
 
-    if(!busy_settings_load(settings, settings_profile_id)) {
-        FURI_LOG_W(TAG, "Loading default settings");
-        busy_settings_set_default(settings, settings_profile_id);
-        busy_settings_save(settings, settings_profile_id);
-    }
+    busy_settings_load(settings, settings_profile_id);
 
     if(!busy_theme_read(instance->theme, settings->theme_name)) {
         FURI_LOG_W(TAG, "Setting default theme");
