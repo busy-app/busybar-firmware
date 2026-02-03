@@ -1,6 +1,7 @@
 #include <intercom/intercom.h>
 #include <toolbox/api_lock.h>
 #include <furi_hal_rtc.h>
+#include <furi_hal_version.h>
 
 #include "matter.h"
 #include "matter_common_i.h"
@@ -11,6 +12,9 @@
 #define REQUEST_Q_SIZE 1
 #define FIRST_TIMEOUT  (furi_ms_to_ticks(5000))
 #define TIMEOUT        (furi_ms_to_ticks(200))
+
+#define DEFAULT_HARDWARE_VERSION        4
+#define DEFAULT_HARDWARE_VERSION_STRING "4.F22.B7.C2"
 
 struct MatterSrv {
     FuriEventLoop* event_loop;
@@ -341,16 +345,26 @@ const char* matter_get_de_facto_cd_selection(MatterSrv* matter) {
 
 static bool matter_send_cd_and_await_ready(MatterSrv* matter) {
     furi_assert(matter);
-
-    MatterIntercomFrame cd_frame = {
-        .type = MatterIntercomFrameTypeCdCertificate,
-        .cd_certificate = {
-            .contents_length = 0,
-        }};
-
     matter_cd_init(&matter->cd);
 
-    matter_cd_prepare_initialization_frame(&matter->cd, &cd_frame);
+    MatterIntercomFrame cd_frame;
+    memset(&cd_frame, 0, sizeof(cd_frame));
+    cd_frame.type = MatterIntercomFrameTypeInitialization;
+    MatterIntercomInitializationFrame* init = &cd_frame.initialization;
+
+    matter_cd_prepare_initialization_frame(&matter->cd, init);
+
+    init->hardware_version_num = furi_hal_version_get_hw_version();
+    strcpy(init->hardware_version_str, furi_hal_version_get_hw_version_code());
+
+    // WARNING: this if block is a temporary solution just to pass certification testing,
+    // because our test lab doesn't have samples with provisioned OTP.
+    // TODO: remove this if block and associated defines after we pass certification testing.
+    if(!init->hardware_version_num) {
+        init->hardware_version_num = DEFAULT_HARDWARE_VERSION;
+        strcpy(init->hardware_version_str, DEFAULT_HARDWARE_VERSION_STRING);
+    }
+
     if(!matter_send_frame(matter, &cd_frame)) return false;
 
     if(!matter_pick_frame_of_type(
