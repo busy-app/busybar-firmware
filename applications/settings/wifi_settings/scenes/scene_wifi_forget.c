@@ -44,7 +44,7 @@ static void wifi_scene_forget_on_enter(void* context) {
         dialog_set_options(data->front_dialog, "Forget", "Cancel");
         dialog_set_options(data->back_dialog, "Forget", "Cancel");
 
-        dialog_set_calback(data->front_dialog, wifi_scene_forget_callback, instance);
+        dialog_set_callback(data->front_dialog, wifi_scene_forget_callback, instance);
     });
 }
 

@@ -3,6 +3,8 @@
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
+#include <furi_hal_nvm.h>
+
 static bool debug_app_list_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
 
@@ -158,6 +160,7 @@ int32_t debug_app_list_entry(void* arg) {
         furi_string_set_str(descriptor->back_title, "DEBUG APPS");
         furi_string_set_str(descriptor->front_icon, IMG_PATH("bug_front_7x7.bin"));
         furi_string_set_str(descriptor->back_icon, IMG_PATH("bug_back_12x12.bin"));
+        descriptor->display_in_menu = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
 
         return 0;
     }

@@ -4,10 +4,6 @@
 
 #define SERVER_ADDRESS_DEFAULT "udp://time.busy.app:123"
 
-#define TIMEZONE_OFFSET_MIN     (-12 * 60)
-#define TIMEZONE_OFFSET_MAX     (+14 * 60)
-#define TIMEZONE_OFFSET_DEFAULT (+4 * 60)
-
 #define BOOT_DELAY_MIN     (1 * 60)
 #define BOOT_DELAY_MAX     (10 * 60)
 #define BOOT_DELAY_DEFAULT (5 * 60)
@@ -20,11 +16,7 @@
 #define RETRY_SYNC_INTERVAL_MAX     (60 * 60)
 #define RETRY_SYNC_INTERVAL_DEFAULT (10 * 60)
 
-static bool timezone_offset_is_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
-
-    return (value >= TIMEZONE_OFFSET_MIN && value <= TIMEZONE_OFFSET_MAX);
-}
+#define TIME_FORMAT_DEFAULT SntpSettingTimeFormat24h
 
 static bool boot_delay_is_valid(const SettingProviderSetting* setting, int value) {
     UNUSED(setting);
@@ -43,6 +35,36 @@ static bool retry_sync_interval_is_valid(const SettingProviderSetting* setting, 
 
     return (value >= RETRY_SYNC_INTERVAL_MIN && value <= RETRY_SYNC_INTERVAL_MAX);
 }
+
+static bool
+    serialize_uzone(const SettingProviderSetting* setting, FuriString* string, const void* value) {
+    UNUSED(setting);
+
+    const utz_zone_t* zone = value;
+
+    furi_string_set_str(string, zone->name);
+
+    return true;
+}
+
+bool deserialize_uzone(
+    const SettingProviderSetting* setting,
+    void* value,
+    const FuriString* string) {
+    UNUSED(setting);
+
+    utz_zone_t* zone = value;
+
+    return utz_get_zone_by_name(furi_string_get_cstr(string), zone);
+}
+
+static bool time_format_is_valid(const SettingProviderSetting* setting, int value) {
+    UNUSED(setting);
+
+    return value < SntpSettingTimeFormatCount;
+}
+
+size_t default_value_size;
 
 const SettingProviderSetting sntp_v1_settings[] = {
     [SntpSettingV1IdxIsEnabled] =
@@ -67,16 +89,18 @@ const SettingProviderSetting sntp_v1_settings[] = {
             .field_offset = offsetof(SntpSettingsV1, server_address),
             .type = SettingProviderSettingTypeString,
         },
-    [SntpSettingV1IdxTimezoneOffset] =
+    [SntpSettingV1IdxTimezone] =
         {
-            .name = "timezone_offset",
+            .name = "timezone",
             .interface =
-                &(const SettingProviderIntInterface){
-                    .default_value = TIMEZONE_OFFSET_DEFAULT,
-                    .is_valid_callback = timezone_offset_is_valid,
+                &(const SettingProviderCustomInterface){
+                    .default_value = &utz_zone_default,
+                    .default_value_size = sizeof(utz_zone_default),
+                    .serialize_callback = serialize_uzone,
+                    .deserialize_callback = deserialize_uzone,
                 },
-            .field_offset = offsetof(SntpSettingsV1, timezone_offset),
-            .type = SettingProviderSettingTypeInt,
+            .field_offset = offsetof(SntpSettingsV1, timezone),
+            .type = SettingProviderSettingTypeCustom,
         },
     [SntpSettingV1IdxBootDelay] =
         {
@@ -109,6 +133,17 @@ const SettingProviderSetting sntp_v1_settings[] = {
                     .is_valid_callback = retry_sync_interval_is_valid,
                 },
             .field_offset = offsetof(SntpSettingsV1, retry_sync_interval),
+            .type = SettingProviderSettingTypeInt,
+        },
+    [SntpSettingV1IdxTimeFormat] =
+        {
+            .name = "time_format",
+            .interface =
+                &(const SettingProviderIntInterface){
+                    .default_value = TIME_FORMAT_DEFAULT,
+                    .is_valid_callback = time_format_is_valid,
+                },
+            .field_offset = offsetof(SntpSettingsV1, time_format),
             .type = SettingProviderSettingTypeInt,
         },
 };

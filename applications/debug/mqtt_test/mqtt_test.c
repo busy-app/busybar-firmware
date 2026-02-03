@@ -4,7 +4,7 @@
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/label.h>
 
-#include <mqtt_client/mqtt_client.h>
+#include <mqtt/mqtt.h>
 
 #define TAG "MqttTest"
 
@@ -33,37 +33,37 @@ typedef struct {
     Label* label_id;
     Label* label_message;
 
-    MqttClient* mqtt;
+    Mqtt* mqtt;
     FuriPubSubSubscription* mqtt_event_sub;
-    MqttClientStatus status;
+    MqttStatus status;
 
     FuriString* session_id;
 } MqttTestApp;
 
 static void mqtt_test_update_status(MqttTestApp* instance) {
-    instance->status = mqtt_client_get_status(instance->mqtt);
+    instance->status = mqtt_get_status(instance->mqtt);
 
-    if(instance->status == MqttClientStatusConnectedLinked) {
-        mqtt_client_get_session_info(instance->mqtt, instance->session_id, NULL, NULL);
+    if(instance->status == MqttStatusConnectedLinked) {
+        mqtt_get_session_info(instance->mqtt, instance->session_id, NULL, NULL);
     } else {
         furi_string_reset(instance->session_id);
     }
 
     with_gui(instance->gui, {
         switch(instance->status) {
-        case MqttClientStatusError:
+        case MqttStatusError:
             label_set_text(instance->label_status, "Error");
             label_set_text(instance->label_message, "Certs missing");
             break;
-        case MqttClientStatusNotConnected:
+        case MqttStatusNotConnected:
             label_set_text(instance->label_status, "Not connected");
             label_set_text(instance->label_message, "");
             break;
-        case MqttClientStatusConnectedNotLinked:
+        case MqttStatusConnectedNotLinked:
             label_set_text(instance->label_status, "Connected, not linked");
             label_set_text(instance->label_message, "Press start to request link pin");
             break;
-        case MqttClientStatusConnectedLinked:
+        case MqttStatusConnectedLinked:
             label_set_text(instance->label_status, "Connected, linked");
             label_set_text(instance->label_message, "Hold start to unlink");
             break;
@@ -129,11 +129,10 @@ static void mqtt_test_app_event_queue_callback(FuriEventLoopObject* object, void
             instance->label_id, "Link PIN: %s", furi_string_get_cstr(event.str_param));
         furi_string_free(event.str_param);
     } else if(
-        event.type == MqttTestAppEventLink &&
-        (instance->status == MqttClientStatusConnectedNotLinked)) {
-        mqtt_client_request_link_pin(instance->mqtt);
+        event.type == MqttTestAppEventLink && (instance->status == MqttStatusConnectedNotLinked)) {
+        mqtt_request_link_pin(instance->mqtt);
     } else if(event.type == MqttTestAppEventUnlink) {
-        mqtt_client_unlink(instance->mqtt);
+        mqtt_unlink(instance->mqtt);
     }
 }
 
@@ -141,20 +140,20 @@ static void mqtt_test_events_callback(const void* message, void* context) {
     MqttTestApp* instance = context;
     furi_assert(instance);
 
-    MqttClientEvent* mqtt_event = (MqttClientEvent*)message;
+    const MqttEvent* mqtt_event = (const MqttEvent*)message;
     furi_assert(mqtt_event);
 
-    if(mqtt_event->type == MqttClientEventStatusChange) {
+    if(mqtt_event->type == MqttEventTypeStatusChanged) {
         const MqttTestAppEvent app_event = {
             .type = MqttTestAppEventStatusUpdate,
         };
         furi_check(
             furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
             FuriStatusOk);
-    } else if(mqtt_event->type == MqttClientEventLinkPin) {
+    } else if(mqtt_event->type == MqttEventTypeLinkPinReceived) {
         const MqttTestAppEvent app_event = {
             .type = MqttTestAppEventPinCode,
-            .str_param = furi_string_alloc_set_str(mqtt_event->link.pin),
+            .str_param = furi_string_alloc_set_str(mqtt_event->link_pin_received.pin),
         };
         furi_check(
             furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
@@ -168,7 +167,7 @@ static MqttTestApp* mqtt_test_app_alloc(void) {
 
     instance->mqtt = furi_record_open(RECORD_MQTT);
     instance->mqtt_event_sub = furi_pubsub_subscribe(
-        mqtt_client_get_pubsub(instance->mqtt), mqtt_test_events_callback, instance);
+        mqtt_get_pubsub(instance->mqtt), mqtt_test_events_callback, instance);
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_queue = furi_message_queue_alloc(16, sizeof(MqttTestAppEvent));
@@ -223,7 +222,7 @@ static void mqtt_test_app_free(MqttTestApp* instance) {
 
     furi_record_close(RECORD_GUI);
 
-    furi_pubsub_unsubscribe(mqtt_client_get_pubsub(instance->mqtt), instance->mqtt_event_sub);
+    furi_pubsub_unsubscribe(mqtt_get_pubsub(instance->mqtt), instance->mqtt_event_sub);
     furi_record_close(RECORD_MQTT);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

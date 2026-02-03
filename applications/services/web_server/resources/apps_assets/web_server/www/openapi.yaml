@@ -1114,7 +1114,7 @@ paths:
   /api/time:
     get:
       tags:
-        - System
+        - Time
       summary: Get current timestamp with timezone
       description: Retrieves the current timestamp from RTC with timezone in ISO 8601 format
       operationId: getTime
@@ -1248,12 +1248,10 @@ paths:
   /api/time/timestamp:
     post:
       tags:
-        - System
+        - Time
       summary: Set current timestamp
       description: |
-        Sets the RTC timestamp in ISO 8601 format.
-        - Without 'Z': treated as local time
-        - With 'Z': treated as UTC and converted to local time using current timezone offset
+        Sets the RTC timestamp in ISO 8601 format. Time zone qualifier (e.g. Z of UTC or +hh:mm for local time) is required.
       operationId: setTimeTimestamp
       parameters:
         - name: timestamp
@@ -1261,9 +1259,9 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z?$"
-          description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45 for local time or 2025-10-02T14:30:45Z for UTC)
-          example: "2025-10-02T14:30:45"
+            pattern: "^[0-9]{4}(-?)[0-9]{2}\\1[0-9]{2}T[0-9]{2}(:?)[0-9]{2}\\2[0-9]{2}(Z|([+-][0-9]{2}(:?[0-9]{2})?))$"
+          description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45+02:00 for local time or 2025-10-02T14:30:45Z for UTC)
+          example: "2025-10-02T14:30:45+0100"
       responses:
         "200":
           description: Timestamp set successfully
@@ -1279,11 +1277,30 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/time/timezone:
+    get:
+      tags:
+        - Time
+      summary: Get timezone
+      description: Get current timezone name
+      operationId: getTimeTimezone
+      responses:
+        "200":
+          description: Timezone got successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimezoneInfo"
+        "400":
+          description: Invalid timezone offset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       tags:
-        - System
-      summary: Set timezone offset
-      description: Sets the timezone offset in ±HH:MM format
+        - Time
+      summary: Set timezone
+      description: Sets the timezone name. Use /api/time/tzlist to get available names list.
       operationId: setTimeTimezone
       parameters:
         - name: timezone
@@ -1291,9 +1308,9 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[+-][0-9]{2}:[0-9]{2}$"
-          description: Timezone offset in ±HH:MM format (range -12:00 to +14:00)
-          example: "+04:00"
+            pattern: "^.+$"
+          description: Timezone name
+          example: "Stuttgart"
       responses:
         "200":
           description: Timezone set successfully
@@ -1303,6 +1320,27 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid timezone offset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/time/tzlist:
+    get:
+      tags:
+        - Time
+      summary: Get list of supported time zones
+      description: Retrieves the list of time zones accepted by /api/time/timezone
+      operationId: getTimeTzlist
+      responses:
+        "200":
+          description: Got the list successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimezoneListResponse"
+        "400":
+          description: Error getting time zone list
           content:
             application/json:
               schema:
@@ -1350,6 +1388,102 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Error setting snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/matter/commissioning:
+    get:
+      tags:
+        - Matter
+      summary: Smart home commissioning status
+      operationId: getMatterCommissioningStatus
+      parameters: []
+      responses:
+        "200":
+          description: Successfully got Matter commissioning status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatterCommissionedFabrics"
+    post:
+      tags:
+        - Matter
+      summary: Link device to a smart home
+      operationId: startMatterCommissioning
+      parameters: []
+      responses:
+        "200":
+          description: Successfully started Matter commissioning
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatterCommissioningPayload"
+        "503":
+          description: Internal Matter service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - Matter
+      summary: Erase all smart home links
+      parameters: []
+      responses:
+        "200":
+          description: Successfully erased all Matter commissioning info, device restart is needed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Internal Matter service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/matter/endpoint/1:
+    get:
+      tags:
+        - Matter
+      summary: Get Matter endpoint 1 state
+      parameters: []
+      responses:
+        "200":
+          description: Successfully got Matter endpoint 1 state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatterEndpointState"
+        "503":
+          description: Internal Matter service is broken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Matter
+      summary: Set Matter endpoint 1 state
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatterEndpointState"
+      responses:
+        "200":
+          description: Successfully set Matter endpoint 1 state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Internal Matter service is broken
           content:
             application/json:
               schema:
@@ -1641,7 +1775,7 @@ components:
           description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image, countdown]
+          enum: [text, image, anim, countdown]
           description: Type of display element
         x:
           type: integer
@@ -1672,6 +1806,7 @@ components:
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
+          anim: "#/components/schemas/AnimElement"
           countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
@@ -1722,6 +1857,35 @@ components:
                   type: string
                   pattern: "^[a-z_]+/[a-z0-9_]+$"
                   description: Identifier of builtin image
+
+    AnimElement:
+      allOf:
+        - $ref: "#/components/schemas/DisplayElement"
+        - type: object
+          allOf:
+            - oneOf:
+              - properties:
+                  path:
+                    type: string
+                    pattern: "^[a-zA-Z0-9._/-]+$"
+                    description: Path to the animation file in the app's assets
+              - properties:
+                  builtin_anim:
+                    type: string
+                    pattern: "^[a-z_]+/[a-z0-9_]+$"
+                    description: Identifier of builtin animation
+            - properties:
+                loop:
+                  type: boolean
+                  description: Whether to loop the requested part of the animation
+                  default: false
+                await_previous_end:
+                  type: boolean
+                  description: If the element has been created before and this flag is true, the previous range will finish before the requested one starts.
+                  default: false
+                section_name:
+                  type: string
+                  description: Name of the section to play back. Specifying \"default\" selects the entire animation.
 
     CountdownElement:
       allOf:
@@ -1778,6 +1942,16 @@ components:
           example: "2025-10-02T14:30:45+04:00"
       required:
         - timestamp
+
+    TimezoneInfo:
+      type: object
+      properties:
+        timezone:
+          type: string
+          description: Timezone name
+          example: "Berlin"
+      required:
+        - timezone
 
     Status:
       type: object
@@ -2132,9 +2306,89 @@ components:
           type: boolean
           example: false
 
+    TimezoneListResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: "Time zone name"
+            example: "Bangalore"
+          offset:
+            type: string
+            description: "Time zone offset from UTC"
+            example: "+05:30"
+          abbr:
+            type: string
+            description: "Time zone abbreviation"
+            example: "IST"
+
+    MatterCommissionedFabrics:
+      type: object
+      properties:
+        fabric_count:
+          type: integer
+          example: 1
+          description: "Number of Matter smart homes (\"fabrics\") that this device is linked with (\"commissioned into\")"
+        latest_commissioning_status:
+          type: object
+          properties:
+            value:
+              type: string
+              enum:
+                - never_started
+                - started
+                - completed_successfully
+                - failed
+              description: "Latest state of Matter smart home linking (\"commissioning\") process. Note: \"never_started\" only refers to the current power cycle of the device; this status is not recorded across reboots."
+              example: "completed_successfully"
+            timestamp:
+              type: string
+              description: "UTC Unix millisecond timestamp of latest state update. Note: it's a number in a string."
+              example: "1769436711000"
+    MatterCommissioningPayload:
+      type: object
+      properties:
+        available_until:
+          type: string
+          description: "Linking with (\"commissioning into\") a Matter smart home using the provided payload is possible before this UTC Unix millisecond timestamp. Note: it's a number in a string."
+          example: "1769437579000"
+        qr_code:
+          type: string
+          description: "Payload of the QR code for linking with (\"commissioning into\") a Matter smart home"
+          example: "MT:YNDA0-O913..VV7I000"
+        manual_code:
+          type: string
+          description: "Manual code for linking with (\"commissioning into\") a Matter smart home"
+          example: "1155-360-0377"
+    MatterEndpointState:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - switch
+          description: "Type of device emulated by a Matter endpoint. Currently only \"switch\" is implemented."
+          example: switch
+        state:
+          type: boolean
+          description: "State of device emulated by a Matter endpoint. Boolean for \"switch\" device type."
+          example: false
+        startup:
+          type: string
+          enum:
+            - "off"
+            - "on"
+            - toggle
+            - last
+          description: "For the \"switch\" device type, specifies the value on startup. Never sent by the server, but can be specified by the client."
+
 tags:
   - name: System
     description: System information and control
+  - name: Time
+    description: Time-related methods
   - name: Updater
     description: Firmware update control
   - name: Wi-Fi

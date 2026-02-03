@@ -1,0 +1,17 @@
+App(
+    appid="recovery",
+    name="RecoverySrv",
+    apptype=FlipperAppType.SERVICE,
+    sources=[
+        "recovery.c",
+    ],
+    entry_point="recovery_srv",
+    requires=[
+        "gui",
+        "storage",
+        "updater",
+    ],
+    stack_size=2 * 1024,
+    order=300,
+    targets=["f20", "f21", "f22"],
+)

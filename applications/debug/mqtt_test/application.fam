@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.DEBUG,
     order=170,
     entry_point="mqtt_test_app",
-    requires=["mqtt_client"],
+    requires=["mqtt"],
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],
 )

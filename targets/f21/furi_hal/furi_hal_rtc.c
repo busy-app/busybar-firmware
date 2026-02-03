@@ -76,16 +76,21 @@ void furi_hal_rtc_init(void) {
 
     if(LL_RTC_BKP_GetRegister(RTC, LL_RTC_BKP_DR0) != FURI_HAL_RTC_HEADER_MAGIC) {
         LL_RTC_BKP_SetRegister(RTC, LL_RTC_BKP_DR0, FURI_HAL_RTC_HEADER_MAGIC);
-        DateTime datetime = {
-            .year = 2025, .month = 1, .day = 1, .hour = 0, .minute = 0, .second = 0, .weekday = 3};
+        DateTimeMs datetime = {
+            .dt =
+                {
+                    .date = utz_date_init(2026, 1, 1),
+                    .time = {0},
+                },
+            .millis = 0,
+        };
         furi_hal_rtc_set_datetime(&datetime);
     }
     FURI_LOG_I(TAG, "Init OK");
 }
 
-void furi_hal_rtc_get_datetime(DateTime* datetime) {
+DateTimeMs furi_hal_rtc_get_datetime(void) {
     furi_check(!FURI_IS_IRQ_MODE());
-    furi_check(datetime);
 
     uint32_t prescaler, sub_second, time, date;
 
@@ -117,40 +122,41 @@ void furi_hal_rtc_get_datetime(DateTime* datetime) {
         FURI_CRITICAL_EXIT();
     }
 
-    datetime->second = __LL_RTC_CONVERT_BCD2BIN((time >> 0) & 0xFF);
-    datetime->minute = __LL_RTC_CONVERT_BCD2BIN((time >> 8) & 0xFF);
-    datetime->hour = __LL_RTC_CONVERT_BCD2BIN((time >> 16) & 0xFF);
-    datetime->year = __LL_RTC_CONVERT_BCD2BIN((date >> 0) & 0xFF) + 2000;
-    datetime->month = __LL_RTC_CONVERT_BCD2BIN((date >> 8) & 0xFF);
-    datetime->day = __LL_RTC_CONVERT_BCD2BIN((date >> 16) & 0xFF);
-    datetime->weekday = __LL_RTC_CONVERT_BCD2BIN((date >> 24) & 0xFF);
+    DateTimeMs datetime;
+
+    datetime.dt.second = __LL_RTC_CONVERT_BCD2BIN((time >> 0) & 0xFF);
+    datetime.dt.minute = __LL_RTC_CONVERT_BCD2BIN((time >> 8) & 0xFF);
+    datetime.dt.hour = __LL_RTC_CONVERT_BCD2BIN((time >> 16) & 0xFF);
+    datetime.dt.year = __LL_RTC_CONVERT_BCD2BIN((date >> 0) & 0xFF) + 2000;
+    datetime.dt.month = __LL_RTC_CONVERT_BCD2BIN((date >> 8) & 0xFF);
+    datetime.dt.dayofmonth = __LL_RTC_CONVERT_BCD2BIN((date >> 16) & 0xFF);
+    datetime.dt.dayofweek = __LL_RTC_CONVERT_BCD2BIN((date >> 24) & 0xFF);
 
     /* special case for getting time right after set operation */
     if(sub_second > prescaler) {
-        time_t timestamp = datetime_datetime_to_timestamp(datetime);
-        datetime_timestamp_to_datetime(timestamp - 1, datetime);
+        time_t timestamp = datetime_datetime_to_timestamp(&datetime.dt);
+        datetime.dt = datetime_timestamp_to_datetime(timestamp - 1);
 
         sub_second %= (prescaler + 1);
     }
 
-    datetime->millis = 1000 * (prescaler - sub_second) / (prescaler + 1);
+    datetime.millis = 1000 * (prescaler - sub_second) / (prescaler + 1);
+    return datetime;
 }
 
 time_t furi_hal_rtc_get_timestamp(void) {
-    DateTime datetime;
-    furi_hal_rtc_get_datetime(&datetime);
+    DateTimeMs datetime = furi_hal_rtc_get_datetime();
 
-    return datetime_datetime_to_timestamp(&datetime);
+    return datetime_datetime_to_timestamp(&datetime.dt);
 }
 
 time_t furi_hal_rtc_get_timestamp_ms(void) {
-    DateTime datetime;
-    furi_hal_rtc_get_datetime(&datetime);
+    DateTimeMs datetime = furi_hal_rtc_get_datetime();
 
     return datetime_datetime_to_timestamp_ms(&datetime);
 }
 
-void furi_hal_rtc_set_datetime(DateTime* datetime) {
+void furi_hal_rtc_set_datetime(const DateTimeMs* datetime) {
     furi_check(!FURI_IS_IRQ_MODE());
     furi_check(datetime);
 
@@ -167,17 +173,17 @@ void furi_hal_rtc_set_datetime(DateTime* datetime) {
     LL_RTC_TIME_Config(
         RTC,
         LL_RTC_TIME_FORMAT_AM_OR_24,
-        __LL_RTC_CONVERT_BIN2BCD(datetime->hour),
-        __LL_RTC_CONVERT_BIN2BCD(datetime->minute),
-        __LL_RTC_CONVERT_BIN2BCD(datetime->second));
+        __LL_RTC_CONVERT_BIN2BCD(datetime->dt.hour),
+        __LL_RTC_CONVERT_BIN2BCD(datetime->dt.minute),
+        __LL_RTC_CONVERT_BIN2BCD(datetime->dt.second));
 
     /* Set date */
     LL_RTC_DATE_Config(
         RTC,
-        datetime->weekday,
-        __LL_RTC_CONVERT_BIN2BCD(datetime->day),
-        __LL_RTC_CONVERT_BIN2BCD(datetime->month),
-        __LL_RTC_CONVERT_BIN2BCD(datetime->year - 2000));
+        datetime->dt.dayofweek,
+        __LL_RTC_CONVERT_BIN2BCD(datetime->dt.dayofmonth),
+        __LL_RTC_CONVERT_BIN2BCD(datetime->dt.month),
+        __LL_RTC_CONVERT_BIN2BCD(datetime->dt.year - 2000));
 
     /* Exit Initialization mode */
     LL_RTC_DisableInitMode(RTC);

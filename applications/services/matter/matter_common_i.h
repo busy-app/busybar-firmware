@@ -22,12 +22,29 @@ extern "C" {
 // ===============
 
 /**
+ * @brief Contents of CD
+ */
+typedef struct {
+    size_t contents_length;
+    char contents[512];
+} MatterIntercomCdCertificateFrame;
+
+/**
+ * @brief Backend has fully initialized
+ */
+typedef struct {
+} MatterIntercomBackendReadyFrame;
+
+/**
  * @brief Request to change state
  */
 typedef struct {
     bool value;
 } MatterIntercomSwitchStateFrame;
 
+/**
+ * @brief Request to change startup mode
+ */
 typedef struct {
     uint8_t mode;
 } MatterIntercomStartupModeFrame;
@@ -68,6 +85,9 @@ typedef struct {
 // =============
 
 typedef enum {
+    MatterIntercomFrameTypeCdCertificate, //<! Contents of CD. Direction: u5->917
+    MatterIntercomFrameTypeBackendReady, //<! Backend has fully initialized. Direction: 917->u5
+
     MatterIntercomFrameTypeSwitchState, //<! Request to change state. Direction: u5<->917
     MatterIntercomFrameTypeSwitchStartupMode, //<! Request to change startup mode. Direction: u5->917
 
@@ -84,6 +104,8 @@ typedef struct {
     MatterIntercomFrameType type;
     union {
         uint8_t frame_of_any_type;
+        MatterIntercomCdCertificateFrame cd_certificate;
+        MatterIntercomBackendReadyFrame backend_ready;
         MatterIntercomSwitchStateFrame switch_state;
         MatterIntercomStartupModeFrame startup;
         MatterIntercomResetFrame reset;

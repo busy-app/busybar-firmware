@@ -148,6 +148,19 @@ runs:
         fi
         bash ./fbt "${ARGS[@]}" dist
 
+    - name: Build recovery DFU
+      shell: bash
+      run: |
+        set -euo pipefail
+        source ./scripts/toolchain/fbtenv.sh
+        export FBT_GIT_SUBMODULE_SHALLOW=1
+        ARGS=("TARGET_HW=${U5_TARGET_HW}" "FIRMWARE_APP_SET=recovery")
+        if [[ -n "${FBT_BUILD_FLAGS}" ]]; then
+          # shellcheck disable=SC2206
+          ARGS+=( ${FBT_BUILD_FLAGS} )
+        fi
+        bash ./fbt "${ARGS[@]}" firmware_dfu
+
     - name: Check for uncommitted changes
       shell: bash
       run: |
@@ -161,6 +174,7 @@ runs:
         rm -rf "$ARTIFACT_PATH"
         mkdir -p "$ARTIFACT_PATH"
         cp -v dist/f${U5_TARGET_HW}-*/* "$ARTIFACT_PATH"/
+        cp -v fbt_layers/fbtng/build/f${U5_TARGET_HW}-firmware-*/fw_artifacts/firmware.dfu "$ARTIFACT_PATH"/busybar-f${U5_TARGET_HW}-recovery-${DIST_SUFFIX:-${SUFFIX:-local}}.dfu
 
     - name: Calculate hashsums for artifacts
       if: inputs.generate_hashes == 'true'

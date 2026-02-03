@@ -214,12 +214,16 @@ static void autoupdate_timer_callback(void* context) {
         return;
     }
 
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        FURI_LOG_D(TAG, "Autoupdate: skipped, debug is enabled");
+        return;
+    }
+
     Sntp* sntp = furi_record_open(RECORD_SNTP);
-    DateTime datetime;
-    sntp_get_local_datetime(sntp, &datetime);
+    LocalTime local_time = sntp_get_local_time(sntp);
     furi_record_close(RECORD_SNTP);
 
-    int time_minutes = datetime.hour * 60 + datetime.minute;
+    int time_minutes = local_time.dt.hour * 60 + local_time.dt.minute;
     int interval_start = instance->settings.autoupdate_interval_start;
     int interval_end = instance->settings.autoupdate_interval_end;
     bool is_time_in_interval =
@@ -231,8 +235,8 @@ static void autoupdate_timer_callback(void* context) {
         FURI_LOG_D(
             TAG,
             "Autoupdate: skipped, outside time window (%02d:%02d)",
-            datetime.hour,
-            datetime.minute);
+            local_time.dt.hour,
+            local_time.dt.minute);
         return;
     }
 
@@ -960,8 +964,12 @@ static Updater* updater_alloc(void) {
     instance->install_url = furi_string_alloc();
     instance->install_sha256 = furi_string_alloc();
 
+#ifdef SRV_SNTP
     instance->autoupdate_timer = furi_event_loop_timer_alloc(
         instance->event_loop, autoupdate_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+#else // SRV_SNTP
+    UNUSED(autoupdate_timer_callback);
+#endif // SRV_SNTP
     instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);
 
     furi_event_loop_subscribe_message_queue(
