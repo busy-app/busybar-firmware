@@ -40,7 +40,7 @@ static void scene_forget_device_confirm_on_enter(void* context) {
         dialog_set_options(data->front_dialog, "Forget", "Cancel");
         dialog_set_options(data->back_dialog, "Forget", "Cancel");
 
-        dialog_set_calback(data->front_dialog, scene_forget_device_dialog_callback, instance);
+        dialog_set_callback(data->front_dialog, scene_forget_device_dialog_callback, instance);
     });
 }
 
