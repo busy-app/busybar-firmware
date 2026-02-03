@@ -3,7 +3,8 @@
 #include "../account_settings.h"
 #include <storage/storage.h>
 #include <gui/widget_i.h>
-#include <gui/modules/anim_image_i.h>
+#include <gui/storage_macros.h>
+#include <gui/modules/anim_player.h>
 #include <gui/modules/countdown.h>
 
 #define LINK_PIN_BACK_CLASS  (&link_pin_view_back_lvgl_class)
@@ -15,7 +16,7 @@
 struct LinkPinView {
     Widget base;
     lv_obj_t* code_label;
-    AnimImage* loading_spinner;
+    AnimPlayer* loading_spinner;
     Countdown* code_timer;
 };
 
@@ -70,8 +71,8 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_align((lv_obj_t*)instance->code_timer, LV_ALIGN_RIGHT_MID, 0, 0);
     countdown_set_text_color(instance->code_timer, color_hex_to_rgb(COLOR_COUNTDOWN));
 
-    instance->loading_spinner = anim_image_alloc((Widget*)code_cont);
-    anim_image_set_source(instance->loading_spinner, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
+    instance->loading_spinner = anim_player_alloc((Widget*)code_cont);
+    anim_player_set_source(instance->loading_spinner, GUI_ANIM_PATH("spinner_front_8x8.anim"));
     lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
 }
 
@@ -116,8 +117,8 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     lv_obj_align(instance->code_label, LV_ALIGN_BOTTOM_LEFT, 0, 1);
     lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
 
-    instance->loading_spinner = anim_image_alloc((Widget*)code_cont);
-    anim_image_set_source(instance->loading_spinner, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
+    instance->loading_spinner = anim_player_alloc((Widget*)code_cont);
+    anim_player_set_source(instance->loading_spinner, GUI_ANIM_PATH("spinner_front_8x8.anim"));
     lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
 
     instance->code_timer = countdown_alloc((Widget*)top_line);

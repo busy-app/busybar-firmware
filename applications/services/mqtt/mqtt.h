@@ -37,6 +37,8 @@
 #include <core/pubsub.h>
 #include <core/string.h>
 
+#include <time.h>
+
 /**
  * @brief The string key for MQTT instance access
  *
@@ -113,6 +115,7 @@ typedef enum {
     MqttEventTypeStatusChanged, /**< A status change has occurred */
     MqttEventTypeLinkPinReceived, /**< An account linking PIN has been received in response to a request */
     MqttEventTypeLinkDone, /**< Account linking has been successfully completed */
+    MqttEventTypeUnlinked, /**< Account was unlinked from the device */
     MqttEventTypeMax, /**< Special value, internal use */
 } MqttEventType;
 
@@ -123,7 +126,7 @@ typedef enum {
  */
 typedef struct {
     const char* pin; /**< Pointer to a string of length @c MQTT_LINK_PIN_LEN */
-    uint32_t expires_at; /**< Timestamp past which the PIN will no longer be valid */
+    time_t expires_at; /**< Timestamp past which the PIN will no longer be valid */
 } MqttEventLinkPinReceived;
 
 /**
@@ -189,6 +192,14 @@ FuriPubSub* mqtt_get_pubsub(Mqtt* instance);
 MqttStatus mqtt_get_status(Mqtt* instance);
 
 // =========================== Account management ==================================
+
+/**
+ * @brief Check if the account is linked.
+ *
+ * @param[in,out] instance pointer to the MQTT service instance
+ * @returns true if the account link data presents, false otherwise
+ */
+bool mqtt_is_linked(Mqtt* instance);
 
 /**
  * @brief Request the account linking PIN from the BUSY cloud.

@@ -1,5 +1,5 @@
 #include "status_view.h"
-#include <gui/modules/anim_image_i.h>
+#include <gui/modules/anim_player.h>
 #include <gui/widget_i.h>
 
 #define MY_CLASS                 (&status_view_lvgl_class)
@@ -10,7 +10,7 @@
 struct StatusView {
     Widget base;
     lv_obj_t* icon_static;
-    AnimImage* icon_animated;
+    AnimPlayer* icon_animated;
     lv_obj_t* icon_cont;
     lv_obj_t* header;
     lv_obj_t* additional_text;
@@ -55,7 +55,7 @@ void status_view_set_icon(StatusView* instance, const char* path) {
 
     if(is_animated) {
         lv_obj_add_flag((lv_obj_t*)instance->icon_static, LV_OBJ_FLAG_HIDDEN);
-        anim_image_set_source(instance->icon_animated, path);
+        anim_player_set_source(instance->icon_animated, path);
         lv_obj_remove_flag((lv_obj_t*)instance->icon_animated, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_add_flag((lv_obj_t*)instance->icon_animated, LV_OBJ_FLAG_HIDDEN);
@@ -90,7 +90,7 @@ static void status_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_class_init_obj(instance->icon_cont);
 
     instance->icon_static = lv_image_create(instance->icon_cont);
-    instance->icon_animated = anim_image_alloc((Widget*)instance->icon_cont);
+    instance->icon_animated = anim_player_alloc((Widget*)instance->icon_cont);
     lv_obj_add_flag((lv_obj_t*)instance->icon_animated, LV_OBJ_FLAG_HIDDEN);
 
     instance->header = lv_obj_class_create_obj(MY_HEADER_CLASS, obj);

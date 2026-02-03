@@ -1,6 +1,7 @@
 #include "../account_settings.h"
-#include <settings_helpers/gui_params.h>
+#include <gui/storage_macros.h>
 #include <settings_helpers/status_view.h>
+#include <settings_helpers/gui_params.h>
 
 typedef struct {
     StatusView* front_status;
@@ -16,11 +17,11 @@ static void account_scene_connecting_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(data->front_status, SETTINGS_ANIM_PATH("spinner_front_8x8.anim"));
+        status_view_set_icon(data->front_status, GUI_ANIM_PATH("spinner_front_8x8.anim"));
         status_view_set_header(data->front_status, "Connecting...");
 
         data->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(data->back_status, SETTINGS_ANIM_PATH("spinner_back_16x16.anim"));
+        status_view_set_icon(data->back_status, GUI_ANIM_PATH("spinner_back_16x16.anim"));
         status_view_set_header(data->back_status, "Connecting...");
     });
 }

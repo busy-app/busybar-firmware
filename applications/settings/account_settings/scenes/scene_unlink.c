@@ -50,7 +50,7 @@ static void account_scene_unlink_on_enter(void* context) {
         dialog_select_option(data->front_dialog, 1);
         dialog_select_option(data->back_dialog, 1);
 
-        dialog_set_calback(data->front_dialog, account_scene_unlink_dialog_callback, instance);
+        dialog_set_callback(data->front_dialog, account_scene_unlink_dialog_callback, instance);
     });
 
     furi_string_free(mail_short_str);

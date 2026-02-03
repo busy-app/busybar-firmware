@@ -25,6 +25,23 @@ MqttStatus mqtt_get_status(Mqtt* instance) {
     return status;
 }
 
+bool mqtt_is_linked(Mqtt* instance) {
+    furi_check(instance);
+
+    bool is_linked;
+
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypeIsLinked,
+        .data.is_linked =
+            {
+                .is_linked = &is_linked,
+            },
+    };
+
+    mqtt_send_message(instance, &message);
+    return is_linked;
+}
+
 bool mqtt_request_link_pin(Mqtt* instance) {
     furi_check(instance);
 
@@ -233,12 +250,26 @@ static void mqtt_get_status_api_message_handler(Mqtt* instance, const MqttApiMes
     *(get_status->status) = instance->status;
 }
 
+static void mqtt_is_linked_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessageIsLinked* is_linked = &data->is_linked;
+    *(is_linked->is_linked) = mqtt_saved_state_is_valid(&instance->saved_state);
+}
+
 static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
     mqtt_connection_close(instance, true);
     mqtt_reset_saved_state(instance);
+
+    MqttEvent pub_event = {
+        .type = MqttEventTypeUnlinked,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &pub_event);
 }
 
 static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
@@ -386,6 +417,7 @@ typedef void (*MqttApiMessageHandler)(Mqtt* instance, const MqttApiMessageData* 
 
 static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeMax] = {
     [MqttApiMessageTypeGetStatus] = mqtt_get_status_api_message_handler,
+    [MqttApiMessageTypeIsLinked] = mqtt_is_linked_api_message_handler,
     [MqttApiMessageTypeUnlink] = mqtt_unlink_api_message_handler,
     [MqttApiMessageTypeRequestPin] = mqtt_request_pin_api_message_handler,
     [MqttApiMessageTypeGetSessionInfo] = mqtt_get_session_info_api_message_handler,
