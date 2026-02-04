@@ -114,6 +114,7 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->updater = furi_record_open(RECORD_UPDATER);
     instance->matter = furi_record_open(RECORD_MATTER);
+    instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->theme = busy_theme_alloc();
 
     busy_process_arguments(instance, arg);
@@ -197,6 +198,7 @@ static void busy_free(BusyApp* instance) {
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
+    busy_set_front_display_blanking(instance, false);
 
     scene_manager_free(instance->scene_manager);
 
@@ -217,6 +219,7 @@ static void busy_free(BusyApp* instance) {
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);
+    furi_record_close(RECORD_FRONT_DISPLAY);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
@@ -273,6 +276,14 @@ void busy_set_matter(BusyApp* instance, bool switch_state) {
     furi_assert(instance);
     if(instance->settings.is_smart_home_enabled) {
         matter_set_switch_state(instance->matter, switch_state);
+    }
+}
+
+void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {
+    furi_assert(instance);
+
+    if(instance->settings.is_show_work_only_enabled) {
+        front_display_set_blanked(instance->front_display, is_blanked);
     }
 }
 

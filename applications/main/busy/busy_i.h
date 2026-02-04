@@ -9,6 +9,7 @@
 #include <audio/audio.h>
 #include <status_lights/status_lights.h>
 #include <matter/matter.h>
+#include <front_display/front_display.h>
 #include <busy_timer/busy_timer.h>
 #include <applications/system/updater/updater.h>
 
@@ -76,6 +77,7 @@ struct BusyApp {
     SceneManager* scene_manager;
     BusyTimer* busy_timer;
     StatusLights* status_lights;
+    FrontDisplaySrv* front_display;
     Audio* audio;
     Gui* gui;
     Updater* updater;
@@ -105,6 +107,8 @@ void busy_start_transition(BusyApp* instance);
 void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type);
 
 void busy_set_matter(BusyApp* instance, bool switch_state);
+
+void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked);
 
 void busy_push_location(BusyApp* instance, const char* location_name);
 
