@@ -26,19 +26,6 @@ static const BusySettings busy_settings_defaults[BusySettingsProfileIdMax] = {
         },
 };
 
-void busy_settings_reset(BusySettings* settings, BusySettingsProfileId profile_id) {
-    furi_check(settings);
-    furi_check(profile_id < BusySettingsProfileIdMax);
-
-    SettingProvider* provider = setting_provider_alloc(
-        BUSY_SETTINGS_FILE_PATH(profile_id), BUSY_SETTINGS_VERSION, NULL, 0);
-
-    setting_provider_open(provider);
-    setting_provider_reset(provider, &BUSY_SETTINGS_ROOT, settings);
-    setting_provider_close(provider);
-    setting_provider_free(provider);
-}
-
 void busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id) {
     furi_check(settings);
     furi_check(profile_id < BusySettingsProfileIdMax);
@@ -55,6 +42,8 @@ void busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id
         strcpy(settings->theme_name, default_settings->theme_name);
         settings->is_smart_home_enabled = default_settings->is_smart_home_enabled;
         settings->is_show_work_only_enabled = default_settings->is_show_work_only_enabled;
+
+        setting_provider_save(provider, &BUSY_SETTINGS_ROOT, settings);
     }
 
     setting_provider_close(provider);

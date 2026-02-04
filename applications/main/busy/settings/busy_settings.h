@@ -6,8 +6,6 @@
 
 typedef BusySettingsV1 BusySettings;
 
-void busy_settings_reset(BusySettings* settings, BusySettingsProfileId profile_id);
-
 void busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id);
 
 bool busy_settings_save(const BusySettings* settings, BusySettingsProfileId profile_id);
