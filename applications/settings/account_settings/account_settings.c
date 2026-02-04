@@ -59,7 +59,7 @@ static void account_settings_event_queue_callback(FuriEventLoopObject* object, v
     AccountSettingsEvent event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
         if(event.event == AppEventAccountLinkPin) {
-            strlcpy(instance->link_pin, event.link.pin, ACCOUNT_MODEL_LINK_PIN_LEN);
+            strlcpy(instance->link_pin, event.link.pin, sizeof(instance->link_pin));
             instance->pin_valid_untill = event.link.valid_untill;
         }
         scene_manager_handle_custom_event(instance->scene_manager, event.event);
