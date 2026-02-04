@@ -205,14 +205,18 @@ static void cli_intercom_do_protocol_spawn(CliIntercom* cli_intercom) {
 static void cli_intercom_do_protocol_disconnect(CliIntercom* cli_intercom) {
     FURI_LOG_D(TAG, "ProtocolDisconnect");
 
-    cli_intercom_detach_own_pipe(cli_intercom);
+    if(cli_intercom->own_pipe) {
+        cli_intercom_detach_own_pipe(cli_intercom);
+    }
 
     if(cli_intercom->join_lock) {
         api_lock_unlock(cli_intercom->join_lock);
         cli_intercom->join_lock = NULL;
     }
 
-    cli_intercom_free_shell(cli_intercom);
+    if(cli_intercom->cli_shell) {
+        cli_intercom_free_shell(cli_intercom);
+    }
 }
 
 static void cli_intercom_do_api_spawn(CliIntercom* cli_intercom, CliIntercomInternalEvent* event) {
@@ -298,6 +302,7 @@ static void cli_intercom_pipe_broken(PipeSide* pipe, void* context) {
     CliIntercom* cli_intercom = context;
     cli_intercom_send_protocol_status(
         cli_intercom, CliIntercomMessageTypeDisconnect, CLI_INTERCOM_TIMEOUT);
+    cli_intercom_send_simple_event(cli_intercom, CliIntercomInternalEventTypeProtocolDisconnect);
     cli_intercom_detach_own_pipe(cli_intercom);
     cli_intercom_free_shell(cli_intercom);
 }
