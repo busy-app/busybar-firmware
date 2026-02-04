@@ -52,20 +52,17 @@ void mqtt_unlink(Mqtt* instance) {
     mqtt_send_message(instance, &message);
 }
 
-void mqtt_get_session_info(
-    Mqtt* instance,
-    FuriString* session_id,
-    FuriString* email,
-    FuriString* user_id) {
+void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info) {
     furi_check(instance);
 
     MqttApiMessage message = {
         .type = MqttApiMessageTypeGetSessionInfo,
         .data.get_session_info =
             {
-                .session_id = session_id,
-                .user_id = user_id,
-                .email = email,
+                .session_id = info->session_id,
+                .user_id = info->user_id,
+                .email = info->email,
+                .is_valid = &info->is_valid,
             },
     };
 
@@ -239,6 +236,12 @@ static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessage
 
     mqtt_connection_close(instance, true);
     mqtt_reset_saved_state(instance);
+
+    MqttEvent pub_event = {
+        .type = MqttEventTypeUnlinked,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &pub_event);
 }
 
 static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
@@ -283,6 +286,9 @@ static void
     if(get_session_info->email) {
         furi_string_set(get_session_info->email, saved_state->email);
     }
+
+    furi_assert(get_session_info->is_valid);
+    *get_session_info->is_valid = mqtt_saved_state_is_valid(saved_state);
 }
 
 static void mqtt_get_profile_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {

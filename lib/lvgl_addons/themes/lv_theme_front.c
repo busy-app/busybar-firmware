@@ -116,7 +116,8 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_layout(&theme->styles.dialog, LV_LAYOUT_FLEX);
 
     lv_style_init(&theme->styles.dialog_text);
-    lv_style_set_width(&theme->styles.dialog_text, LV_PCT(50));
+    lv_style_set_pad_ver(&theme->styles.dialog_text, 0);
+    lv_style_set_width(&theme->styles.dialog_text, LV_PCT(60));
 
     lv_style_init(&theme->styles.var_item_editor);
     lv_style_set_pad_column(&theme->styles.var_item_editor, 2);
@@ -235,8 +236,11 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.dialog, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &dialog_text_lvgl_class)) {
-        lv_label_set_long_mode(obj, LV_LABEL_LONG_WRAP);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.dialog_text, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &dialog_text_sub_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.dialog_text, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &dialog_option_lvgl_class)) {

@@ -22,7 +22,7 @@ void matter_cd_init(MatterCd* cd);
 /**
  * @returns true on success
  */
-bool matter_cd_prepare_initialization_frame(MatterCd* cd, MatterIntercomFrame* frame);
+bool matter_cd_prepare_initialization_frame(MatterCd* cd, MatterIntercomInitializationFrame* frame);
 
 const char* matter_cd_get_wanted_selection(MatterCd* cd);
 

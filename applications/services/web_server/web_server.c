@@ -15,18 +15,19 @@ static WebServer srv = {0};
 static const HttpHandler handlers_root[] = {
     {
         .uri = "/api",
+        .method = "OPTIONS",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_options_callback,
+        .on_headers = http_api_options_hdr_callback,
+    },
+    {
+        .uri = "/api",
         .method = "*",
         .type = HttpHandlerCustom,
         .on_request = http_api_root_callback,
         .on_headers = http_api_root_hdr_callback,
         .ctx_alloc = http_api_root_alloc,
         .ctx_free = http_api_root_free,
-    },
-    {
-        .uri = "/api",
-        .method = "OPTIONS",
-        .type = HttpHandlerCustom,
-        .on_request = http_api_options_callback,
     },
     {
         .uri = "",

@@ -120,6 +120,7 @@ typedef struct {
     FuriString* session_id;
     FuriString* user_id;
     FuriString* email;
+    bool* is_valid;
 } MqttApiMessageGetSessionInfo;
 
 typedef struct {

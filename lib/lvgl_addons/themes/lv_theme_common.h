@@ -68,5 +68,6 @@ extern const lv_obj_class_t countdown_lvgl_class;
 // Dialog
 extern const lv_obj_class_t dialog_lvgl_class;
 extern const lv_obj_class_t dialog_text_lvgl_class;
+extern const lv_obj_class_t dialog_text_sub_lvgl_class;
 extern const lv_obj_class_t dialog_option_lvgl_class;
 extern const lv_obj_class_t dialog_cursor_lvgl_class;
