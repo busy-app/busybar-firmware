@@ -148,10 +148,10 @@ static void busy_scene_timer_update_lights(BusyApp* instance) {
     }
 }
 
-static void busy_scene_timer_update_matter(BusyApp* app) {
-    const BusySceneTimer* scene =
-        scene_manager_get_scene_data(app->scene_manager, BusyAppSceneIdTimer);
-    busy_set_matter(app, (scene->timer_state == BusyTimerStateWork) && !scene->is_paused);
+static void busy_scene_timer_update_matter(BusyApp* instance) {
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+    busy_set_matter(instance, (data->timer_state == BusyTimerStateWork) && !data->is_paused);
 }
 
 static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
