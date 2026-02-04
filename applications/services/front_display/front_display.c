@@ -18,6 +18,9 @@
 
 #define FRONT_DISPLAY_FRAME_SIZE (FRONT_DISPLAY_W * FRONT_DISPLAY_H * 3) // RGB888
 
+#define FRONT_DISPLAY_TRANSITION_STEP_MS (50)
+#define FRONT_DISPLAY_BRIGHTNESS_STEP    (3)
+
 // #define FRONT_DISPLAY_DEBUG_ENABLE
 
 #ifdef FRONT_DISPLAY_DEBUG_ENABLE
@@ -28,9 +31,9 @@
 
 struct FrontDisplaySrv {
     uint32_t sensor_level;
-    int brightness_override;
     Power* power;
     FuriEventLoop* event_loop;
+    FuriEventLoopTimer* transition_timer;
     FuriMessageQueue* message_queue;
     FuriPubSub* light_sensor_pubsub;
     bool enabled;
@@ -39,6 +42,8 @@ struct FrontDisplaySrv {
     bool is_blanked;
 
     uint8_t last_frame[FRONT_DISPLAY_FRAME_SIZE];
+    uint8_t brightness_override;
+    uint8_t brightness_current; // For brightness transitions
 };
 
 typedef enum {
@@ -188,18 +193,16 @@ static uint8_t front_display_light_sensor_level_to_brightness(uint8_t light_leve
     return MIN(MAX(brightness, AUTO_BRIGHTNESS_MIN_LEVEL), AUTO_BRIGHTNESS_MAX_LEVEL);
 }
 
-static uint32_t front_display_get_brightness(const FrontDisplaySrv* instance) {
-    uint32_t brightness;
+static uint8_t front_display_get_effective_brightness(const FrontDisplaySrv* instance) {
+    const uint8_t brightness_override = instance->brightness_override;
+    return brightness_override == FRONT_DISPLAY_BRIGHTNESS_AUTO ?
+               front_display_light_sensor_level_to_brightness(instance->sensor_level) :
+               brightness_override;
+}
 
-    if(instance->is_blanked) {
-        brightness = 0; // TODO: fade in/out
-    } else if(instance->brightness_override == FRONT_DISPLAY_BRIGHTNESS_AUTO) {
-        brightness = front_display_light_sensor_level_to_brightness(instance->sensor_level);
-    } else {
-        brightness = instance->brightness_override;
-    }
-
-    return brightness;
+static uint8_t front_display_get_brightness(const FrontDisplaySrv* instance) {
+    return instance->is_blanked ? instance->brightness_current :
+                                  front_display_get_effective_brightness(instance);
 }
 
 static void front_display_start(FrontDisplaySrv* display) {
@@ -222,9 +225,12 @@ static void front_display_stop(void) {
 static void front_display_handle_set_blanked(FrontDisplaySrv* instance, bool is_blanked) {
     if(instance->is_blanked != is_blanked) {
         instance->is_blanked = is_blanked;
-        instance->need_update = true;
-
-        front_display_driver_set_brightness(front_display_get_brightness(instance));
+        if(!furi_event_loop_timer_is_running(instance->transition_timer)) {
+            instance->brightness_current = is_blanked ?
+                                               front_display_get_effective_brightness(instance) :
+                                               FRONT_DISPLAY_BRIGHTNESS_MIN;
+            furi_event_loop_timer_start(instance->transition_timer, FRONT_DISPLAY_TRANSITION_STEP_MS);
+        }
     }
 }
 
@@ -317,16 +323,53 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
     }
 }
 
+static void front_display_transition_timer_callback(void* context) {
+    furi_assert(context);
+    FrontDisplaySrv* instance = context;
+
+    const bool is_blanked = instance->is_blanked;
+    const uint8_t brightness = instance->brightness_current;
+
+    const bool is_stop_condition =
+        is_blanked ? (brightness == 0) :
+                     (brightness >= front_display_get_effective_brightness(instance));
+
+    if(is_stop_condition) {
+        furi_event_loop_timer_stop(instance->transition_timer);
+
+    } else {
+        const int32_t step = is_blanked ? -FRONT_DISPLAY_BRIGHTNESS_STEP :
+                                          FRONT_DISPLAY_BRIGHTNESS_STEP;
+
+        const uint8_t new_brightness = CLAMP(
+            (int32_t)brightness + step,
+            FRONT_DISPLAY_BRIGHTNESS_MAX,
+            FRONT_DISPLAY_BRIGHTNESS_MIN);
+
+        front_display_driver_set_brightness(new_brightness);
+
+        instance->brightness_current = new_brightness;
+        instance->need_update = true;
+    }
+}
+
 static FrontDisplaySrv* front_display_alloc(void) {
     FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
 
     int default_brightness = FRONT_DISPLAY_BRIGHTNESS_AUTO;
+    int saved_brightness;
     json_config_read_single_int(
-        DISPLAY_CONFIG_FILE, "brightness", &instance->brightness_override, &default_brightness);
+        DISPLAY_CONFIG_FILE, "brightness", &saved_brightness, &default_brightness);
 
+    instance->brightness_override = saved_brightness;
     instance->sensor_level = 0;
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->transition_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        front_display_transition_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
     instance->message_queue = furi_message_queue_alloc(8, sizeof(FrontDisplayMessage));
 
     furi_event_loop_subscribe_message_queue(
