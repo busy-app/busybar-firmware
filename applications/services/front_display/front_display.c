@@ -229,7 +229,8 @@ static void front_display_handle_set_blanked(FrontDisplaySrv* instance, bool is_
             instance->brightness_current = is_blanked ?
                                                front_display_get_effective_brightness(instance) :
                                                FRONT_DISPLAY_BRIGHTNESS_MIN;
-            furi_event_loop_timer_start(instance->transition_timer, FRONT_DISPLAY_TRANSITION_STEP_MS);
+            furi_event_loop_timer_start(
+                instance->transition_timer, FRONT_DISPLAY_TRANSITION_STEP_MS);
         }
     }
 }
