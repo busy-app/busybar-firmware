@@ -274,8 +274,6 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
 
         uint32_t prev_run_count = Atomic_Increment_u32(command_data.running_count);
 
-        FURI_LOG_D(TAG, "prev_run_count = %lu", prev_run_count);
-
         do {
             if(command_data.flags & CliCommandFlagExclusive) {
                 if(prev_run_count != 0) {
@@ -310,7 +308,6 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
             }
         } while(0);
         Atomic_Decrement_u32(command_data.running_count);
-        FURI_LOG_D(TAG, "decremented");
     } while(0);
 
     furi_string_free(command_name);
