@@ -117,7 +117,8 @@ static void account_info_view_back_lvgl_constructor(const lv_obj_class_t* class_
 
 /* Public API */
 
-AccountInfoView* account_info_view_alloc_common(Widget* parent, const lv_obj_class_t* class_p) {
+static AccountInfoView*
+    account_info_view_alloc_common(Widget* parent, const lv_obj_class_t* class_p) {
     furi_check(parent);
 
     lv_obj_t* obj = lv_obj_class_create_obj(class_p, TO_LV_OBJ(parent));

@@ -13,7 +13,7 @@ typedef struct {
     Submenu* back_menu;
 } SceneLinkedMenu;
 
-void account_scene_linked_menu_item_callback(uint32_t index, void* context) {
+static void account_scene_linked_menu_item_callback(uint32_t index, void* context) {
     account_settings_send_custom_event(context, index);
 }
 

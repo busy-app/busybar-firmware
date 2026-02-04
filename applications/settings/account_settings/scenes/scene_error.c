@@ -43,12 +43,7 @@ static bool account_scene_error_on_event(const SceneManagerEvent* event, void* c
     AccountSettings* instance = context;
 
     bool consumed = false;
-    if(event->type == SceneManagerEventTypeCustom) {
-        switch(event->event) {
-        default:
-            break;
-        }
-    } else if(event->type == SceneManagerEventTypeBack) {
+    if(event->type == SceneManagerEventTypeBack) {
         desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
         consumed = true;
     }
