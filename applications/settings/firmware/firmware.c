@@ -1,5 +1,4 @@
 #include "firmware_i.h"
-#include "scenes/scenes.h"
 
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
@@ -83,6 +82,10 @@ static ThisInstance* this_alloc(void) {
     instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->updater = furi_record_open(RECORD_UPDATER);
 
+    instance->result_preset.front_text = furi_string_alloc();
+    instance->result_preset.back_primary_text = furi_string_alloc();
+    instance->result_preset.back_auxiliary_text = furi_string_alloc();
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, gui_input_callback, instance);
@@ -133,6 +136,10 @@ static void this_free(ThisInstance* instance) {
         widget_free(instance->front_scene_window);
         flex_layout_free(instance->back_container);
     });
+
+    furi_string_free(instance->result_preset.back_auxiliary_text);
+    furi_string_free(instance->result_preset.back_primary_text);
+    furi_string_free(instance->result_preset.front_text);
 
     furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_DESKTOP);

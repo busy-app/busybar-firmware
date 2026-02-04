@@ -1,5 +1,4 @@
 #include "../firmware_i.h"
-#include "scenes.h"
 
 #include <gui/modules/var_item_list.h>
 
@@ -94,7 +93,7 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
             break;
         }
     } else if(event->type == SceneManagerEventTypeBack) {
-        nav_bar_pop_location(instance->back_nav_bar);
+        with_gui(instance->gui, { nav_bar_pop_location(instance->back_nav_bar); });
     }
 
     return false;

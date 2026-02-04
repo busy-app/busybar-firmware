@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scenes/scenes.h"
+
 #include <gui/gui.h>
 #include <desktop/desktop.h>
 #include <updater/updater.h>
@@ -17,11 +19,21 @@ extern "C" {
 
 #define THIS_ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_APP_NAME) "/" path
 #define THIS_IMG_PATH(path)    THIS_ASSETS_PATH("images") "/" path
-#define THIS_ANIM_PATH(path)   THIS_ASSETS_PATH("animations") "/" path
 
 typedef enum {
     ThisEventSceneEventsStart,
 } ThisEvent;
+
+typedef struct {
+    const char* front_image_path;
+    FuriString* front_text;
+
+    const char* back_image_path;
+    FuriString* back_primary_text;
+    FuriString* back_auxiliary_text;
+
+    size_t timeout;
+} ThisResultPreset;
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -32,6 +44,9 @@ typedef struct {
     Gui* gui;
     Desktop* desktop;
     Updater* updater;
+
+    /* result scene preset */
+    ThisResultPreset result_preset;
 
     /* front layout */
     Widget* front_scene_window;

@@ -1,5 +1,4 @@
 #include "../firmware_i.h"
-#include "scenes.h"
 
 #include <gui/modules/submenu.h>
 
@@ -69,23 +68,23 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
 
     ThisInstance* instance = context;
 
-    bool is_consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case ThisSceneEventCheckForUpdate:
-            break;
+            scene_manager_next_scene(instance->scene_manager, ThisSceneIdxCheck);
+            return true;
 
         case ThisSceneEventSettings:
             scene_manager_next_scene(instance->scene_manager, ThisSceneIdxSettings);
             nav_bar_push_location(instance->back_nav_bar, "SETTINGS");
-            break;
+            return true;
 
         default:
             break;
         }
     }
 
-    return is_consumed;
+    return false;
 }
 
 const Scene settings_firmware_app_scene_main = {
