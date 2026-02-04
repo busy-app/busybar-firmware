@@ -6,10 +6,6 @@
 
 #define GREY_TEXT(text) "#888888 " text "#"
 
-typedef enum {
-    SceneEventPowerInfoStatusChangedEvent = AppEventSceneEventsStart,
-} SceneEventPowerInfoEvent;
-
 typedef struct {
     Label* firmware_info[GuiDisplayIdMax];
     FuriString* firmware_info_str;
@@ -79,7 +75,6 @@ static void about_scene_firmware_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFirmware);
 
     furi_string_free(scene->firmware_info_str);
-    furi_event_loop_tick_set(instance->event_loop, 0, NULL, NULL);
 
     with_gui(instance->gui, {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
