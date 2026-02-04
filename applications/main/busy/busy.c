@@ -271,7 +271,9 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 
 void busy_set_matter(BusyApp* instance, bool switch_state) {
     furi_assert(instance);
-    matter_set_switch_state(instance->matter, switch_state);
+    if(instance->settings.is_smart_home_enabled) {
+        matter_set_switch_state(instance->matter, switch_state);
+    }
 }
 
 void busy_push_location(BusyApp* instance, const char* location_name) {
