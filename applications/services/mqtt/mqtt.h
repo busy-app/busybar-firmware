@@ -37,6 +37,8 @@
 #include <core/pubsub.h>
 #include <core/string.h>
 
+#include <time.h>
+
 /**
  * @brief The string key for MQTT instance access
  *
@@ -113,6 +115,7 @@ typedef enum {
     MqttEventTypeStatusChanged, /**< A status change has occurred */
     MqttEventTypeLinkPinReceived, /**< An account linking PIN has been received in response to a request */
     MqttEventTypeLinkDone, /**< Account linking has been successfully completed */
+    MqttEventTypeUnlinked, /**< Account was unlinked from the device */
     MqttEventTypeMax, /**< Special value, internal use */
 } MqttEventType;
 
@@ -123,7 +126,7 @@ typedef enum {
  */
 typedef struct {
     const char* pin; /**< Pointer to a string of length @c MQTT_LINK_PIN_LEN */
-    uint32_t expires_at; /**< Timestamp past which the PIN will no longer be valid */
+    time_t expires_at; /**< Timestamp past which the PIN will no longer be valid */
 } MqttEventLinkPinReceived;
 
 /**
@@ -191,6 +194,19 @@ MqttStatus mqtt_get_status(Mqtt* instance);
 // =========================== Account management ==================================
 
 /**
+ * @brief Data type for a linked account information
+ */
+typedef struct {
+    FuriString*
+        session_id; /**< Session ID string pointer, should be allocated before. Set to NULL if not used */
+    FuriString*
+        email; /**< Linked account email string pointer, should be allocated before. Set to NULL if not used */
+    FuriString*
+        user_id; /**< Linked account user ID string pointer, should be allocated before. Set to NULL if not used */
+    bool is_valid; /**< true if the account link data presents, false otherwise */
+} MqttSessionInfo;
+
+/**
  * @brief Request the account linking PIN from the BUSY cloud.
  *
  * @note The requested PIN will be delivered asynchronously via the @c MqttEventTypeLinkPinReceived event.
@@ -211,8 +227,9 @@ void mqtt_unlink(Mqtt* instance);
  * @brief Get current session information.
  *
  * @param[in] instance pointer to the MQTT service instance to be queried
+ * @param[in,out] info pointer to the @c MqttSessionInfo structure
  */
-void mqtt_get_session_info(Mqtt* instance, FuriString* id, FuriString* email, FuriString* user_id);
+void mqtt_get_session_info(Mqtt* instance, MqttSessionInfo* info);
 
 // =========================== Profile management ==================================
 

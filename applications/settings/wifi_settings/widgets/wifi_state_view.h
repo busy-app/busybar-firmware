@@ -8,8 +8,6 @@ extern "C" {
 
 typedef struct WifiStateView WifiStateView;
 
-typedef void (*WifiStateViewCallback)(int32_t value, void* context);
-
 WifiStateView* wifi_state_view_front_alloc(Widget* parent);
 
 WifiStateView* wifi_state_view_back_alloc(Widget* parent);

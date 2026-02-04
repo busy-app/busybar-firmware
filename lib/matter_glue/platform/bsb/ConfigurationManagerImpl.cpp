@@ -135,12 +135,8 @@ exit:
 }
 
 CHIP_ERROR ConfigurationManagerImpl::GetSoftwareVersionString(char* buf, size_t bufSize) {
-    const Version* version = version_get();
-    const char* version_str = version_get_version(version);
-
-    if(strlen(version_str) + 1 > bufSize) return CHIP_ERROR_BUFFER_TOO_SMALL;
-
-    strcpy(buf, version_str);
+    size_t version_num = MATTER_SOFTWARE_VER_NUM;
+    snprintf(buf, bufSize, "%zu", version_num);
     return CHIP_NO_ERROR;
 }
 

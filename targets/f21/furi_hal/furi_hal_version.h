@@ -113,6 +113,13 @@ FuriHalVersionColor furi_hal_version_get_hw_color(void);
  */
 uint8_t furi_hal_version_get_hw_connect(void);
 
+/** Get full hardware version code
+ * 
+ * @return     Version code (like `"4.F22.B7.C2"`).
+ *             Value is `"Unknown"` if OTP1 not provisioned.
+ */
+const char* furi_hal_version_get_hw_version_code(void);
+
 /** Get hardware region (raw value from OTP2)
  *
  * @return     Hardware Region value

@@ -18,7 +18,7 @@ void matter_cd_init(MatterCd* cd) {
     cd->storage = furi_record_open(RECORD_STORAGE);
 }
 
-bool matter_cd_prepare_initialization_frame(MatterCd* cd, MatterIntercomFrame* frame) {
+bool matter_cd_prepare_initialization_frame(MatterCd* cd, MatterIntercomInitializationFrame* frame) {
     furi_assert(cd);
     furi_assert(frame);
 
@@ -39,8 +39,6 @@ bool matter_cd_prepare_initialization_frame(MatterCd* cd, MatterIntercomFrame* f
     }
 
     cd->de_facto_selection = NULL;
-    frame->type = MatterIntercomFrameTypeCdCertificate;
-    MatterIntercomCdCertificateFrame* cert_frame = &frame->cd_certificate;
 
     for(size_t i = selected_idx; i < COUNT_OF(cd_certificates); i++) {
         const char* candidate = cd_certificates[i];
@@ -49,9 +47,9 @@ bool matter_cd_prepare_initialization_frame(MatterCd* cd, MatterIntercomFrame* f
         snprintf(candidate_path, sizeof(candidate_path), CERTIFICATE_PATH("%s"), candidate);
         FURI_LOG_D(TAG, "trying \"%s\" (idx %zu) at \"%s\"", candidate, i, candidate_path);
 
-        cert_frame->contents_length = storage_simply_read_entire_file(
-            cd->storage, candidate_path, cert_frame->contents, sizeof(cert_frame->contents));
-        bool candidate_valid = cert_frame->contents_length > 0;
+        frame->cd_certificate_length = storage_simply_read_entire_file(
+            cd->storage, candidate_path, frame->cd_certificate, sizeof(frame->cd_certificate));
+        bool candidate_valid = frame->cd_certificate_length > 0;
         if(!candidate_valid) continue;
 
         FURI_LOG_D(TAG, "success");

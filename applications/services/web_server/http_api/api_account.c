@@ -24,9 +24,10 @@ static bool http_api_account_get_info(
     FuriString* email_str = furi_string_alloc();
     FuriString* user_id_str = furi_string_alloc();
 
-    mqtt_get_session_info(mqtt, id_str, email_str, user_id_str);
+    MqttSessionInfo info = {.session_id = id_str, .email = email_str, .user_id = user_id_str};
+    mqtt_get_session_info(mqtt, &info);
 
-    bool linked = !furi_string_empty(id_str);
+    bool linked = info.is_valid;
     furi_string_printf(json_str, "\"%s\":%s", "linked", linked ? "true" : "false");
 
     if(linked) {

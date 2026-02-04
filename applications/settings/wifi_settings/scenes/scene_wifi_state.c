@@ -2,8 +2,6 @@
 #include "../widgets/wifi_state_view.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/var_item_list.h>
-
 #include <wifi/wifi.h>
 
 typedef enum {
@@ -106,9 +104,11 @@ static bool wifi_scene_state_on_event(const SceneManagerEvent* event, void* cont
             } else {
                 wifi_scene_state_update_info(instance, data);
             }
+            consumed = true;
             break;
         case SceneEventOpenMenu:
             scene_manager_next_scene(instance->scene_manager, SceneIdMenu);
+            consumed = true;
             break;
         default:
             break;
@@ -116,6 +116,7 @@ static bool wifi_scene_state_on_event(const SceneManagerEvent* event, void* cont
 
     } else if(event->type == SceneManagerEventTypeBack) {
         desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
+        consumed = true;
     }
 
     return consumed;

@@ -433,6 +433,18 @@ bool http_api_options_callback(
     return true;
 }
 
+bool http_api_options_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(conn);
+    UNUSED(msg);
+    UNUSED(ctx);
+    return true;
+}
+
 bool http_api_root_hdr_callback(
     FuriString* path,
     struct mg_connection* conn,

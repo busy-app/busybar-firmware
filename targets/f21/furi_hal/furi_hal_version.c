@@ -15,7 +15,8 @@
 #define OTP1_MAC_SIZE   (6)
 #define OTP1_MODEL_SIZE (8)
 
-#define HW_UID_SIZE (12)
+#define HW_VER_CODE_SIZE (20)
+#define HW_UID_SIZE      (12)
 
 typedef struct {
     bool otp1_valid;
@@ -25,6 +26,7 @@ typedef struct {
 
     // Cached/derived values
     char model_code[OTP1_MODEL_SIZE + 1]; // Null-terminated model
+    char hw_version_code[HW_VER_CODE_SIZE];
     uint8_t usb_mac[OTP1_MAC_SIZE];
     uint8_t hw_uid[HW_UID_SIZE];
 } FuriHalVersionState;
@@ -174,6 +176,24 @@ void furi_hal_version_init(void) {
             sizeof(furi_hal_version_state.model_code) - 1);
     }
 
+    // Initialize hardware version code
+    if(furi_hal_version_state.otp1_valid) {
+        const Otp1Data* otp1 = otp_get_otp1();
+        snprintf(
+            furi_hal_version_state.hw_version_code,
+            sizeof(furi_hal_version_state),
+            "%hhu.F%hhu.B%hhu.C%hhu",
+            otp1->hw_version,
+            otp1->hw_target,
+            otp1->hw_body,
+            otp1->hw_connect);
+    } else {
+        strncpy(
+            furi_hal_version_state.hw_version_code,
+            "Unknown",
+            sizeof(furi_hal_version_state.hw_version_code) - 1);
+    }
+
     // Initialize USB MAC address
     if(furi_hal_version_state.otp1_valid) {
         const Otp1Data* otp1 = otp_get_otp1();
@@ -236,6 +256,10 @@ uint8_t furi_hal_version_get_hw_connect(void) {
         return 0;
     }
     return otp_get_otp1()->hw_connect;
+}
+
+const char* furi_hal_version_get_hw_version_code(void) {
+    return furi_hal_version_state.hw_version_code;
 }
 
 uint32_t furi_hal_version_get_hw_timestamp(void) {
