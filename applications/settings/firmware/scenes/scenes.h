@@ -6,6 +6,7 @@ typedef enum {
     ThisSceneIdxMain,
     ThisSceneIdxSettings,
     ThisSceneIdxDialog,
+    ThisSceneIdxCheck,
     ThisSceneIdxResult,
 
     ThisSceneIdxsCount,
