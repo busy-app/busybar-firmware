@@ -15,7 +15,7 @@
 #define OTP1_MAC_SIZE   (6)
 #define OTP1_MODEL_SIZE (8)
 
-#define HW_VER_CODE_SIZE (16)
+#define HW_VER_CODE_SIZE (20)
 #define HW_UID_SIZE      (12)
 
 typedef struct {

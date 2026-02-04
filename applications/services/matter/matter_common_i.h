@@ -29,7 +29,7 @@ extern "C" {
 typedef struct FURI_PACKED {
     uint8_t hardware_version_num;
 
-    char hardware_version_str[16];
+    char hardware_version_str[20];
 
     uint16_t cd_certificate_length;
     uint8_t cd_certificate[512];
