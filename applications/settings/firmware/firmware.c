@@ -121,7 +121,13 @@ static ThisInstance* this_alloc(void) {
         event_queue_callback,
         instance);
 
-    scene_manager_next_scene(instance->scene_manager, ThisSceneIdxMain);
+    UpdaterCheckState updater_check_state;
+    furi_state_get(updater_get_check_state(instance->updater), &updater_check_state);
+
+    scene_manager_next_scene(
+        instance->scene_manager,
+        (updater_check_state.result == UpdaterCheckResultAvailable) ? ThisSceneIdxDialog :
+                                                                      ThisSceneIdxMain);
 
     return instance;
 }

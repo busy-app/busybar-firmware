@@ -6,11 +6,13 @@
 
 extern const Scene settings_firmware_app_scene_main;
 extern const Scene settings_firmware_app_scene_settings;
+extern const Scene settings_firmware_app_scene_dialog;
 extern const Scene settings_firmware_app_scene_result;
 
 const Scene* const settings_firmware_app_scenes[] = {
     [ThisSceneIdxMain] = &settings_firmware_app_scene_main,
     [ThisSceneIdxSettings] = &settings_firmware_app_scene_settings,
+    [ThisSceneIdxDialog] = &settings_firmware_app_scene_dialog,
     [ThisSceneIdxResult] = &settings_firmware_app_scene_result,
 };
 
