@@ -1,6 +1,6 @@
 App(
-    appid="about",
-    name="About",
+    appid="about_old",
+    name="AboutOld",
     apptype=FlipperAppType.DEBUG,
     entry_point="about_app",
     requires=["gui"],
