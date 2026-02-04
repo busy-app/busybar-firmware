@@ -5,11 +5,11 @@
 typedef enum {
     // Timer Mode is not included because it is always shown
     VarItemListIdTime,
-    VarItemListIdShowWork,
     VarItemListIdWork,
     VarItemListIdRest,
     VarItemListIdCycles,
     VarItemListIdAutostart,
+    VarItemListIdShowWork,
     // Demo Mode is not included because it is always shown
     VarItemListIdMax,
 } VarItemListId;
@@ -28,9 +28,23 @@ typedef struct {
 static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
     // Which items to show w/ respect to the current timer mode
     static const bool is_shown_table[BusyTimerModeMax][VarItemListIdMax] = {
-        [BusyTimerModeInfinite] = {false, true, /* filled with zeroes */},
-        [BusyTimerModeSimple] = {true, true, /* filled with zeroes */},
-        [BusyTimerModeInterval] = {false, false, true, true, true, true},
+        [BusyTimerModeInfinite] =
+            {
+                [VarItemListIdShowWork] = true,
+            },
+        [BusyTimerModeSimple] =
+            {
+                [VarItemListIdTime] = true,
+                [VarItemListIdShowWork] = true,
+            },
+        [BusyTimerModeInterval] =
+            {
+                [VarItemListIdWork] = true,
+                [VarItemListIdRest] = true,
+                [VarItemListIdCycles] = true,
+                [VarItemListIdAutostart] = true,
+                [VarItemListIdShowWork] = true,
+            },
     };
 
     const BusyTimerMode timer_mode = data->timer_config.mode;
@@ -146,16 +160,6 @@ static void
 
     container->items[item_id++] = item;
 
-    item = var_item_list_add_switch(
-        container->list,
-        "Show work\nphase only",
-        set_cb ? busy_scene_setup_timer_show_work_changed_callback : NULL,
-        data);
-
-    var_item_set_value(item, data->settings->is_show_work_only_enabled);
-
-    container->items[item_id++] = item;
-
     item = var_item_list_add_timebox(
         container->list,
         "Work",
@@ -203,6 +207,16 @@ static void
         data);
 
     var_item_set_value(item, data->timer_config.enable_autostart);
+
+    container->items[item_id++] = item;
+
+    item = var_item_list_add_switch(
+        container->list,
+        "Show work\nphase only",
+        set_cb ? busy_scene_setup_timer_show_work_changed_callback : NULL,
+        data);
+
+    var_item_set_value(item, data->settings->is_show_work_only_enabled);
 
     container->items[item_id++] = item;
 
