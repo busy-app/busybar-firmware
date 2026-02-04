@@ -20,9 +20,22 @@ typedef struct {
     CliCommandExecuteCallback execute_callback; //<! Callback for command execution
     CliCommandFlag flags;
     size_t stack_depth;
+    volatile uint32_t* running_count;
 } CliRegistryCommand;
 
-DICT_DEF2(CliCommandDict, FuriString*, FURI_STRING_OPLIST, CliRegistryCommand, M_POD_OPLIST);
+void cli_registry_command_clear(CliRegistryCommand cmd);
+
+#define CLI_REGISTRY_COMMAND_CLEAR(a) \
+    do {                              \
+        free((void*)a.running_count); \
+    } while(0)
+#define CLI_REGISTRY_COMMAND_OPTLIST M_OPEXTEND(M_POD_OPLIST, CLEAR(CLI_REGISTRY_COMMAND_CLEAR))
+DICT_DEF2(
+    CliCommandDict,
+    FuriString*,
+    FURI_STRING_OPLIST,
+    CliRegistryCommand,
+    CLI_REGISTRY_COMMAND_OPTLIST);
 #define M_OPL_CliCommandDict_t() DICT_OPLIST(CliCommandDict, FURI_STRING_OPLIST, M_POD_OPLIST)
 
 bool cli_registry_get_command(

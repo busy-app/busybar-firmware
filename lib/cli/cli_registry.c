@@ -65,6 +65,7 @@ void cli_registry_add_command_ex(
         .execute_callback = callback,
         .flags = flags,
         .stack_depth = stack_size,
+        .running_count = calloc(1, sizeof(uint32_t)),
     };
 
     furi_check(furi_mutex_acquire(registry->mutex, FuriWaitForever) == FuriStatusOk);
