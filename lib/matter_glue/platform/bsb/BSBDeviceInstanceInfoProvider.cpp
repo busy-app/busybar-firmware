@@ -17,8 +17,6 @@ enum {
     ProductLabel,
     SerialNumber,
     ManufacturingDate,
-    HardwareVersion,
-    HardwareVersionString,
 };
 
 }; // namespace KeyId
@@ -34,22 +32,6 @@ struct ManufacturingDate {
 static_assert(sizeof(ManufacturingDate) == 4, "Invalid ManufacturingDate size");
 
 using namespace BSB;
-
-class DeviceInstanceInfoProviderImpl : public DeviceInstanceInfoProvider {
-public:
-    CHIP_ERROR GetVendorName(char* buf, size_t bufSize) override;
-    CHIP_ERROR GetVendorId(uint16_t& vendorId) override;
-    CHIP_ERROR GetProductName(char* buf, size_t bufSize) override;
-    CHIP_ERROR GetProductId(uint16_t& productId) override;
-    CHIP_ERROR GetPartNumber(char* buf, size_t bufSize) override;
-    CHIP_ERROR GetProductURL(char* buf, size_t bufSize) override;
-    CHIP_ERROR GetProductLabel(char* buf, size_t bufSize) override;
-    CHIP_ERROR GetSerialNumber(char* buf, size_t bufSize) override;
-    CHIP_ERROR GetManufacturingDate(uint16_t& year, uint8_t& month, uint8_t& day) override;
-    CHIP_ERROR GetHardwareVersion(uint16_t& hardwareVersion) override;
-    CHIP_ERROR GetHardwareVersionString(char* buf, size_t bufSize) override;
-    CHIP_ERROR GetRotatingDeviceIdUniqueId(MutableByteSpan& uniqueIdSpan) override;
-};
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorName(char* buf, size_t bufSize) {
     auto out_span = ToMutableByteSpan(buf, bufSize);
@@ -113,15 +95,22 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetManufacturingDate(
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersion(uint16_t& hardwareVersion) {
-    auto out_span = ToMutableByteSpan(hardwareVersion);
-    return LoadCryptoStorageKey(
-        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::HardwareVersion, out_span);
+    if(!strlen(m_hw_version_str)) return CHIP_ERROR_INCORRECT_STATE;
+    hardwareVersion = m_hw_version;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersionString(char* buf, size_t bufSize) {
-    auto out_span = ToMutableByteSpan(buf, bufSize);
-    return LoadCryptoStorageKey(
-        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::HardwareVersionString, out_span);
+    if(!strlen(m_hw_version_str)) return CHIP_ERROR_INCORRECT_STATE;
+    strncpy(buf, m_hw_version_str, bufSize - 1);
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR
+DeviceInstanceInfoProviderImpl::SetHardwareVersion(uint16_t number, const char* string) {
+    m_hw_version = number;
+    strncpy(m_hw_version_str, string, sizeof(m_hw_version_str) - 1);
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR
@@ -131,7 +120,7 @@ DeviceInstanceInfoProviderImpl::GetRotatingDeviceIdUniqueId(MutableByteSpan& uni
 }
 
 namespace BSB {
-DeviceInstanceInfoProvider* GetDeviceInstanceInfoProvider(void) {
+DeviceInstanceInfoProviderImpl* GetDeviceInstanceInfoProvider(void) {
     static DeviceInstanceInfoProviderImpl provider;
     return &provider;
 }

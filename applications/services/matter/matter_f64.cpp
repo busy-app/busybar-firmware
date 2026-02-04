@@ -52,7 +52,7 @@ public:
 
     IntercomChannel* m_intercom_ch;
     StatusLights* m_status_lights;
-    FuriSemaphore* m_cd_available;
+    FuriSemaphore* m_initialization_received;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
@@ -133,11 +133,16 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
     const auto* frame = static_cast<const MatterIntercomFrame*>(data);
     auto* matter = static_cast<MatterSrv*>(context);
 
-    if(frame->type == MatterIntercomFrameTypeCdCertificate) {
-        FURI_LOG_D(TAG, "CdCertificate frame");
+    if(frame->type == MatterIntercomFrameTypeInitialization) {
+        FURI_LOG_D(TAG, "Initialization frame");
+        auto init = &frame->initialization;
         Credentials::BSB::GetDeviceAttestationCredentialsProvider()->SetCertificationDeclaration(
-            frame->cd_certificate.contents, frame->cd_certificate.contents_length);
-        furi_check(furi_semaphore_release(matter->m_cd_available) == FuriStatusOk);
+            init->cd_certificate, init->cd_certificate_length);
+
+        DeviceLayer::BSB::GetDeviceInstanceInfoProvider()->SetHardwareVersion(
+            init->hardware_version_num, init->hardware_version_str);
+
+        furi_check(furi_semaphore_release(matter->m_initialization_received) == FuriStatusOk);
 
     } else if(frame->type == MatterIntercomFrameTypeSwitchState) {
         FURI_LOG_D(TAG, "SwitchState frame");
@@ -193,7 +198,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
         matter_send_frame(matter, &frame);
 
     } else {
-        furi_crash(/* we shouldn't be receiving this frame */);
+        FURI_LOG_E(TAG, "Other side is using a different Intercom protocol version");
     }
 }
 
@@ -325,7 +330,7 @@ MatterSrv::MatterSrv(void)
           matter_stop_blinking,
           chip::app::Clusters::Identify::IdentifyTypeEnum::kVisibleIndicator)) {
     m_status_lights = static_cast<StatusLights*>(furi_record_open(RECORD_STATUS_LIGHTS));
-    m_cd_available = furi_semaphore_alloc(1, 0);
+    m_initialization_received = furi_semaphore_alloc(1, 0);
 }
 
 CHIP_ERROR MatterSrv::init(void) {
@@ -348,7 +353,7 @@ CHIP_ERROR MatterSrv::init(void) {
         m_intercom_ch =
             intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
 
-        if(furi_semaphore_acquire(m_cd_available, CD_AWAIT_TIMEOUT) != FuriStatusOk) {
+        if(furi_semaphore_acquire(m_initialization_received, CD_AWAIT_TIMEOUT) != FuriStatusOk) {
             err = CHIP_ERROR_TIMEOUT;
             break;
         }
