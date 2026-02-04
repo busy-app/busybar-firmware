@@ -8,7 +8,7 @@ namespace BSB {
 class DeviceInstanceInfoProviderImpl : public DeviceInstanceInfoProvider {
 private:
     uint16_t m_hw_version;
-    char m_hw_version_str[16];
+    char m_hw_version_str[20];
 
 public:
     CHIP_ERROR GetVendorName(char* buf, size_t bufSize) override;
