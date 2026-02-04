@@ -2,50 +2,49 @@
 
 #include <storage/storage.h>
 
-#define BUSY_SETTINGS_ROOT         busy_settings_v1_root
-#define BUSY_SETTINGS_FILE_PATH(p) busy_settings_file_paths[(p)]
-#define BUSY_SETTINGS_VERSION      1
+#define BUSY_SETTINGS_VERSION    1
+#define BUSY_SETTINGS_TEMPLATE   busy_settings_v1
+#define BUSY_SETTINGS_INTERFACES busy_settings_v1_interfaces
+#define BUSY_SETTINGS_COUNT      BusySettingsV1IdxMax
 
 static const char* busy_settings_file_paths[BusySettingsProfileIdMax] = {
     [BusySettingsProfileIdBusy] = APP_DATA_PATH("settings_busy.json"),
     [BusySettingsProfileIdCustom] = APP_DATA_PATH("settings_custom.json"),
 };
 
-static const BusySettings busy_settings_defaults[BusySettingsProfileIdMax] = {
-    [BusySettingsProfileIdBusy] =
-        {
-            .theme_name = "default",
-            .is_smart_home_enabled = true,
-            .is_show_work_only_enabled = false,
-        },
-    [BusySettingsProfileIdCustom] =
-        {
-            .theme_name = "keep_out",
-            .is_smart_home_enabled = true,
-            .is_show_work_only_enabled = true,
-        },
-};
+static void busy_settings_init_inner_settings(
+    SettingProviderSetting* inner_settings,
+    BusySettingsProfileId profile_id) {
+    memcpy(inner_settings, BUSY_SETTINGS_TEMPLATE, sizeof(BUSY_SETTINGS_TEMPLATE));
+
+    const void** inner_settings_interfaces = BUSY_SETTINGS_INTERFACES[profile_id];
+
+    for(uint32_t i = 0; i < BUSY_SETTINGS_COUNT; ++i) {
+        inner_settings[i].interface = inner_settings_interfaces[i];
+    }
+}
 
 void busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id) {
     furi_check(settings);
     furi_check(profile_id < BusySettingsProfileIdMax);
 
     SettingProvider* provider = setting_provider_alloc(
-        BUSY_SETTINGS_FILE_PATH(profile_id), BUSY_SETTINGS_VERSION, NULL, 0);
+        busy_settings_file_paths[profile_id], BUSY_SETTINGS_VERSION, NULL, 0);
+
+    SettingProviderSetting inner_settings[BUSY_SETTINGS_COUNT];
+    busy_settings_init_inner_settings(inner_settings, profile_id);
+
+    const SettingProviderSetting settings_root = {
+        .interface =
+            &(SettingProviderStructureInterface){
+                .inner_settings = inner_settings,
+                .inner_settings_count = BUSY_SETTINGS_COUNT,
+            },
+        .type = SettingProviderSettingTypeStructure,
+    };
 
     setting_provider_open(provider);
-    setting_provider_load(provider, &BUSY_SETTINGS_ROOT, settings);
-
-    if(strlen(settings->theme_name) == 0) {
-        const BusySettings* default_settings = &busy_settings_defaults[profile_id];
-
-        strcpy(settings->theme_name, default_settings->theme_name);
-        settings->is_smart_home_enabled = default_settings->is_smart_home_enabled;
-        settings->is_show_work_only_enabled = default_settings->is_show_work_only_enabled;
-
-        setting_provider_save(provider, &BUSY_SETTINGS_ROOT, settings);
-    }
-
+    setting_provider_load(provider, &settings_root, settings);
     setting_provider_close(provider);
     setting_provider_free(provider);
 }
@@ -55,10 +54,22 @@ bool busy_settings_save(const BusySettings* settings, BusySettingsProfileId prof
     furi_check(profile_id < BusySettingsProfileIdMax);
 
     SettingProvider* provider = setting_provider_alloc(
-        BUSY_SETTINGS_FILE_PATH(profile_id), BUSY_SETTINGS_VERSION, NULL, 0);
+        busy_settings_file_paths[profile_id], BUSY_SETTINGS_VERSION, NULL, 0);
+
+    SettingProviderSetting inner_settings[BUSY_SETTINGS_COUNT];
+    busy_settings_init_inner_settings(inner_settings, profile_id);
+
+    const SettingProviderSetting settings_root = {
+        .interface =
+            &(SettingProviderStructureInterface){
+                .inner_settings = inner_settings,
+                .inner_settings_count = BUSY_SETTINGS_COUNT,
+            },
+        .type = SettingProviderSettingTypeStructure,
+    };
 
     setting_provider_open(provider);
-    const bool success = setting_provider_save(provider, &BUSY_SETTINGS_ROOT, settings);
+    const bool success = setting_provider_save(provider, &settings_root, settings);
     setting_provider_close(provider);
     setting_provider_free(provider);
 
