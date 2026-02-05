@@ -30,14 +30,14 @@ typedef enum {
 
 static inline void
     ble_data_cat_printf_forward(const uint8_t* data, const uint8_t length, FuriString* output) {
-    for(int8_t i = 0; i < length; i++) {
+    for(int32_t i = 0; i < length; i++) {
         furi_string_cat_printf(output, "%02X", data[i]);
     }
 }
 
 static inline void
     ble_data_cat_printf_reverse(const uint8_t* data, const uint8_t length, FuriString* output) {
-    for(int8_t i = length - 1; i >= 0; i--) {
+    for(int32_t i = length - 1; i >= 0; i--) {
         furi_string_cat_printf(output, "%02X", data[i]);
     }
 }
@@ -73,7 +73,7 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
         }
 
         if(res != RSI_SUCCESS || value.handle == 0) {
-            FURI_LOG_I("BLE", "Take next handle");
+            FURI_LOG_I("BLE", "Take next handle, res: %08lX", res);
             handle++;
             continue;
         }
