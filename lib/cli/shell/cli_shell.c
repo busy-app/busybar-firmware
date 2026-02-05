@@ -10,8 +10,6 @@
 #include <containers/pipe.h>
 #include <toolbox/api_lock.h>
 #include "../cli_config.h"
-#include <FreeRTOS.h>
-#include <FreeRTOS-Kernel/include/atomic.h>
 
 #ifdef SRV_LOADER
 #include <loader/loader.h>
@@ -272,42 +270,40 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
         }
 #endif
 
-        uint32_t prev_run_count = Atomic_Increment_u32(command_data.running_count);
-
-        do {
-            if(command_data.flags & CliCommandFlagExclusive) {
-                if(prev_run_count != 0) {
-                    printf(
-                        ANSI_FG_RED
-                        "command `%s` can only be run once, try closing other instances of the CLI shell" ANSI_RESET,
-                        furi_string_get_cstr(command_name));
-                    break;
-                }
+        if(command_data.run_semaphore) {
+            if(furi_semaphore_acquire(command_data.run_semaphore, 0) != FuriStatusOk) {
+                printf(
+                    ANSI_FG_RED
+                    "command `%s` can only be run once, try closing other instances of the CLI shell" ANSI_RESET,
+                    furi_string_get_cstr(command_name));
+                break;
             }
+        }
 
-            if(command_data.flags & CliCommandFlagUseShellThread) {
-                // run command in this thread
-                command_data.execute_callback(cli_shell->pipe, args, command_data.context);
-            } else {
-                // run command in separate thread
-                cli_shell_detach_pipe(cli_shell);
-                CliCommandThreadData thread_data = {
-                    .command = &command_data,
-                    .pipe = cli_shell->pipe,
-                    .args = args,
-                };
-                FuriThread* thread = furi_thread_alloc_ex(
-                    furi_string_get_cstr(command_name),
-                    command_data.stack_depth,
-                    cli_command_thread,
-                    &thread_data);
-                furi_thread_start(thread);
-                furi_thread_join(thread);
-                furi_thread_free(thread);
-                cli_shell_install_pipe(cli_shell);
-            }
-        } while(0);
-        Atomic_Decrement_u32(command_data.running_count);
+        if(command_data.flags & CliCommandFlagUseShellThread) {
+            // run command in this thread
+            command_data.execute_callback(cli_shell->pipe, args, command_data.context);
+        } else {
+            // run command in separate thread
+            cli_shell_detach_pipe(cli_shell);
+            CliCommandThreadData thread_data = {
+                .command = &command_data,
+                .pipe = cli_shell->pipe,
+                .args = args,
+            };
+            FuriThread* thread = furi_thread_alloc_ex(
+                furi_string_get_cstr(command_name),
+                command_data.stack_depth,
+                cli_command_thread,
+                &thread_data);
+            furi_thread_start(thread);
+            furi_thread_join(thread);
+            furi_thread_free(thread);
+            cli_shell_install_pipe(cli_shell);
+        }
+        if(command_data.run_semaphore) {
+            furi_semaphore_release(command_data.run_semaphore);
+        }
     } while(0);
 
     furi_string_free(command_name);
