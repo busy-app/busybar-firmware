@@ -6,6 +6,8 @@
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
 
+#include <furi_hal_version.h>
+
 #define GREY_TEXT(text) "#888888 " text "#"
 #define IMAGES_NUM      (5)
 
@@ -22,33 +24,35 @@ typedef struct {
 
     FlexLayout* info_flex;
 
-    Label* complience_info_label;
-    FuriString* complience_info_str;
+    Label* compliance_info_label;
+    FuriString* compliance_info_str;
 
-    Label* complience_message_label;
-    FuriString* complience_message_str;
+    Label* compliance_message_label;
+    FuriString* compliance_message_str;
 
     FlexLayout* images_flex;
     Image* images[IMAGES_NUM];
-} AboutSceneComplience;
+} AboutSceneCompliance;
 
-static void about_scene_complience_on_enter(void* context) {
+static void about_scene_compliance_on_enter(void* context) {
     furi_assert(context);
     About* instance = context;
 
-    AboutSceneComplience* scene =
-        scene_manager_get_scene_data(instance->scene_manager, SceneIdComplience);
-    scene->complience_info_str = furi_string_alloc();
-    furi_string_printf(scene->complience_info_str, GREY_TEXT("Product:") " BUSY Bar\n");
-    furi_string_cat_printf(scene->complience_info_str, GREY_TEXT("Model:") " BB.1\n");
-    furi_string_cat_printf(scene->complience_info_str, GREY_TEXT("FCC ID:") " TODO\n");
-    furi_string_cat_printf(scene->complience_info_str, GREY_TEXT("IC:") " TODO");
+    AboutSceneCompliance* scene =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdCompliance);
+    scene->compliance_info_str = furi_string_alloc();
+    furi_string_printf(scene->compliance_info_str, GREY_TEXT("Product:") " BUSY Bar\n");
+    furi_string_cat_printf(scene->compliance_info_str, GREY_TEXT("Model/HVIN:") " BB.1\n");
+    furi_string_cat_printf(
+        scene->compliance_info_str, GREY_TEXT("FCC ID:") " %s\n", furi_hal_version_get_fcc_id());
+    furi_string_cat_printf(
+        scene->compliance_info_str, GREY_TEXT("IC:") " %s", furi_hal_version_get_ic_id());
 
-    scene->complience_message_str = furi_string_alloc();
+    scene->compliance_message_str = furi_string_alloc();
     furi_string_printf(
-        scene->complience_message_str,
-        GREY_TEXT("For all complience") "\n" GREY_TEXT(
-            "certificates visit:") "\nwww.busy.app/bar/complience\n");
+        scene->compliance_message_str,
+        GREY_TEXT("For all compliance") "\n" GREY_TEXT(
+            "certificates visit:") "\nwww.busy.app/bar/compliance\n");
 
     with_gui(instance->gui, {
         scene->front_status_view = status_view_alloc(instance->front_scene_window);
@@ -60,10 +64,10 @@ static void about_scene_complience_on_enter(void* context) {
         Widget* info_flex_base = flex_layout_get_base(scene->info_flex);
         widget_set_scrollbar_mode(info_flex_base, WidgetScrollBarModeAuto);
 
-        scene->complience_info_label = label_alloc(info_flex_base);
-        label_set_inline_text_color_formatting(scene->complience_info_label, true);
+        scene->compliance_info_label = label_alloc(info_flex_base);
+        label_set_inline_text_color_formatting(scene->compliance_info_label, true);
         label_set_text(
-            scene->complience_info_label, furi_string_get_cstr(scene->complience_info_str));
+            scene->compliance_info_label, furi_string_get_cstr(scene->compliance_info_str));
 
         scene->images_flex = flex_layout_alloc(info_flex_base, FlexLayoutTypeRow);
         Widget* images_flex_base = flex_layout_get_base(scene->images_flex);
@@ -76,26 +80,26 @@ static void about_scene_complience_on_enter(void* context) {
                 scene->images_flex, image_get_base(scene->images[i]), 1);
         }
 
-        scene->complience_message_label = label_alloc(info_flex_base);
-        label_set_inline_text_color_formatting(scene->complience_message_label, true);
+        scene->compliance_message_label = label_alloc(info_flex_base);
+        label_set_inline_text_color_formatting(scene->compliance_message_label, true);
         label_set_text(
-            scene->complience_message_label, furi_string_get_cstr(scene->complience_message_str));
+            scene->compliance_message_label, furi_string_get_cstr(scene->compliance_message_str));
     });
 }
 
-static void about_scene_complience_on_exit(void* context) {
+static void about_scene_compliance_on_exit(void* context) {
     furi_assert(context);
     About* instance = context;
-    AboutSceneComplience* scene =
-        scene_manager_get_scene_data(instance->scene_manager, SceneIdComplience);
+    AboutSceneCompliance* scene =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdCompliance);
 
-    furi_string_free(scene->complience_info_str);
-    furi_string_free(scene->complience_message_str);
+    furi_string_free(scene->compliance_info_str);
+    furi_string_free(scene->compliance_message_str);
 
     with_gui(instance->gui, {
         status_view_free(scene->front_status_view);
-        label_free(scene->complience_info_label);
-        label_free(scene->complience_message_label);
+        label_free(scene->compliance_info_label);
+        label_free(scene->compliance_message_label);
         for(size_t i = 0; i < IMAGES_NUM; i++) {
             image_free(scene->images[i]);
         }
@@ -104,7 +108,7 @@ static void about_scene_complience_on_exit(void* context) {
     });
 }
 
-static bool about_scene_complience_on_event(const SceneManagerEvent* event, void* context) {
+static bool about_scene_compliance_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
     About* instance = context;
 
@@ -117,9 +121,9 @@ static bool about_scene_complience_on_event(const SceneManagerEvent* event, void
     return consumed;
 }
 
-const Scene about_scene_complience = {
-    .enter_callback = about_scene_complience_on_enter,
-    .exit_callback = about_scene_complience_on_exit,
-    .event_callback = about_scene_complience_on_event,
-    .data_size = sizeof(AboutSceneComplience),
+const Scene about_scene_compliance = {
+    .enter_callback = about_scene_compliance_on_enter,
+    .exit_callback = about_scene_compliance_on_exit,
+    .event_callback = about_scene_compliance_on_event,
+    .data_size = sizeof(AboutSceneCompliance),
 };

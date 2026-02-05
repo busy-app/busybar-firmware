@@ -7,7 +7,7 @@ typedef enum {
 
     SceneIdGeneral,
     SceneIdFirmware,
-    SceneIdComplience,
+    SceneIdCompliance,
 
     SceneIdsCount,
 } SceneId;

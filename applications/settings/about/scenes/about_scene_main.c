@@ -7,7 +7,7 @@
 typedef enum {
     SceneEventGeneral = AppEventSceneEventsStart,
     SceneEventFirmware,
-    SceneEventComplienceInfo,
+    SceneEventComplianceInfo,
 } SceneEvent;
 
 typedef struct {
@@ -45,8 +45,8 @@ static void about_scene_main_on_enter(void* context) {
             instance);
         submenu_add_item(
             data->front_menu,
-            "Complience Info",
-            SceneEventComplienceInfo,
+            "Compliance Info",
+            SceneEventComplianceInfo,
             about_scene_main_menu_item_callback,
             instance);
         submenu_set_selected_item_index(data->front_menu, data->menu_index);
@@ -55,7 +55,7 @@ static void about_scene_main_on_enter(void* context) {
         submenu_add_item(data->back_menu, "General", SceneEventGeneral, NULL, instance);
         submenu_add_item(data->back_menu, "Firmware", SceneEventFirmware, NULL, instance);
         submenu_add_item(
-            data->back_menu, "Complience Info", SceneEventComplienceInfo, NULL, instance);
+            data->back_menu, "Compliance Info", SceneEventComplianceInfo, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
     });
 }
@@ -88,8 +88,8 @@ static bool about_scene_main_on_event(const SceneManagerEvent* event, void* cont
             scene_manager_next_scene(instance->scene_manager, SceneIdFirmware);
             about_push_location(instance, "FIRMWARE");
             consumed = true;
-        } else if(event->event == SceneEventComplienceInfo) {
-            scene_manager_next_scene(instance->scene_manager, SceneIdComplience);
+        } else if(event->event == SceneEventComplianceInfo) {
+            scene_manager_next_scene(instance->scene_manager, SceneIdCompliance);
             about_push_location(instance, "COMPLIENCE INFO");
             consumed = true;
         }
