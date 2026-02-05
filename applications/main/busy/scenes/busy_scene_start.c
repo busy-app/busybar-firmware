@@ -97,7 +97,6 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
             });
 
             busy_prepare_transition(instance, BusyTransitionTypeSelect);
-            busy_set_front_display_blanking(instance, true);
 
             BusyTimerConfig timer_config;
             busy_timer_get_config(instance->busy_timer, &timer_config);
