@@ -72,8 +72,6 @@ class DeviceInfoKeyID(IntEnum):
     PRODUCT_LABEL = 6
     SERIAL_NUMBER = 7
     MANUFACTURING_DATE = 8
-    HARDWARE_VERSION = 9
-    HARDWARE_VERSION_STRING = 10
 
 
 class Main(App):
@@ -289,12 +287,6 @@ class Main(App):
             DeviceInfoKeyID.PRODUCT_LABEL: to_terminated(self.args.product_label),
             DeviceInfoKeyID.SERIAL_NUMBER: to_terminated(serial),
             DeviceInfoKeyID.MANUFACTURING_DATE: pack_current_date(),
-            DeviceInfoKeyID.HARDWARE_VERSION: struct.pack(
-                "<H", self.args.hardware_version
-            ),
-            DeviceInfoKeyID.HARDWARE_VERSION_STRING: to_terminated(
-                self.args.hardware_version_string
-            ),
         }
         self.write_data(KeyType.DEVICE_INFO, data)
 

@@ -55,15 +55,23 @@ Widget* dialog_get_base(Dialog* instance);
  * @param[in] callback callback function pointer
  * @param[in] callback callback context
  */
-void dialog_set_calback(Dialog* instance, DialogCallback callback, void* context);
+void dialog_set_callback(Dialog* instance, DialogCallback callback, void* context);
 
 /**
- * @brief Set a text label value.
+ * @brief Set a main text label value.
  *
  * @param[in,out] instance pointer to the Dialog instance to be modified
  * @param[in] text zero-terminated string containing the text
  */
 void dialog_set_text(Dialog* instance, const char* text);
+
+/**
+ * @brief Set an extra text label value.
+ *
+ * @param[in,out] instance pointer to the Dialog instance to be modified
+ * @param[in] text zero-terminated string containing the text (NULL to disable this label)
+ */
+void dialog_set_text_sub(Dialog* instance, const char* text);
 
 /**
  * @brief Set options text.
@@ -82,6 +90,14 @@ void dialog_set_options(Dialog* instance, const char* text_0, const char* text_1
  * @param[in] color_1 color of the second option
  */
 void dialog_set_option_colors(Dialog* instance, Color color_0, Color color_1);
+
+/**
+ * @brief Set dialog option selection.
+ *
+ * @param[in,out] instance pointer to the Dialog instance to be modified
+ * @param[in] index selected option (0/1)
+ */
+void dialog_select_option(Dialog* instance, uint8_t index);
 
 #ifdef __cplusplus
 }

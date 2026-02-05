@@ -1,7 +1,6 @@
 #include "../wifi_settings.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/var_item_list.h>
 #include <gui/modules/submenu.h>
 
 #include <wifi/wifi.h>
@@ -72,12 +71,15 @@ static bool wifi_scene_menu_on_event(const SceneManagerEvent* event, void* conte
             if(wifi_state == WifiModelStateNotConfigured) {
                 scene_manager_replace_current_scene(instance->scene_manager, SceneIdNotConnected);
             }
+            consumed = true;
             break;
         case SceneEventMenuInfo:
             scene_manager_next_scene(instance->scene_manager, SceneIdInfo);
+            consumed = true;
             break;
         case SceneEventMenuForget:
             scene_manager_next_scene(instance->scene_manager, SceneIdForget);
+            consumed = true;
             break;
         default:
             break;

@@ -53,15 +53,45 @@ const char* clock_get_time_string(Clock* instance) {
 
     LocalTime lt = sntp_get_local_time(instance->sntp);
 
-    furi_string_printf(
-        instance->time_string,
-        "   %02d:%02d:%02d\n%02d-%02d-%04d",
-        lt.dt.hour,
-        lt.dt.minute,
-        lt.dt.second,
-        lt.dt.dayofmonth,
-        lt.dt.month,
-        lt.dt.year);
+    SntpSettings sntp_settings;
+    sntp_get_settings(instance->sntp, &sntp_settings);
+
+    switch(sntp_settings.time_format) {
+    case SntpSettingTimeFormat24h:
+        furi_string_printf(
+            instance->time_string,
+            "   %02hhu:%02hhu:%02hhu\n%02hhu-%02hhu-%04hu",
+            lt.dt.hour,
+            lt.dt.minute,
+            lt.dt.second,
+            lt.dt.dayofmonth,
+            lt.dt.month,
+            lt.dt.year);
+        break;
+    case SntpSettingTimeFormat12h: {
+        uint8_t h = lt.dt.hour % 12;
+        if(h == 0) {
+            h = 12;
+        }
+
+        bool pm = lt.dt.hour / 12;
+
+        furi_string_printf(
+            instance->time_string,
+            " %02hhu:%02hhu:%02hhu%s\n%02hhu-%02hhu-%04hu",
+            h,
+            lt.dt.minute,
+            lt.dt.second,
+            pm ? "pm" : "am",
+            lt.dt.dayofmonth,
+            lt.dt.month,
+            lt.dt.year);
+        break;
+    }
+    default:
+        furi_string_set(instance->time_string, "ERROR");
+        break;
+    }
 
     return furi_string_get_cstr(instance->time_string);
 }

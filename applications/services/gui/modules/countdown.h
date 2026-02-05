@@ -29,6 +29,13 @@ typedef enum {
 } CountdownShowHour;
 
 /**
+ * @brief Countdown callback function type.
+ *
+ * @param[in,out] context pointer to a user-specific object
+ */
+typedef void (*CountdownCallback)(void* context);
+
+/**
  * @brief Create a new Countdown instance.
  *
  * @param[in,out] parent pointer to the parent Widget instance
@@ -55,6 +62,18 @@ void countdown_free(Countdown* instance);
 Widget* countdown_get_base(Countdown* instance);
 
 /**
+ * @brief Set a countdown callback.
+ *
+ * The callback function is called when the timer reaches zero. 
+ * Works only when CountdownDirectionTimeLeft is set.
+ *
+ * @param[in,out] instance pointer to the Countdown instance to be queried
+ * @param[in] callback callback function pointer
+ * @param[in] context callback context data
+ */
+void countdown_set_callback(Countdown* instance, CountdownCallback callback, void* context);
+
+/**
  * @brief Set the countdown text color.
  *
  * @param[in,out] instance pointer to the Countdown instance to be modified
@@ -75,6 +94,13 @@ void countdown_begin(
     time_t time,
     CountdownDirection direction,
     CountdownShowHour hours);
+
+/**
+ * @brief Stop counting
+ * 
+ * @param[in] instance pointer to the Countdown instance to be modified
+ */
+void countdown_stop(Countdown* instance);
 
 #ifdef __cplusplus
 }

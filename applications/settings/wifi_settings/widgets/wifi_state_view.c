@@ -1,7 +1,6 @@
 #include "wifi_state_view.h"
 #include "../wifi_settings.h"
 #include <storage/storage.h>
-#include <m-array.h>
 #include <gui/widget_i.h>
 
 #define WIFI_STATE_BACK_CLASS  (&wifi_state_view_back_lvgl_class)

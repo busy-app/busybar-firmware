@@ -21,6 +21,11 @@ bool http_api_options_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
+bool http_api_options_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
 
 // Assets
 void* http_api_assets_alloc(void);
@@ -169,6 +174,15 @@ bool http_api_account_callback(
 void* http_api_busy_alloc(void);
 void http_api_busy_free(void* ctx);
 bool http_api_busy_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// Matter
+void* http_api_matter_alloc(void);
+void http_api_matter_free(void* ctx);
+bool http_api_matter_callback(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,

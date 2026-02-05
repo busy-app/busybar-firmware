@@ -16,6 +16,8 @@
 #define RETRY_SYNC_INTERVAL_MAX     (60 * 60)
 #define RETRY_SYNC_INTERVAL_DEFAULT (10 * 60)
 
+#define TIME_FORMAT_DEFAULT SntpSettingTimeFormat24h
+
 static bool boot_delay_is_valid(const SettingProviderSetting* setting, int value) {
     UNUSED(setting);
 
@@ -54,6 +56,12 @@ bool deserialize_uzone(
     utz_zone_t* zone = value;
 
     return utz_get_zone_by_name(furi_string_get_cstr(string), zone);
+}
+
+static bool time_format_is_valid(const SettingProviderSetting* setting, int value) {
+    UNUSED(setting);
+
+    return value < SntpSettingTimeFormatCount;
 }
 
 size_t default_value_size;
@@ -125,6 +133,17 @@ const SettingProviderSetting sntp_v1_settings[] = {
                     .is_valid_callback = retry_sync_interval_is_valid,
                 },
             .field_offset = offsetof(SntpSettingsV1, retry_sync_interval),
+            .type = SettingProviderSettingTypeInt,
+        },
+    [SntpSettingV1IdxTimeFormat] =
+        {
+            .name = "time_format",
+            .interface =
+                &(const SettingProviderIntInterface){
+                    .default_value = TIME_FORMAT_DEFAULT,
+                    .is_valid_callback = time_format_is_valid,
+                },
+            .field_offset = offsetof(SntpSettingsV1, time_format),
             .type = SettingProviderSettingTypeInt,
         },
 };

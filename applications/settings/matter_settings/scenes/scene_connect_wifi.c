@@ -112,9 +112,10 @@ static bool matter_scene_connect_wifi_on_event(const SceneManagerEvent* event, v
         }
 
     } else if(event->type == SceneManagerEventTypeBack) {
-        matter_settings_exit_if_last(app);
-        furi_check(
-            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, SceneIdMain));
+        if(!matter_settings_exit_if_last(app)) {
+            furi_check(scene_manager_search_and_switch_to_previous_scene(
+                app->scene_manager, SceneIdMain));
+        }
         consumed = true;
     }
 
