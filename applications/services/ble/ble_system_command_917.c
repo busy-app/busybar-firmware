@@ -1,6 +1,7 @@
 #include "ble_command_engine.h"
 #include "ble_system_command.h"
 #include "worker/ble_worker.h"
+#include "worker/ble_worker_util.h"
 
 #define TAG "BLE_917"
 
@@ -52,6 +53,7 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
 
     if(total_ready == BLE_SERVICES_COUNT) {
         instance->state = BleServiceStateReady;
+        ble_print_service_hierarchy(0x0027);
         ble_set_service_post_process_callback(instance, NULL);
     }
 }

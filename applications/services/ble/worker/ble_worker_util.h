@@ -1,5 +1,6 @@
 #pragma once
 #include <furi.h>
+#include "rsi_ble_apis.h"
 
 void ble_print_service_hierarchy(uint16_t last_handle);
 bool ble_find_characteristic_value_handle_by_uiid(
