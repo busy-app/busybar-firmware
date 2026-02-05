@@ -106,7 +106,7 @@ export const useDeviceStore = defineStore('device', () => {
   // API version
   const apiVersion = ref<VersionInfo | undefined>(undefined);
   async function fetchApiVersion (): Promise<VersionInfo | undefined> {
-    const version = await busyBar.getApiVersion()
+    const version = await busyBar.SystemVersion()
       .then(response => {
         apiVersion.value = response;
         return response;
@@ -128,7 +128,7 @@ export const useDeviceStore = defineStore('device', () => {
   // Device status
   const deviceStatus = ref<DeviceStatus | undefined>(undefined);
   async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
-    const status = await busyBar.deviceStatus()
+    const status = await busyBar.SystemStatus()
       .then(response => {
         deviceStatus.value = response;
         return response;
@@ -147,7 +147,7 @@ export const useDeviceStore = defineStore('device', () => {
     return deviceStatus.value;
   }
   async function fetchSystemStatus (): Promise<StatusSystem | undefined> {
-    const systemStatus = await busyBar.systemStatus()
+    const systemStatus = await busyBar.SystemInfo()
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t get system status');
         return undefined;
@@ -156,7 +156,7 @@ export const useDeviceStore = defineStore('device', () => {
     return systemStatus;
   }
   async function fetchPowerStatus (): Promise<StatusPower | undefined> {
-    const powerStatus = await busyBar.powerStatus()
+    const powerStatus = await busyBar.SystemStatusPower()
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t get power status');
         return undefined;
@@ -169,7 +169,7 @@ export const useDeviceStore = defineStore('device', () => {
   const DEFAULT_DEVICE_NAME = 'BUSY Bar';
   const deviceName = ref<string | undefined>(undefined);
   async function fetchDeviceName (throwError: boolean = false): Promise<string> {
-    const name = await busyBar.getName()
+    const name = await busyBar.SettingsName()
       .then(response => {
         deviceName.value = response.name;
         return response.name;
@@ -191,7 +191,7 @@ export const useDeviceStore = defineStore('device', () => {
     return deviceName.value;
   }
   async function setDeviceName (name: string): Promise<boolean> {
-    return await busyBar.setName({ name })
+    return await busyBar.SettingsNameSet({ name })
       .then(() => {
         deviceName.value = name;
         return true;
@@ -205,7 +205,7 @@ export const useDeviceStore = defineStore('device', () => {
   // HTTP API
   const httpAPIAccess = ref<HttpAccessInfo | undefined>(undefined);
   async function fetchHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
-    const access = await busyBar.getHttpAccess()
+    const access = await busyBar.SettingsAccess()
       .then(response => {
         return response;
       })
@@ -231,12 +231,7 @@ export const useDeviceStore = defineStore('device', () => {
       payload['key'] = key;
     }
 
-    // fixme: temp solution for required key field even when it's not needed
-    if (!key) {
-      payload.key = '666666';
-    }
-
-    return await busyBar.setHttpAccess(payload as HttpAccessParams)
+    return await busyBar.SettingsAccessSet(payload as HttpAccessParams)
       .then(async () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
         return true;
@@ -250,7 +245,7 @@ export const useDeviceStore = defineStore('device', () => {
   // Display brightness
   const displayBrightness = ref<DisplayBrightnessParams | undefined>(undefined);
   async function fetchDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
-    const brightness = await busyBar.getDisplayBrightness()
+    const brightness = await busyBar.DisplayBrightness()
       .then(response => {
         const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
@@ -270,7 +265,7 @@ export const useDeviceStore = defineStore('device', () => {
     return displayBrightness.value;
   }
   async function setDisplayBrightness (brightness: DisplayBrightnessParams): Promise<boolean> {
-    return await busyBar.setDisplayBrightness(brightness)
+    return await busyBar.DisplayBrightnessSet(brightness)
       .then(() => {
         displayBrightness.value = brightness;
         return true;
@@ -284,7 +279,7 @@ export const useDeviceStore = defineStore('device', () => {
   // Audio volume
   const audio = ref<AudioVolumeInfo | undefined>(undefined);
   async function fetchAudioVolume (): Promise<AudioVolumeInfo | undefined> {
-    const volume = await busyBar.getAudioVolume()
+    const volume = await busyBar.AudioVolume()
       .then(response => {
         audio.value = response;
         return response;
@@ -303,7 +298,7 @@ export const useDeviceStore = defineStore('device', () => {
     return audio.value;
   }
   async function setAudioVolume (volume: number): Promise<boolean> {
-    return await busyBar.setAudioVolume({ volume })
+    return await busyBar.AudioVolumeSet({ volume })
       .then(() => {
         if (audio.value) {
           audio.value.volume = volume;

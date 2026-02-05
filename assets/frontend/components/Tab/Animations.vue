@@ -133,7 +133,7 @@ async function composeAndDownload () {
 async function composeAndUpload () {
   await handleComposeAnimation();
   if (animationOutput.value) {
-    await deviceStore.busyBar.uploadFile({
+    await deviceStore.busyBar.StorageWrite({
       file: animationOutput.value,
       path: '/ext/animations/test.anim'
     })
