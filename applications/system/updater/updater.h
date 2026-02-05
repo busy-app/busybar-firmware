@@ -274,16 +274,13 @@ void updater_installation_apply(Updater* instance, bool do_wait);
  * Downloads, verifies, unpacks, prepares, and installs firmware from a remote URL.
  * Runs asynchronously in a background thread and reboots the device upon completion.
  * The update session is automatically started and stopped by this function.
+ * Requires update session to be started, will close it on completion.
  *
  * @param[in]  instance  Updater instance
  * @param[in]  url       URL to download update bundle from
  * @param[in]  sha256    Expected SHA256 checksum (NULL to skip verification)
- *
- * @return     UpdaterStatusOk if background installation started successfully,
- *             UpdaterStatusBatteryLow if battery level is too low,
- *             UpdaterStatusBusy if another update is already in progress
  */
-UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const char* sha256);
+void updater_install_from_url(Updater* instance, const char* url, const char* sha256);
 
 /** Check for available firmware updates
  *

@@ -135,7 +135,7 @@ typedef enum {
 static const char* const status_strings[];
 static const MessageHandler message_handlers[];
 
-static UpdaterStatus install_from_url_internal(
+static void install_from_url_internal(
     Updater* instance,
     const char* url,
     const char* sha256,
@@ -263,17 +263,18 @@ static void autoupdate_timer_callback(void* context) {
         return;
     }
 
-    UpdaterStatus install_status = install_from_url_internal(
-        instance,
-        furi_string_get_cstr(instance->check_url),
-        furi_string_get_cstr(instance->check_sha256),
-        true);
+    UpdaterStatus session_status = updater_session_start(instance);
+    if(session_status == UpdaterStatusOk) {
+        install_from_url_internal(
+            instance,
+            furi_string_get_cstr(instance->check_url),
+            furi_string_get_cstr(instance->check_sha256),
+            true);
 
-    if(install_status == UpdaterStatusOk) {
         FURI_LOG_I(TAG, "Autoupdate: installation started");
     } else {
         FURI_LOG_W(
-            TAG, "Autoupdate: failed to start (%s)", updater_get_status_string(install_status));
+            TAG, "Autoupdate: failed to start (%s)", updater_get_status_string(session_status));
     }
 }
 
@@ -898,43 +899,37 @@ void updater_installation_apply(Updater* instance, bool do_wait) {
     }
 }
 
-static UpdaterStatus install_from_url_internal(
+static void install_from_url_internal(
     Updater* instance,
     const char* url,
     const char* sha256,
     bool is_autoupdate) {
-    UpdaterStatus session_start_status = updater_session_start(instance);
+    furi_string_set(instance->install_url, url);
 
-    if(session_start_status == UpdaterStatusOk) {
-        furi_string_set(instance->install_url, url);
-
-        if(sha256) {
-            furi_string_set(instance->install_sha256, sha256);
-        } else {
-            furi_string_reset(instance->install_sha256);
-        }
-
-        instance->install_is_autoupdate = is_autoupdate;
-
-        FuriThread* thread = furi_thread_alloc_ex(
-            INSTALL_FROM_URL_THREAD_NAME,
-            INSTALL_FROM_URL_THREAD_STACK_SIZE,
-            install_from_url_thread_callback,
-            instance);
-
-        furi_thread_set_state_context(thread, instance);
-        furi_thread_set_state_callback(thread, install_from_url_thread_state_callback);
-        furi_thread_start(thread);
+    if(sha256) {
+        furi_string_set(instance->install_sha256, sha256);
+    } else {
+        furi_string_reset(instance->install_sha256);
     }
 
-    return session_start_status;
+    instance->install_is_autoupdate = is_autoupdate;
+
+    FuriThread* thread = furi_thread_alloc_ex(
+        INSTALL_FROM_URL_THREAD_NAME,
+        INSTALL_FROM_URL_THREAD_STACK_SIZE,
+        install_from_url_thread_callback,
+        instance);
+
+    furi_thread_set_state_context(thread, instance);
+    furi_thread_set_state_callback(thread, install_from_url_thread_state_callback);
+    furi_thread_start(thread);
 }
 
-UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const char* sha256) {
+void updater_install_from_url(Updater* instance, const char* url, const char* sha256) {
     furi_check(instance);
     furi_check(url);
 
-    return install_from_url_internal(instance, url, sha256, false);
+    install_from_url_internal(instance, url, sha256, false);
 }
 
 UpdaterStatus updater_check_for_update(Updater* instance) {
