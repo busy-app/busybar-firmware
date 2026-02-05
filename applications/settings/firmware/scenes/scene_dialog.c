@@ -59,7 +59,7 @@ static void this_scene_on_enter(void* context) {
     with_gui(instance->gui, {
         /* front layout setup */
         scene->front_dialog = dialog_alloc(instance->front_scene_window);
-        dialog_set_calback(scene->front_dialog, this_dialog_option_callback, instance);
+        dialog_set_callback(scene->front_dialog, this_dialog_option_callback, instance);
         dialog_set_text(scene->front_dialog, "Update available");
         dialog_set_options(scene->front_dialog, "Install", "Cancel");
         dialog_set_option_colors(
@@ -70,6 +70,8 @@ static void this_scene_on_enter(void* context) {
         /* back layout setup */
         scene->back_dialog = dialog_alloc(instance->back_scene_window);
         dialog_set_text(scene->back_dialog, "Update available");
+        dialog_set_text_sub(
+            scene->back_dialog, furi_string_get_cstr(instance->update_info.version));
         dialog_set_options(scene->back_dialog, "Install", "Cancel");
     });
 }
