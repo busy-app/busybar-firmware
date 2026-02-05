@@ -45,7 +45,7 @@ typedef struct {
     Desktop* desktop;
     Updater* updater;
 
-    /* result scene preset */
+    UpdateCheckInfo update_info;
     ThisResultPreset result_preset;
 
     /* front layout */

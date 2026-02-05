@@ -82,6 +82,14 @@ static ThisInstance* this_alloc(void) {
     instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->updater = furi_record_open(RECORD_UPDATER);
 
+    instance->update_info = (UpdateCheckInfo){
+        .version = furi_string_alloc(),
+        .url = furi_string_alloc(),
+        .id = NULL,
+        .sha256 = furi_string_alloc(),
+        .changelog = NULL,
+    };
+
     instance->result_preset.front_text = furi_string_alloc();
     instance->result_preset.back_primary_text = furi_string_alloc();
     instance->result_preset.back_auxiliary_text = furi_string_alloc();
@@ -146,6 +154,10 @@ static void this_free(ThisInstance* instance) {
     furi_string_free(instance->result_preset.back_auxiliary_text);
     furi_string_free(instance->result_preset.back_primary_text);
     furi_string_free(instance->result_preset.front_text);
+
+    furi_string_free(instance->update_info.sha256);
+    furi_string_free(instance->update_info.url);
+    furi_string_free(instance->update_info.version);
 
     furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_DESKTOP);

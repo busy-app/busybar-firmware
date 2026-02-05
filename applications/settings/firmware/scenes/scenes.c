@@ -8,6 +8,7 @@ extern const Scene settings_firmware_app_scene_main;
 extern const Scene settings_firmware_app_scene_settings;
 extern const Scene settings_firmware_app_scene_dialog;
 extern const Scene settings_firmware_app_scene_check;
+extern const Scene settings_firmware_app_scene_download;
 extern const Scene settings_firmware_app_scene_result;
 
 const Scene* const settings_firmware_app_scenes[] = {
@@ -15,6 +16,7 @@ const Scene* const settings_firmware_app_scenes[] = {
     [ThisSceneIdxSettings] = &settings_firmware_app_scene_settings,
     [ThisSceneIdxDialog] = &settings_firmware_app_scene_dialog,
     [ThisSceneIdxCheck] = &settings_firmware_app_scene_check,
+    [ThisSceneIdxDownload] = &settings_firmware_app_scene_download,
     [ThisSceneIdxResult] = &settings_firmware_app_scene_result,
 };
 

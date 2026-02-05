@@ -54,6 +54,8 @@ static void this_scene_on_enter(void* context) {
     ThisInstance* instance = context;
     ThisScene* scene = this_get_scene(instance);
 
+    updater_get_check_info(instance->updater, &instance->update_info);
+
     with_gui(instance->gui, {
         /* front layout setup */
         scene->front_dialog = dialog_alloc(instance->front_scene_window);
@@ -95,7 +97,7 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
             UpdaterStatus session_status = updater_session_start(instance->updater);
 
             if(session_status == UpdaterStatusOk) {
-                /* INSTALL */
+                scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxDownload);
             } else if(session_status == UpdaterStatusBatteryLow) {
                 this_prepare_battery_low_result(instance);
                 scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
