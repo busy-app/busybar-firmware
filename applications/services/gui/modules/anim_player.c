@@ -161,6 +161,7 @@ bool anim_player_start(AnimPlayer* instance) {
 
 bool anim_player_pause(AnimPlayer* instance) {
     furi_check(instance);
+    if(!instance->file) return false;
     lv_timer_pause(instance->timer);
     return true;
 }
