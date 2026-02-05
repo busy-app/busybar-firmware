@@ -18,8 +18,10 @@
 
 #define FRONT_DISPLAY_FRAME_SIZE (FRONT_DISPLAY_W * FRONT_DISPLAY_H * 3) // RGB888
 
-#define FRONT_DISPLAY_TRANSITION_STEP_MS (50)
-#define FRONT_DISPLAY_BRIGHTNESS_STEP    (3)
+#define FRONT_DISPLAY_TRANSITION_DURATION_MS      (330)
+#define FRONT_DISPLAY_TRANSITION_STEP_DURATION_MS (16)
+#define FRONT_DISPLAY_TRANSITION_STEP_COUNT \
+    (FRONT_DISPLAY_TRANSITION_DURATION_MS / FRONT_DISPLAY_TRANSITION_STEP_DURATION_MS)
 
 // #define FRONT_DISPLAY_DEBUG_ENABLE
 
@@ -230,7 +232,7 @@ static void front_display_handle_set_blanked(FrontDisplaySrv* instance, bool is_
                                                front_display_get_effective_brightness(instance) :
                                                FRONT_DISPLAY_BRIGHTNESS_MIN;
             furi_event_loop_timer_start(
-                instance->transition_timer, FRONT_DISPLAY_TRANSITION_STEP_MS);
+                instance->transition_timer, FRONT_DISPLAY_TRANSITION_STEP_DURATION_MS);
         }
     }
 }
@@ -330,17 +332,16 @@ static void front_display_transition_timer_callback(void* context) {
 
     const bool is_blanked = instance->is_blanked;
     const uint8_t brightness = instance->brightness_current;
+    const uint8_t eff_brightness = front_display_get_effective_brightness(instance);
 
-    const bool is_stop_condition =
-        is_blanked ? (brightness == 0) :
-                     (brightness >= front_display_get_effective_brightness(instance));
+    const bool is_stop_condition = is_blanked ? (brightness == 0) : (brightness >= eff_brightness);
 
     if(is_stop_condition) {
         furi_event_loop_timer_stop(instance->transition_timer);
 
     } else {
-        const int32_t step = is_blanked ? -FRONT_DISPLAY_BRIGHTNESS_STEP :
-                                          FRONT_DISPLAY_BRIGHTNESS_STEP;
+        const int32_t step_abs = MAX(eff_brightness / FRONT_DISPLAY_TRANSITION_STEP_COUNT, 1);
+        const int32_t step = is_blanked ? -step_abs : step_abs;
 
         const uint8_t new_brightness = CLAMP(
             (int32_t)brightness + step,
