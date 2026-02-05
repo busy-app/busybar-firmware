@@ -66,15 +66,18 @@ bool anim_player_set_section(AnimPlayer* instance, AnimFilePlayFlag flags, const
  * 
  * @param[inout] instance Widget instance
  * 
+ * @returns success flag
  */
-void anim_player_start(AnimPlayer* instance);
+bool anim_player_start(AnimPlayer* instance);
 
 /**
  * @brief Pauses playback of the animation
  * 
  * @param[inout] instance Widget instance
+ * 
+ * @returns success flag
  */
-void anim_player_pause(AnimPlayer* instance);
+bool anim_player_pause(AnimPlayer* instance);
 
 /**
  * @brief Playback frame callback
