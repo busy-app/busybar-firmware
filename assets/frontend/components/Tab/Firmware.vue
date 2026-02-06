@@ -27,7 +27,7 @@
           label="Check for updates"
           :disabled="wifiStore.wifi?.state !== 'connected'"
           :loading="deviceStore.autoUpdate.isChecking"
-          @click="deviceStore.requestAutoUpdateCheck"
+          @click="deviceStore.autoUpdate.isManualCheck = true; deviceStore.requestAutoUpdateCheck()"
         />
       </UTooltip>
 
