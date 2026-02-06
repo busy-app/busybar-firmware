@@ -14,13 +14,22 @@
         :name="tab.activeIcon ? tabStore.currentTab === tab.value ? tab.activeIcon : tab.icon : tab.icon"
         class="size-6"
       />
-      <div>{{ tab.label }}</div>
+      <div class="w-full flex items-center justify-between gap-4 xl:pr-1.5">
+        {{ tab.label }}
+
+        <div
+          v-if="deviceStore.autoUpdate.status === 'available' && tab.value === 'firmware'"
+          class="size-2 rounded-full"
+          :class="deviceStore.autoUpdate.isAllowed ? 'bg-success' : 'bg-warning'"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 const tabStore = useTabStore();
+const deviceStore = useDeviceStore();
 
 const options = computed(() => {
   return tabStore.tabOptions.filter(tab => {

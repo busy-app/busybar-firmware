@@ -33,18 +33,32 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
+const wifiStore = useWifiStore();
 
 if (!useRuntimeConfig().public.disablePolling) {
   deviceStore.setRefreshInterval();
+  deviceStore.setAutoUpdateBackgroundCheckInterval();
 } else {
   console.log('Polling disabled');
 }
 
 const shouldLoadDefaultPage = ref(false);
 async function init () {
-  // early access check
   try {
     await deviceStore.fetchDeviceName(true);
+
+    // initialize device and wifi state
+    await deviceStore.getDeviceStatus();
+    await wifiStore.getWifiState();
+
+    // get auto-update status
+    await deviceStore.fetchAutoUpdateStatus();
+    // if status is unknown, request a check after a delay
+    if (deviceStore.autoUpdate.isAllowed === null) {
+      setTimeout(() => {
+        deviceStore.requestAutoUpdateCheck();
+      }, 5000);
+    }
   } catch (error) {
     if ((error as { status: number }).status === 403) {
       return await navigateTo('/login');
@@ -60,6 +74,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
+  deviceStore.clearAutoUpdateBackgroundCheckInterval();
   window.removeEventListener('device-reconnected', init);
 });
 </script>

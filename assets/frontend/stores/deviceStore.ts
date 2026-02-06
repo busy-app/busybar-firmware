@@ -11,7 +11,74 @@ import type {
   AudioVolumeInfo
 } from '@busy-app/busy-lib';
 
-export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
+// export type FileUpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
+enum UpdateEvent {
+  SESSION_START = 'session_start',
+  SESSION_STOP = 'session_stop',
+  ACTION_BEGIN = 'action_begin',
+  ACTION_DONE = 'action_done',
+  DETAIL_CHANGE = 'detail_change',
+  ACTION_PROGRESS = 'action_progress',
+  NONE = 'none'
+}
+enum UpdateAction {
+  DOWNLOAD = 'download',
+  SHA_VERIFICATION = 'sha_verification',
+  UNPACK = 'unpack',
+  PREPARE = 'prepare',
+  APPLY = 'apply',
+  NONE = 'none'
+}
+enum UpdateStatusCode {
+  OK = 'ok',
+  BATTERY_LOW = 'battery_low',
+  BUSY = 'busy',
+  DOWNLOAD_FAILURE = 'download_failure',
+  DOWNLOAD_ABORT = 'download_abort',
+  SHA_MISMATCH = 'sha_mismatch',
+  UNPACK_STAGING_DIR_FAILURE = 'unpack_staging_dir_failure',
+  UNPACK_ARCHIVE_OPEN_FAILURE = 'unpack_archive_open_failure',
+  UNPACK_ARCHIVE_UNPACK_FAILURE = 'unpack_archive_unpack_failure',
+  INSTALL_MANIFEST_NOT_FOUND = 'install_manifest_not_found',
+  INSTALL_MANIFEST_INVALID = 'install_manifest_invalid',
+  INSTALL_SESSION_CONFIG_FAILURE = 'install_session_config_failure',
+  INSTALL_POINTER_SETUP_FAILURE = 'install_pointer_setup_failure',
+  UNKNOWN_FAILURE = 'unknown_failure'
+}
+export enum UpdateStage {
+  IDLE = 'idle',
+  UPLOADING = 'uploading',
+  UNPACKING = 'unpacking',
+  UPDATING = 'updating',
+  ERROR = 'error',
+  // ! Adding success for file update purposes
+  SUCCESS = 'success'
+}
+interface UpdateDownloadStatus {
+  speed_bytes_per_sec: number;
+  received_bytes: number;
+  total_bytes: number;
+}
+interface UpdateInstallStatus {
+  is_allowed: boolean;
+  event: UpdateEvent;
+  action: UpdateAction;
+  status: UpdateStatusCode;
+  detail: string;
+  download: UpdateDownloadStatus;
+}
+export type UpdateCheckResult = 'available' | 'not_available' | 'failure' | 'none';
+interface UpdateCheckStatus {
+  available_version: string;
+  event: 'start' | 'stop' | 'none';
+  result?: UpdateCheckResult;
+  // ! fw bug: requests have the status field instead of result (specified in openapi spec)
+  status?: UpdateCheckResult;
+}
+export interface UpdateStatus {
+  install: UpdateInstallStatus;
+  check: UpdateCheckStatus;
+}
 
 export const useDeviceStore = defineStore('device', () => {
   const apiRequest = useApiStore().apiRequest;
@@ -51,7 +118,7 @@ export const useDeviceStore = defineStore('device', () => {
       }
 
       isConnected.value = false;
-      if (firmwareUpdate.value.stage === 'idle' || firmwareUpdate.value.stage === 'error') {
+      if (fileUpdate.value.stage === 'idle' || fileUpdate.value.stage === 'error') {
         toast.add({
           id: 'device-disconnected',
           title: 'Device disconnected',
@@ -314,16 +381,110 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Firmware update
-  const firmwareUpdate = ref({
+  const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+  const autoUpdate = ref({
+    status: null as UpdateCheckResult | null,
+    availableVersion: null as string | null,
+    isAllowed: null as boolean | null,
+
+    isChecking: false,
+    isManualCheck: false,
+    backgroundCheckInterval: null as NodeJS.Timeout | null
+  });
+  async function fetchAutoUpdateStatus (): Promise<void> {
+    return apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
+      .then(async status => {
+        if (status.check.result === 'failure' || status.check.status === 'failure') {
+          // auto-update check failed (e.g. no internet connection)
+          console.warn('Auto-update check failed', status);
+          autoUpdate.value.isChecking = false;
+          if (autoUpdate.value.isManualCheck) {
+            autoUpdate.value.isManualCheck = false;
+            toast.add({
+              title: 'Update check failed',
+              description: 'Check your internet connection and try again.',
+              icon: 'i-bi-alert',
+              color: 'error',
+              duration: 10000
+            });
+          }
+          return;
+        }
+
+        if (status.check.event !== 'stop' && (status.check.result === 'none' || status.check.status === 'none')) {
+          // update check is still in progress
+          console.debug('Auto-update check still in progress, fetching status again');
+          await new Promise(resolve => {
+            setTimeout(resolve, 1000);
+          });
+          return fetchAutoUpdateStatus();
+        }
+        autoUpdate.value.isChecking = false;
+
+        autoUpdate.value.status = status.check.result || status.check.status || null;
+        autoUpdate.value.availableVersion = status.check.available_version || null;
+        autoUpdate.value.isAllowed = status.install.is_allowed;
+
+        if (autoUpdate.value.isManualCheck && (status.check.result === 'not_available' || status.check.status === 'not_available')) {
+          autoUpdate.value.isManualCheck = false;
+          toast.add({
+            title: 'Your firmware version is up to date',
+            icon: 'i-bi-checkmark-circle-fill',
+            color: 'success',
+            duration: 10000
+          });
+        }
+
+        console.debug('Auto-update check completed', status);
+      })
+      .catch(async error => {
+        autoUpdate.value.isChecking = false;
+        await handleHTTPError(error, 'Couldn\'t check for updates');
+      });
+  }
+  async function requestAutoUpdateCheck () {
+    if (autoUpdate.value.isChecking) {
+      console.debug('Already checking for updates, ignoring request');
+      return;
+    }
+    autoUpdate.value.isChecking = true;
+    autoUpdate.value.availableVersion = null;
+    autoUpdate.value.isAllowed = null;
+
+    return apiRequest('/api/update/check', { method: 'POST', timeout: 10000 })
+      .then(async () => {
+        console.debug('Auto-update check requested');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return fetchAutoUpdateStatus();
+      })
+      .catch(async error => {
+        autoUpdate.value.isChecking = false;
+        await handleHTTPError(error, 'Couldn\'t initiate update check');
+      });
+  }
+  function setAutoUpdateBackgroundCheckInterval () {
+    autoUpdate.value.backgroundCheckInterval = setInterval(() => {
+      console.debug(`Performing background auto-update check (${new Date().toISOString()})`);
+      requestAutoUpdateCheck();
+    }, BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS);
+  }
+  function clearAutoUpdateBackgroundCheckInterval () {
+    if (autoUpdate.value.backgroundCheckInterval) {
+      clearInterval(autoUpdate.value.backgroundCheckInterval);
+      autoUpdate.value.backgroundCheckInterval = null;
+    }
+  }
+
+  const fileUpdate = ref({
     firmwareBundleName: 'firmware',
     firmwareFile: null as File | null,
-    stage: 'idle' as UpdateStage,
+    stage: UpdateStage.IDLE as UpdateStage,
     progress: 0,
     error: null as string | null
   });
   async function uploadFirmware () {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${useRuntimeConfig().public.barUrl || window.location.origin}/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
+    xhr.open('POST', `${useRuntimeConfig().public.barUrl || window.location.origin}/api/update?name=${fileUpdate.value.firmwareBundleName}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     if (useApiStore().apiKey) {
       xhr.setRequestHeader('X-API-Key', useApiStore().apiKey!);
@@ -331,17 +492,17 @@ export const useDeviceStore = defineStore('device', () => {
 
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
-        firmwareUpdate.value.progress = Math.round((event.loaded / event.total) * 100);
+        fileUpdate.value.progress = Math.round((event.loaded / event.total) * 100);
 
-        if (firmwareUpdate.value.progress === 100) {
-          firmwareUpdate.value.stage = 'unpacking';
+        if (fileUpdate.value.progress === 100) {
+          fileUpdate.value.stage = UpdateStage.UNPACKING;
         }
       }
     };
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 400) {
-        firmwareUpdate.value.stage = 'updating';
+        fileUpdate.value.stage = UpdateStage.UPDATING;
         toast.add({
           title: 'Update initiated',
           description: 'The device will reboot to apply the update. Pay attention to the front screen.',
@@ -351,7 +512,7 @@ export const useDeviceStore = defineStore('device', () => {
         });
       } else {
         console.error('Upload failed:', xhr.status, xhr.responseText);
-        firmwareUpdate.value.stage = 'error';
+        fileUpdate.value.stage = UpdateStage.ERROR;
         toast.add({
           title: 'Update failed',
           description: `Error ${xhr.status}: ${xhr.responseText}`,
@@ -359,13 +520,13 @@ export const useDeviceStore = defineStore('device', () => {
           color: 'error',
           duration: 10000
         });
-        firmwareUpdate.value.error = `Error ${xhr.status}: ${xhr.responseText}`;
+        fileUpdate.value.error = `Error ${xhr.status}: ${xhr.responseText}`;
       }
     };
 
     xhr.onerror = () => {
       console.error('Upload error');
-      firmwareUpdate.value.stage = 'error';
+      fileUpdate.value.stage = UpdateStage.ERROR;
       toast.add({
         title: 'Update failed',
         description: 'An error occurred during the upload.',
@@ -373,12 +534,12 @@ export const useDeviceStore = defineStore('device', () => {
         color: 'error',
         duration: 10000
       });
-      firmwareUpdate.value.error = 'An error occurred during the upload.';
+      fileUpdate.value.error = 'An error occurred during the upload.';
     };
 
-    firmwareUpdate.value.stage = 'uploading' as UpdateStage;
-    firmwareUpdate.value.progress = 0;
-    xhr.send(firmwareUpdate.value.firmwareFile);
+    fileUpdate.value.stage = UpdateStage.UPLOADING;
+    fileUpdate.value.progress = 0;
+    xhr.send(fileUpdate.value.firmwareFile);
 
     await new Promise<void>(resolve => {
       xhr.onloadend = () => {
@@ -386,10 +547,10 @@ export const useDeviceStore = defineStore('device', () => {
       };
     });
 
-    firmwareUpdate.value.firmwareFile = null;
-    if (firmwareUpdate.value.stage !== 'error') {
-      firmwareUpdate.value.stage = 'updating' as UpdateStage;
-      firmwareUpdate.value.progress = 0;
+    fileUpdate.value.firmwareFile = null;
+    if (fileUpdate.value.stage as UpdateStage !== UpdateStage.ERROR) {
+      fileUpdate.value.stage = UpdateStage.UPDATING;
+      fileUpdate.value.progress = 0;
     }
   }
 
@@ -433,7 +594,12 @@ export const useDeviceStore = defineStore('device', () => {
     getAudioVolume,
     setAudioVolume,
 
-    firmwareUpdate,
+    autoUpdate,
+    fetchAutoUpdateStatus,
+    requestAutoUpdateCheck,
+    setAutoUpdateBackgroundCheckInterval,
+    clearAutoUpdateBackgroundCheckInterval,
+    fileUpdate,
     uploadFirmware
   };
 });

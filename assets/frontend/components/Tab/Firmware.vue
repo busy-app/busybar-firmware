@@ -5,6 +5,8 @@
     :subtitle="fwVersionPolifilled"
     icon="i-bi-firmware-fill"
   >
+    {{ deviceStore.autoUpdate.availableVersion }}
+    {{ deviceStore.autoUpdate.isAllowed }}
     <template #actions>
       <UButton
         data-id="firmware-section-primary-update-from-file-button"
@@ -17,6 +19,19 @@
         class="justify-center sm:justify-start"
         @click="initFirmwareUpdateFromFile"
       />
+
+      <UTooltip
+        :text="wifiStore.wifi?.state !== 'connected' ? 'Connect to Wi-Fi to check for updates' : ''"
+        :delay-duration="0"
+      >
+        <UButton
+          data-id="firmware-section-primary-check-for-updates-button"
+          label="Check for updates"
+          :disabled="wifiStore.wifi?.state !== 'connected'"
+          :loading="deviceStore.autoUpdate.isChecking"
+          @click="deviceStore.requestAutoUpdateCheck"
+        />
+      </UTooltip>
 
       <ModalGeneric
         v-model:open="showUpdateModal"
@@ -129,7 +144,7 @@
               <div class="flex items-center gap-2">
                 <CircularProgress
                   v-if="stage === 'uploading'"
-                  v-model="deviceStore.firmwareUpdate.progress"
+                  v-model="deviceStore.fileUpdate.progress"
                   data-id="modal-update-in-progress-uploading-circular"
                   size="32px"
                   :thickness="0.25"
@@ -163,7 +178,7 @@
                     data-id="modal-update-in-progress-uploading-percentage"
                     class="text-neutral-600 dark:text-neutral-300"
                   >
-                    {{ deviceStore.firmwareUpdate.progress }}%
+                    {{ deviceStore.fileUpdate.progress }}%
                   </div>
                   <div
                     v-else-if="stage === 'unpacking'"
@@ -272,6 +287,7 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
+const wifiStore = useWifiStore();
 const deviceScreenStreamStore = useDeviceScreenStreamStore();
 
 const loading = ref({
@@ -282,40 +298,40 @@ const system = computed(() => deviceStore.deviceStatus?.system);
 const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
 
 const showUpdateModal = ref(false);
-const stage = computed(() => deviceStore.firmwareUpdate.stage);
+const stage = computed(() => deviceStore.fileUpdate.stage);
 
 const firmwareFileModel = ref<File | null>(null);
 
 const indeterminateProgressModel = ref(75);
 
 function initFirmwareUpdateFromFile () {
-  deviceStore.firmwareUpdate.stage = 'idle' as UpdateStage;
-  deviceStore.firmwareUpdate.progress = 0;
-  deviceStore.firmwareUpdate.error = '';
-  deviceStore.firmwareUpdate.firmwareFile = null;
+  deviceStore.fileUpdate.stage = UpdateStage.IDLE;
+  deviceStore.fileUpdate.progress = 0;
+  deviceStore.fileUpdate.error = '';
+  deviceStore.fileUpdate.firmwareFile = null;
   firmwareFileModel.value = null;
   showUpdateModal.value = true;
 }
 
 async function startFirmwareUpdateFromFile () {
-  deviceStore.firmwareUpdate.firmwareFile = firmwareFileModel.value;
+  deviceStore.fileUpdate.firmwareFile = firmwareFileModel.value;
   try {
     await deviceScreenStreamStore.stopScreenStream();
     await deviceStore.uploadFirmware();
-    if (deviceStore.firmwareUpdate.stage !== 'error') {
-      deviceStore.firmwareUpdate.stage = 'updating';
+    if (deviceStore.fileUpdate.stage !== UpdateStage.ERROR) {
+      deviceStore.fileUpdate.stage = UpdateStage.UPDATING;
     }
   } catch (error) {
     console.error('Firmware update failed:', error);
-    deviceStore.firmwareUpdate.stage = 'error';
-    deviceStore.firmwareUpdate.error = error instanceof Error ? error.message : 'Unknown error';
+    deviceStore.fileUpdate.stage = UpdateStage.ERROR;
+    deviceStore.fileUpdate.error = error instanceof Error ? error.message : 'Unknown error';
   }
 }
 
 const updatePollingInterval = ref<NodeJS.Timeout | null>(null);
-watch(() => deviceStore.firmwareUpdate.stage, newStage => {
-  if (newStage !== 'updating') {
-    if (newStage === 'success') {
+watch(() => deviceStore.fileUpdate.stage, newStage => {
+  if (newStage !== UpdateStage.UPDATING) {
+    if (newStage === UpdateStage.SUCCESS) {
       if (updatePollingInterval.value) {
         clearInterval(updatePollingInterval.value);
       }
@@ -338,8 +354,8 @@ watch(() => deviceStore.firmwareUpdate.stage, newStage => {
     deviceStore.fetchDeviceName(true) // throw the error to avoid exiting the polling
       .then(() => {
         clearInterval(updatePollingInterval.value!);
-        deviceStore.firmwareUpdate.stage = 'success';
-        deviceStore.firmwareUpdate.progress = 0;
+        deviceStore.fileUpdate.stage = UpdateStage.SUCCESS;
+        deviceStore.fileUpdate.progress = 0;
       })
       .catch(() => {
         // ignore the error
