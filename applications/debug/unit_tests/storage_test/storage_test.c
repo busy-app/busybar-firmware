@@ -737,15 +737,15 @@ MU_TEST(test_storage_common_migrate) {
     furi_record_close(RECORD_STORAGE);
 }
 
-
 MU_TEST(test_storage_common_shutdown) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
     mu_check(storage_is_read_only(storage->storage + ST_BKP));
     mu_check(!storage_is_read_only(storage->storage + ST_EXT));
 
-    File *f = storage_file_alloc(storage);
-    mu_check(storage_file_open(f, UNIT_TESTS_PATH("shutdown.test"), FSAM_WRITE, FSOM_CREATE_ALWAYS));
+    File* f = storage_file_alloc(storage);
+    mu_check(
+        storage_file_open(f, UNIT_TESTS_PATH("shutdown.test"), FSAM_WRITE, FSOM_CREATE_ALWAYS));
 
     storage_common_shutdown(storage);
 
