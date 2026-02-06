@@ -1,6 +1,7 @@
 #include <sntp/sntp.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
+#include <applications/system/updater/updater.h>
 
 #include <furi.h>
 
@@ -16,6 +17,7 @@ typedef struct {
     FuriEventLoopTimer* timer;
     Gui* gui;
     Sntp* sntp;
+    Updater* updater;
     Label* labels[GuiDisplayIdMax];
     FuriString* time_string;
 } Clock;
@@ -49,18 +51,47 @@ static void clock_custom_event_callback(uint32_t events, void* context) {
 const char* clock_get_time_string(Clock* instance) {
     furi_assert(instance);
 
-    DateTime date_time;
-    sntp_get_local_datetime(instance->sntp, &date_time);
+    LocalTime lt = sntp_get_local_time(instance->sntp);
 
-    furi_string_printf(
-        instance->time_string,
-        "   %02d:%02d:%02d\n%02d-%02d-%04d",
-        date_time.hour,
-        date_time.minute,
-        date_time.second,
-        date_time.day,
-        date_time.month,
-        date_time.year);
+    SntpSettings sntp_settings;
+    sntp_get_settings(instance->sntp, &sntp_settings);
+
+    switch(sntp_settings.time_format) {
+    case SntpSettingTimeFormat24h:
+        furi_string_printf(
+            instance->time_string,
+            "   %02hhu:%02hhu:%02hhu\n%02hhu-%02hhu-%04hu",
+            lt.dt.hour,
+            lt.dt.minute,
+            lt.dt.second,
+            lt.dt.dayofmonth,
+            lt.dt.month,
+            lt.dt.year);
+        break;
+    case SntpSettingTimeFormat12h: {
+        uint8_t h = lt.dt.hour % 12;
+        if(h == 0) {
+            h = 12;
+        }
+
+        bool pm = lt.dt.hour / 12;
+
+        furi_string_printf(
+            instance->time_string,
+            " %02hhu:%02hhu:%02hhu%s\n%02hhu-%02hhu-%04hu",
+            h,
+            lt.dt.minute,
+            lt.dt.second,
+            pm ? "pm" : "am",
+            lt.dt.dayofmonth,
+            lt.dt.month,
+            lt.dt.year);
+        break;
+    }
+    default:
+        furi_string_set(instance->time_string, "ERROR");
+        break;
+    }
 
     return furi_string_get_cstr(instance->time_string);
 }
@@ -86,6 +117,9 @@ static Clock* clock_alloc(void) {
 
     instance->gui = furi_record_open(RECORD_GUI);
     instance->sntp = furi_record_open(RECORD_SNTP);
+    instance->updater = furi_record_open(RECORD_UPDATER);
+
+    updater_pause_autoupdates(instance->updater);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, clock_custom_event_callback, instance);
@@ -121,6 +155,9 @@ static void clock_free(Clock* instance) {
         }
     });
 
+    updater_resume_autoupdates(instance->updater);
+
+    furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_SNTP);
     furi_record_close(RECORD_GUI);
     furi_event_loop_timer_stop(instance->timer);

@@ -27,6 +27,8 @@ typedef struct {
 
     FuriString* front_icon; //<! Path to icon on front display
     FuriString* back_icon; //<! Path to icon on back display
+
+    bool display_in_menu; //<! Show application in settings menu
 } SettingsAppDescriptor;
 
 SettingsAppDescriptor* settings_app_descriptor_alloc(void);

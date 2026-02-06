@@ -1,5 +1,5 @@
 #include "status_view.h"
-
+#include <gui/modules/anim_player.h>
 #include <gui/widget_i.h>
 
 #define MY_CLASS                 (&status_view_lvgl_class)
@@ -9,7 +9,9 @@
 
 struct StatusView {
     Widget base;
-    lv_obj_t* icon;
+    lv_obj_t* icon_static;
+    AnimPlayer* icon_animated;
+    lv_obj_t* icon_cont;
     lv_obj_t* header;
     lv_obj_t* additional_text;
 };
@@ -46,8 +48,21 @@ Widget* status_view_get_base(StatusView* instance) {
 void status_view_set_icon(StatusView* instance, const char* path) {
     furi_check(instance);
     furi_check(path);
-    lv_image_set_src(instance->icon, NULL);
-    lv_image_set_src(instance->icon, path);
+
+    FuriString* path_temp = furi_string_alloc_set(path);
+    bool is_animated = furi_string_end_with(path_temp, ".anim");
+    furi_string_free(path_temp);
+
+    if(is_animated) {
+        lv_obj_add_flag((lv_obj_t*)instance->icon_static, LV_OBJ_FLAG_HIDDEN);
+        anim_player_set_source(instance->icon_animated, path);
+        lv_obj_remove_flag((lv_obj_t*)instance->icon_animated, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag((lv_obj_t*)instance->icon_animated, LV_OBJ_FLAG_HIDDEN);
+        lv_image_set_src(instance->icon_static, NULL);
+        lv_image_set_src(instance->icon_static, path);
+        lv_obj_remove_flag((lv_obj_t*)instance->icon_static, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 void status_view_set_header(StatusView* instance, const char* header) {
@@ -71,8 +86,12 @@ static void status_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     StatusView* instance = (StatusView*)obj;
 
-    instance->icon = lv_obj_class_create_obj(MY_ICON_CLASS, obj);
-    lv_obj_class_init_obj(instance->icon);
+    instance->icon_cont = lv_obj_class_create_obj(MY_ICON_CLASS, obj);
+    lv_obj_class_init_obj(instance->icon_cont);
+
+    instance->icon_static = lv_image_create(instance->icon_cont);
+    instance->icon_animated = anim_player_alloc((Widget*)instance->icon_cont);
+    lv_obj_add_flag((lv_obj_t*)instance->icon_animated, LV_OBJ_FLAG_HIDDEN);
 
     instance->header = lv_obj_class_create_obj(MY_HEADER_CLASS, obj);
     lv_obj_class_init_obj(instance->header);
@@ -91,7 +110,7 @@ const lv_obj_class_t status_view_lvgl_class = {
 };
 
 const lv_obj_class_t status_view_icon_lvgl_class = {
-    .base_class = &lv_image_class,
+    .base_class = &widget_lvgl_class,
     .name = "status-view-icon",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,

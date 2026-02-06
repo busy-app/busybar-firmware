@@ -44,7 +44,7 @@ static void wifi_scene_forget_on_enter(void* context) {
         dialog_set_options(data->front_dialog, "Forget", "Cancel");
         dialog_set_options(data->back_dialog, "Forget", "Cancel");
 
-        dialog_set_calback(data->front_dialog, wifi_scene_forget_callback, instance);
+        dialog_set_callback(data->front_dialog, wifi_scene_forget_callback, instance);
     });
 }
 
@@ -71,9 +71,11 @@ static bool wifi_scene_forget_on_event(const SceneManagerEvent* event, void* con
         case SceneEventConfirm:
             wifi_model_forget(instance->model);
             desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
+            consumed = true;
             break;
         case SceneEventCancel:
             scene_manager_previous_scene(instance->scene_manager);
+            consumed = true;
             break;
         default:
             break;

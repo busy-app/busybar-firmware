@@ -7,6 +7,8 @@ SettingsAppDescriptor* settings_app_descriptor_alloc(void) {
     desc->menu_extra = furi_string_alloc();
     desc->front_icon = furi_string_alloc();
     desc->back_icon = furi_string_alloc();
+    desc->display_in_menu = true;
+
     return desc;
 }
 
@@ -25,4 +27,5 @@ void settings_app_descriptor_reset(SettingsAppDescriptor* desc) {
     furi_string_reset(desc->menu_extra);
     furi_string_reset(desc->front_icon);
     furi_string_reset(desc->back_icon);
+    desc->display_in_menu = true;
 }

@@ -10,6 +10,9 @@ App(
         "matter_settings",
         "ble_settings",
         "wifi_settings",
+        "account_settings",
+        "time_settings",
+        "system_settings",
     ],
     targets=["f20", "f21", "f22"],
 )

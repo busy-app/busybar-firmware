@@ -2,8 +2,6 @@
 #include "../widgets/wifi_info_view.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/var_item_list.h>
-
 #include <wifi/wifi.h>
 
 typedef enum {
@@ -106,9 +104,11 @@ static bool wifi_scene_info_on_event(const SceneManagerEvent* event, void* conte
             } else {
                 wifi_scene_info_update_ip(instance, data);
             }
+            consumed = true;
             break;
         case SceneEventExit:
             scene_manager_previous_scene(instance->scene_manager);
+            consumed = true;
             break;
         default:
             break;

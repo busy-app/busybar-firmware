@@ -1,6 +1,6 @@
 #include "prompt_overlay.h"
 
-#include <gui/modules/anim_image_i.h>
+#include <gui/modules/anim_player_i.h>
 #include <gui/storage_macros.h>
 
 #define MY_CLASS (&prompt_overlay_lvgl_class)
@@ -18,7 +18,7 @@ typedef enum {
 } PromptOverlayState;
 
 struct PromptOverlay {
-    AnimImage base;
+    AnimPlayer base;
     lv_obj_t* target;
     uint32_t frame_idx;
     PromptOverlayCallback callback;
@@ -27,18 +27,15 @@ struct PromptOverlay {
     uint32_t time;
 };
 
-typedef struct {
-    uint32_t next_frame_idx;
-    int32_t target_offset_px;
-} PromptOverlayFrame;
+static_assert(offsetof(PromptOverlay, base) == 0);
 
-static const PromptOverlayFrame anim_frames[] = {
-    {.next_frame_idx = 6, .target_offset_px = TARGET_Y_OFFSET / 2}, /* frame 2 */
-    {.next_frame_idx = 8, .target_offset_px = TARGET_Y_OFFSET}, /* frame 6 */
-    {.next_frame_idx = 12, .target_offset_px = TARGET_Y_OFFSET / 2}, /* frame 8 */
-    {.next_frame_idx = 24, .target_offset_px = 0}, /* frame 12 */
-    {.next_frame_idx = 30, .target_offset_px = TARGET_Y_OFFSET / 2}, /* frame 24 */
-    {.next_frame_idx = 2, .target_offset_px = 0}, /* frame 30 */
+static const int8_t overlay_offset_animation[] = {
+    [0 ... 1] = 0,
+    [2 ... 5] = TARGET_Y_OFFSET / 2,
+    [6 ... 7] = TARGET_Y_OFFSET,
+    [8 ... 11] = TARGET_Y_OFFSET / 2,
+    [12 ... 23] = 0,
+    [24 ... 29] = TARGET_Y_OFFSET / 2,
 };
 
 const lv_obj_class_t prompt_overlay_lvgl_class;
@@ -48,7 +45,10 @@ const lv_obj_class_t prompt_overlay_lvgl_class;
 static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* event);
 static void prompt_overlay_start_animation(PromptOverlay* instance);
 static void prompt_overlay_set_target_y_offset(PromptOverlay* instance, int32_t offset);
-static uint32_t prompt_overlay_animation_frame_callback(AnimImage* anim, void* context);
+static void prompt_overlay_frame_callback(
+    AnimPlayer* anim_player,
+    const AnimFileFrameInfo* frame,
+    void* context);
 
 // LVGL-specific code
 
@@ -56,10 +56,12 @@ static void prompt_overlay_lvgl_anim_callback(void* context, int32_t value) {
     furi_assert(context);
 
     PromptOverlay* instance = context;
+    AnimPlayer* player = &instance->base;
 
     if(value == PromptOverlayStateAnimBegin) {
         instance->frame_idx = 0;
-        anim_image_start(&instance->base);
+        anim_player_set_section(player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
+        anim_player_start(&instance->base);
 
     } else if(value == PromptOverlayStateAnimEnd) {
         if(instance->callback) {
@@ -75,9 +77,10 @@ static void prompt_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
 
     widget_set_input_feed_callback((Widget*)obj, prompt_overlay_input_callback);
 
-    AnimImage* anim_image = (AnimImage*)obj;
-    anim_image_set_source(anim_image, GUI_ANIM_PATH("wave_invitation_72x16.anim"));
-    anim_image_set_loop(anim_image, false);
+    AnimPlayer* anim_player = (AnimPlayer*)obj;
+    anim_player_set_source(anim_player, GUI_ANIM_PATH("wave_invitation_72x16.anim"));
+    furi_assert(
+        anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
 
     prompt_overlay_start_animation((PromptOverlay*)obj);
 }
@@ -93,8 +96,8 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
         if(event->type == InputTypePress) {
             instance->is_pressed = true;
 
-            AnimImage* anim_image = &instance->base;
-            anim_image_set_range(anim_image, 0, 0, false, true);
+            AnimPlayer* anim_player = &instance->base;
+            anim_player_set_section(anim_player, AnimFilePlayFlagNone, "idle");
 
             lv_obj_t* obj = TO_LV_OBJ(instance);
             lv_anim_delete(obj, prompt_overlay_lvgl_anim_callback);
@@ -117,15 +120,10 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
 }
 
 static void prompt_overlay_start_animation(PromptOverlay* instance) {
-    AnimImage* anim_image = &instance->base;
+    AnimPlayer* anim_player = &instance->base;
+    anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
 
-    const uint32_t frame_count = anim_image_get_frame_count(anim_image);
-    anim_image_set_range(anim_image, 0, frame_count - 1, false, false);
-    anim_image_stop(anim_image);
-
-    const uint32_t init_frame_idx = anim_frames[COUNT_OF(anim_frames) - 1].next_frame_idx;
-    anim_image_set_frame_callback(
-        anim_image, init_frame_idx, prompt_overlay_animation_frame_callback, NULL);
+    anim_player_set_frame_callback(anim_player, prompt_overlay_frame_callback, NULL);
 
     instance->frame_idx = 0;
 
@@ -147,18 +145,25 @@ static void prompt_overlay_set_target_y_offset(PromptOverlay* instance, int32_t 
     }
 }
 
-static uint32_t prompt_overlay_animation_frame_callback(AnimImage* anim_image, void* context) {
-    furi_assert(anim_image);
+static void prompt_overlay_frame_callback(
+    AnimPlayer* anim_player,
+    const AnimFileFrameInfo* frame,
+    void* context) {
+    furi_assert(anim_player);
     UNUSED(context);
 
-    PromptOverlay* instance = (PromptOverlay*)anim_image;
-    const PromptOverlayFrame* frame = &anim_frames[instance->frame_idx++];
+    if(frame->flags & FuriFlagError) return;
 
-    if(!instance->is_pressed) {
-        prompt_overlay_set_target_y_offset(instance, frame->target_offset_px);
+    int8_t offset = 0;
+    if(frame->index < COUNT_OF(overlay_offset_animation)) {
+        offset = overlay_offset_animation[frame->index];
     }
 
-    return frame->next_frame_idx;
+    PromptOverlay* instance = (PromptOverlay*)anim_player;
+
+    if(!instance->is_pressed) {
+        prompt_overlay_set_target_y_offset(instance, offset);
+    }
 }
 
 // Public API
@@ -203,7 +208,7 @@ void prompt_overlay_set_callback(
 // LVGL class descriptor
 
 const lv_obj_class_t prompt_overlay_lvgl_class = {
-    .base_class = &anim_image_lvgl_class,
+    .base_class = &anim_player_lvgl_class,
     .constructor_cb = prompt_overlay_lvgl_constructor,
     .name = "widget-prompt-overlay",
     .width_def = LV_SIZE_CONTENT,

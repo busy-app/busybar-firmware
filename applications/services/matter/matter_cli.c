@@ -148,10 +148,40 @@ static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* conte
     furi_assert(context);
     MatterCli* matter_cli = context;
 
-    if(matter_is_commissioned(matter_cli->matter)) {
-        printf("device is commissioned to one or more fabrics\r\n");
+    size_t count = matter_commissioned_fabrics(matter_cli->matter).count;
+    if(count) {
+        printf("device is commissioned to %zu fabrics\r\n", count);
     } else {
         printf("device is not commissioned to any fabric\r\n");
+    }
+}
+
+static void matter_cli_cmd_cd(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    furi_assert(context);
+    MatterCli* matter_cli = context;
+
+    if(furi_string_empty(args)) {
+        const char* configured = matter_get_wanted_cd_selection(matter_cli->matter);
+        if(!strlen(configured)) configured = "<not set>";
+        printf("configured CD      : %s\r\n", configured);
+        printf(
+            "de facto active CD : %s\r\n", matter_get_de_facto_cd_selection(matter_cli->matter));
+
+        printf("\r\nuse `cd <certificate_name>` to configure new CD\r\n");
+
+        printf("\r\navailable CDs:\r\n");
+        printf("  dev: for in-house development and testing\r\n");
+        printf("  certification: for performing certification testing\r\n");
+        printf("  production: for end users\r\n");
+        return;
+    }
+
+    bool success = matter_set_wanted_cd_selection(matter_cli->matter, furi_string_get_cstr(args));
+    if(success) {
+        printf("Done. Please do a manual hardware reset of both chips.\r\n");
+    } else {
+        printf("Failed to set configuration");
     }
 }
 
@@ -211,8 +241,13 @@ static void matter_cli_motd(void* context) {
 
     FuriString* formatted_state = furi_string_alloc();
 
-    matter_cli_format_switch_state(
-        matter_cli, formatted_state, matter_get_switch_state(matter_cli->matter));
+    bool state;
+    if(matter_get_switch_state(matter_cli->matter, &state)) {
+        matter_cli_format_switch_state(matter_cli, formatted_state, state);
+    } else {
+        furi_string_set_str(formatted_state, "service unavailable");
+    }
+
     printf("  %s\r\n", furi_string_get_cstr(formatted_state));
 
     furi_string_free(formatted_state);
@@ -279,6 +314,12 @@ void matter_cli_command(PipeSide* pipe, FuriString* args, void* context) {
         "fabrics",
         CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
         matter_cli_cmd_fabrics,
+        matter_cli);
+    cli_registry_add_command(
+        matter_cli->commands,
+        "cd",
+        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        matter_cli_cmd_cd,
         matter_cli);
 
     cli_shell_start(matter_cli->shell);

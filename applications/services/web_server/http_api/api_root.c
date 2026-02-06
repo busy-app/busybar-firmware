@@ -360,6 +360,14 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_busy_free,
         .on_request = http_api_busy_callback,
     },
+    {
+        .uri = "matter",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_matter_alloc,
+        .ctx_free = http_api_matter_free,
+        .on_request = http_api_matter_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {
@@ -422,6 +430,18 @@ bool http_api_options_callback(
     UNUSED(msg);
     UNUSED(ctx);
     MG_REPLY_OPTIONS(conn);
+    return true;
+}
+
+bool http_api_options_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(conn);
+    UNUSED(msg);
+    UNUSED(ctx);
     return true;
 }
 

@@ -1,8 +1,11 @@
 #include <intercom/intercom.h>
 #include <toolbox/api_lock.h>
+#include <furi_hal_rtc.h>
+#include <furi_hal_version.h>
 
 #include "matter.h"
 #include "matter_common_i.h"
+#include "matter_cd.h"
 
 #define TAG            "MatterSrv"
 #define FRAME_Q_SIZE   4
@@ -10,14 +13,18 @@
 #define FIRST_TIMEOUT  (furi_ms_to_ticks(5000))
 #define TIMEOUT        (furi_ms_to_ticks(200))
 
+#define DEFAULT_HARDWARE_VERSION        4
+#define DEFAULT_HARDWARE_VERSION_STRING "4.F22.B7.C2"
+
 struct MatterSrv {
     FuriEventLoop* event_loop;
     FuriMessageQueue* frame_queue;
     FuriMessageQueue* request_queue;
     FuriPubSub* pubsub;
     IntercomChannel* intercom_ch;
+    MatterCd cd;
     bool switch_state;
-    uint8_t commissioned_fabrics;
+    MatterCommissionedFabrics fabrics;
     bool first_frame_sent;
 };
 
@@ -31,6 +38,8 @@ static bool matter_pick_frame_of_type(
     void* specific_frame,
     size_t specific_frame_size,
     FuriWait timeout) {
+    furi_assert(matter);
+
     size_t get_result_by = furi_get_tick() + timeout;
     while(furi_get_tick() < get_result_by) {
         FuriWait max_wait = get_result_by - furi_get_tick();
@@ -44,7 +53,8 @@ static bool matter_pick_frame_of_type(
         }
 
         if(frame.type == type) {
-            memcpy(specific_frame, &frame.frame_of_any_type, specific_frame_size);
+            if(specific_frame)
+                memcpy(specific_frame, &frame.frame_of_any_type, specific_frame_size);
             return true;
         }
 
@@ -92,6 +102,8 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
 
     } else if(frame.type == MatterIntercomFrameTypeCommissionStatus) {
         const MatterIntercomCommissionStatusFrame* status = &frame.commission_status;
+        matter->fabrics.last_status = status->status;
+        matter->fabrics.last_status_at = furi_hal_rtc_get_timestamp_ms();
         MatterEvent event = {
             .type = MatterEventTypeCommissioning,
             .commissioning =
@@ -102,10 +114,10 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
         furi_pubsub_publish(matter->pubsub, &event);
 
     } else if(frame.type == MatterIntercomFrameTypeFabricCountUpdate) {
-        matter->commissioned_fabrics = frame.fabric_count.fabric_count;
+        matter->fabrics.count = frame.fabric_count.fabric_count;
 
     } else {
-        furi_crash();
+        FURI_LOG_E(TAG, "Other side is using a different Intercom protocol version");
     }
 }
 
@@ -126,7 +138,7 @@ typedef enum {
     MatterApiRequestTypeSetSwitchStartupMode,
     MatterApiRequestTypeReset,
     MatterApiRequestTypeCommission,
-    MatterApiRequestTypeGetFabricCount,
+    MatterApiRequestTypeGetFabrics,
 } MatterApiRequestType;
 
 typedef struct {
@@ -140,7 +152,7 @@ typedef struct {
             size_t window_duration;
         };
         bool switch_state;
-        uint8_t fabric_count;
+        MatterCommissionedFabrics fabrics;
         MatterSwitchStartupMode startup_mode;
     };
 } MatterApiRequest;
@@ -224,8 +236,8 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
         break;
     }
 
-    case MatterApiRequestTypeGetFabricCount: {
-        request->fabric_count = matter->commissioned_fabrics;
+    case MatterApiRequestTypeGetFabrics: {
+        request->fabrics = matter->fabrics;
         request->success = true;
         break;
     }
@@ -234,8 +246,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
     api_lock_unlock(request->lock);
 }
 
-static FURI_WARN_UNUSED bool
-    matter_synchronous_request(MatterSrv* matter, MatterApiRequest* request) {
+static bool matter_synchronous_request(MatterSrv* matter, MatterApiRequest* request) {
     request->lock = api_lock_alloc_locked();
     furi_check(
         furi_message_queue_put(matter->request_queue, &request, FuriWaitForever) == FuriStatusOk);
@@ -251,13 +262,14 @@ FuriPubSub* matter_get_pubsub(MatterSrv* matter) {
     return matter->pubsub;
 }
 
-bool matter_get_switch_state(MatterSrv* matter) {
+bool matter_get_switch_state(MatterSrv* matter, bool* state) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeGetSwitchState,
     };
     if(!matter_synchronous_request(matter, &request)) return false;
-    return request.switch_state;
+    if(state) *state = request.switch_state;
+    return true;
 }
 
 bool matter_set_switch_state(MatterSrv* matter, bool state) {
@@ -298,18 +310,69 @@ size_t
     return request.window_duration;
 }
 
-bool matter_is_commissioned(MatterSrv* matter) {
+MatterCommissionedFabrics matter_commissioned_fabrics(MatterSrv* matter) {
     furi_check(matter);
     MatterApiRequest request = {
-        .type = MatterApiRequestTypeGetFabricCount,
-    };
-    if(!matter_synchronous_request(matter, &request)) return false;
-    return request.fabric_count > 0;
+        .type = MatterApiRequestTypeGetFabrics,
+        .fabrics = {
+            .count = 0,
+            .last_status = MatterCommissioningStatusMAX,
+            .last_status_at = 0,
+        }};
+    matter_synchronous_request(matter, &request);
+    return request.fabrics;
+}
+
+const char* matter_get_wanted_cd_selection(MatterSrv* matter) {
+    furi_assert(matter);
+    return matter_cd_get_wanted_selection(&matter->cd);
+}
+
+bool matter_set_wanted_cd_selection(MatterSrv* matter, const char* selection) {
+    furi_assert(matter);
+    furi_assert(selection);
+    return matter_cd_set_wanted_selection(&matter->cd, selection);
+}
+
+const char* matter_get_de_facto_cd_selection(MatterSrv* matter) {
+    furi_assert(matter);
+    return matter_cd_get_de_facto_selection(&matter->cd);
 }
 
 // =============
 // Service setup
 // =============
+
+static bool matter_send_initialization_and_await_ready(MatterSrv* matter) {
+    furi_assert(matter);
+    matter_cd_init(&matter->cd);
+
+    MatterIntercomFrame cd_frame;
+    memset(&cd_frame, 0, sizeof(cd_frame));
+    cd_frame.type = MatterIntercomFrameTypeInitialization;
+    MatterIntercomInitializationFrame* init = &cd_frame.initialization;
+
+    matter_cd_prepare_initialization_frame(&matter->cd, init);
+
+    init->hardware_version_num = furi_hal_version_get_hw_version();
+    strcpy(init->hardware_version_str, furi_hal_version_get_hw_version_code());
+
+    // WARNING: this if block is a temporary solution just to pass certification testing,
+    // because our test lab doesn't have samples with provisioned OTP.
+    // TODO: remove this if block and associated defines after we pass certification testing.
+    if(!init->hardware_version_num) {
+        init->hardware_version_num = DEFAULT_HARDWARE_VERSION;
+        strcpy(init->hardware_version_str, DEFAULT_HARDWARE_VERSION_STRING);
+    }
+
+    if(!matter_send_frame(matter, &cd_frame)) return false;
+
+    if(!matter_pick_frame_of_type(
+           matter, MatterIntercomFrameTypeBackendReady, NULL, 0, FIRST_TIMEOUT))
+        return false;
+
+    return true;
+}
 
 MatterSrv* matter_srv_alloc(void) {
     MatterSrv* matter = malloc(sizeof(MatterSrv));
@@ -333,6 +396,9 @@ MatterSrv* matter_srv_alloc(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     matter->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdMatter, matter_forward_frame_to_thread, matter);
+
+    if(!matter_send_initialization_and_await_ready(matter))
+        FURI_LOG_E(TAG, "initialization timed out");
 
     furi_record_create(RECORD_MATTER, matter);
     return matter;
