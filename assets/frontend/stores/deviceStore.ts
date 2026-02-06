@@ -396,10 +396,10 @@ export const useDeviceStore = defineStore('device', () => {
       error: false
     },
     changelog: null as string | null,
-    step: null as UpdateStage | null,
+    step: UpdateStage.IDLE as UpdateStage,
     progress: 0,
     error: {
-      step: null as UpdateStage | null,
+      step: UpdateStage.IDLE as UpdateStage,
       message: null as string | null
     }
   });
@@ -413,9 +413,9 @@ export const useDeviceStore = defineStore('device', () => {
       autoUpdate.value.modals[key as keyof typeof autoUpdate.value.modals] = false;
     }
     autoUpdate.value.changelog = null;
-    autoUpdate.value.step = null;
+    autoUpdate.value.step = UpdateStage.IDLE;
     autoUpdate.value.progress = 0;
-    autoUpdate.value.error.step = null;
+    autoUpdate.value.error.step = UpdateStage.IDLE;
     autoUpdate.value.error.message = null;
   }
   async function fetchAutoUpdateStatus (): Promise<void> {

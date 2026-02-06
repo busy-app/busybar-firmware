@@ -52,11 +52,13 @@
           :data-id="`${props.dataId}-secondary-action`"
           variant="ghost"
           color="neutral"
+          class="min-w-20 justify-center"
         />
         <UButton
           v-bind="props.primaryActionProps"
           :data-id="`${props.dataId}-primary-action`"
           color="neutral"
+          class="min-w-20 justify-center"
         />
       </div>
     </template>

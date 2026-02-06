@@ -22,7 +22,7 @@
           color="neutral"
           label="Update"
           class="justify-center w-20 h-9"
-          @click="deviceStore.autoUpdate.modals.changelog = true"
+          @click="handleUpdateClick"
         />
       </div>
     </template>
@@ -67,6 +67,17 @@ const backgroundGradientClass = computed(() => {
 
   return '';
 });
+
+async function handleUpdateClick () {
+  await deviceStore.fetchDeviceStatus();
+  const charge = deviceStore.deviceStatus?.power?.battery_charge;
+
+  if (charge !== undefined && charge < 40) {
+    deviceStore.autoUpdate.modals.batteryLow = true;
+  } else {
+    deviceStore.autoUpdate.modals.changelog = true;
+  }
+}
 </script>
 
 <style scoped>
