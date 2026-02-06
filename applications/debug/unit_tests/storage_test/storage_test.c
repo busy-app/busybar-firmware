@@ -737,6 +737,30 @@ MU_TEST(test_storage_common_migrate) {
     furi_record_close(RECORD_STORAGE);
 }
 
+
+MU_TEST(test_storage_common_shutdown) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    mu_check(storage_is_read_only(storage->storage + ST_BKP));
+    mu_check(!storage_is_read_only(storage->storage + ST_EXT));
+
+    File *f = storage_file_alloc(storage);
+    mu_check(storage_file_open(f, UNIT_TESTS_PATH("shutdown.test"), FSAM_WRITE, FSOM_CREATE_ALWAYS));
+
+    storage_common_shutdown(storage);
+
+    mu_check(storage_is_read_only(storage->storage + ST_BKP));
+    mu_check(storage_is_read_only(storage->storage + ST_EXT));
+
+    mu_check(!storage_file_is_open(f));
+
+    storage_set_read_only(storage->storage + ST_EXT, false);
+
+    storage_file_free(f);
+
+    furi_record_close(RECORD_STORAGE);
+}
+
 #define MD5_HASH_SIZE (16)
 #include <lib/toolbox/md5_calc.h>
 
@@ -791,6 +815,7 @@ MU_TEST_SUITE(test_data_path) {
 
 MU_TEST_SUITE(test_storage_common) {
     MU_RUN_TEST(test_storage_common_migrate);
+    MU_RUN_TEST(test_storage_common_shutdown);
 }
 
 MU_TEST_SUITE(test_md5_calc_suite) {

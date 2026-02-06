@@ -108,6 +108,8 @@ static bool storage_do_close(Storage* app, StorageData* storage, File* file, boo
     StorageEvent event = {.type = event_type};
     furi_pubsub_publish(app->pubsub, &event);
 
+    file->type = FileTypeClosed;
+
     return ret;
 }
 

@@ -141,7 +141,6 @@ bool storage_file_close(File* file) {
         "File %p - %p closed",
         (void*)((uint32_t)file - SRAM_BASE),
         (void*)(file->file_id - SRAM_BASE));
-    file->type = FileTypeClosed;
 
     return S_RETURN_BOOL;
 }
@@ -385,8 +384,6 @@ bool storage_dir_close(File* file) {
         "Dir %p - %p closed",
         (void*)((uint32_t)file - SRAM_BASE),
         (void*)(file->file_id - SRAM_BASE));
-
-    file->type = FileTypeClosed;
 
     return S_RETURN_BOOL;
 }
