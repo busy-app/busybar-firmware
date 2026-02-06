@@ -48,6 +48,7 @@
         class="flex justify-end gap-2 mt-8"
       >
         <UButton
+          v-if="props.secondaryActionProps"
           v-bind="props.secondaryActionProps"
           :data-id="`${props.dataId}-secondary-action`"
           variant="ghost"
@@ -55,6 +56,7 @@
           class="min-w-20 justify-center"
         />
         <UButton
+          v-if="props.primaryActionProps"
           v-bind="props.primaryActionProps"
           :data-id="`${props.dataId}-primary-action`"
           color="neutral"

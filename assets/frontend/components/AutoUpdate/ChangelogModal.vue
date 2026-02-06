@@ -15,7 +15,7 @@
       <MDC
         v-if="deviceStore.autoUpdate.changelog"
         :value="deviceStore.autoUpdate.changelog"
-        tag="div"
+        tag="article"
       />
     </template>
   </ModalGeneric>

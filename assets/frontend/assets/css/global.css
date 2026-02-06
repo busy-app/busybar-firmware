@@ -47,9 +47,19 @@ button {
   @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
 }
 
-ul {
+article > ul {
   list-style-type: disc;
   padding-left: 1.25rem;
+  margin-bottom: 1rem;
+}
+article > p {
+  margin-bottom: 1rem;
+}
+article a {
+  @apply text-primary underline;
+}
+article > *:last-child {
+  margin-bottom: 0;
 }
 
 @theme {

@@ -521,6 +521,22 @@ export const useDeviceStore = defineStore('device', () => {
       });
   }
 
+  async function abortAutoUpdateDownload () {
+    if (autoUpdate.value.step !== UpdateStage.UPDATING) {
+      console.debug('No update in progress, ignoring abort request');
+      return;
+    }
+    await apiRequest('/api/update/abort_download', { method: 'POST' })
+      .then(() => {
+        console.debug('Auto-update download abort requested');
+        autoUpdate.value.modals.updating = false;
+        autoUpdate.value.step = UpdateStage.IDLE;
+        autoUpdate.value.progress = 0;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t abort update download');
+      });
+  }
   function startAutoUpdate () {
     console.debug('Starting auto-update process');
   }
@@ -651,6 +667,7 @@ export const useDeviceStore = defineStore('device', () => {
     setAutoUpdateBackgroundCheckInterval,
     clearAutoUpdateBackgroundCheckInterval,
     fetchAutoUpdateChangelog,
+    abortAutoUpdateDownload,
     startAutoUpdate,
 
     fileUpdate,
