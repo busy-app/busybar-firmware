@@ -1163,3 +1163,12 @@ void storage_get_next_filename(
 
     furi_string_free(temp_str);
 }
+
+void storage_common_shutdown(Storage* storage) {
+    furi_check(storage);
+
+    S_API_PROLOGUE;
+    SAData data = {};
+    S_API_MESSAGE(StorageCommandCommonShutdown);
+    S_API_EPILOGUE;
+}

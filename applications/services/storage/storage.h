@@ -423,6 +423,13 @@ bool storage_common_equivalent_path(Storage* storage, const char* path1, const c
  */
 bool storage_common_is_subdir(Storage* storage, const char* parent, const char* child);
 
+/**
+ * @brief Put storage in read-only mode and close all files with write access.
+ *
+ * @param storage pointer to a storage API instance.
+ */
+void storage_common_shutdown(Storage* storage);
+
 /******************* Error Functions *******************/
 
 /**

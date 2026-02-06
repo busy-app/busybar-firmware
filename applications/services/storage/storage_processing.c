@@ -85,9 +85,35 @@ static void storage_path_trim_trailing_slashes(FuriString* path) {
     }
 }
 
+static bool storage_do_close(Storage* app, StorageData* storage, File* file, bool pop_file) {
+    bool ret = false;
+    StorageEventType event_type = StorageEventTypeFileClose;
+    switch(file->type) {
+    case FileTypeOpenFile:
+        FS_CALL(storage, file.close(storage, file));
+        event_type = StorageEventTypeFileClose;
+        break;
+    case FileTypeOpenDir:
+        FS_CALL(storage, dir.close(storage, file));
+        event_type = StorageEventTypeDirClose;
+        break;
+    default:
+        file->error_id = FSE_INVALID_PARAMETER;
+        return false;
+    }
+
+    if(pop_file) {
+        storage_pop_storage_file(file, storage);
+    }
+    StorageEvent event = {.type = event_type};
+    furi_pubsub_publish(app->pubsub, &event);
+
+    return ret;
+}
+
 /******************* File Functions *******************/
 
-bool storage_process_file_open(
+static bool storage_process_file_open(
     Storage* app,
     File* file,
     FuriString* path,
@@ -124,18 +150,14 @@ bool storage_process_file_open(
     return ret;
 }
 
-bool storage_process_file_close(Storage* app, File* file) {
+static bool storage_process_file_close(Storage* app, File* file) {
     bool ret = false;
     StorageData* storage = get_storage_by_file(file, app->storage);
 
     if(storage == NULL) {
         file->error_id = FSE_INVALID_PARAMETER;
     } else {
-        FS_CALL(storage, file.close(storage, file));
-        storage_pop_storage_file(file, storage);
-
-        StorageEvent event = {.type = StorageEventTypeFileClose};
-        furi_pubsub_publish(app->pubsub, &event);
+        ret = storage_do_close(app, storage, file, true);
     }
 
     return ret;
@@ -309,11 +331,7 @@ bool storage_process_dir_close(Storage* app, File* file) {
     if(storage == NULL) {
         file->error_id = FSE_INVALID_PARAMETER;
     } else {
-        FS_CALL(storage, dir.close(storage, file));
-        storage_pop_storage_file(file, storage);
-
-        StorageEvent event = {.type = StorageEventTypeDirClose};
-        furi_pubsub_publish(app->pubsub, &event);
+        ret = storage_do_close(app, storage, file, true);
     }
 
     return ret;
@@ -469,6 +487,27 @@ static bool
     } while(false);
 
     return ret;
+}
+
+static void storage_process_shutdown(Storage* app) {
+    for(size_t i = 0; i != COUNT_OF(app->storage); ++i) {
+        StorageData* storage = app->storage + i;
+        StorageFileList_it_t it;
+
+        for(StorageFileList_it(it, storage->files); !StorageFileList_end_p(it);
+            ) {
+            const StorageFile* storage_file = StorageFileList_cref(it);
+
+            if(storage_file->access_mode & FSAM_WRITE) {
+                storage_do_close(app, storage, storage_file->file, false);
+                StorageFileList_remove(storage->files, it);
+            } else {
+                StorageFileList_next(it);
+            }
+        }
+
+        storage->read_only = true;
+    }
 }
 
 /****************** Raw SD API ******************/
@@ -811,6 +850,9 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
         furi_string_free(path2);
         break;
     }
+    case StorageCommandCommonShutdown:
+        storage_process_shutdown(app);
+        break;
 
     // SD operations
     case StorageCommandSDFormat:
