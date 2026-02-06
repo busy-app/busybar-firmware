@@ -48,6 +48,9 @@
             size="lg"
             color="success"
             class="mb-2.5"
+            :ui="{
+              indicator: 'duration-500'
+            }"
           />
 
           <div class="w-full flex justify-end">
@@ -115,7 +118,7 @@ import updateSuccessImage from '@/assets/images/update-success.png';
 import type { UpdateStage } from '@/stores/deviceStore';
 
 const deviceStore = useDeviceStore();
-const step = deviceStore.autoUpdate.step;
+const step = computed(() => deviceStore.autoUpdate.step);
 
 const downloadErrorMarkdown = `
 - Ensure you have a stable internet connection

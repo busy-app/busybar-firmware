@@ -75,7 +75,7 @@ async function handleUpdateClick () {
   if (charge !== undefined && charge < 40) {
     deviceStore.autoUpdate.modals.batteryLow = true;
   } else {
-    deviceStore.autoUpdate.modals.updating = true;
+    deviceStore.autoUpdate.modals.changelog = true;
   }
 }
 </script>

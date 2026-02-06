@@ -17,7 +17,6 @@
         class="justify-center sm:justify-start"
         @click="initFirmwareUpdateFromFile"
       />
-
       <UTooltip
         :text="wifiStore.wifi?.state !== 'connected' ? 'Connect to Wi-Fi to check for updates' : ''"
         :delay-duration="0"
@@ -254,15 +253,6 @@
           </template>
         </template>
       </ModalGeneric>
-
-      <!-- <UButton
-        label="Update"
-        icon="i-ri-download-cloud-line"
-        :ui="{
-          base: 'px-2.5 py-2 rounded-full'
-        }"
-        class="justify-center sm:justify-start"
-      /> -->
     </template>
 
     <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">

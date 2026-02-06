@@ -56,15 +56,10 @@ async function init () {
     await deviceStore.getDeviceStatus();
     await wifiStore.getWifiState();
 
-    // get auto-update status, non-blocking
-    deviceStore.resetAutoUpdateState();
-    deviceStore.fetchAutoUpdateStatus()
-      .finally(() => {
-        // if status is still null after fetching, request a check (handles the case where the device was just powered on and the status is not yet available)
-        if (deviceStore.autoUpdate.status === null) {
-          deviceStore.requestAutoUpdateCheck();
-        }
-      });
+    // request fresh auto-update status, non-blocking
+    if (wifiStore.wifi?.state === 'connected') {
+      deviceStore.fetchAutoUpdateStatus();
+    }
   } catch (error) {
     if ((error as { status: number }).status === 403) {
       return await navigateTo('/login');
@@ -76,11 +71,13 @@ async function init () {
 onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
+  window.addEventListener('wifi-reconnected', deviceStore.requestAutoUpdateCheck);
 });
 
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
   deviceStore.clearAutoUpdateBackgroundCheckInterval();
   window.removeEventListener('device-reconnected', init);
+  window.removeEventListener('wifi-reconnected', deviceStore.requestAutoUpdateCheck);
 });
 </script>

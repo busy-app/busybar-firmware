@@ -99,6 +99,9 @@ export const useDeviceStore = defineStore('device', () => {
       await apiRequest('/api/name', { timeout: 3000 });
       if (!isConnected.value) {
         window.dispatchEvent(new Event('device-reconnected'));
+        if (autoUpdate.value.step === UpdateStage.UPDATING) {
+          autoUpdate.value.step = UpdateStage.SUCCESS;
+        }
       }
       isConnected.value = true;
 
@@ -116,7 +119,7 @@ export const useDeviceStore = defineStore('device', () => {
       }
 
       isConnected.value = false;
-      if (fileUpdate.value.stage === 'idle' || fileUpdate.value.stage === 'error') {
+      if (autoUpdate.value.step !== UpdateStage.UPDATING && (fileUpdate.value.stage === 'idle' || fileUpdate.value.stage === 'error')) {
         toast.add({
           id: 'device-disconnected',
           title: 'Device disconnected',
@@ -141,7 +144,15 @@ export const useDeviceStore = defineStore('device', () => {
     toast.remove('device-disconnected');
 
     await fetchDeviceStatus();
-    await wifiStore.fetchWifiState();
+    const oldWifiState = wifiStore.wifi?.state;
+    const newState = await wifiStore.fetchWifiState();
+    if (oldWifiState !== newState?.state) {
+      if (newState?.state === 'connected') {
+        window.dispatchEvent(new Event('wifi-reconnected'));
+      } else {
+        window.dispatchEvent(new Event('wifi-disconnected'));
+      }
+    }
     await fetchHttpAPIAccess();
   }
   function setRefreshInterval () {
@@ -392,12 +403,12 @@ export const useDeviceStore = defineStore('device', () => {
     modals: {
       changelog: false,
       batteryLow: false,
-      updating: false,
-      error: false
+      updating: false
     },
     changelog: null as string | null,
     step: UpdateStage.IDLE as UpdateStage,
     progress: 0,
+    progressPollingInterval: null as NodeJS.Timeout | null,
     error: {
       step: UpdateStage.IDLE as UpdateStage,
       message: null as string | null
@@ -407,14 +418,13 @@ export const useDeviceStore = defineStore('device', () => {
     autoUpdate.value.status = null;
     autoUpdate.value.availableVersion = null;
     autoUpdate.value.isAllowed = null;
-    autoUpdate.value.isChecking = false;
-    autoUpdate.value.isManualCheck = false;
-    for (const key in autoUpdate.value.modals) {
-      autoUpdate.value.modals[key as keyof typeof autoUpdate.value.modals] = false;
-    }
     autoUpdate.value.changelog = null;
-    autoUpdate.value.step = UpdateStage.IDLE;
+    // autoUpdate.value.step = UpdateStage.IDLE;
     autoUpdate.value.progress = 0;
+    if (autoUpdate.value.progressPollingInterval) {
+      clearInterval(autoUpdate.value.progressPollingInterval);
+      autoUpdate.value.progressPollingInterval = null;
+    }
     autoUpdate.value.error.step = UpdateStage.IDLE;
     autoUpdate.value.error.message = null;
   }
@@ -484,6 +494,7 @@ export const useDeviceStore = defineStore('device', () => {
       console.debug('Already checking for updates, ignoring request');
       return;
     }
+    autoUpdate.value.isChecking = true;
     resetAutoUpdateState();
 
     return apiRequest('/api/update/check', { method: 'POST', timeout: 10000 })
@@ -494,7 +505,7 @@ export const useDeviceStore = defineStore('device', () => {
       })
       .catch(async error => {
         autoUpdate.value.isChecking = false;
-        await handleHTTPError(error, 'Couldn\'t initiate update check');
+        await handleHTTPError(error, 'Update check request failed');
       });
   }
   function setAutoUpdateBackgroundCheckInterval () {
@@ -521,6 +532,15 @@ export const useDeviceStore = defineStore('device', () => {
       });
   }
 
+  async function requestAutoUpdateInstallation () {
+    if (!autoUpdate.value.availableVersion) {
+      console.error('No available version to install');
+      return;
+    }
+    console.debug('Requesting auto-update installation');
+
+    return apiRequest(`/api/update/install?version=${autoUpdate.value.availableVersion}`, { method: 'POST', timeout: 10000 });
+  }
   async function abortAutoUpdateDownload () {
     if (autoUpdate.value.step !== UpdateStage.UPDATING) {
       console.debug('No update in progress, ignoring abort request');
@@ -537,8 +557,50 @@ export const useDeviceStore = defineStore('device', () => {
         await handleHTTPError(error, 'Couldn\'t abort update download');
       });
   }
-  function startAutoUpdate () {
+  async function startAutoUpdate () {
     console.debug('Starting auto-update process');
+
+    // enable first step before sending the request to activate loading state
+    autoUpdate.value.step = UpdateStage.UPLOADING;
+
+    await requestAutoUpdateInstallation()
+      .catch(async error => {
+        await handleHTTPError(error, 'Update failed');
+        return;
+      });
+
+    autoUpdate.value.progressPollingInterval = setInterval(async () => {
+      await apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
+        .then(status => {
+          if (status.install.status !== UpdateStatusCode.OK && status.install.status !== UpdateStatusCode.BUSY) {
+            console.error('Update failed with status:', status);
+            autoUpdate.value.error.step = autoUpdate.value.step;
+            autoUpdate.value.error.message = `Update failed: ${status.install.status}`;
+            autoUpdate.value.step = UpdateStage.ERROR;
+            clearInterval(autoUpdate.value.progressPollingInterval!);
+            return;
+          }
+
+          if (status.install.action === UpdateAction.DOWNLOAD) {
+            autoUpdate.value.step = UpdateStage.UPLOADING;
+            if (status.install.download.total_bytes > 0) {
+              autoUpdate.value.progress = Math.round((status.install.download.received_bytes / status.install.download.total_bytes) * 100);
+            }
+          } else if (status.install.action !== UpdateAction.NONE) {
+            autoUpdate.value.step = UpdateStage.UPDATING;
+            autoUpdate.value.progress = 0;
+            clearInterval(autoUpdate.value.progressPollingInterval!);
+          }
+        })
+        .catch(async error => {
+          await handleHTTPError(error, 'Couldn\'t fetch update status');
+          autoUpdate.value.step = UpdateStage.ERROR;
+          clearInterval(autoUpdate.value.progressPollingInterval!);
+        });
+    }, 1000);
+
+    autoUpdate.value.modals.changelog = false;
+    autoUpdate.value.modals.updating = true;
   }
 
   const fileUpdate = ref({
