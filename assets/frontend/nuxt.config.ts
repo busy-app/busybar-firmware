@@ -6,12 +6,7 @@ const BUILD_ID = process.env.BUILD_ID || 'bsb-frontend';
 export default defineNuxtConfig({
   // use provided build id (e.g. commit hash) or default to a static one
   buildId: BUILD_ID,
-  modules: [
-    '@nuxt/ui',
-    '@nuxt/eslint',
-    '@pinia/nuxt',
-    'pinia-plugin-persistedstate/nuxt'
-  ],
+  modules: ['@nuxt/ui', '@nuxt/eslint', '@pinia/nuxt', 'pinia-plugin-persistedstate/nuxt', '@nuxtjs/mdc'],
   ssr: false,
   imports: {
     dirs: ['./util']

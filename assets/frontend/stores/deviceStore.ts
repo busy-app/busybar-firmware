@@ -71,7 +71,6 @@ export type UpdateCheckResult = 'available' | 'not_available' | 'failure' | 'non
 interface UpdateCheckStatus {
   available_version: string;
   event: 'start' | 'stop' | 'none';
-  // ! fw bug: requests have the status field instead of result (specified in openapi spec)
   status: UpdateCheckResult;
 }
 export interface UpdateStatus {
@@ -388,8 +387,37 @@ export const useDeviceStore = defineStore('device', () => {
 
     isChecking: false,
     isManualCheck: false,
-    backgroundCheckInterval: null as NodeJS.Timeout | null
+    backgroundCheckInterval: null as NodeJS.Timeout | null,
+
+    modals: {
+      changelog: false,
+      batteryLow: false,
+      updating: false,
+      error: false
+    },
+    changelog: null as string | null,
+    step: null as UpdateStage | null,
+    progress: 0,
+    error: {
+      step: null as UpdateStage | null,
+      message: null as string | null
+    }
   });
+  function resetAutoUpdateState () {
+    autoUpdate.value.status = null;
+    autoUpdate.value.availableVersion = null;
+    autoUpdate.value.isAllowed = null;
+    autoUpdate.value.isChecking = false;
+    autoUpdate.value.isManualCheck = false;
+    for (const key in autoUpdate.value.modals) {
+      autoUpdate.value.modals[key as keyof typeof autoUpdate.value.modals] = false;
+    }
+    autoUpdate.value.changelog = null;
+    autoUpdate.value.step = null;
+    autoUpdate.value.progress = 0;
+    autoUpdate.value.error.step = null;
+    autoUpdate.value.error.message = null;
+  }
   async function fetchAutoUpdateStatus (): Promise<void> {
     return apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
       .then(async status => {
@@ -411,6 +439,12 @@ export const useDeviceStore = defineStore('device', () => {
         }
 
         if (status.check.event !== 'stop' && status.check.status === 'none') {
+          if (status.check.event === 'none') {
+            // update check never started
+            console.debug('Empty auto update status, requesting update check');
+            return requestAutoUpdateCheck();
+          }
+
           // update check is still in progress
           console.debug('Auto-update check still in progress, fetching status again');
           await new Promise(resolve => {
@@ -435,6 +469,10 @@ export const useDeviceStore = defineStore('device', () => {
         }
 
         console.debug('Auto-update check completed', status);
+
+        if (autoUpdate.value.availableVersion) {
+          return fetchAutoUpdateChangelog(autoUpdate.value.availableVersion);
+        }
       })
       .catch(async error => {
         autoUpdate.value.isChecking = false;
@@ -446,9 +484,7 @@ export const useDeviceStore = defineStore('device', () => {
       console.debug('Already checking for updates, ignoring request');
       return;
     }
-    autoUpdate.value.isChecking = true;
-    autoUpdate.value.availableVersion = null;
-    autoUpdate.value.isAllowed = null;
+    resetAutoUpdateState();
 
     return apiRequest('/api/update/check', { method: 'POST', timeout: 10000 })
       .then(async () => {
@@ -472,6 +508,21 @@ export const useDeviceStore = defineStore('device', () => {
       clearInterval(autoUpdate.value.backgroundCheckInterval);
       autoUpdate.value.backgroundCheckInterval = null;
     }
+  }
+
+  async function fetchAutoUpdateChangelog (version: string) {
+    await apiRequest<{ changelog: string }>(`/api/update/changelog?version=${version}`)
+      .then(response => {
+        autoUpdate.value.changelog = response.changelog;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t fetch update changelog');
+        return null;
+      });
+  }
+
+  function startAutoUpdate () {
+    console.debug('Starting auto-update process');
   }
 
   const fileUpdate = ref({
@@ -594,10 +645,14 @@ export const useDeviceStore = defineStore('device', () => {
     setAudioVolume,
 
     autoUpdate,
+    resetAutoUpdateState,
     fetchAutoUpdateStatus,
     requestAutoUpdateCheck,
     setAutoUpdateBackgroundCheckInterval,
     clearAutoUpdateBackgroundCheckInterval,
+    fetchAutoUpdateChangelog,
+    startAutoUpdate,
+
     fileUpdate,
     uploadFirmware
   };

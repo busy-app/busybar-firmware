@@ -22,6 +22,7 @@
           color="neutral"
           label="Update"
           class="justify-center w-20 h-9"
+          @click="deviceStore.autoUpdate.modals.changelog = true"
         />
       </div>
     </template>

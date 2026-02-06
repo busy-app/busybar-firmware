@@ -47,6 +47,11 @@ button {
   @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
 }
 
+ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+}
+
 @theme {
   --ring-glass: 1px;
   --ring-glass-0: 0px;

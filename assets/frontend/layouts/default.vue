@@ -12,6 +12,8 @@
         <PasswordUpdateModal />
         <PasswordRemoveModal />
 
+        <AutoUpdateChangelogModal />
+
         <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
           <DefaultLayoutTabs />
           <div class="w-full max-w-[688px] flex flex-col gap-4 mx-auto">
@@ -53,6 +55,7 @@ async function init () {
     await wifiStore.getWifiState();
 
     // get auto-update status, non-blocking
+    deviceStore.resetAutoUpdateState();
     deviceStore.fetchAutoUpdateStatus()
       .finally(() => {
         // if status is still null after fetching, request a check (handles the case where the device was just powered on and the status is not yet available)

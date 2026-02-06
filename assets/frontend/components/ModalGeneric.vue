@@ -8,7 +8,7 @@
     "
     :title="props.title"
     :ui="{
-      content: `${props.wide ? 'max-w-[640px]' : 'max-w-[360px]'} divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass`,
+      content: `${props.wide ? 'max-w-[640px]' : 'max-w-[480px]'} divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass`,
       description: 'hidden',
       header: 'min-h-20',
       body: 'pt-0 sm:pt-0 overflow-y-auto',
@@ -56,6 +56,7 @@
         <UButton
           v-bind="props.primaryActionProps"
           :data-id="`${props.dataId}-primary-action`"
+          color="neutral"
         />
       </div>
     </template>
