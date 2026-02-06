@@ -186,7 +186,7 @@ static void this_setup_app_descriptor(SettingsAppDescriptor* descriptor) {
     furi_record_close(RECORD_UPDATER);
 
     if(updater_check_state.result == UpdaterCheckResultAvailable) {
-        furi_string_set_str(descriptor->menu_extra, "Update");
+        furi_string_set_str(descriptor->menu_extra, "New");
     }
 }
 
