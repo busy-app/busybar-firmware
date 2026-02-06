@@ -148,10 +148,17 @@ static void busy_scene_timer_update_lights(BusyApp* instance) {
     }
 }
 
-static void busy_scene_timer_update_matter(BusyApp* app) {
-    const BusySceneTimer* scene =
-        scene_manager_get_scene_data(app->scene_manager, BusyAppSceneIdTimer);
-    busy_set_matter(app, (scene->timer_state == BusyTimerStateWork) && !scene->is_paused);
+static void busy_scene_timer_update_matter(BusyApp* instance) {
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+    busy_set_matter(instance, (data->timer_state == BusyTimerStateWork) && !data->is_paused);
+}
+
+static void busy_scene_timer_update_front_display_blanking(BusyApp* instance) {
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+    busy_set_front_display_blanking(
+        instance, data->timer_state != BusyTimerStateWork || data->is_paused);
 }
 
 static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
@@ -266,6 +273,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
     busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_matter(instance);
+    busy_scene_timer_update_front_display_blanking(instance);
 }
 
 static void busy_scene_timer_handle_pause(BusyApp* instance) {
@@ -280,6 +288,7 @@ static void busy_scene_timer_handle_pause(BusyApp* instance) {
 
     busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_matter(instance);
+    busy_scene_timer_update_front_display_blanking(instance);
 }
 
 static void busy_scene_timer_handle_skip(BusyApp* instance) {
@@ -358,6 +367,8 @@ static void busy_scene_timer_handle_interval_ended(BusyApp* instance) {
     }
 
     busy_prepare_transition(instance, transition_type);
+    busy_set_front_display_blanking(instance, true);
+
     scene_manager_next_scene(instance->scene_manager, next_scene_id);
 }
 
