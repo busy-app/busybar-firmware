@@ -44,7 +44,7 @@ static void about_scene_firmware_on_enter(void* context) {
     uint32_t uptime_s = furi_get_tick() / furi_kernel_get_tick_frequency();
     uint32_t minutes = uptime_s / 60;
     uint32_t hours = minutes / 60;
-    uint32_t days = minutes / 24;
+    uint32_t days = hours / 24;
     furi_string_cat_printf(
         scene->firmware_info_str,
         GREY_TEXT("Uptime:") " %lud %02luh %02lum\n",

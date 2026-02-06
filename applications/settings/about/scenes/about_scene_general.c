@@ -7,13 +7,50 @@
 
 #include <furi_hal_version.h>
 
-#define MAC_ADDRESS_LEN (6)
-#define GREY_TEXT(text) "#888888 " text "#"
+#define MAC_ADDRESS_LEN            (6)
+#define SERIAL_NUMBER_NEW_LINE_POS (8)
+#define GREY_TEXT(text)            "#888888 " text "#"
 
 typedef struct {
     Label* general_info[GuiDisplayIdMax];
     FuriString* general_info_str;
 } AboutSceneGeneral;
+
+static void about_scene_general_fill_name(FuriString* info) {
+    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
+    device_name_get(device_name, info);
+    furi_record_close(RECORD_DEVICE_NAME);
+}
+
+static void about_scene_general_fill_serial_number(FuriString* info) {
+    size_t serial_num_arr_len = furi_hal_version_uid_size();
+    const uint8_t* serial_num_arr = furi_hal_version_uid();
+    furi_string_reset(info);
+    for(size_t i = 0; i < serial_num_arr_len; i++) {
+        furi_string_cat_printf(info, "%02x", serial_num_arr[i]);
+        if(i == SERIAL_NUMBER_NEW_LINE_POS) {
+            furi_string_cat_str(info, "\n");
+        }
+    }
+}
+
+static void about_scene_general_fill_hardware_version(FuriString* info) {
+    furi_string_printf(
+        info,
+        "%u.F%uB%uC%u",
+        furi_hal_version_get_hw_version(),
+        furi_hal_version_get_hw_target(),
+        furi_hal_version_get_hw_body(),
+        furi_hal_version_get_hw_connect());
+}
+
+static void about_scene_general_fill_mac_address(FuriString* info) {
+    const uint8_t* usb_mac = furi_hal_version_get_usb_mac();
+    furi_string_printf(info, "%02x", usb_mac[0]);
+    for(size_t i = 1; i < MAC_ADDRESS_LEN; i++) {
+        furi_string_cat_printf(info, ":%02x", usb_mac[i]);
+    }
+}
 
 static void about_scene_general_on_enter(void* context) {
     furi_assert(context);
@@ -22,50 +59,25 @@ static void about_scene_general_on_enter(void* context) {
     AboutSceneGeneral* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdGeneral);
     scene->general_info_str = furi_string_alloc();
-
-    // Name
     FuriString* temp_str = furi_string_alloc();
-    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
-    device_name_get(device_name, temp_str);
-    furi_record_close(RECORD_DEVICE_NAME);
+
+    about_scene_general_fill_name(temp_str);
     furi_string_printf(
         scene->general_info_str, GREY_TEXT("Name:") " %s\n", furi_string_get_cstr(temp_str));
 
-    // Serial number
-    furi_string_reset(temp_str);
-    size_t serial_num_arr_len = furi_hal_version_uid_size();
-    const uint8_t* serial_num_arr = furi_hal_version_uid();
-    for(size_t i = 0; i < serial_num_arr_len; i++) {
-        furi_string_cat_printf(temp_str, "%02x", serial_num_arr[i]);
-        if(i == 8) {
-            furi_string_cat_str(temp_str, "\n");
-        }
-    }
+    about_scene_general_fill_serial_number(temp_str);
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Serial number:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
-    // Hardware version
-    furi_string_printf(
-        temp_str,
-        "%u.F%uB%uC%u",
-        furi_hal_version_get_hw_version(),
-        furi_hal_version_get_hw_target(),
-        furi_hal_version_get_hw_body(),
-        furi_hal_version_get_hw_connect());
+    about_scene_general_fill_hardware_version(temp_str);
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Hardware version:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
-    // Mac address [Wi-Fi]
-    furi_string_reset(temp_str);
-    const uint8_t* usb_mac = furi_hal_version_get_usb_mac();
-    furi_string_printf(temp_str, "%02x", usb_mac[0]);
-    for(size_t i = 1; i < MAC_ADDRESS_LEN; i++) {
-        furi_string_cat_printf(temp_str, ":%02x", usb_mac[i]);
-    }
+    about_scene_general_fill_mac_address(temp_str);
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Mac address [USB]:") "\n%s\n",
