@@ -494,8 +494,7 @@ static void storage_process_shutdown(Storage* app) {
         StorageData* storage = app->storage + i;
         StorageFileList_it_t it;
 
-        for(StorageFileList_it(it, storage->files); !StorageFileList_end_p(it);
-            ) {
+        for(StorageFileList_it(it, storage->files); !StorageFileList_end_p(it);) {
             const StorageFile* storage_file = StorageFileList_cref(it);
 
             if(storage_file->access_mode & FSAM_WRITE) {
@@ -508,6 +507,7 @@ static void storage_process_shutdown(Storage* app) {
 
         storage->read_only = true;
     }
+    FURI_LOG_I(TAG, "Storage shutdown done");
 }
 
 /****************** Raw SD API ******************/
