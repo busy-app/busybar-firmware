@@ -6,7 +6,7 @@
     <UContainer>
       <template v-if="shouldLoadDefaultPage">
         <DefaultLayoutHeader />
-        <DefaultLayoutPreview class="pb-10" />
+        <DefaultLayoutPreview class="pb-6" />
 
         <PasswordSetModal />
         <PasswordUpdateModal />
@@ -14,7 +14,8 @@
 
         <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
           <DefaultLayoutTabs />
-          <div class="w-full max-w-[688px] mx-auto">
+          <div class="w-full max-w-[688px] flex flex-col gap-4 mx-auto">
+            <DefaultLayoutUpdateBanner />
             <slot />
           </div>
         </div>
