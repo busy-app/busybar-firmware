@@ -51,14 +51,14 @@ async function init () {
     await deviceStore.getDeviceStatus();
     await wifiStore.getWifiState();
 
-    // get auto-update status
-    await deviceStore.fetchAutoUpdateStatus();
-    // if status is unknown, request a check after a delay
-    if (deviceStore.autoUpdate.isAllowed === null) {
-      setTimeout(() => {
-        deviceStore.requestAutoUpdateCheck();
-      }, 5000);
-    }
+    // get auto-update status, non-blocking
+    deviceStore.fetchAutoUpdateStatus()
+      .finally(() => {
+        // if status is still null after fetching, request a check (handles the case where the device was just powered on and the status is not yet available)
+        if (deviceStore.autoUpdate.status === null) {
+          deviceStore.requestAutoUpdateCheck();
+        }
+      });
   } catch (error) {
     if ((error as { status: number }).status === 403) {
       return await navigateTo('/login');

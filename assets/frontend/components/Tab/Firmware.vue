@@ -5,8 +5,6 @@
     :subtitle="fwVersionPolifilled"
     icon="i-bi-firmware-fill"
   >
-    {{ deviceStore.autoUpdate.availableVersion }}
-    {{ deviceStore.autoUpdate.isAllowed }}
     <template #actions>
       <UButton
         data-id="firmware-section-primary-update-from-file-button"

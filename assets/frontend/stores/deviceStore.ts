@@ -71,9 +71,8 @@ export type UpdateCheckResult = 'available' | 'not_available' | 'failure' | 'non
 interface UpdateCheckStatus {
   available_version: string;
   event: 'start' | 'stop' | 'none';
-  result?: UpdateCheckResult;
   // ! fw bug: requests have the status field instead of result (specified in openapi spec)
-  status?: UpdateCheckResult;
+  status: UpdateCheckResult;
 }
 export interface UpdateStatus {
   install: UpdateInstallStatus;
@@ -394,7 +393,7 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchAutoUpdateStatus (): Promise<void> {
     return apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
       .then(async status => {
-        if (status.check.result === 'failure' || status.check.status === 'failure') {
+        if (status.check.status === 'failure') {
           // auto-update check failed (e.g. no internet connection)
           console.warn('Auto-update check failed', status);
           autoUpdate.value.isChecking = false;
@@ -411,21 +410,21 @@ export const useDeviceStore = defineStore('device', () => {
           return;
         }
 
-        if (status.check.event !== 'stop' && (status.check.result === 'none' || status.check.status === 'none')) {
+        if (status.check.event !== 'stop' && status.check.status === 'none') {
           // update check is still in progress
           console.debug('Auto-update check still in progress, fetching status again');
           await new Promise(resolve => {
-            setTimeout(resolve, 1000);
+            setTimeout(resolve, 3000);
           });
           return fetchAutoUpdateStatus();
         }
         autoUpdate.value.isChecking = false;
 
-        autoUpdate.value.status = status.check.result || status.check.status || null;
+        autoUpdate.value.status = status.check.status || null;
         autoUpdate.value.availableVersion = status.check.available_version || null;
         autoUpdate.value.isAllowed = status.install.is_allowed;
 
-        if (autoUpdate.value.isManualCheck && (status.check.result === 'not_available' || status.check.status === 'not_available')) {
+        if (autoUpdate.value.isManualCheck && status.check.status === 'not_available') {
           autoUpdate.value.isManualCheck = false;
           toast.add({
             title: 'Your firmware version is up to date',
