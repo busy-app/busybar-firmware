@@ -13,12 +13,7 @@ typedef struct FURI_PACKED {
     uint8_t properties;
     uint16_t value_handle;
     uint8_t uuid[];
-    // union uuid_t {
-    //     uuid128_t val128;
-    //     uuid32_t val32;
-    //     uuid16_t val16;
-    // } val;
-} BleCharacteristicData;
+} BleCharacteristicInfo;
 
 typedef enum {
     BleItemTypeService,
@@ -88,7 +83,7 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
             ble_data_cat_printf(str, value.data, value.data_len, "\e[36mService: \e[0m", true);
             expected_type = BleItemTypeCharacteristic;
         } else if(expected_type == BleItemTypeCharacteristic) {
-            BleCharacteristicData* char_descr = (BleCharacteristicData*)value.data;
+            BleCharacteristicInfo* char_descr = (BleCharacteristicInfo*)value.data;
             uint8_t uuid_len = value.data_len - 3;
 
             ble_data_cat_printf(str, char_descr->uuid, uuid_len, "Char: ", true);
@@ -187,7 +182,7 @@ bool ble_find_characteristic_value_handle_by_uiid(
 
             expected_type = BleItemTypeCharacteristic;
         } else if(expected_type == BleItemTypeCharacteristic) {
-            BleCharacteristicData* char_descr = (BleCharacteristicData*)value.data;
+            BleCharacteristicInfo* char_descr = (BleCharacteristicInfo*)value.data;
 
             buf.size = value.data_len - 3;
             memcpy(&buf.val, char_descr->uuid, buf.size);
