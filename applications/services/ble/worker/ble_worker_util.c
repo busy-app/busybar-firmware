@@ -11,6 +11,7 @@
 
 #define TAG "BleUtil"
 
+#define BLE_TAKE_NEXT_HANDLE_ERROR_MAX (3)
 
 typedef struct FURI_PACKED {
     uint8_t properties;
@@ -54,10 +55,11 @@ static void ble_data_cat_printf(
         ble_data_cat_printf_reverse(data, length, output);
 }
 
-void ble_print_service_hierarchy(uint16_t last_handle) {
+void ble_print_service_hierarchy(void) {
     FuriString* str = furi_string_alloc();
 
     uint16_t handle = 0x0001;
+    uint8_t error_cnt = 0;
     BleItemType expected_type = BleItemTypeService;
     BLE_LOG_I("=========BLE service hierarchy===========");
     while(true) {
@@ -65,7 +67,7 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
         rsi_ble_resp_local_att_value_t value;
         int32_t res = rsi_ble_get_local_att_value(handle, &value);
 
-        if(handle > last_handle) {
+        if(error_cnt > BLE_TAKE_NEXT_HANDLE_ERROR_MAX) {
             BLE_LOG_I("Exit");
             break;
         }
@@ -73,6 +75,7 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
         if(res != RSI_SUCCESS || value.handle == 0) {
             BLE_LOG_D("Take next handle, res: %08lX", res);
             handle++;
+            error_cnt++;
             continue;
         }
 
