@@ -4,10 +4,13 @@
 #include <sl_wifi.h>
 #include <sl_wifi_callback_framework.h>
 
-#include "ble_config.h"
+#include "../ble_common.h"
 #include "rsi_ble_apis.h"
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
+
+#define TAG "BleUtil"
+
 
 typedef struct FURI_PACKED {
     uint8_t properties;
@@ -56,19 +59,19 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
 
     uint16_t handle = 0x0001;
     BleItemType expected_type = BleItemTypeService;
-    FURI_LOG_I("BLE", "=========BLE service hierarchy===========");
+    BLE_LOG_I("=========BLE service hierarchy===========");
     while(true) {
         bool skip_increment = false;
         rsi_ble_resp_local_att_value_t value;
         int32_t res = rsi_ble_get_local_att_value(handle, &value);
 
         if(handle > last_handle) {
-            FURI_LOG_I("BLE", "Exit");
+            BLE_LOG_I("Exit");
             break;
         }
 
         if(res != RSI_SUCCESS || value.handle == 0) {
-            FURI_LOG_I("BLE", "Take next handle, res: %08lX", res);
+            BLE_LOG_D("Take next handle, res: %08lX", res);
             handle++;
             continue;
         }
@@ -117,7 +120,7 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
 
         if(!skip_increment) handle++;
 
-        FURI_LOG_I("BLE", "%s", furi_string_get_cstr(str));
+        BLE_LOG_I("%s", furi_string_get_cstr(str));
         furi_string_reset(str);
     }
     furi_string_free(str);
@@ -160,12 +163,12 @@ bool ble_find_characteristic_value_handle_by_uiid(
         int32_t res = rsi_ble_get_local_att_value(handle, &value);
 
         if(handle > last_handle) {
-            FURI_LOG_I("BLE", "Exit");
+            BLE_LOG_I("Exit");
             break;
         }
 
         if(res != RSI_SUCCESS || value.handle == 0) {
-            FURI_LOG_I("BLE", "Take next handle");
+            BLE_LOG_D("Take next handle");
             handle++;
             continue;
         }
