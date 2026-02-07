@@ -3,6 +3,8 @@
 #include "worker/ble_worker.h"
 #include "worker/ble_worker_util.h"
 
+//#define BLE_DEBUG_PRINT_SERVICE_DATA_AFTER_INIT
+
 #define TAG "BLE_917"
 
 BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) {
@@ -53,8 +55,10 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
 
     if(total_ready == BLE_SERVICES_COUNT) {
         instance->state = BleServiceStateReady;
-        ble_print_service_hierarchy(0x0027);
         ble_set_service_post_process_callback(instance, NULL);
+#ifdef BLE_DEBUG_PRINT_SERVICE_DATA_AFTER_INIT
+        ble_print_service_hierarchy();
+#endif
     }
 }
 
