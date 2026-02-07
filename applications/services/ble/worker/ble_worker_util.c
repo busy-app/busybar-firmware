@@ -61,6 +61,7 @@ void ble_print_service_hierarchy(void) {
     uint16_t handle = 0x0001;
     uint8_t error_cnt = 0;
     BleItemType expected_type = BleItemTypeService;
+    bool descriptor_present = false;
     BLE_LOG_I("=========BLE service hierarchy===========");
     while(true) {
         bool skip_increment = false;
@@ -99,26 +100,26 @@ void ble_print_service_hierarchy(void) {
                 char_descr->properties,
                 char_descr->value_handle);
 
-            if((char_descr->properties & RSI_BLE_ATT_PROPERTY_INDICATE) ||
-               (char_descr->properties & RSI_BLE_ATT_PROPERTY_NOTIFY)) {
-                expected_type = BleItemTypeCharacteristicDescriptor;
-            } else {
-                expected_type = BleItemTypeValue;
-            }
+            descriptor_present =
+                ((char_descr->properties & RSI_BLE_ATT_PROPERTY_INDICATE) ||
+                 (char_descr->properties & RSI_BLE_ATT_PROPERTY_NOTIFY));
+
+            expected_type = BleItemTypeValue;
 
             if(char_descr->value_handle != 0) {
                 handle = char_descr->value_handle;
                 skip_increment = true;
             }
-
-        } else if(expected_type == BleItemTypeCharacteristicDescriptor) {
-            ble_data_cat_printf(str, value.data, value.data_len, "Descriptor: ", false);
-            expected_type = BleItemTypeValue;
-
         } else if(expected_type == BleItemTypeValue) {
             ble_data_cat_printf(str, value.data, value.data_len, "Data: ", false);
+            expected_type = descriptor_present ? BleItemTypeCharacteristicDescriptor :
+                                                 BleItemTypeService;
+        } else if(expected_type == BleItemTypeCharacteristicDescriptor) {
+            ble_data_cat_printf(str, value.data, value.data_len, "Descriptor: ", false);
             furi_string_cat_printf(str, "\n");
+
             expected_type = BleItemTypeService;
+            descriptor_present = false;
         }
 
         if(!skip_increment) handle++;
