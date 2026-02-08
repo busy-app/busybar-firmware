@@ -58,7 +58,7 @@
               color="neutral"
               variant="ghost"
               label="Cancel"
-              @click="deviceStore.abortAutoUpdateDownload()"
+              @click="deviceStore.abortAutoUpdateDownload"
             />
           </div>
         </template>

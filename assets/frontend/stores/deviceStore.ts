@@ -11,7 +11,6 @@ import type {
   AudioVolumeInfo
 } from '@busy-app/busy-lib';
 
-// export type FileUpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
 enum UpdateEvent {
   SESSION_START = 'session_start',
   SESSION_STOP = 'session_stop',
@@ -119,7 +118,11 @@ export const useDeviceStore = defineStore('device', () => {
       }
 
       isConnected.value = false;
-      if (autoUpdate.value.step !== UpdateStage.UPDATING && (fileUpdate.value.stage === 'idle' || fileUpdate.value.stage === 'error')) {
+      if (
+        autoUpdate.value.step !== UpdateStage.UPDATING
+        && !(autoUpdate.value.step === UpdateStage.SUCCESS && wifiStore.wifi?.state !== 'connected')
+        && (fileUpdate.value.stage === 'idle' || fileUpdate.value.stage === 'error')
+      ) {
         toast.add({
           id: 'device-disconnected',
           title: 'Device disconnected',
@@ -495,7 +498,7 @@ export const useDeviceStore = defineStore('device', () => {
       return;
     }
     autoUpdate.value.isChecking = true;
-    resetAutoUpdateState();
+    // resetAutoUpdateState();
 
     return apiRequest('/api/update/check', { method: 'POST', timeout: 10000 })
       .then(async () => {
@@ -572,6 +575,29 @@ export const useDeviceStore = defineStore('device', () => {
     autoUpdate.value.progressPollingInterval = setInterval(async () => {
       await apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
         .then(status => {
+          // handle session stop event
+          if (status.install.event === UpdateEvent.SESSION_STOP) {
+            if (autoUpdate.value.progressPollingInterval) {
+              clearInterval(autoUpdate.value.progressPollingInterval);
+              autoUpdate.value.progressPollingInterval = null;
+            }
+
+            if (status.install.status === UpdateStatusCode.OK) {
+              // wait for device to complete the installation and reboot
+              return;
+            } else if (status.install.status === UpdateStatusCode.BUSY) {
+              console.warn('Received session_stop event with status busy. Is this a firmware bug?');
+              // ignore and wait for the device to reboot
+              return;
+            }
+
+            // all other status codes indicate a failure
+            autoUpdate.value.error.step = autoUpdate.value.step;
+            autoUpdate.value.error.message = `Update failed with status: ${status.install.status}`;
+            autoUpdate.value.step = UpdateStage.ERROR;
+            return;
+          }
+
           if (status.install.status !== UpdateStatusCode.OK && status.install.status !== UpdateStatusCode.BUSY) {
             console.error('Update failed with status:', status);
             autoUpdate.value.error.step = autoUpdate.value.step;
@@ -581,7 +607,7 @@ export const useDeviceStore = defineStore('device', () => {
             return;
           }
 
-          if (status.install.action === UpdateAction.DOWNLOAD) {
+          if (status.install.action === UpdateAction.DOWNLOAD && status.install.event === UpdateEvent.ACTION_PROGRESS) {
             autoUpdate.value.step = UpdateStage.UPLOADING;
             if (status.install.download.total_bytes > 0) {
               autoUpdate.value.progress = Math.round((status.install.download.received_bytes / status.install.download.total_bytes) * 100);
