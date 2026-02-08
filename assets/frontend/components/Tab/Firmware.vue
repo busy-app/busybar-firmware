@@ -30,227 +30,79 @@
         />
       </UTooltip>
 
+      <!-- File upload modal (only for idle stage) -->
       <ModalGeneric
         v-model:open="showUpdateModal"
         data-id="modal-update-firmware"
         title="Update firmware"
-        :dismissible="stage === 'idle' || stage === 'error' || stage === 'success'"
-        :show-close-button="stage === 'idle' || stage === 'error' || stage === 'success'"
+        dismissible
+        show-close-button
         wide
-        :no-actions="stage === 'idle' && !firmwareFileModel || stage === 'unpacking' || stage === 'updating' || stage === 'success'"
-        :primary-action-props="
-          stage === 'idle' ? {
-            label: 'Start update',
-            onClick: startFirmwareUpdateFromFile
-          } : stage === 'uploading' ? {
-            label: 'Cancel',
-            color: 'neutral',
-            onClick: onFirmwareUploadAbort
-          } : stage === 'error' ? {
-            class: 'hidden'
-          } : {}
-        "
-        :secondary-action-props="
-          stage === 'idle' ? {
-            label: 'Cancel',
-            onClick: () => { showUpdateModal = false; firmwareFileModel = null; }
-          } : stage === 'uploading' || stage === 'error' ? {
-            class: 'hidden'
-          } : {}
-        "
+        :no-actions="!firmwareFileModel"
+        :primary-action-props="{
+          label: 'Start update',
+          onClick: startFirmwareUpdateFromFile
+        }"
+        :secondary-action-props="{
+          label: 'Cancel',
+          onClick: () => { showUpdateModal = false; firmwareFileModel = null; }
+        }"
       >
         <template #body>
-          <template v-if="stage === 'idle'">
-            <UFileUpload
-              v-if="!firmwareFileModel"
-              v-model="firmwareFileModel"
-              data-id="modal-update-firmware-file-upload"
-              accept=".tar,.tgz"
-              class="w-full h-[400px] rounded-xl"
-              label="Upload Firmware file (.tar/.tgz)"
-              description="Drag and drop to upload"
-              :ui="{
-                icon: 'size-6',
-                label: 'text-lg',
-                description: 'text-sm'
-              }"
-            >
-              <template #actions>
-                <UButton
-                  label="Select file"
-                  color="neutral"
-                  variant="soft"
-                  :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
-                  class="mt-2"
-                />
-              </template>
-            </UFileUpload>
-            <div
-              v-else
-              data-id="modal-update-firmware-file-uploaded"
-              class="flex flex-col gap-6"
-            >
-              <div class="flex flex-col gap-2">
-                <div>This file will be uploaded to your BUSY Bar and its firmware will be updated.</div>
-                <div class="text-muted">Current version: {{ fwVersionPolifilled }}</div>
-              </div>
-
-              <div class="flex justify-between items-center p-3 ring-1 ring-muted rounded-xl">
-                <div class="flex items-center gap-4">
-                  <UIcon
-                    name="i-ri-file-zip-line"
-                    class="size-6"
-                  />
-                  <div data-id="modal-update-firmware-file-uploaded-name">{{ firmwareFileModel?.name || 'File name unknown' }}</div>
-                </div>
-                <UButton
-                  data-id="modal-update-firmware-file-uploaded-remove-button"
-                  icon="i-ri-delete-bin-7-line"
-                  variant="soft"
-                  color="neutral"
-                  square
-                  size="lg"
-                  class="p-2.5"
-                  @click="firmwareFileModel = null"
-                />
-              </div>
+          <UFileUpload
+            v-if="!firmwareFileModel"
+            v-model="firmwareFileModel"
+            data-id="modal-update-firmware-file-upload"
+            accept=".tar,.tgz"
+            class="w-full h-[400px] rounded-xl"
+            label="Upload Firmware file (.tar/.tgz)"
+            description="Drag and drop to upload"
+            :ui="{
+              icon: 'size-6',
+              label: 'text-lg',
+              description: 'text-sm'
+            }"
+          >
+            <template #actions>
+              <UButton
+                label="Select file"
+                color="neutral"
+                variant="soft"
+                :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
+                class="mt-2"
+              />
+            </template>
+          </UFileUpload>
+          <div
+            v-else
+            data-id="modal-update-firmware-file-uploaded"
+            class="flex flex-col gap-6"
+          >
+            <div class="flex flex-col gap-2">
+              <div>This file will be uploaded to your BUSY Bar and its firmware will be updated.</div>
+              <div class="text-muted">Current version: {{ fwVersionPolifilled }}</div>
             </div>
-          </template>
 
-          <template v-else-if="stage !== 'error'">
-            <div
-              data-id="modal-update-in-progress"
-              class="flex flex-col gap-6"
-            >
-              <div class="flex flex-col gap-2">
-                <div
-                  v-if="stage === 'uploading'"
-                  data-id="modal-update-in-progress-stage-uploading-message"
-                >
-                  Update in progress. Do not disconnect the cable.
-                </div>
-                <div
-                  v-else-if="stage === 'updating'"
-                  data-id="modal-update-in-progress-stage-updating-message"
-                >
-                  Update in progress.
-                </div>
-                <div class="text-muted">Current version: {{ fwVersionPolifilled }}</div>
+            <div class="flex justify-between items-center p-3 ring-1 ring-muted rounded-xl">
+              <div class="flex items-center gap-4">
+                <UIcon
+                  name="i-ri-file-zip-line"
+                  class="size-6"
+                />
+                <div data-id="modal-update-firmware-file-uploaded-name">{{ firmwareFileModel?.name || 'File name unknown' }}</div>
               </div>
-
-              <div class="flex items-center gap-2">
-                <CircularProgress
-                  v-if="stage === 'uploading'"
-                  v-model="deviceStore.fileUpdate.progress"
-                  data-id="modal-update-in-progress-uploading-circular"
-                  size="32px"
-                  :thickness="0.25"
-                  color="#6A7282"
-                  track-color="#99A1AF26"
-                />
-                <CircularProgress
-                  v-if="stage === 'unpacking'"
-                  v-model="indeterminateProgressModel"
-                  data-id="modal-update-in-progress-unpacking-circular"
-                  size="32px"
-                  :thickness="0.25"
-                  color="#6A7282"
-                  track-color="#99A1AF26"
-                  class="animate-spin"
-                />
-                <div
-                  v-if="stage !== 'uploading' && stage !== 'unpacking'"
-                  data-id="modal-update-in-progress-upload-success-icon"
-                  class="flex p-2 rounded-full bg-green-500/15"
-                >
-                  <UIcon
-                    name="i-ri-check-line"
-                    class="size-4 text-green-500"
-                  />
-                </div>
-                <div class="text-sm">
-                  <div class="font-medium">Uploading {{ firmwareFileModel?.name || 'firmware package' }}</div>
-                  <div
-                    v-if="stage === 'uploading'"
-                    data-id="modal-update-in-progress-uploading-percentage"
-                    class="text-neutral-600 dark:text-neutral-300"
-                  >
-                    {{ deviceStore.fileUpdate.progress }}%
-                  </div>
-                  <div
-                    v-else-if="stage === 'unpacking'"
-                    data-id="modal-update-in-progress-unpacking-message"
-                    class="text-neutral-600 dark:text-neutral-300"
-                  >
-                    Unpacking firmware package
-                  </div>
-                </div>
-              </div>
-
-              <div
-                v-if="stage === 'updating' || stage === 'success'"
-                class="relative flex items-center gap-2"
-              >
-                <USeparator
-                  orientation="vertical"
-                  class="absolute h-3 left-4 -top-4"
-                  :ui="{
-                    border: 'border-neutral-300 dark:border-neutral-600'
-                  }"
-                />
-                <CircularProgress
-                  v-if="stage === 'updating'"
-                  v-model="indeterminateProgressModel"
-                  data-id="modal-update-in-progress-updating-circular"
-                  size="32px"
-                  :thickness="0.25"
-                  color="#6A7282"
-                  track-color="#99A1AF26"
-                  class="animate-spin"
-                />
-                <div
-                  v-else-if="stage === 'success'"
-                  data-id="modal-update-in-progress-full-update-success-icon"
-                  class="flex p-2 rounded-full bg-green-500/15"
-                >
-                  <UIcon
-                    name="i-ri-check-line"
-                    class="size-4 text-green-500"
-                  />
-                </div>
-                <div class="text-sm">
-                  <div class="font-medium">Installing firmware</div>
-                  <div
-                    v-if="stage === 'updating'"
-                    class="text-neutral-600 dark:text-neutral-300"
-                  >
-                    Check status on the BUSY Bar screen
-                  </div>
-                </div>
-              </div>
+              <UButton
+                data-id="modal-update-firmware-file-uploaded-remove-button"
+                icon="i-ri-delete-bin-7-line"
+                variant="soft"
+                color="neutral"
+                square
+                size="lg"
+                class="p-2.5"
+                @click="firmwareFileModel = null"
+              />
             </div>
-          </template>
-
-          <template v-else>
-            <div
-              data-id="modal-update-firmware-error-message"
-              class="flex flex-col gap-6"
-            >
-              <div>Failed to install the update.</div>
-              <div class="flex items-center gap-2">
-                <div class="flex p-2 rounded-full bg-red-500/15">
-                  <UIcon
-                    name="i-ri-error-warning-line"
-                    class="size-4 text-red-500"
-                  />
-                </div>
-                <div class="text-sm">
-                  <div class="font-medium">Upload failed</div>
-                  <div class="text-neutral-600 dark:text-neutral-300">An error occurred during the upload</div>
-                </div>
-              </div>
-            </div>
-          </template>
+          </div>
         </template>
       </ModalGeneric>
     </template>
@@ -286,13 +138,18 @@ const system = computed(() => deviceStore.deviceStatus?.system);
 const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
 
 const showUpdateModal = ref(false);
-const stage = computed(() => deviceStore.fileUpdate.stage);
 
 const firmwareFileModel = ref<File | null>(null);
 
-const indeterminateProgressModel = ref(75);
+async function initFirmwareUpdateFromFile () {
+  await deviceStore.fetchDeviceStatus();
+  const charge = deviceStore.deviceStatus?.power?.battery_charge;
 
-function initFirmwareUpdateFromFile () {
+  if (charge !== undefined && charge < 40) {
+    deviceStore.autoUpdate.modals.batteryLow = true;
+    return;
+  }
+
   deviceStore.fileUpdate.stage = UpdateStage.IDLE;
   deviceStore.fileUpdate.progress = 0;
   deviceStore.fileUpdate.error = '';
@@ -305,6 +162,11 @@ async function startFirmwareUpdateFromFile () {
   deviceStore.fileUpdate.firmwareFile = firmwareFileModel.value;
   try {
     await deviceScreenStreamStore.stopScreenStream();
+
+    // temp
+    showUpdateModal.value = false;
+    deviceStore.autoUpdate.modals.updating = true;
+
     await deviceStore.uploadFirmware();
     if (deviceStore.fileUpdate.stage !== UpdateStage.ERROR) {
       deviceStore.fileUpdate.stage = UpdateStage.UPDATING;
@@ -351,10 +213,6 @@ watch(() => deviceStore.fileUpdate.stage, newStage => {
     loading.value.systemStatus = false;
   }, 3000);
 });
-
-function onFirmwareUploadAbort () {
-  window.location.reload();
-}
 
 async function init () {
   await deviceStore.getApiVersion();

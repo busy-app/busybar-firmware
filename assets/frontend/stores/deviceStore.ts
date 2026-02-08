@@ -98,8 +98,8 @@ export const useDeviceStore = defineStore('device', () => {
       await apiRequest('/api/name', { timeout: 3000 });
       if (!isConnected.value) {
         window.dispatchEvent(new Event('device-reconnected'));
-        if (autoUpdate.value.step === UpdateStage.UPDATING) {
-          autoUpdate.value.step = UpdateStage.SUCCESS;
+        if (autoUpdate.value.stage === UpdateStage.UPDATING) {
+          autoUpdate.value.stage = UpdateStage.SUCCESS;
         }
       }
       isConnected.value = true;
@@ -119,8 +119,8 @@ export const useDeviceStore = defineStore('device', () => {
 
       isConnected.value = false;
       if (
-        autoUpdate.value.step !== UpdateStage.UPDATING
-        && !(autoUpdate.value.step === UpdateStage.SUCCESS && wifiStore.wifi?.state !== 'connected')
+        autoUpdate.value.stage !== UpdateStage.UPDATING
+        && !(autoUpdate.value.stage === UpdateStage.SUCCESS && wifiStore.wifi?.state !== 'connected')
         && (fileUpdate.value.stage === 'idle' || fileUpdate.value.stage === 'error')
       ) {
         toast.add({
@@ -409,11 +409,11 @@ export const useDeviceStore = defineStore('device', () => {
       updating: false
     },
     changelog: null as string | null,
-    step: UpdateStage.IDLE as UpdateStage,
+    stage: UpdateStage.IDLE as UpdateStage,
     progress: 0,
     progressPollingInterval: null as NodeJS.Timeout | null,
     error: {
-      step: UpdateStage.IDLE as UpdateStage,
+      stage: UpdateStage.IDLE as UpdateStage,
       message: null as string | null
     }
   });
@@ -422,13 +422,13 @@ export const useDeviceStore = defineStore('device', () => {
     autoUpdate.value.availableVersion = null;
     autoUpdate.value.isAllowed = null;
     autoUpdate.value.changelog = null;
-    // autoUpdate.value.step = UpdateStage.IDLE;
+    // autoUpdate.value.stage = UpdateStage.IDLE;
     autoUpdate.value.progress = 0;
     if (autoUpdate.value.progressPollingInterval) {
       clearInterval(autoUpdate.value.progressPollingInterval);
       autoUpdate.value.progressPollingInterval = null;
     }
-    autoUpdate.value.error.step = UpdateStage.IDLE;
+    autoUpdate.value.error.stage = UpdateStage.IDLE;
     autoUpdate.value.error.message = null;
   }
   async function fetchAutoUpdateStatus (): Promise<void> {
@@ -545,7 +545,7 @@ export const useDeviceStore = defineStore('device', () => {
     return apiRequest(`/api/update/install?version=${autoUpdate.value.availableVersion}`, { method: 'POST', timeout: 10000 });
   }
   async function abortAutoUpdateDownload () {
-    if (autoUpdate.value.step !== UpdateStage.UPDATING) {
+    if (autoUpdate.value.stage !== UpdateStage.UPDATING) {
       console.debug('No update in progress, ignoring abort request');
       return;
     }
@@ -553,7 +553,7 @@ export const useDeviceStore = defineStore('device', () => {
       .then(() => {
         console.debug('Auto-update download abort requested');
         autoUpdate.value.modals.updating = false;
-        autoUpdate.value.step = UpdateStage.IDLE;
+        autoUpdate.value.stage = UpdateStage.IDLE;
         autoUpdate.value.progress = 0;
       })
       .catch(async error => {
@@ -563,8 +563,8 @@ export const useDeviceStore = defineStore('device', () => {
   async function startAutoUpdate () {
     console.debug('Starting auto-update process');
 
-    // enable first step before sending the request to activate loading state
-    autoUpdate.value.step = UpdateStage.UPLOADING;
+    // enable loading before sending the request
+    autoUpdate.value.stage = UpdateStage.UPLOADING;
 
     await requestAutoUpdateInstallation()
       .catch(async error => {
@@ -592,35 +592,35 @@ export const useDeviceStore = defineStore('device', () => {
             }
 
             // all other status codes indicate a failure
-            autoUpdate.value.error.step = autoUpdate.value.step;
+            autoUpdate.value.error.stage = autoUpdate.value.stage;
             autoUpdate.value.error.message = `Update failed with status: ${status.install.status}`;
-            autoUpdate.value.step = UpdateStage.ERROR;
+            autoUpdate.value.stage = UpdateStage.ERROR;
             return;
           }
 
           if (status.install.status !== UpdateStatusCode.OK && status.install.status !== UpdateStatusCode.BUSY) {
             console.error('Update failed with status:', status);
-            autoUpdate.value.error.step = autoUpdate.value.step;
+            autoUpdate.value.error.stage = autoUpdate.value.stage;
             autoUpdate.value.error.message = `Update failed: ${status.install.status}`;
-            autoUpdate.value.step = UpdateStage.ERROR;
+            autoUpdate.value.stage = UpdateStage.ERROR;
             clearInterval(autoUpdate.value.progressPollingInterval!);
             return;
           }
 
           if (status.install.action === UpdateAction.DOWNLOAD && status.install.event === UpdateEvent.ACTION_PROGRESS) {
-            autoUpdate.value.step = UpdateStage.UPLOADING;
+            autoUpdate.value.stage = UpdateStage.UPLOADING;
             if (status.install.download.total_bytes > 0) {
               autoUpdate.value.progress = Math.round((status.install.download.received_bytes / status.install.download.total_bytes) * 100);
             }
           } else if (status.install.action !== UpdateAction.NONE) {
-            autoUpdate.value.step = UpdateStage.UPDATING;
+            autoUpdate.value.stage = UpdateStage.UPDATING;
             autoUpdate.value.progress = 0;
             clearInterval(autoUpdate.value.progressPollingInterval!);
           }
         })
         .catch(async error => {
           await handleHTTPError(error, 'Couldn\'t fetch update status');
-          autoUpdate.value.step = UpdateStage.ERROR;
+          autoUpdate.value.stage = UpdateStage.ERROR;
           clearInterval(autoUpdate.value.progressPollingInterval!);
         });
     }, 1000);
@@ -647,6 +647,8 @@ export const useDeviceStore = defineStore('device', () => {
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
         fileUpdate.value.progress = Math.round((event.loaded / event.total) * 100);
+        // temp
+        autoUpdate.value.progress = fileUpdate.value.progress;
 
         if (fileUpdate.value.progress === 100) {
           fileUpdate.value.stage = UpdateStage.UNPACKING;

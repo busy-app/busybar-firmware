@@ -3,7 +3,7 @@
     v-model:open="deviceStore.autoUpdate.modals.updating"
     data-id="modal-auto-update-updating"
     title="Update firmware"
-    :description="step"
+    :description="stage"
     :ui="{
       content: 'max-w-[640px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
       description: 'hidden',
@@ -16,13 +16,13 @@
     <template #body>
       <div
         class="flex flex-col gap-6 p-6 bg-no-repeat"
-        :style="step === UpdateStage.SUCCESS ? `background-image: url(${updateSuccessImage}); background-size: 400px; background-position: center 40px` : ''"
+        :style="stage === UpdateStage.SUCCESS ? `background-image: url(${updateSuccessImage}); background-size: 400px; background-position: center 40px` : ''"
       >
         <div class="flex items-center justify-between text-xl font-medium">
           <div>Update firmware</div>
 
           <UButton
-            v-if="step !== UpdateStage.UPLOADING && step !== UpdateStage.UPDATING"
+            v-if="stage !== UpdateStage.UPLOADING && stage !== UpdateStage.UPDATING"
             color="neutral"
             variant="ghost"
             icon="i-bi-cross"
@@ -30,7 +30,7 @@
           />
         </div>
 
-        <template v-if="step === UpdateStage.UPLOADING">
+        <template v-if="stage === UpdateStage.UPLOADING">
           <div class="flex items-center justify-between mt-2.5">
             <div class="flex items-center gap-2.5">
               <UIcon
@@ -58,12 +58,12 @@
               color="neutral"
               variant="ghost"
               label="Cancel"
-              @click="deviceStore.abortAutoUpdateDownload"
+              @click="handleAbortDownload"
             />
           </div>
         </template>
 
-        <template v-if="step === UpdateStage.UPDATING">
+        <template v-if="stage === UpdateStage.UPDATING || stage === UpdateStage.UNPACKING">
           <div class="flex items-center justify-between mt-2.5">
             <div class="flex items-center gap-2.5">
               <UIcon
@@ -84,26 +84,26 @@
           />
         </template>
 
-        <template v-if="step === UpdateStage.SUCCESS">
+        <template v-if="stage === UpdateStage.SUCCESS">
           <div class="h-36" />
           <div class="text-center pb-6">
             <div class="text-lg font-medium">Update completed</div>
-            <div>Your BUSY Bar is now running the latest firmware ({{ deviceStore.deviceStatus?.system?.version }}).</div>
+            <div>Your BUSY Bar is now running the updated firmware ({{ deviceStore.deviceStatus?.system?.version }}).</div>
           </div>
         </template>
 
-        <template v-if="step === UpdateStage.ERROR">
+        <template v-if="stage === UpdateStage.ERROR">
           <div class="flex items-center gap-2.5">
             <UIcon
               name="i-bi-error-fill"
               class="size-6 text-red-600"
             />
-            <div>An error occurred during the {{ deviceStore.autoUpdate.error.step === UpdateStage.UPLOADING ? 'download' : 'update' }}</div>
+            <div>An error occurred during the {{ deviceStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? 'download' : 'update' }}</div>
           </div>
 
           <div class="p-4 bg-accented/25 rounded-xl text-sm">
             <MDC
-              :value="deviceStore.autoUpdate.error.step === UpdateStage.UPLOADING ? downloadErrorMarkdown : updateErrorMarkdown"
+              :value="deviceStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? downloadErrorMarkdown : updateErrorMarkdown"
               tag="article"
             />
           </div>
@@ -115,10 +115,22 @@
 
 <script lang="ts" setup>
 import updateSuccessImage from '@/assets/images/update-success.png';
-import type { UpdateStage } from '@/stores/deviceStore';
+import { UpdateStage } from '@/stores/deviceStore';
 
 const deviceStore = useDeviceStore();
-const step = computed(() => deviceStore.autoUpdate.step);
+const stage = computed(() => {
+  if (deviceStore.fileUpdate.stage !== UpdateStage.IDLE) {
+    return deviceStore.fileUpdate.stage;
+  }
+  return deviceStore.autoUpdate.stage;
+});
+
+function handleAbortDownload () {
+  if (deviceStore.fileUpdate.stage === UpdateStage.UPLOADING) {
+    window.location.reload();
+  }
+  deviceStore.abortAutoUpdateDownload();
+}
 
 const downloadErrorMarkdown = `
 - Ensure you have a stable internet connection
@@ -131,7 +143,7 @@ const downloadErrorMarkdown = `
 If none of the above steps helped, please contact our [Customer Support team](https://support.busy.app).
 `;
 const updateErrorMarkdown = `
-- Make sure you are using the correct update package (.tar)
+- Make sure you are using the correct update package (.tar or .tgz)
 - Restart your BUSY Bar (hold Start and Back for 3 seconds, then release), and try again
 - Charge device completely, and try again
 
