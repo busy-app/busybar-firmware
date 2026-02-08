@@ -77,13 +77,13 @@ static void about_scene_general_on_enter(void* context) {
         GREY_TEXT("Hardware version:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
+    // TODO add BLE and WiFi MAC addresses info
     about_scene_general_fill_mac_address(temp_str);
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Mac address [USB]:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
-    // Displays
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Front display:") "\n%dx%d (LED)\n",

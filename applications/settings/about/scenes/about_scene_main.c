@@ -14,7 +14,7 @@ typedef struct {
     Submenu* front_menu;
     Submenu* back_menu;
     uint32_t menu_index;
-} SettingsSceneSystem;
+} AboutSceneMain;
 
 static void about_scene_main_menu_item_callback(uint32_t index, void* context) {
     furi_assert(context);
@@ -26,7 +26,7 @@ static void about_scene_main_on_enter(void* context) {
     furi_assert(context);
 
     About* instance = context;
-    SettingsSceneSystem* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
+    AboutSceneMain* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
@@ -64,7 +64,7 @@ static void about_scene_main_on_exit(void* context) {
     furi_assert(context);
 
     About* instance = context;
-    SettingsSceneSystem* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
+    AboutSceneMain* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     with_gui(instance->gui, {
         submenu_free(data->front_menu);
@@ -76,7 +76,7 @@ static bool about_scene_main_on_event(const SceneManagerEvent* event, void* cont
     furi_assert(context);
 
     About* instance = context;
-    SettingsSceneSystem* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
+    AboutSceneMain* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
@@ -105,5 +105,5 @@ const Scene about_scene_main = {
     .enter_callback = about_scene_main_on_enter,
     .exit_callback = about_scene_main_on_exit,
     .event_callback = about_scene_main_on_event,
-    .data_size = sizeof(SettingsSceneSystem),
+    .data_size = sizeof(AboutSceneMain),
 };

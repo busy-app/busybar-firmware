@@ -21,15 +21,11 @@ static const char* image_path[IMAGES_NUM] = {
 
 typedef struct {
     StatusView* front_status_view;
-
     FlexLayout* info_flex;
-
     Label* compliance_info_label;
     FuriString* compliance_info_str;
-
     Label* compliance_message_label;
     FuriString* compliance_message_str;
-
     FlexLayout* images_flex;
     Image* images[IMAGES_NUM];
 } AboutSceneCompliance;
