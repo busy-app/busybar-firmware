@@ -1,5 +1,5 @@
 /**
- * @brief System settings app
+ * @brief About settings app
  */
 
 #pragma once
