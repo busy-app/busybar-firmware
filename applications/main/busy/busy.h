@@ -55,6 +55,8 @@ typedef struct {
     bool is_show_work_only_enabled;
 } BusyAppConfig;
 
+void busy_set_config(BusyApp* instance, const BusyAppConfig* config);
+
 void busy_show_timer(BusyApp* instance);
 
 void busy_request_exit(BusyApp* instance);

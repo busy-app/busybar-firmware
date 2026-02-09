@@ -68,7 +68,7 @@ static void busy_timer_log_time(BusyTimer* instance) {
 }
 #endif
 
-static void busy_timer_start_app(void) {
+static void busy_timer_start_app(const BusyAppConfig* app_config) {
     if(!furi_record_exists(RECORD_BUSY_APP)) {
         Desktop* desktop = furi_record_open(RECORD_DESKTOP);
         while(!desktop_replace_current_app(desktop, "busy", BUSY_APP_TIMER_MODE)) {
@@ -78,7 +78,10 @@ static void busy_timer_start_app(void) {
     }
 
     BusyApp* busy_app = furi_record_open(RECORD_BUSY_APP);
+
+    busy_set_config(busy_app, app_config);
     busy_show_timer(busy_app);
+
     furi_record_close(RECORD_BUSY_APP);
 }
 
@@ -468,7 +471,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
 
-    busy_timer_start_app();
+    busy_timer_start_app(&instance->settings.app_config);
 
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);

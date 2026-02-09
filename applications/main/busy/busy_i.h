@@ -57,13 +57,23 @@ typedef enum {
 } BusyCustomEvent;
 
 typedef enum {
+    BusyApiMessageTypeSetConfig,
     BusyApiMessageTypeShowTimer,
     BusyApiMessageTypeRequestExit,
     BusyApiMessageTypeMax,
 } BusyApiMessageType;
 
 typedef struct {
+    const BusyAppConfig* config;
+} BusyApiMessageSetConfig;
+
+typedef union {
+    BusyApiMessageSetConfig set_config;
+} BusyApiMessageData;
+
+typedef struct {
     BusyApiMessageType type;
+    BusyApiMessageData data;
     FuriApiLock lock;
 } BusyApiMessage;
 
@@ -112,14 +122,12 @@ void busy_push_location(BusyApp* instance, const char* location_name);
 
 void busy_pop_location(BusyApp* instance);
 
-void busy_go_to_initial_scene(BusyApp* instance);
-
-void busy_go_to_show_timer_scene(BusyApp* instance);
-
 bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);
 
-void busy_load_settings(BusyApp* instance);
+void busy_load_config(BusyApp* instance);
+
+void busy_apply_config(BusyApp* instance);
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);
