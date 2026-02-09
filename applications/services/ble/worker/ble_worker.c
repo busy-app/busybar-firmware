@@ -22,7 +22,7 @@
 #define TAG "BleWorker"
 
 ///TODO: Remove after all connection issues will be resolved
-// Uncommend macro below in order to force ble advertising with public address only
+// Uncomment macro below in order to force ble advertising with public address only
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
@@ -48,7 +48,13 @@
 #define ON_LE_LINK_ONLY          BIT(6) ///< LE link-only mode
 #define VARIABLE_ATT_CHAR_VAL    BIT(7) ///< Variable characteristic value length
 
-#define RSI_BLE_ATT_CONFIG_BITMAP (SEC_MODE_1_LEVEL_4)
+#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
+#define BLE_SCURITY_MODE SEC_MODE_1_LEVEL_1
+#else
+#define BLE_SCURITY_MODE SEC_MODE_1_LEVEL_4
+#endif
+
+#define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SCURITY_MODE)
 
 #ifdef RSI_BLE_SMP_IO_CAPABILITY
 #undef RSI_BLE_SMP_IO_CAPABILITY
