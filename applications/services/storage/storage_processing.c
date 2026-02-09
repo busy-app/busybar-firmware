@@ -909,6 +909,5 @@ bool storage_process_message_internal(Storage* app, StorageMessage* message) {
 }
 
 bool storage_process_message(Storage* app, StorageMessage* message) {
-    FURI_LOG_D(TAG, "process_message %d", message->command);
     return storage_process_message_internal(app, message);
 }
