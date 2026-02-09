@@ -54,13 +54,18 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
 
         instance->mask_anim = anim_player_alloc(root);
         widget_set_visible(anim_player_get_base(instance->mask_anim), false);
-        widget_set_blend_mode(anim_player_get_base(instance->mask_anim), WidgetBlendModeMultiply);
-        anim_player_set_source(
-            instance->mask_anim, DESKTOP_ANIM_PATH("horizontal_mask_transition_72x16.anim"));
-        furi_assert(anim_player_set_section(
-            instance->mask_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
-        anim_player_set_frame_callback(instance->mask_anim, desktop_overlay_mask_frame, instance);
-        anim_player_pause(instance->mask_anim);
+
+        if(anim_player_set_source(
+               instance->mask_anim, DESKTOP_ANIM_PATH("horizontal_mask_transition_72x16.anim"))) {
+            anim_player_set_section(
+                instance->mask_anim, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
+            anim_player_set_frame_callback(
+                instance->mask_anim, desktop_overlay_mask_frame, instance);
+            anim_player_pause(instance->mask_anim);
+
+            widget_set_blend_mode(
+                anim_player_get_base(instance->mask_anim), WidgetBlendModeMultiply);
+        }
     });
 
     instance->show_requested = false;
