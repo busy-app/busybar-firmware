@@ -1,6 +1,14 @@
 <template>
-  <SectionCard data-id="settings-section-primary">
-    <div class="grid sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-neutral-300/30 dark:divide-neutral-700/30 p-2">
+  <UCard
+    data-id="settings-section-sound-brightness"
+    :ui="{
+      root: 'ring-1 ring-glass rounded-3xl bg-elevated/50 divide-none',
+      header: 'p-4 sm:p-6',
+      body: 'p-4 sm:p-6',
+      footer: 'p-4 sm:p-6'
+    }"
+  >
+    <div class="grid sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-neutral-300/30 dark:divide-neutral-700/30">
       <div class="flex flex-col gap-8 pb-6 sm:pb-0 sm:pr-6">
         <div class="flex justify-between items-center">
           <UIcon
@@ -103,7 +111,42 @@
         </div>
       </div>
     </div>
+  </UCard>
 
+  <SectionCard
+    data-id="settings-section-timezone"
+    icon="i-bi-timezone"
+    title="Timezone"
+    :ui="{
+      root: 'ring-1 ring-glass rounded-3xl bg-elevated/50 divide-none',
+      header: 'p-4 sm:p-6',
+      body: 'p-4 sm:p-6',
+      footer: 'p-4 sm:p-6'
+    }"
+  >
+    <template #actions>
+      <USelect
+        v-if="tzListStore.timezoneOptions?.length"
+        v-model="deviceStore.timezone"
+        :items="tzListStore.timezoneOptions.map(tz => ({ label: `UTC${tz.offset}, ${tz.name}`, value: tz.name }))"
+        variant="soft"
+        size="xl"
+        class="h-12 min-w-56"
+        :ui="{
+          base: 'text-base rounded-xl',
+          label: 'text-base',
+          item: 'text-base'
+        }"
+        @update:model-value="deviceStore.setTimezone(deviceStore.timezone!)"
+      />
+    </template>
+  </SectionCard>
+
+  <SectionCard
+    data-id="settings-section-primary"
+    icon="i-bi-info-fill"
+    title="About device"
+  >
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2.5">
         <UIcon
@@ -159,6 +202,7 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
+const tzListStore = useTzListStore();
 
 const system = computed(() => deviceStore.deviceStatus?.system);
 const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
@@ -281,6 +325,10 @@ async function init () {
   await deviceStore.getApiVersion();
   await refreshAudioVolume();
   await refreshDisplayBrightness();
+  if (!tzListStore.timezoneOptions || tzListStore.timezoneOptions.length === 0) {
+    await tzListStore.fetchTimezoneOptions();
+  }
+  await deviceStore.fetchTimezone();
 }
 
 onMounted(async () => {

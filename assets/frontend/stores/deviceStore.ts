@@ -392,6 +392,33 @@ export const useDeviceStore = defineStore('device', () => {
       });
   }
 
+  // Timezone
+  const timezone = ref<string | undefined>(undefined);
+  async function fetchTimezone (): Promise<string | undefined> {
+    const tz = await apiRequest<{ timezone: string }>('/api/time/timezone')
+      .then(response => {
+        timezone.value = response.timezone;
+        return response.timezone;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t get timezone', true);
+        return timezone.value;
+      });
+
+    return tz;
+  }
+  async function setTimezone (tz: string): Promise<boolean> {
+    return await apiRequest('/api/time/timezone', { method: 'POST', query: { timezone: tz } })
+      .then(() => {
+        timezone.value = tz;
+        return true;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t set timezone');
+        return false;
+      });
+  }
+
   // Firmware update
   const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
   const autoUpdate = ref({
@@ -745,6 +772,10 @@ export const useDeviceStore = defineStore('device', () => {
     fetchAudioVolume,
     getAudioVolume,
     setAudioVolume,
+
+    timezone,
+    fetchTimezone,
+    setTimezone,
 
     autoUpdate,
     resetAutoUpdateState,
