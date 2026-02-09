@@ -156,6 +156,7 @@
         :icon="colorMode.value === 'dark' ? 'i-bi-matter-bubble-dark' : 'i-bi-matter-bubble'"
         :dismissable="false"
         no-actions
+        @after:leave="onMatterLinkModalClose"
       >
         <template #icon>
           <UIcon
@@ -367,6 +368,17 @@ async function setBrightnessToAuto () {
   };
   nextBrightnessNumber.value = 50;
   loading.value.brightness = false;
+}
+
+function onMatterLinkModalClose () {
+  if (deviceStore.matterLink.timeout) {
+    clearTimeout(deviceStore.matterLink.timeout);
+  }
+  deviceStore.matterLink.qrCode = '';
+  deviceStore.matterLink.manualCode = '';
+  deviceStore.matterLink.availableUntil = null;
+  deviceStore.matterLink.timeout = null;
+  deviceStore.matterLink.expiresInMs = 0;
 }
 
 async function init () {

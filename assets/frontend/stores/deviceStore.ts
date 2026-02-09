@@ -459,6 +459,7 @@ export const useDeviceStore = defineStore('device', () => {
         matterLink.value.qrCode = svgElement;
 
         matterLink.value.timeout = setTimeout(() => {
+          matterLink.value.showModal = false;
           matterLink.value.qrCode = '';
           matterLink.value.manualCode = '';
           matterLink.value.availableUntil = null;
