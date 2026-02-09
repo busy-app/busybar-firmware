@@ -3,6 +3,7 @@
     v-model:open="deviceStore.autoUpdate.modals.updating"
     data-id="modal-auto-update-updating"
     title="Update firmware"
+    :dismissible="stage !== UpdateStage.UPLOADING && stage !== UpdateStage.UPDATING"
     :description="stage"
     :ui="{
       content: 'max-w-[640px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
@@ -26,7 +27,7 @@
             color="neutral"
             variant="ghost"
             icon="i-bi-cross"
-            @click="deviceStore.autoUpdate.modals.updating = false"
+            @click="handleModalClose"
           />
         </div>
 
@@ -130,6 +131,12 @@ function handleAbortDownload () {
     window.location.reload();
   }
   deviceStore.abortAutoUpdateDownload();
+}
+
+function handleModalClose () {
+  deviceStore.fileUpdate.stage = UpdateStage.IDLE;
+  deviceStore.autoUpdate.stage = UpdateStage.IDLE;
+  deviceStore.autoUpdate.modals.updating = false;
 }
 
 const downloadErrorMarkdown = `

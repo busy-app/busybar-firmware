@@ -434,7 +434,7 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchAutoUpdateStatus (): Promise<void> {
     return apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
       .then(async status => {
-        if (status.check.status === 'failure') {
+        if (status.check.event === 'stop' && status.check.status === 'failure') {
           // auto-update check failed (e.g. no internet connection)
           console.warn('Auto-update check failed', status);
           autoUpdate.value.isChecking = false;
@@ -545,10 +545,6 @@ export const useDeviceStore = defineStore('device', () => {
     return apiRequest(`/api/update/install?version=${autoUpdate.value.availableVersion}`, { method: 'POST', timeout: 10000 });
   }
   async function abortAutoUpdateDownload () {
-    if (autoUpdate.value.stage !== UpdateStage.UPDATING) {
-      console.debug('No update in progress, ignoring abort request');
-      return;
-    }
     await apiRequest('/api/update/abort_download', { method: 'POST' })
       .then(() => {
         console.debug('Auto-update download abort requested');
@@ -607,7 +603,7 @@ export const useDeviceStore = defineStore('device', () => {
             return;
           }
 
-          if (status.install.action === UpdateAction.DOWNLOAD && status.install.event === UpdateEvent.ACTION_PROGRESS) {
+          if (status.install.action === UpdateAction.DOWNLOAD) {
             autoUpdate.value.stage = UpdateStage.UPLOADING;
             if (status.install.download.total_bytes > 0) {
               autoUpdate.value.progress = Math.round((status.install.download.received_bytes / status.install.download.total_bytes) * 100);
