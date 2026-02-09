@@ -8,7 +8,7 @@
     wide
     :primary-action-props="{
       label: 'Start update',
-      loading: deviceStore.autoUpdate.step === UpdateStage.UPLOADING,
+      loading: deviceStore.autoUpdate.stage === UpdateStage.UPLOADING,
       onClick: deviceStore.startAutoUpdate
     }"
   >
