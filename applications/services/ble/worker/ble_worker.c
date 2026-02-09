@@ -1089,7 +1089,7 @@ bool ble_worker_register_service(BleServiceObject* service) {
         service->handle = new_serv_resp.start_handle;
 
         uint16_t handle = new_serv_resp.start_handle;
-        BLE_LOG_D("Register servive: 0x%04X", new_serv_resp.start_handle);
+        BLE_LOG_D("Register service: 0x%04X", new_serv_resp.start_handle);
         for(uint8_t i = 0; i < service->config->char_count; i++) {
             BleCharacteristicObject* ch = service->chars[i];
             const BleCharacteristicDescriptor* ch_config = ble_characteristic_get_config(ch);
@@ -1155,10 +1155,6 @@ void ble_worker_stop() {
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtExit);
     furi_thread_join(ble_worker_instance->thread);
     BLE_LOG_I("BLE Stopped");
-}
-
-void ble_worker_test_after_init() {
-    ble_print_service_hierarchy(0x0023);
 }
 
 static void ble_worker_send_chunk(
