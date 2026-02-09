@@ -17,8 +17,6 @@
 #include "busy_theme.h"
 #include "busy_presets.h"
 
-#include "settings/busy_settings.h"
-
 #include "storage_macros.h"
 
 #include "helpers/run_later.h"
@@ -92,7 +90,7 @@ struct BusyApp {
     NavBar* nav_bar;
     // Misc state
     BusyTheme* theme;
-    BusySettings settings;
+    BusyAppConfig app_config;
     BusyAppRunMode run_mode;
     BusyAppGlobalPresetId global_preset_id;
     bool show_timer_requested;
@@ -123,7 +121,5 @@ bool busy_return_to_start_scene(BusyApp* instance);
 void busy_exit(BusyApp* instance);
 
 void busy_load_settings(BusyApp* instance);
-
-void busy_save_settings(BusyApp* instance);
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "busy_timer.h"
-#include "busy_timer_settings.h"
+#include "settings/busy_timer_settings.h"
 
 #include <furi.h>
 
@@ -21,6 +21,9 @@ typedef enum {
     BusyTimerMessageTypeStop,
     BusyTimerMessageTypeGetConfig,
     BusyTimerMessageTypeSetConfig,
+    BusyTimerMessageTypeGetAppConfig,
+    BusyTimerMessageTypeSetAppConfig,
+    BusyTimerMessageTypeSaveConfig,
     BusyTimerMessageTypeGetState,
     BusyTimerMessageTypeGetTime,
     BusyTimerMessageTypeGetCycles,
@@ -40,6 +43,8 @@ typedef union {
     BusyTimerCycles* cycles;
     BusyTimerConfig* config;
     const BusyTimerConfig* config_c;
+    BusyAppConfig* app_config;
+    const BusyAppConfig* app_config_c;
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
     const BusyTimerSnapshot* snapshot_c;
@@ -62,7 +67,7 @@ struct BusyTimer {
     Mqtt* mqtt;
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
-    BusyTimerConfig config;
+    BusyTimerSettings settings;
     BusyTimerTime time;
     BusyTimerMode mode;
     BusyTimerState state;

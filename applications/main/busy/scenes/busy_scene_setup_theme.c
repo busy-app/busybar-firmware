@@ -80,9 +80,11 @@ static void busy_scene_setup_theme_handle_theme_changed(BusyApp* instance, uint3
     const BusyTheme* selected_theme = theme_picker_model_get_item(data->picker_model, theme_idx);
     busy_theme_set(instance->theme, selected_theme);
 
-    BusySettings* settings = &instance->settings;
+    BusyAppConfig* app_config = &instance->app_config;
     strlcpy(
-        settings->theme_name, busy_theme_get_name(selected_theme), sizeof(settings->theme_name));
+        app_config->theme_name,
+        busy_theme_get_name(selected_theme),
+        sizeof(app_config->theme_name));
 }
 
 static void busy_scene_setup_theme_handle_theme_accepted(BusyApp* instance) {
@@ -138,7 +140,8 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
-    busy_save_settings(instance);
+    busy_timer_set_app_config(instance->busy_timer, &instance->app_config);
+    busy_timer_save_config(instance->busy_timer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);

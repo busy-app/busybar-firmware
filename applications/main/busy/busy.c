@@ -274,15 +274,14 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 
 void busy_set_matter(BusyApp* instance, bool switch_state) {
     furi_assert(instance);
-    if(instance->settings.is_smart_home_enabled) {
+    if(instance->app_config.is_smart_home_enabled) {
         matter_set_switch_state(instance->matter, switch_state);
     }
 }
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {
     furi_assert(instance);
-
-    if(instance->settings.is_show_work_only_enabled) {
+    if(instance->app_config.is_show_work_only_enabled) {
         front_display_set_blanked(instance->front_display, is_blanked);
     }
 }
@@ -329,30 +328,23 @@ void busy_exit(BusyApp* instance) {
 void busy_load_settings(BusyApp* instance) {
     furi_assert(instance);
 
-    BusySettings* settings = &instance->settings;
-    const BusyAppGlobalPreset* preset = busy_get_global_preset(instance);
-    const BusyTimerProfileId timer_profile_id = preset->timer_profile_id;
-    const BusySettingsProfileId settings_profile_id = preset->settings_profile_id;
-
-    busy_settings_load(settings, settings_profile_id);
-
-    if(!busy_theme_read(instance->theme, settings->theme_name)) {
-        FURI_LOG_W(TAG, "Setting default theme");
-        busy_theme_set_default(instance->theme);
-    }
-
     if(instance->run_mode == BusyAppRunModeNormal) {
+        const BusyAppGlobalPreset* preset = busy_get_global_preset(instance);
+        const BusyTimerProfileId timer_profile_id = preset->timer_profile_id;
+
         busy_timer_set_profile(instance->busy_timer, timer_profile_id);
+        busy_timer_get_app_config(instance->busy_timer, &instance->app_config);
+
+        // TODO: Separate loading and applying settings
+        if(!busy_theme_read(instance->theme, instance->app_config.theme_name)) {
+            FURI_LOG_W(TAG, "Setting default theme");
+            busy_theme_set_default(instance->theme);
+        }
+
+    } else {
+        // TODO: Figure this mode out
+        furi_crash("Can't do that yet");
     }
-}
-
-void busy_save_settings(BusyApp* instance) {
-    furi_assert(instance);
-
-    BusySettings* settings = &instance->settings;
-    const BusySettingsProfileId profile_id = busy_get_global_preset(instance)->settings_profile_id;
-
-    busy_settings_save(settings, profile_id);
 }
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance) {

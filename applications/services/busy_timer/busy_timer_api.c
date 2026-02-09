@@ -70,6 +70,40 @@ void busy_timer_set_config(const BusyTimer* instance, const BusyTimerConfig* con
     busy_timer_send_message(instance, &message);
 }
 
+void busy_timer_get_app_config(const BusyTimer* instance, BusyAppConfig* config) {
+    furi_assert(instance);
+    furi_assert(config);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeGetAppConfig,
+        .data.app_config = config,
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
+void busy_timer_set_app_config(const BusyTimer* instance, const BusyAppConfig* config) {
+    furi_assert(instance);
+    furi_assert(config);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeSetAppConfig,
+        .data.app_config_c = config,
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
+void busy_timer_save_config(const BusyTimer* instance) {
+    furi_assert(instance);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeSaveConfig,
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
 void busy_timer_start(BusyTimer* instance) {
     furi_assert(instance);
 

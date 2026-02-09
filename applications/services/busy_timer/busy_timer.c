@@ -157,9 +157,10 @@ static BusyTimerState busy_timer_calc_state(const BusyTimer* instance) {
         state = BusyTimerStateWork;
 
     } else if(instance->state == BusyTimerStateWork) {
+        const uint32_t cycle_count = instance->settings.timer_config.cycle_count;
+
         const bool intervals_enabled = instance->mode == BusyTimerModeInterval;
-        const bool intervals_remaining = instance->current_interval_index <
-                                         instance->config.cycle_count * 2 - 1;
+        const bool intervals_remaining = instance->current_interval_index < cycle_count * 2 - 1;
 
         if(intervals_enabled && intervals_remaining) {
             state = BusyTimerStateRest;
@@ -180,15 +181,17 @@ static BusyTimerState busy_timer_calc_state(const BusyTimer* instance) {
 static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
     uint32_t interval_s;
 
+    const BusyTimerConfig* timer_config = &instance->settings.timer_config;
+
     if(instance->state == BusyTimerStateWork) {
         if(instance->mode == BusyTimerModeInterval) {
-            interval_s = M_TO_S(instance->config.work_time_mn);
+            interval_s = M_TO_S(timer_config->work_time_mn);
         } else {
-            interval_s = M_TO_S(instance->config.time_mn);
+            interval_s = M_TO_S(timer_config->time_mn);
         }
 
     } else if(instance->state == BusyTimerStateRest) {
-        interval_s = M_TO_S(instance->config.rest_time_mn);
+        interval_s = M_TO_S(timer_config->rest_time_mn);
     } else {
         furi_crash();
     }
@@ -206,7 +209,7 @@ static uint32_t busy_timer_calc_interval_index(const BusyTimer* instance) {
 }
 
 static uint32_t busy_timer_calc_increment(const BusyTimer* instance) {
-    if(instance->config.enable_demo_mode) {
+    if(instance->settings.timer_config.enable_demo_mode) {
         if(instance->time.remain_s > 60) {
             return 60;
         } else if(instance->time.remain_s > 30) {
@@ -262,7 +265,7 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
         instance->time.elapsed_s = 0;
         instance->time.remain_s = busy_timer_calc_remaining_time(instance);
 
-        if(instance->config.enable_autostart || force) {
+        if(instance->settings.timer_config.enable_autostart || force) {
             busy_timer_start_timer(instance);
             busy_timer_notify_state_changed(instance);
             busy_timer_notify_tick(instance);
@@ -359,12 +362,12 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
             state->time_left_ms = S_TO_MS(time->remain_s);
             state->time_total_ms = S_TO_MS(time->elapsed_s + time->remain_s);
 
-            const BusyTimerConfig* config = &instance->config;
+            const BusyTimerConfig* timer_config = &instance->settings.timer_config;
             BusyTimerIntervalSettings* settings = &interval->settings;
-            settings->work_time_ms = M_TO_MS(config->work_time_mn);
-            settings->rest_time_ms = M_TO_MS(config->rest_time_mn);
-            settings->cycles_count = config->cycle_count;
-            settings->is_autostart_enabled = config->enable_autostart;
+            settings->work_time_ms = M_TO_MS(timer_config->work_time_mn);
+            settings->rest_time_ms = M_TO_MS(timer_config->rest_time_mn);
+            settings->cycles_count = timer_config->cycle_count;
+            settings->is_autostart_enabled = timer_config->enable_autostart;
 
         } else {
             furi_crash("Invalid BusyTimerMode value");
@@ -442,12 +445,13 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         instance->time.remain_s = MS_TO_S(interval_state->time_left_ms);
 
         const BusyTimerIntervalSettings* interval_settings = &interval->settings;
+        BusyTimerConfig* timer_config = &instance->settings.timer_config;
 
-        instance->config.cycle_count = interval_settings->cycles_count;
-        instance->config.work_time_mn = MS_TO_M(interval_settings->work_time_ms);
-        instance->config.rest_time_mn = MS_TO_M(interval_settings->rest_time_ms);
-        instance->config.enable_autostart = interval_settings->is_autostart_enabled;
-        instance->config.enable_intervals = true;
+        timer_config->cycle_count = interval_settings->cycles_count;
+        timer_config->work_time_mn = MS_TO_M(interval_settings->work_time_ms);
+        timer_config->rest_time_mn = MS_TO_M(interval_settings->rest_time_ms);
+        timer_config->enable_autostart = interval_settings->is_autostart_enabled;
+        timer_config->enable_intervals = true;
 
     } else {
         furi_crash("Invalid BusyTimerSnapshotType value");
@@ -455,7 +459,8 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     instance->mode = new_mode;
     instance->state = new_state;
-    instance->config.mode = new_mode;
+    // TODO: Necessary?
+    instance->settings.timer_config.mode = new_mode;
 
     if(!is_paused) {
         busy_timer_start_timer(instance);
@@ -477,17 +482,7 @@ static void busy_timer_schedule_send_snapshot(BusyTimer* instance) {
 }
 
 static void busy_timer_load_settings(BusyTimer* instance) {
-    BusyTimerSettings settings;
-
-    const BusyTimerProfileId profile_id = instance->profile_id;
-
-    if(!busy_timer_settings_load(&settings, profile_id)) {
-        FURI_LOG_W(TAG, "Loading default settings");
-        busy_timer_settings_set_default(&settings, profile_id);
-        busy_timer_settings_save(&settings, profile_id);
-    }
-
-    instance->config = settings.timer_config;
+    busy_timer_settings_load(&instance->settings, instance->profile_id);
 }
 
 static void busy_timer_poll_timer_callback(void* context) {
@@ -560,7 +555,7 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
 
     FURI_LOG_I(TAG, "Starting");
 
-    instance->mode = instance->config.mode;
+    instance->mode = instance->settings.timer_config.mode;
     busy_timer_notify_mode_changed(instance);
 
     if(instance->state == BusyTimerStateIdle) {
@@ -592,18 +587,30 @@ static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessag
 
 static void
     busy_timer_get_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    *data->config = instance->config;
+    *data->config = instance->settings.timer_config;
 }
 
 static void
     busy_timer_set_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    instance->config = *data->config_c;
+    instance->settings.timer_config = *data->config_c;
+    instance->settings.timestamp = furi_hal_rtc_get_timestamp();
+}
 
-    const BusyTimerSettings settings = {
-        .timer_config = instance->config,
-    };
+static void
+    busy_timer_get_app_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    *data->app_config = instance->settings.app_config;
+}
 
-    busy_timer_settings_save(&settings, instance->profile_id);
+static void
+    busy_timer_set_app_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    instance->settings.app_config = *data->app_config_c;
+    instance->settings.timestamp = furi_hal_rtc_get_timestamp();
+}
+
+static void
+    busy_timer_save_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    UNUSED(data);
+    busy_timer_settings_save(&instance->settings, instance->profile_id);
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -616,7 +623,7 @@ static void busy_timer_get_time_message_handler(BusyTimer* instance, BusyTimerMe
 
 static void
     busy_timer_get_cycles_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    data->cycles->total_count = instance->config.cycle_count;
+    data->cycles->total_count = instance->settings.timer_config.cycle_count;
     data->cycles->current_idx = instance->current_interval_index;
 }
 
@@ -772,6 +779,9 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeStop] = busy_timer_stop_message_handler,
     [BusyTimerMessageTypeGetConfig] = busy_timer_get_config_message_handler,
     [BusyTimerMessageTypeSetConfig] = busy_timer_set_config_message_handler,
+    [BusyTimerMessageTypeGetAppConfig] = busy_timer_get_app_config_message_handler,
+    [BusyTimerMessageTypeSetAppConfig] = busy_timer_set_app_config_message_handler,
+    [BusyTimerMessageTypeSaveConfig] = busy_timer_save_config_message_handler,
     [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
     [BusyTimerMessageTypeGetTime] = busy_timer_get_time_message_handler,
     [BusyTimerMessageTypeGetCycles] = busy_timer_get_cycles_message_handler,

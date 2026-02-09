@@ -22,7 +22,7 @@ typedef struct {
 typedef struct {
     VarItemListContainer containers[GuiDisplayIdMax];
     BusyTimerConfig timer_config;
-    BusySettings* settings;
+    BusyAppConfig* app_config;
 } BusySceneSetupTimer;
 
 static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
@@ -83,7 +83,7 @@ static void busy_scene_setup_timer_show_work_changed_callback(VarItem* item, voi
     furi_assert(context);
 
     BusySceneSetupTimer* data = context;
-    data->settings->is_show_work_only_enabled = var_item_get_value(item);
+    data->app_config->is_show_work_only_enabled = var_item_get_value(item);
 }
 
 static void busy_scene_setup_timer_work_changed_callback(VarItem* item, void* context) {
@@ -216,7 +216,7 @@ static void
         set_cb ? busy_scene_setup_timer_show_work_changed_callback : NULL,
         data);
 
-    var_item_set_value(item, data->settings->is_show_work_only_enabled);
+    var_item_set_value(item, data->app_config->is_show_work_only_enabled);
 
     container->items[item_id++] = item;
 
@@ -240,7 +240,7 @@ static void busy_scene_setup_timer_on_enter(void* context) {
 
     busy_timer_get_config(instance->busy_timer, &data->timer_config);
 
-    data->settings = &instance->settings;
+    data->app_config = &instance->app_config;
 
     with_gui(instance->gui, {
         data->containers[GuiDisplayIdFront].list = var_item_list_alloc(instance->front_window);
@@ -264,7 +264,8 @@ static void busy_scene_setup_timer_on_exit(void* context) {
     if(!instance->show_timer_requested) {
         // Do not save settings if timer was launched from another device while this scene was active
         busy_timer_set_config(instance->busy_timer, &data->timer_config);
-        busy_save_settings(instance);
+        busy_timer_set_app_config(instance->busy_timer, data->app_config);
+        busy_timer_save_config(instance->busy_timer);
     }
 
     with_gui(instance->gui, {

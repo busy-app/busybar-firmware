@@ -2,6 +2,8 @@
 
 #include <core/pubsub.h>
 
+#include <busy/busy.h>
+
 #include "busy_timer_snapshot.h"
 
 #define RECORD_BUSY_TIMER "busy_timer"
@@ -93,6 +95,12 @@ void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles);
 void busy_timer_get_config(const BusyTimer* instance, BusyTimerConfig* config);
 
 void busy_timer_set_config(const BusyTimer* instance, const BusyTimerConfig* config);
+
+void busy_timer_get_app_config(const BusyTimer* instance, BusyAppConfig* config);
+
+void busy_timer_set_app_config(const BusyTimer* instance, const BusyAppConfig* config);
+
+void busy_timer_save_config(const BusyTimer* instance);
 
 void busy_timer_start(BusyTimer* instance);
 
