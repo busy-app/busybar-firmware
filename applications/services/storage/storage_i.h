@@ -17,6 +17,7 @@ extern "C" {
 
 struct Storage {
     FuriMessageQueue* message_queue;
+    FuriSemaphore* shutdown_semaphore;
     StorageData storage[STORAGE_COUNT];
     FuriPubSub* pubsub;
 

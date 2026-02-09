@@ -258,9 +258,8 @@ static bool storage_process_file_truncate(Storage* app, File* file) {
     return ret;
 }
 
-static bool storage_process_file_sync(Storage* app, File* file) {
+static bool storage_do_file_sync(StorageData* storage, File* file) {
     bool ret = false;
-    StorageData* storage = get_storage_by_file(file, app->storage);
 
     do {
         if(storage == NULL) {
@@ -278,6 +277,12 @@ static bool storage_process_file_sync(Storage* app, File* file) {
     } while(false);
 
     return ret;
+}
+
+static bool storage_process_file_sync(Storage* app, File* file) {
+    StorageData* storage = get_storage_by_file(file, app->storage);
+
+    return storage_do_file_sync(storage, file);
 }
 
 static uint64_t storage_process_file_size(Storage* app, File* file) {
@@ -494,20 +499,19 @@ static bool
 static void storage_process_shutdown(Storage* app) {
     for(size_t i = 0; i != COUNT_OF(app->storage); ++i) {
         StorageData* storage = app->storage + i;
+        if(storage_is_read_only(storage)) {
+            continue;
+        }
         StorageFileList_it_t it;
 
-        for(StorageFileList_it(it, storage->files); !StorageFileList_end_p(it);) {
+        for(StorageFileList_it(it, storage->files); !StorageFileList_end_p(it);
+            StorageFileList_next(it)) {
             const StorageFile* storage_file = StorageFileList_cref(it);
 
             if(storage_file->access_mode & FSAM_WRITE) {
-                storage_do_close(app, storage, storage_file->file, false);
-                StorageFileList_remove(storage->files, it);
-            } else {
-                StorageFileList_next(it);
+                storage_do_file_sync(storage, storage_file->file);
             }
         }
-
-        storage->read_only = true;
     }
     FURI_LOG_I(TAG, "Storage shutdown done");
 }
@@ -700,7 +704,8 @@ void storage_process_alias(
 
 /****************** SD Presence ******************/
 
-void storage_process_message_internal(Storage* app, StorageMessage* message) {
+bool storage_process_message_internal(Storage* app, StorageMessage* message) {
+    bool release_semaphore = true;
     switch(message->command) {
     // File operations
     case StorageCommandFileOpen:
@@ -854,6 +859,7 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
     }
     case StorageCommandCommonShutdown:
         storage_process_shutdown(app);
+        release_semaphore = false;
         break;
 
     // SD operations
@@ -899,8 +905,10 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
     furi_string_set(app->path_storage, "");
 
     api_lock_unlock(message->lock);
+    return release_semaphore;
 }
 
-void storage_process_message(Storage* app, StorageMessage* message) {
-    storage_process_message_internal(app, message);
+bool storage_process_message(Storage* app, StorageMessage* message) {
+    FURI_LOG_D(TAG, "process_message %d", message->command);
+    return storage_process_message_internal(app, message);
 }

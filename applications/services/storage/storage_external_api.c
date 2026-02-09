@@ -1169,3 +1169,9 @@ void storage_common_shutdown(Storage* storage) {
     S_API_MESSAGE(StorageCommandCommonShutdown);
     S_API_EPILOGUE;
 }
+
+void storage_common_revive(Storage* storage) {
+    furi_check(storage);
+
+    furi_semaphore_release(storage->shutdown_semaphore);
+}

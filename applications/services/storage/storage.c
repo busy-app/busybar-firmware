@@ -22,6 +22,7 @@ extern FS_Error storage_process_common_fs_info(
 Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
+    app->shutdown_semaphore = furi_semaphore_alloc(1, 1);
     app->pubsub = furi_pubsub_alloc();
     app->path_aliased = furi_string_alloc();
     app->path_storage = furi_string_alloc();
@@ -120,8 +121,13 @@ int32_t storage_srv(void* p) {
 
     StorageMessage message;
     while(1) {
+        furi_semaphore_acquire(app->shutdown_semaphore, FuriWaitForever);
+        bool release_semaphore = true;
         if(furi_message_queue_get(app->message_queue, &message, FuriWaitForever) == FuriStatusOk) {
-            storage_process_message(app, &message);
+            release_semaphore = storage_process_message(app, &message);
+        }
+        if(release_semaphore) {
+            furi_semaphore_release(app->shutdown_semaphore);
         }
     }
 

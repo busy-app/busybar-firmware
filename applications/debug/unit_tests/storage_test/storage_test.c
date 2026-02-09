@@ -737,27 +737,114 @@ MU_TEST(test_storage_common_migrate) {
     furi_record_close(RECORD_STORAGE);
 }
 
-MU_TEST(test_storage_common_shutdown) {
+typedef struct {
+    FuriMessageQueue* rx;
+    FuriMessageQueue* tx;
+} ShutdownThreadData;
+
+#define SHUTDOWN_TEST_PATH UNIT_TESTS_PATH("shutdown.test")
+
+static int32_t shutdown_file_write_thread(void* context) {
+    ShutdownThreadData* data = context;
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
-    mu_check(storage_is_read_only(storage->storage + ST_BKP));
-    mu_check(!storage_is_read_only(storage->storage + ST_EXT));
+    int msg = 0;
+    int32_t ret = 0;
 
     File* f = storage_file_alloc(storage);
-    mu_check(
-        storage_file_open(f, UNIT_TESTS_PATH("shutdown.test"), FSAM_WRITE, FSOM_CREATE_ALWAYS));
+    do {
+        if(furi_message_queue_get(data->rx, &msg, 10)) {
+            ret = 5;
+            break;
+        }
+        if(!storage_file_open(f, SHUTDOWN_TEST_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+            ret = 10;
+            break;
+        }
+
+        if(storage_file_write(f, "hello", 5) != 5) {
+            ret = 20;
+            break;
+        }
+
+        msg = 0;
+        furi_message_queue_put(data->tx, &msg, FuriWaitForever);
+
+        if(furi_message_queue_get(data->rx, &msg, 10)) {
+            ret = 30;
+            break;
+        }
+        if(storage_file_write(f, "rld", 3) != 3) {
+            ret = 40;
+            break;
+        }
+    } while(false);
+    storage_file_free(f);
+    furi_record_close(RECORD_STORAGE);
+
+    msg = 1;
+    furi_message_queue_put(data->tx, &msg, FuriWaitForever);
+    return ret;
+}
+
+MU_TEST(test_storage_common_shutdown) {
+    // 1. Open file for writing
+    // 2. Write first part
+    // 3. Shutdown storage
+    // 4. Write second part
+    // 5. Revive storage
+    // 6. Read and check file
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    FuriMessageQueue* rx = furi_message_queue_alloc(1, sizeof(int));
+    FuriMessageQueue* tx = furi_message_queue_alloc(1, sizeof(int));
+    ShutdownThreadData data = {
+        .rx = tx,
+        .tx = rx,
+    };
+
+    FuriThread* thread = furi_thread_alloc_ex(
+        "shutdown_file_write_thread", 1024, shutdown_file_write_thread, &data);
+    furi_thread_start(thread);
+
+    int msg = 0;
+    furi_message_queue_put(tx, &msg, FuriWaitForever);
+
+    furi_message_queue_get(rx, &msg, FuriWaitForever);
+    mu_assert_int_eq(0, msg);
+
+    // First part of the file has been written
 
     storage_common_shutdown(storage);
 
-    mu_check(storage_is_read_only(storage->storage + ST_BKP));
-    mu_check(storage_is_read_only(storage->storage + ST_EXT));
+    // OK to write second part
+    furi_message_queue_put(tx, &msg, FuriWaitForever);
 
-    mu_check(!storage_file_is_open(f));
+    furi_delay_ms(100);
 
-    storage_set_read_only(storage->storage + ST_EXT, false);
+    // After 100 ms still not written, blocked
+    mu_assert_int_not_eq(FuriStatusOk, furi_message_queue_get(rx, &msg, 0));
 
-    storage_file_free(f);
+    storage_common_revive(storage);
+    mu_assert_int_eq(FuriStatusOk, furi_message_queue_get(rx, &msg, FuriWaitForever));
+    mu_assert_int_eq(1, msg);
 
+    furi_thread_join(thread);
+    mu_assert_int_eq(0, furi_thread_get_return_code(thread));
+
+    // Check file contents
+
+    char buf[16];
+    const char* expected = "hellorld";
+    mu_assert_int_eq(
+        strlen(expected),
+        storage_simply_read_entire_file(storage, SHUTDOWN_TEST_PATH, buf, sizeof(buf)));
+    mu_assert_int_eq(0, memcmp(expected, buf, strlen(expected)));
+
+    // All done
+    furi_message_queue_free(rx);
+    furi_message_queue_free(tx);
+    furi_thread_free(thread);
     furi_record_close(RECORD_STORAGE);
 }
 
