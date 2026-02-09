@@ -627,6 +627,58 @@ static int32_t ble_worker_thread_callback(void* context) {
         uint32_t events =
             furi_thread_flags_wait(BLE_USART_ECHO_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
 
+        if(events & BLEWorkerEvtIndicateConfirm) {
+            BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
+            ble_worker_instance->wait_indication_confirm = false;
+            furi_semaphore_release(ble_worker_instance->indication_sem);
+        }
+
+        if(events & BLEWorkerEvtWrite) {
+            uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
+            if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
+                const void* data = instance->app_ble_write_event.att_value;
+                const size_t data_size = instance->app_ble_write_event.length;
+
+                if(handle == 0x001D) BLE_LOG_W("Subscribed!");
+
+                BleServiceEntry* entry =
+                    BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
+
+                if(entry) {
+                    furi_semaphore_acquire(ble_worker_instance->receive_sem, FuriWaitForever);
+
+                    BLE_LOG_D("Entry present");
+                    BleServiceObject* service = entry->service;
+                    if(ble_service_lock(service)) {
+                        BleCharacteristicObject* ch = service->chars[entry->char_index];
+
+                        if(ble_characteristic_is_cccd_handle(ch, handle)) {
+                            uint8_t ccd_val = *((uint8_t*)data);
+                            ble_characteristic_set_cccd_value(ch, ccd_val);
+                            furi_semaphore_release(ble_worker_instance->receive_sem);
+                        } else {
+                            furi_check(data_size > 0);
+                            ble_characteristic_set_data(ch, data, data_size);
+                            ble_service_enqueue_run(service);
+                        }
+
+                        ble_service_unlock(service);
+                    } else
+                        furi_crash("FAIL!");
+                } else {
+                    BLE_LOG_W("Not found: %04X", handle);
+                    status =
+                        rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
+                }
+            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
+                BLE_LOG_W("Notification event");
+            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_INDICATION_EVENT) {
+                BLE_LOG_W("Indication event");
+            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_CMD_EVENT) {
+                BLE_LOG_W("CMD event");
+            }
+        }
+
         if(events & BLEWorkerEvtConnected) {
             //! event invokes when connection was completed
             BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
@@ -769,47 +821,6 @@ static int32_t ble_worker_thread_callback(void* context) {
             }
         }
 
-        if(events & BLEWorkerEvtWrite) {
-            uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
-            if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
-                const void* data = instance->app_ble_write_event.att_value;
-                const size_t data_size = instance->app_ble_write_event.length;
-
-                if(handle == 0x001D) BLE_LOG_W("Subscribed!");
-
-                BleServiceEntry* entry =
-                    BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
-
-                if(entry) {
-                    BLE_LOG_D("Entry present");
-                    BleServiceObject* service = entry->service;
-                    if(ble_service_lock(service)) {
-                        BleCharacteristicObject* ch = service->chars[entry->char_index];
-
-                        if(ble_characteristic_is_cccd_handle(ch, handle)) {
-                            ble_characteristic_set_cccd_value(ch, *((uint8_t*)data));
-                        } else {
-                            ble_characteristic_set_data(ch, data, data_size);
-                            ble_service_enqueue_run(service);
-                        }
-
-                        ble_service_unlock(service);
-                    } else
-                        furi_crash("FAIL!");
-                } else {
-                    BLE_LOG_W("Not found: %04X", handle);
-                    status =
-                        rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
-                }
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
-                BLE_LOG_W("Notification event");
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_INDICATION_EVENT) {
-                BLE_LOG_W("Indication event");
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_CMD_EVENT) {
-                BLE_LOG_W("CMD event");
-            }
-        }
-
         if(events & BLEWorkerEvtMoreDataReq) {
             BLE_LOG_D("BLEWorkerEvtMoreDataReq");
             furi_semaphore_release(ble_worker_instance->notification_sem);
@@ -819,11 +830,6 @@ static int32_t ble_worker_thread_callback(void* context) {
             instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle :
                                                               BleWorkerStateError;
             break;
-        }
-
-        if(events & BLEWorkerEvtIndicateConfirm) {
-            BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
-            furi_semaphore_release(ble_worker_instance->indication_sem);
         }
 
         if(events & BLEWorkerSmpResponse) {
