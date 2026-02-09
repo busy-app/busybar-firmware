@@ -1,6 +1,6 @@
 <template>
   <UButton
-    class="px-0"
+    class="px-0 justify-between"
     @click="copyToClipboard"
   >
     {{ props.text }}
@@ -10,7 +10,6 @@
     >
       <UIcon
         :name="currentIcon"
-        class="size-4"
         :class="iconClassName"
       />
     </UTooltip>

@@ -11,12 +11,14 @@
       content: `${props.wide ? 'max-w-[640px]' : 'max-w-[480px]'} divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass`,
       description: 'hidden',
       header: 'min-h-20',
+      title: 'text-xl flex items-center gap-2',
       body: 'pt-0 sm:pt-0 overflow-y-auto',
       close: showCloseButton ? 'flex top-6 end-5' :'hidden',
       overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
     }"
   >
     <template #title>
+      <slot name="icon" />
       <div
         :data-id="`${props.dataId}-title`"
         class="text-xl"

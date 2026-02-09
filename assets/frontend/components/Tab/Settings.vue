@@ -117,12 +117,6 @@
     data-id="settings-section-timezone"
     icon="i-bi-timezone"
     title="Timezone"
-    :ui="{
-      root: 'ring-1 ring-glass rounded-3xl bg-elevated/50 divide-none',
-      header: 'p-4 sm:p-6',
-      body: 'p-4 sm:p-6',
-      footer: 'p-4 sm:p-6'
-    }"
   >
     <template #actions>
       <USelect
@@ -139,6 +133,60 @@
         }"
         @update:model-value="deviceStore.setTimezone(deviceStore.timezone!)"
       />
+    </template>
+  </SectionCard>
+
+  <SectionCard
+    data-id="settings-section-matter"
+    icon="i-bi-smart-home"
+    title="Smart home"
+    :subtitle="deviceStore.matterCommissioning.fabricCount > 0 ? `${deviceStore.matterCommissioning.fabricCount} connections` : ''"
+  >
+    <template #actions>
+      <UButton
+        label="Pair device"
+        icon="i-bi-plus"
+        @click="deviceStore.requestMatterLink()"
+      />
+
+      <ModalGeneric
+        v-model:open="deviceStore.matterLink.showModal"
+        data-id="modal-matter-link"
+        title="Pair device with Matter"
+        :icon="colorMode.value === 'dark' ? 'i-bi-matter-bubble-dark' : 'i-bi-matter-bubble'"
+        :dismissable="false"
+        no-actions
+      >
+        <template #icon>
+          <UIcon
+            :name="colorMode.value === 'dark' ? 'i-bi-matter-bubble-dark' : 'i-bi-matter-bubble'"
+            class="size-10 mr-1"
+          />
+        </template>
+        <template #body>
+          <div class="flex flex-col items-center gap-4">
+            <div>Scan the QR code</div>
+            <div
+              data-id="matter-link-qr-code"
+              class="w-[184px] bg-white rounded-xl mb-6"
+              v-html="deviceStore.matterLink.qrCode"
+            />
+
+            <div>Or enter the code in your smart home app</div>
+            <CopyButton
+              :text="deviceStore.matterLink.manualCode"
+              variant="subtle"
+              color="neutral"
+              size="xl"
+              class="w-full rounded-xl p-4 pr-5 text-2xl ring-black/4 dark:ring-white/4"
+            />
+
+            <div class="w-full flex justify-end mt-6 text-muted text-sm">
+              Expires in&nbsp;<CountDown :ms="deviceStore.matterLink.expiresInMs" />
+            </div>
+          </div>
+        </template>
+      </ModalGeneric>
     </template>
   </SectionCard>
 
@@ -203,6 +251,7 @@
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
 const tzListStore = useTzListStore();
+const colorMode = useColorMode();
 
 const system = computed(() => deviceStore.deviceStatus?.system);
 const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
