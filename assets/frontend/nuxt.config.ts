@@ -97,17 +97,6 @@ export default defineNuxtConfig({
   eslint: {
     checker: {
       configType: 'flat'
-    },
-    config: {
-      stylistic: {
-        semi: true,
-        quotes: 'single',
-        indent: 2,
-        jsx: true,
-        arrowParens: false,
-        braceStyle: '1tbs',
-        commaDangle: 'never'
-      }
     }
   },
   icon: {
