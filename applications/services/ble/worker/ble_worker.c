@@ -115,6 +115,7 @@ typedef struct {
     FuriThread* thread;
     FuriSemaphore* indication_sem;
     FuriSemaphore* notification_sem;
+    FuriSemaphore* receive_sem;
     uint8_t pairing_info_available;
     ///TODO: this can be removed
     bool connected;
@@ -1052,6 +1053,7 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     ble_worker_instance->on_connection_changed_ctx = ctx;
     ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
     ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
+    ble_worker_instance->receive_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
     ble_worker_instance->security_data = ble_security_alloc();
     ble_worker_instance->advertise = ble_advertise_alloc();
@@ -1215,6 +1217,7 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
         status = rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
     }
 
+    furi_semaphore_release(ble_worker_instance->receive_sem);
     if(status != 0) BLE_LOG_W("Recv fail %08lX", status);
 }
 
