@@ -69,7 +69,22 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           entryFileNames: `_nuxt/[name]-${BUILD_ID}.js`,
-          chunkFileNames: `_nuxt/[name]-${BUILD_ID}.js`,
+          chunkFileNames: chunkInfo => {
+            if (chunkInfo.name.includes('virtual_nuxt')) {
+              // find last occurence of "nuxt_" and extract the name after it
+              const lastNuxtIndex = chunkInfo.name.lastIndexOf('nuxt_');
+              const lastDotIndex = chunkInfo.name.lastIndexOf('.');
+              if (lastNuxtIndex !== -1) {
+                const name = chunkInfo.name.slice(lastNuxtIndex + 5);
+                return `_nuxt/${name}-${BUILD_ID}.js`;
+              } else if (lastDotIndex !== -1) {
+                // if dot found in file name, extract the name after the dot
+                const name = chunkInfo.name.slice(lastDotIndex + 1);
+                return `_nuxt/${name}-${BUILD_ID}.js`;
+              }
+            }
+            return `_nuxt/[name]-${BUILD_ID}.js`;
+          },
           assetFileNames: ({ names, originalFileNames }) => {
             const name = names[0] || originalFileNames[0];
             const ext = name.split('.').pop();
