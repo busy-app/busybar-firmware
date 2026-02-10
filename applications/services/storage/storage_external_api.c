@@ -1173,5 +1173,5 @@ void storage_common_shutdown(Storage* storage) {
 void storage_common_revive(Storage* storage) {
     furi_check(storage);
 
-    furi_semaphore_release(storage->shutdown_semaphore);
+    furi_event_flag_set(storage->shutdown_gate, SHUTDOWN_GATE_FLAG);
 }

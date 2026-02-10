@@ -513,6 +513,7 @@ static void storage_process_shutdown(Storage* app) {
             }
         }
     }
+    furi_event_flag_clear(app->shutdown_gate, SHUTDOWN_GATE_FLAG);
     FURI_LOG_I(TAG, "Storage shutdown done");
 }
 
@@ -704,8 +705,7 @@ void storage_process_alias(
 
 /****************** SD Presence ******************/
 
-bool storage_process_message_internal(Storage* app, StorageMessage* message) {
-    bool release_semaphore = true;
+void storage_process_message_internal(Storage* app, StorageMessage* message) {
     switch(message->command) {
     // File operations
     case StorageCommandFileOpen:
@@ -859,7 +859,6 @@ bool storage_process_message_internal(Storage* app, StorageMessage* message) {
     }
     case StorageCommandCommonShutdown:
         storage_process_shutdown(app);
-        release_semaphore = false;
         break;
 
     // SD operations
@@ -905,9 +904,8 @@ bool storage_process_message_internal(Storage* app, StorageMessage* message) {
     furi_string_set(app->path_storage, "");
 
     api_lock_unlock(message->lock);
-    return release_semaphore;
 }
 
-bool storage_process_message(Storage* app, StorageMessage* message) {
-    return storage_process_message_internal(app, message);
+void storage_process_message(Storage* app, StorageMessage* message) {
+    storage_process_message_internal(app, message);
 }

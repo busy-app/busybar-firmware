@@ -12,9 +12,8 @@ extern "C" {
 /**
  * @brief Process storage API message.
  *
- * @return true if the shutdown semaphore should be released.
  */
-bool storage_process_message(Storage* app, StorageMessage* message);
+void storage_process_message(Storage* app, StorageMessage* message);
 
 #ifdef __cplusplus
 }
