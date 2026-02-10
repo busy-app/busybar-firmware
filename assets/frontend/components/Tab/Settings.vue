@@ -21,9 +21,9 @@
             data-id="mute-button"
             label="Mute"
             icon="i-ri-volume-mute-line"
-            variant="subtle"
             size="sm"
-            :color="mute.isMuted ? 'primary' : 'neutral'"
+            :variant="mute.isMuted ? 'solid' : 'subtle'"
+            color="neutral"
             class="rounded-full"
             @click="mute.isMuted ? unmute() : setVolumeToMute()"
           />
@@ -68,9 +68,9 @@
             data-id="brightness-auto-button"
             label="Auto"
             icon="i-ri-input-method-line"
-            variant="subtle"
             size="sm"
-            :color="isBrightnessAuto ? 'primary' : 'neutral'"
+            :variant="isBrightnessAuto ? 'solid' : 'subtle'"
+            color="neutral"
             class="rounded-full"
             @click="isBrightnessAuto ? disableAutoBrightness() : setBrightnessToAuto()"
           />
