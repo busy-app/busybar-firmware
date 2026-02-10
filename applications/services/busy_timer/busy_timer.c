@@ -15,9 +15,6 @@
 #define TIMER_SNAPSHOT_MQTT_TOPIC "busy/snapshot"
 #define TIMER_SNAPSHOT_MQTT_QOS   MqttQosAtLeastOnce
 
-// TODO: Support card IDs
-#define DEFAULT_CARD_ID "00000000-0000-0000-0000-000000000000"
-
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
@@ -328,7 +325,7 @@ static void busy_timer_update(BusyTimer* instance, time_t timestamp_ms) {
 }
 
 static void busy_timer_fill_snapshot_common(BusyTimer* instance, BusyTimerSnapshotCommon* common) {
-    strcpy(common->card_id, DEFAULT_CARD_ID);
+    strcpy(common->card_id, instance->settings.profile_info.card_id);
     common->is_paused = !busy_timer_is_running(instance);
 }
 
@@ -379,6 +376,8 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
     } else {
         snapshot->type = BusyTimerSnapshotTypeNotStarted;
     }
+
+    memcpy(&snapshot->app_config, &instance->settings.app_config, sizeof(BusyAppConfig));
 }
 
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
@@ -470,7 +469,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
 
-    busy_timer_start_app(&instance->settings.app_config);
+    busy_timer_start_app(&snapshot->app_config);
 
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);
