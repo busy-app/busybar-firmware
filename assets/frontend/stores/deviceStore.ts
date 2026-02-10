@@ -476,8 +476,7 @@ export const useDeviceStore = defineStore('device', () => {
   async function deleteAllPairings (): Promise<void> {
     await apiRequest('/api/matter/commissioning', { method: 'DELETE' })
       .then(() => {
-        console.debug('All Matter pairings deleted');
-        // todo: post-deletion logic
+        console.debug('All Matter pairings deleted, waiting for device to reboot');
       })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t delete pairings');

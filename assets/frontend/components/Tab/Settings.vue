@@ -144,6 +144,13 @@
   >
     <template #actions>
       <UButton
+        v-if="deviceStore.matterCommissioning.fabricCount > 0"
+        label="Forget all pairings"
+        variant="outline"
+        color="neutral"
+        @click="showMatterDeleteModal = true"
+      />
+      <UButton
         label="Pair device"
         icon="i-bi-plus"
         @click="deviceStore.requestMatterLink()"
@@ -188,6 +195,77 @@
           </div>
         </template>
       </ModalGeneric>
+
+      <UModal
+        v-model:open="showMatterDeleteModal"
+        data-id="modal-matter-delete"
+        title="Forget all pairings?"
+        description="Your BUSY Bar will be removed from your smart home automations. The device will restart after removal."
+        :ui="{
+          content: 'max-w-[480px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
+          description: 'hidden',
+          header: 'hidden',
+          body: 'p-0 sm:p-0 overflow-visible',
+          close: 'hidden',
+          overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
+        }"
+      >
+        <template #body>
+          <div
+            class="flex flex-col gap-6 p-6 bg-no-repeat"
+            :style="`background-image: url(${matterDeleteImage}); background-size: 100%; background-position: center calc(50% - 25px)`"
+          >
+            <div class="text-left text-xl font-medium">Forget all pairings?</div>
+
+            <div class="h-36" />
+            <div class="text-center">Your BUSY Bar will be removed from your smart home automations. The device will restart after removal.</div>
+
+            <div class="flex justify-end gap-4">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                label="Cancel"
+                class="min-w-20 justify-center"
+                @click="showMatterDeleteModal = false"
+              />
+              <UButton
+                label="Forget all pairings"
+                variant="soft"
+                color="error"
+                class="min-w-20 justify-center"
+                @click="deleteMatterPairings()"
+              />
+            </div>
+          </div>
+        </template>
+      </UModal>
+
+      <UModal
+        v-model:open="showRebootingModal"
+        data-id="modal-rebooting"
+        title="Restarting BUSY Bar..."
+        description="Restarting BUSY Bar..."
+        :ui="{
+          content: 'max-w-[360px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
+          description: 'hidden',
+          header: 'hidden',
+          body: 'p-5 sm:p-5',
+          close: 'hidden',
+          overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
+        }"
+      >
+        <template #body>
+          <div class="flex items-center gap-4 py-4">
+            <CircularProgress
+              v-model="indeterminateProgressModel"
+              size="32px"
+              :thickness="0.25"
+              class="animate-spin"
+            />
+            <div>Restarting BUSY Bar...</div>
+          </div>
+        </template>
+      </UModal>
     </template>
   </SectionCard>
 
@@ -250,6 +328,8 @@
 </template>
 
 <script setup lang="ts">
+import matterDeleteImage from '@/assets/images/matter-delete.png';
+
 const deviceStore = useDeviceStore();
 const tzListStore = useTzListStore();
 const colorMode = useColorMode();
@@ -379,9 +459,23 @@ function onMatterLinkModalClose () {
   deviceStore.matterLink.availableUntil = null;
   deviceStore.matterLink.timeout = null;
   deviceStore.matterLink.expiresInMs = 0;
+
+  return deviceStore.fetchMatterCommissioning();
+}
+
+const showMatterDeleteModal = ref(false);
+const showRebootingModal = ref(false);
+const indeterminateProgressModel = ref(60);
+
+async function deleteMatterPairings () {
+  await deviceStore.deleteAllPairings();
+  showMatterDeleteModal.value = false;
+  showRebootingModal.value = true;
 }
 
 async function init () {
+  showRebootingModal.value = false;
+
   await deviceStore.getDeviceStatus();
   await deviceStore.getApiVersion();
   await refreshAudioVolume();
@@ -390,6 +484,7 @@ async function init () {
     await tzListStore.fetchTimezoneOptions();
   }
   await deviceStore.fetchTimezone();
+  await deviceStore.fetchMatterCommissioning();
 }
 
 onMounted(async () => {
