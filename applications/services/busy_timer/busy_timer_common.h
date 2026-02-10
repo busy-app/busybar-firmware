@@ -38,9 +38,9 @@ typedef enum {
 } BusyTimerMode;
 
 typedef struct {
-    char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
-    char title[BUSY_TIMER_TITLE_LEN + 1];
     uint32_t sort_order;
+    char title[BUSY_TIMER_TITLE_LEN + 1];
+    char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
 } BusyTimerProfileInfo;
 
 typedef struct {

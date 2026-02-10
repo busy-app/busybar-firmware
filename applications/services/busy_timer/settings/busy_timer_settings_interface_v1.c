@@ -2,7 +2,8 @@
 
 #include <furi_hal_rtc.h>
 
-#define THEME_NAME_DEFAULT                ""
+#define STRING_VALUE_DEFAULT ""
+
 #define IS_SMART_HOME_ENABLED_DEFAULT     (true)
 #define IS_SHOW_WORK_ONLY_ENABLED_DEFAULT (false)
 
@@ -14,9 +15,12 @@
 #define ENABLE_AUTOSTART_DEFAULT (false)
 #define ENABLE_DEMO_MODE_DEFAULT (false)
 
+#define SORT_ORDER_DEFAULT (0)
+
 typedef enum {
     BusyTimerSettingsV1IdxAppConfig,
     BusyTimerSettingsV1IdxTimerConfig,
+    BusyTimerSettingsV1IdxProfileInfo,
     BusyTimerSettingsV1IdxTimestamp,
     BusyTimerSettingsV1IdxMax,
 } BusyTimerSettingsV1Idx;
@@ -39,25 +43,55 @@ typedef enum {
     BusyTimerSettingsV1TimerConfigIdxMax,
 } BusyTimerSettingsV1TimerConfigIdx;
 
+typedef enum {
+    BusyTimerSettingsV1ProfileInfoIdxSortOrder,
+    BusyTimerSettingsV1ProfileInfoIdxTitle,
+    BusyTimerSettingsV1ProfileInfoIdxId,
+    BusyTimerSettingsV1ProfileInfoIdxMax,
+} BusyTimerSettingsV1ProfileInfoIdx;
+
 static const char* busy_timer_settings_v1_mode_names[BusyTimerModeMax] = {
     [BusyTimerModeInfinite] = "infinite",
     [BusyTimerModeSimple] = "simple",
     [BusyTimerModeInterval] = "interval",
 };
 
-static const char* busy_timer_settings_v1_theme_name_default[BusyTimerProfileIdMax] = {
-    [BusyTimerProfileIdBusy] = "default",
-    [BusyTimerProfileIdCustom] = "keep_out",
+// NOTE: Wastes ~64 bytes of flash space for convenience
+static const BusyAppConfig busy_timer_settings_v1_app_config_default[BusyTimerProfileIdMax] = {
+    [BusyTimerProfileIdBusy] =
+        {
+            .theme_name = "default",
+            .is_show_work_only_enabled = false,
+            .is_smart_home_enabled = true,
+        },
+    [BusyTimerProfileIdCustom] =
+        {
+            .theme_name = "keep_out",
+            .is_show_work_only_enabled = true,
+            .is_smart_home_enabled = true,
+        },
 };
 
-static const bool busy_timer_settings_v1_is_show_work_only_enabled[BusyTimerProfileIdMax] = {
-    [BusyTimerProfileIdBusy] = false,
-    [BusyTimerProfileIdCustom] = true,
-};
-
-static const BusyTimerMode busy_Timer_settings_v1_timer_mode_default[BusyTimerProfileIdMax] = {
+static const BusyTimerMode busy_timer_settings_v1_timer_mode_default[BusyTimerProfileIdMax] = {
     [BusyTimerProfileIdBusy] = BusyTimerModeInterval,
     [BusyTimerProfileIdCustom] = BusyTimerModeInfinite,
+};
+
+// NOTE: Wastes ~200 bytes of flash space for convenience
+static const BusyTimerProfileInfo
+    busy_timer_settings_v1_profile_info_default[BusyTimerProfileIdMax] = {
+        [BusyTimerProfileIdBusy] =
+            {
+                .sort_order = 0,
+                .title = "busy",
+                .card_id = "00000000-0000-0000-0000-000000000000",
+            },
+        [BusyTimerProfileIdCustom] =
+            {
+                .sort_order = 1,
+                .title = "custom",
+                .card_id = "00000000-0000-0000-0000-000000000001",
+            },
 };
 
 static const BusyTimerMode busy_timer_settings_v1_mode_default = BusyTimerModeMax;
@@ -127,8 +161,9 @@ static const SettingProviderSetting busy_timer_settings_v1_app_config[] = {
             .name = "theme_name",
             .interface =
                 &(const SettingProviderStringInterface){
-                    .default_value = THEME_NAME_DEFAULT,
-                    .max_length = BUSY_CONFIG_THEME_NAME_LEN,
+                    .default_value = STRING_VALUE_DEFAULT,
+                    // Including zero terminator
+                    .max_length = SIZEOF_MEMBER(BusyAppConfig, theme_name),
                 },
             .field_offset = offsetof(BusyAppConfig, theme_name),
             .type = SettingProviderSettingTypeString,
@@ -231,6 +266,43 @@ static const SettingProviderSetting busy_timer_settings_v1_timer_config[] = {
         },
 };
 
+static const SettingProviderSetting busy_timer_settings_v1_profile_info[] = {
+    [BusyTimerSettingsV1ProfileInfoIdxSortOrder] =
+        {
+            .name = "sort_order",
+            .interface =
+                &(const SettingProviderIntInterface){
+                    .default_value = 0,
+                },
+            .field_offset = offsetof(BusyTimerProfileInfo, sort_order),
+            .type = SettingProviderSettingTypeInt,
+        },
+    [BusyTimerSettingsV1ProfileInfoIdxTitle] =
+        {
+            .name = "title",
+            .interface =
+                &(const SettingProviderStringInterface){
+                    .default_value = STRING_VALUE_DEFAULT,
+                    // Including zero terminator
+                    .max_length = SIZEOF_MEMBER(BusyTimerProfileInfo, title),
+                },
+            .field_offset = offsetof(BusyTimerProfileInfo, title),
+            .type = SettingProviderSettingTypeString,
+        },
+    [BusyTimerSettingsV1ProfileInfoIdxId] =
+        {
+            .name = "id",
+            .interface =
+                &(const SettingProviderStringInterface){
+                    .default_value = STRING_VALUE_DEFAULT,
+                    // Including zero terminator
+                    .max_length = SIZEOF_MEMBER(BusyTimerProfileInfo, card_id),
+                },
+            .field_offset = offsetof(BusyTimerProfileInfo, card_id),
+            .type = SettingProviderSettingTypeString,
+        },
+};
+
 static const SettingProviderSetting busy_timer_settings_v1[] = {
     [BusyTimerSettingsV1IdxAppConfig] =
         {
@@ -252,6 +324,17 @@ static const SettingProviderSetting busy_timer_settings_v1[] = {
                     .inner_settings_count = COUNT_OF(busy_timer_settings_v1_timer_config),
                 },
             .field_offset = offsetof(BusyTimerSettingsV1, timer_config),
+            .type = SettingProviderSettingTypeStructure,
+        },
+    [BusyTimerSettingsV1IdxProfileInfo] =
+        {
+            .name = "profile_info",
+            .interface =
+                &(const SettingProviderStructureInterface){
+                    .inner_settings = busy_timer_settings_v1_profile_info,
+                    .inner_settings_count = COUNT_OF(busy_timer_settings_v1_profile_info),
+                },
+            .field_offset = offsetof(BusyTimerSettingsV1, profile_info),
             .type = SettingProviderSettingTypeStructure,
         },
     [BusyTimerSettingsV1IdxTimestamp] =
@@ -287,17 +370,26 @@ bool busy_timer_settings_v1_apply_defaults(
 
     BusyAppConfig* app_config = &settings_v1->app_config;
     BusyTimerConfig* timer_config = &settings_v1->timer_config;
+    BusyTimerProfileInfo* profile_info = &settings_v1->profile_info;
 
-    if(strcmp(app_config->theme_name, THEME_NAME_DEFAULT) == 0) {
-        strcpy(app_config->theme_name, busy_timer_settings_v1_theme_name_default[profile_id]);
-        app_config->is_show_work_only_enabled =
-            busy_timer_settings_v1_is_show_work_only_enabled[profile_id];
-
+    if(strcmp(app_config->theme_name, STRING_VALUE_DEFAULT) == 0) {
+        memcpy(
+            app_config,
+            &busy_timer_settings_v1_app_config_default[profile_id],
+            sizeof(BusyAppConfig));
         were_defaults_applied = true;
     }
 
     if(timer_config->mode == BusyTimerModeMax) {
-        timer_config->mode = busy_Timer_settings_v1_timer_mode_default[profile_id];
+        timer_config->mode = busy_timer_settings_v1_timer_mode_default[profile_id];
+        were_defaults_applied = true;
+    }
+
+    if(strcmp(profile_info->card_id, STRING_VALUE_DEFAULT) == 0) {
+        memcpy(
+            profile_info,
+            &busy_timer_settings_v1_profile_info_default[profile_id],
+            sizeof(BusyTimerProfileInfo));
         were_defaults_applied = true;
     }
 

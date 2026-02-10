@@ -8,6 +8,7 @@
 typedef struct {
     BusyAppConfig app_config;
     BusyTimerConfig timer_config;
+    BusyTimerProfileInfo profile_info;
     time_t timestamp;
 } BusyTimerSettingsV1;
 
