@@ -11,33 +11,33 @@ const void* busy_settings_v1_interfaces[BusySettingsProfileIdMax][BusySettingsV1
     [BusySettingsProfileIdBusy] =
         {
             [BusySettingsV1IdxThemeName] =
-                &(SettingProviderStringInterface){
+                &(const SettingProviderStringInterface){
                     .default_value = "default",
                     .is_valid_callback = busy_settings_v1_theme_name_is_valid_callback,
                     .max_length = BUSY_SETTINGS_V1_THEME_NAME_LEN,
                 },
             [BusySettingsV1IdxSmartHome] =
-                &(SettingProviderBoolInterface){
+                &(const SettingProviderBoolInterface){
                     .default_value = true,
                 },
             [BusySettingsV1IdxWorkOnly] =
-                &(SettingProviderBoolInterface){
+                &(const SettingProviderBoolInterface){
                     .default_value = false,
                 },
         },
     [BusySettingsProfileIdCustom] =
         {
             [BusySettingsV1IdxThemeName] =
-                &(SettingProviderStringInterface){
+                &(const SettingProviderStringInterface){
                     .default_value = "keep_out",
                     .max_length = BUSY_SETTINGS_V1_THEME_NAME_LEN,
                 },
             [BusySettingsV1IdxSmartHome] =
-                &(SettingProviderBoolInterface){
+                &(const SettingProviderBoolInterface){
                     .default_value = true,
                 },
             [BusySettingsV1IdxWorkOnly] =
-                &(SettingProviderBoolInterface){
+                &(const SettingProviderBoolInterface){
                     .default_value = true,
                 },
         },

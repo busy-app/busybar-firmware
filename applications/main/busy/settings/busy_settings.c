@@ -36,7 +36,7 @@ void busy_settings_load(BusySettings* settings, BusySettingsProfileId profile_id
 
     const SettingProviderSetting settings_root = {
         .interface =
-            &(SettingProviderStructureInterface){
+            &(const SettingProviderStructureInterface){
                 .inner_settings = inner_settings,
                 .inner_settings_count = BUSY_SETTINGS_COUNT,
             },
@@ -61,7 +61,7 @@ bool busy_settings_save(const BusySettings* settings, BusySettingsProfileId prof
 
     const SettingProviderSetting settings_root = {
         .interface =
-            &(SettingProviderStructureInterface){
+            &(const SettingProviderStructureInterface){
                 .inner_settings = inner_settings,
                 .inner_settings_count = BUSY_SETTINGS_COUNT,
             },
