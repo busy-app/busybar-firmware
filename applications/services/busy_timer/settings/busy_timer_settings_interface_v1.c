@@ -15,7 +15,7 @@
 #define ENABLE_AUTOSTART_DEFAULT (false)
 #define ENABLE_DEMO_MODE_DEFAULT (false)
 
-#define SORT_ORDER_DEFAULT (0)
+#define SORT_ORDER_DEFAULT (-1)
 
 typedef enum {
     BusyTimerSettingsV1IdxAppConfig,
@@ -82,13 +82,13 @@ static const BusyTimerProfileInfo
     busy_timer_settings_v1_profile_info_default[BusyTimerProfileIdMax] = {
         [BusyTimerProfileIdBusy] =
             {
-                .sort_order = 0,
+                .sort_order = SORT_ORDER_DEFAULT,
                 .title = "busy",
                 .card_id = "00000000-0000-0000-0000-000000000000",
             },
         [BusyTimerProfileIdCustom] =
             {
-                .sort_order = 1,
+                .sort_order = SORT_ORDER_DEFAULT,
                 .title = "custom",
                 .card_id = "00000000-0000-0000-0000-000000000001",
             },
