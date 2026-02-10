@@ -454,7 +454,6 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         timer_config->work_time_mn = MS_TO_M(interval_settings->work_time_ms);
         timer_config->rest_time_mn = MS_TO_M(interval_settings->rest_time_ms);
         timer_config->enable_autostart = interval_settings->is_autostart_enabled;
-        timer_config->enable_intervals = true;
 
     } else {
         furi_crash("Invalid BusyTimerSnapshotType value");

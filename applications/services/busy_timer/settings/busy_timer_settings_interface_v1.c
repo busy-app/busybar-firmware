@@ -11,7 +11,6 @@
 #define REST_TIME_DEFAULT_MN (5)
 #define CYCLE_COUNT_DEFAULT  (3)
 
-#define ENABLE_INTERVALS_DEFAULT (true)
 #define ENABLE_AUTOSTART_DEFAULT (false)
 #define ENABLE_DEMO_MODE_DEFAULT (false)
 

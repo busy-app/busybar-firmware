@@ -24,10 +24,28 @@
 #define BUSY_TIMER_CYCLE_INCREMENT (1)
 
 #define BUSY_TIMER_CARD_ID_LEN (36)
+#define BUSY_TIMER_TITLE_LEN   (32 * 4)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum {
+    BusyTimerModeInfinite,
+    BusyTimerModeSimple,
+    BusyTimerModeInterval,
+    BusyTimerModeMax,
+} BusyTimerMode;
+
+typedef struct {
+    char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
+    char title[BUSY_TIMER_TITLE_LEN + 1];
+    uint32_t sort_order;
+} BusyTimerProfileInfo;
+
+typedef struct {
+    uint32_t total_time_ms;
+} BusyTimerSimpleSettings;
 
 typedef struct {
     uint32_t work_time_ms;

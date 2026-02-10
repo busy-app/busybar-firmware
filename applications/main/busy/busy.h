@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdbool.h>
+#include "busy_common.h"
 
 #define RECORD_BUSY_APP "busy_app"
 
@@ -35,25 +35,6 @@ extern "C" {
 #endif
 
 typedef struct BusyApp BusyApp;
-
-/**
- * @brief Maximum length of a theme name.
- */
-#define BUSY_CONFIG_THEME_NAME_LEN (64)
-
-/**
- * @brief BusyApp configuration structure.
- */
-typedef struct {
-    /** Name of the theme to be applied (same as the theme folder) */
-    char theme_name[BUSY_CONFIG_THEME_NAME_LEN + 1];
-    /** Enable the smart home (Matter) integration if @c true,
-     *  do not enable otherwise */
-    bool is_smart_home_enabled;
-    /** Blank the front display in non-work states if @c true,
-     *  regular behaviour otherwise */
-    bool is_show_work_only_enabled;
-} BusyAppConfig;
 
 void busy_set_config(BusyApp* instance, const BusyAppConfig* config);
 

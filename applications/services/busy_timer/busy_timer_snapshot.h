@@ -6,6 +6,8 @@
 
 #include "busy_timer_common.h"
 
+#include <busy/busy_common.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,6 +47,7 @@ typedef struct {
         BusyTimerSnapshotSimple simple;
         BusyTimerSnapshotInterval interval;
     };
+    BusyAppConfig app_config;
 } BusyTimerSnapshot;
 
 /**

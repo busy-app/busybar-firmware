@@ -1,4 +1,5 @@
 #include "busy_timer_snapshot.h"
+#include "busy_timer_common_i.h"
 
 #include <furi.h>
 
@@ -18,11 +19,6 @@
 #define KEY_SNAPSHOT_INTERVAL_CURRENT_TOTAL "current_interval_time_total_ms"
 #define KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT  "current_interval_time_left_ms"
 #define KEY_SNAPSHOT_INTERVAL_SETTINGS      "interval_settings"
-
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_WORK      "interval_work_ms"
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_REST      "interval_rest_ms"
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_CYCLES    "interval_work_cycles_count"
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_AUTOSTART "is_autostart_enabled"
 
 static const char* const snapshot_type_values[BusyTimerSnapshotTypeMax] = {
     [BusyTimerSnapshotTypeNotStarted] = "NOT_STARTED",
@@ -54,22 +50,6 @@ static void busy_timer_snapshot_serialize_snapshot_simple(
     cJSON_AddNumberToObject(json, KEY_SNAPSHOT_SIMPLE_TIME_LEFT, simple->time_left_ms);
 }
 
-static void busy_timer_snapshot_serialize_snapshot_interval_settings(
-    cJSON* json,
-    const BusyTimerIntervalSettings* settings) {
-    cJSON* settings_json = cJSON_AddObjectToObject(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-    cJSON_AddStringToObject(
-        settings_json, KEY_SNAPSHOT_TYPE, snapshot_type_values[BusyTimerSnapshotTypeInterval]);
-    cJSON_AddNumberToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_WORK, settings->work_time_ms);
-    cJSON_AddNumberToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_REST, settings->rest_time_ms);
-    cJSON_AddNumberToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_CYCLES, settings->cycles_count);
-    cJSON_AddBoolToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_AUTOSTART, settings->is_autostart_enabled);
-}
-
 static void busy_timer_snapshot_serialize_snapshot_interval(
     cJSON* json,
     const BusyTimerSnapshotInterval* interval) {
@@ -81,7 +61,8 @@ static void busy_timer_snapshot_serialize_snapshot_interval(
     cJSON_AddNumberToObject(
         json, KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT, interval->state.time_left_ms);
 
-    busy_timer_snapshot_serialize_snapshot_interval_settings(json, &interval->settings);
+    cJSON* settings_json = cJSON_AddObjectToObject(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
+    busy_timer_common_serialize_interval_settings(settings_json, &interval->settings);
 }
 
 // Snapshot deserialization
@@ -151,66 +132,6 @@ static bool busy_timer_snapshot_deserialize_snapshot_simple(
     return success;
 }
 
-static bool busy_timer_snapshot_deserialize_interval_settings(
-    const cJSON* json,
-    BusyTimerIntervalSettings* settings) {
-    bool success = false;
-
-    do {
-        if(!cJSON_IsObject(json)) {
-            break;
-        }
-
-        const cJSON* item;
-
-// TODO: Remove after the mobile apps have been fixed
-#ifdef INTERVAL_SETTINGS_TYPE_CHECK
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_TYPE);
-        if(!cJSON_IsString(item)) {
-            break;
-        }
-
-        const char* type_str = cJSON_GetStringValue(item);
-        furi_check(type_str);
-
-        if(strcmp(type_str, snapshot_type_values[BusyTimerSnapshotTypeInterval]) != 0) {
-            break;
-        }
-#endif
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_WORK);
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        settings->work_time_ms = cJSON_GetNumberValue(item);
-
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_REST);
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        settings->rest_time_ms = cJSON_GetNumberValue(item);
-
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_CYCLES);
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        settings->cycles_count = cJSON_GetNumberValue(item);
-
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_AUTOSTART);
-        if(!cJSON_IsBool(item)) {
-            break;
-        }
-
-        settings->is_autostart_enabled = cJSON_IsTrue(item);
-
-        success = true;
-    } while(false);
-
-    return success;
-}
-
 static bool busy_timer_snapshot_deserialize_snapshot_interval(
     const cJSON* json,
     BusyTimerSnapshotInterval* interval) {
@@ -247,7 +168,7 @@ static bool busy_timer_snapshot_deserialize_snapshot_interval(
         state->time_left_ms = cJSON_GetNumberValue(item);
 
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-        if(!busy_timer_snapshot_deserialize_interval_settings(item, &interval->settings)) {
+        if(!busy_timer_common_deserialize_interval_settings(item, &interval->settings)) {
             break;
         }
 
@@ -311,6 +232,11 @@ static bool
 
         snapshot->type = snapshot_type;
 
+        item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS);
+        if(!busy_timer_common_deserialize_busy_bar_settings(item, &snapshot->app_config)) {
+            // TODO: Nothing for now, but will be an error in the future
+        }
+
         success = true;
     } while(false);
 
@@ -362,6 +288,8 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
     } else if(snapshot_type == BusyTimerSnapshotTypeInterval) {
         busy_timer_snapshot_serialize_snapshot_interval(snapshot_json, &snapshot->interval);
     }
+
+    busy_timer_common_serialize_busy_bar_settings(snapshot_json, &snapshot->app_config);
 
     cJSON_AddNumberToObject(json, KEY_TIMESTAMP, snapshot->timestamp_ms);
 

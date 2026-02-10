@@ -2,8 +2,9 @@
 
 #include <core/pubsub.h>
 
-#include <busy/busy.h>
+#include <busy/busy_common.h>
 
+#include "busy_timer_common.h"
 #include "busy_timer_snapshot.h"
 
 #define RECORD_BUSY_TIMER "busy_timer"
@@ -13,13 +14,6 @@ extern "C" {
 #endif
 
 typedef struct BusyTimer BusyTimer;
-
-typedef enum {
-    BusyTimerModeInfinite,
-    BusyTimerModeSimple,
-    BusyTimerModeInterval,
-    BusyTimerModeMax,
-} BusyTimerMode;
 
 typedef enum {
     BusyTimerStateIdle,
@@ -79,7 +73,6 @@ typedef struct {
     uint32_t work_time_mn;
     uint32_t rest_time_mn;
     uint32_t cycle_count;
-    bool enable_intervals;
     bool enable_autostart;
     bool enable_demo_mode;
 } BusyTimerConfig;
