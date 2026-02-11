@@ -48,7 +48,7 @@ static const char* busy_timer_get_mode_name(BusyTimerMode mode) {
 // TODO: ============================== Temporary functions start
 static void
     busy_timer_profile_to_settings(BusyTimerSettings* settings, const BusyTimerProfile* profile) {
-    settings->app_config = profile->busy_bar_settings;
+    settings->busy_bar_settings = profile->busy_bar_settings;
     settings->profile_info = profile->info;
     settings->timestamp = profile->timestamp_ms;
 
@@ -90,7 +90,7 @@ static void busy_timer_config_to_interval(
 
 static void
     busy_timer_settings_to_profile(BusyTimerProfile* profile, const BusyTimerSettings* settings) {
-    profile->busy_bar_settings = settings->app_config;
+    profile->busy_bar_settings = settings->busy_bar_settings;
     profile->info = settings->profile_info;
     profile->timestamp_ms = settings->timestamp;
 
@@ -569,7 +569,7 @@ static void busy_timer_load_settings(BusyTimer* instance, BusyTimerProfileId pro
     busy_timer_settings_load(&settings, profile_id);
 
     instance->mode = settings.timer_config.mode;
-    instance->busy_bar_settings = settings.app_config;
+    instance->busy_bar_settings = settings.busy_bar_settings;
     strcpy(instance->card_id, settings.profile_info.card_id);
 
     if(instance->mode == BusyTimerModeSimple) {

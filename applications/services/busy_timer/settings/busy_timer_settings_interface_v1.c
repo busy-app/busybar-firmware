@@ -312,7 +312,7 @@ static const SettingProviderSetting busy_timer_settings_v1[] = {
                     .inner_settings = busy_timer_settings_v1_app_config,
                     .inner_settings_count = COUNT_OF(busy_timer_settings_v1_app_config),
                 },
-            .field_offset = offsetof(BusyTimerSettingsV1, app_config),
+            .field_offset = offsetof(BusyTimerSettingsV1, busy_bar_settings),
             .type = SettingProviderSettingTypeStructure,
         },
     [BusyTimerSettingsV1IdxTimerConfig] =
@@ -368,7 +368,7 @@ bool busy_timer_settings_v1_apply_defaults(
     furi_assert(profile_id < BusyTimerProfileIdMax);
     bool were_defaults_applied = false;
 
-    BusyAppConfig* app_config = &settings_v1->app_config;
+    BusyAppConfig* app_config = &settings_v1->busy_bar_settings;
     BusyTimerConfig* timer_config = &settings_v1->timer_config;
     BusyTimerProfileInfo* profile_info = &settings_v1->profile_info;
 

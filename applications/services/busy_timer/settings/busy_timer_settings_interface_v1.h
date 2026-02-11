@@ -6,7 +6,7 @@
 #include <busy_timer/busy_timer.h>
 
 typedef struct {
-    BusyAppConfig app_config;
+    BusyAppConfig busy_bar_settings;
     BusyTimerConfig timer_config;
     BusyTimerProfileInfo profile_info;
     time_t timestamp;
