@@ -178,8 +178,6 @@ const tabStore = useTabStore();
 
 const colorMode = useColorMode();
 
-const httpApiAccess = ref();
-
 const passwordSetItems = [
   {
     label: 'Lock down',
@@ -247,7 +245,7 @@ const userDropdownItems = computed(() => {
     ]
   ];
 
-  if (httpApiAccess.value === undefined) {
+  if (deviceStore.httpAPIAccess === undefined) {
     return [
       [
         {
@@ -261,7 +259,7 @@ const userDropdownItems = computed(() => {
       ],
       ...baseItems
     ];
-  } else if (httpApiAccess.value.mode === 'key') {
+  } else if (deviceStore.httpAPIAccess.mode === 'key') {
     return [passwordSetItems, ...baseItems];
   } else {
     return [passwordUnsetItems, ...baseItems];
@@ -323,14 +321,14 @@ function onLogoClick () {
 }
 
 async function init () {
-  httpApiAccess.value = await deviceStore.getHttpAPIAccess();
+  await deviceStore.fetchHttpAPIAccess();
 
   await deviceStore.detectConnectionType();
   if (deviceStore.connectionType === 'usb') {
     passwordSetItems.splice(0, 1);
   }
 
-  nameModel.value = await deviceStore.getDeviceName();
+  nameModel.value = await deviceStore.fetchDeviceName();
 }
 
 onMounted(async () => {

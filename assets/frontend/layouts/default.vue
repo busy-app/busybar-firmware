@@ -53,8 +53,8 @@ async function init () {
     await deviceStore.fetchDeviceName(true);
 
     // initialize device and wifi state
-    await deviceStore.getDeviceStatus();
-    await wifiStore.getWifiState();
+    await deviceStore.fetchDeviceStatus();
+    await wifiStore.fetchWifiState();
 
     // clear auto-update state (stale after fw update)
     deviceStore.resetAutoUpdateState();
@@ -62,7 +62,6 @@ async function init () {
     // request fresh auto-update status, non-blocking
     if (wifiStore.wifi?.state === 'connected') {
       deviceStore.fetchAutoUpdateStatus();
-      // deviceStore.requestAutoUpdateCheck();
     }
   } catch (error) {
     if ((error as { status: number }).status === 403) {

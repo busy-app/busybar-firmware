@@ -11,7 +11,7 @@
 const deviceStore = useDeviceStore();
 
 async function init () {
-  await deviceStore.getDeviceStatus();
+  await deviceStore.fetchDeviceStatus();
 }
 
 onMounted(async () => {

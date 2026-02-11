@@ -66,14 +66,13 @@ function dataCallback (data: Uint8Array) {
   }
 
   const ctx = canvasCtx.value;
-  const currentScreen = deviceScreenStreamStore.currentScreen;
   const { width, height } = originalDimensions.value;
 
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
 
   const imageData = ctx.createImageData(width, height);
 
-  if (currentScreen === DeviceScreen.FRONT) {
+  if (deviceScreenStreamStore.currentScreen === DeviceScreen.FRONT) {
     for (let i = 0; i < data.length; i += 3) {
       const offset = i / 3 * 4;
       imageData.data[offset] = data[i + 2]; // r
@@ -166,7 +165,7 @@ function stopCallback () {
 }
 
 async function init () {
-  if (deviceScreenStreamStore.isConnected) {
+  if (deviceScreenStreamStore.isWebSocketConnected) {
     await deviceScreenStreamStore.stopScreenStream();
   }
 

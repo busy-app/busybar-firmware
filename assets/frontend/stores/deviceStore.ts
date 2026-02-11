@@ -2,8 +2,6 @@ import { defineStore } from 'pinia';
 import { BusyBar } from '@busy-app/busy-lib';
 import type {
   VersionInfo,
-  StatusSystem,
-  StatusPower,
   Status as DeviceStatus,
   HttpAccessInfo,
   HttpAccessParams,
@@ -198,12 +196,6 @@ export const useDeviceStore = defineStore('device', () => {
 
     return version;
   }
-  async function getApiVersion (): Promise<VersionInfo | undefined> {
-    if (apiVersion.value === undefined) {
-      apiVersion.value = await fetchApiVersion();
-    }
-    return apiVersion.value;
-  }
 
   // Device status
   const deviceStatus = ref<DeviceStatus | undefined>(undefined);
@@ -219,30 +211,6 @@ export const useDeviceStore = defineStore('device', () => {
       });
 
     return status;
-  }
-  async function getDeviceStatus (): Promise<DeviceStatus | undefined> {
-    if (deviceStatus.value === undefined) {
-      deviceStatus.value = await fetchDeviceStatus();
-    }
-    return deviceStatus.value;
-  }
-  async function fetchSystemStatus (): Promise<StatusSystem | undefined> {
-    const systemStatus = await busyBar.SystemInfo()
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t get system status');
-        return undefined;
-      });
-
-    return systemStatus;
-  }
-  async function fetchPowerStatus (): Promise<StatusPower | undefined> {
-    const powerStatus = await busyBar.SystemStatusPower()
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t get power status');
-        return undefined;
-      });
-
-    return powerStatus;
   }
 
   // Device name
@@ -263,12 +231,6 @@ export const useDeviceStore = defineStore('device', () => {
       });
 
     return name;
-  }
-  async function getDeviceName (): Promise<string> {
-    if (deviceName.value === undefined) {
-      deviceName.value = await fetchDeviceName();
-    }
-    return deviceName.value;
   }
   async function setDeviceName (name: string): Promise<boolean> {
     return await busyBar.SettingsNameSet({ name })
@@ -297,12 +259,6 @@ export const useDeviceStore = defineStore('device', () => {
 
     return access;
   }
-  async function getHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
-    if (httpAPIAccess.value === undefined) {
-      httpAPIAccess.value = await fetchHttpAPIAccess();
-    }
-    return httpAPIAccess.value;
-  }
   async function setHttpAPIAccess (mode: 'key' | 'disabled' | 'enabled', key?: string): Promise<boolean> {
     const payload = { mode } as { mode: 'key' | 'disabled' | 'enabled'; key?: string };
     if (mode === 'key') {
@@ -330,7 +286,9 @@ export const useDeviceStore = defineStore('device', () => {
       .then(response => {
         const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
-        return { front: frontParsed, back: backParsed } as DisplayBrightnessParams;
+        const result = { front: frontParsed, back: backParsed } as DisplayBrightnessParams;
+        displayBrightness.value = result;
+        return result;
       })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t get display brightness', true);
@@ -338,12 +296,6 @@ export const useDeviceStore = defineStore('device', () => {
       });
 
     return brightness;
-  }
-  async function getDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
-    if (displayBrightness.value === undefined) {
-      displayBrightness.value = await fetchDisplayBrightness();
-    }
-    return displayBrightness.value;
   }
   async function setDisplayBrightness (brightness: DisplayBrightnessParams): Promise<boolean> {
     return await busyBar.DisplayBrightnessSet(brightness)
@@ -371,12 +323,6 @@ export const useDeviceStore = defineStore('device', () => {
       });
 
     return volume;
-  }
-  async function getAudioVolume (): Promise<AudioVolumeInfo | undefined> {
-    if (audio.value === undefined) {
-      audio.value = await fetchAudioVolume();
-    }
-    return audio.value;
   }
   async function setAudioVolume (volume: number): Promise<boolean> {
     return await busyBar.AudioVolumeSet({ volume })
@@ -514,7 +460,6 @@ export const useDeviceStore = defineStore('device', () => {
     autoUpdate.value.availableVersion = null;
     autoUpdate.value.isAllowed = null;
     autoUpdate.value.changelog = null;
-    // autoUpdate.value.stage = UpdateStage.IDLE;
     autoUpdate.value.progress = 0;
     if (autoUpdate.value.progressPollingInterval) {
       clearInterval(autoUpdate.value.progressPollingInterval);
@@ -590,7 +535,6 @@ export const useDeviceStore = defineStore('device', () => {
       return;
     }
     autoUpdate.value.isChecking = true;
-    // resetAutoUpdateState();
 
     return apiRequest('/api/update/check', { method: 'POST', timeout: 10000 })
       .then(async () => {
@@ -810,32 +754,24 @@ export const useDeviceStore = defineStore('device', () => {
 
     apiVersion,
     fetchApiVersion,
-    getApiVersion,
 
     deviceStatus,
-    fetchSystemStatus,
-    fetchPowerStatus,
     fetchDeviceStatus,
-    getDeviceStatus,
 
     deviceName,
     fetchDeviceName,
-    getDeviceName,
     setDeviceName,
 
     httpAPIAccess,
     fetchHttpAPIAccess,
-    getHttpAPIAccess,
     setHttpAPIAccess,
 
     displayBrightness,
     fetchDisplayBrightness,
-    getDisplayBrightness,
     setDisplayBrightness,
 
     audio,
     fetchAudioVolume,
-    getAudioVolume,
     setAudioVolume,
 
     timezone,

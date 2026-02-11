@@ -185,10 +185,6 @@ watch(() => deviceStore.fileUpdate.stage, newStage => {
       if (updatePollingInterval.value) {
         clearInterval(updatePollingInterval.value);
       }
-      deviceStore.fetchDeviceStatus()
-        .then(status => {
-          deviceStore.deviceStatus = status;
-        });
       return;
     }
     return;
@@ -215,8 +211,8 @@ watch(() => deviceStore.fileUpdate.stage, newStage => {
 });
 
 async function init () {
-  await deviceStore.getApiVersion();
-  await deviceStore.getDeviceStatus();
+  await deviceStore.fetchApiVersion();
+  await deviceStore.fetchDeviceStatus();
 }
 
 onMounted(async () => {

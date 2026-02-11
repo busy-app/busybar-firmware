@@ -23,13 +23,6 @@ export const useWifiStore = defineStore('wifi', () => {
     return state;
   }
 
-  async function getWifiState (): Promise<WifiState | undefined> {
-    if (wifi.value === undefined) {
-      wifi.value = await fetchWifiState();
-    }
-    return wifi.value;
-  }
-
   async function listWifiNetworks () {
     deviceStore.clearRefreshInterval();
     return await deviceStore.busyBar.WifiNetworks({ timeout: 45000 })
@@ -86,7 +79,6 @@ export const useWifiStore = defineStore('wifi', () => {
   return {
     wifi,
     fetchWifiState,
-    getWifiState,
     listWifiNetworks,
     connectToWifiNetwork,
     disconnectFromWifiNetwork

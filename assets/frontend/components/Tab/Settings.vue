@@ -344,7 +344,7 @@ const loading = ref({
 
 async function refreshAudioVolume () {
   loading.value.audio = true;
-  deviceStore.audio = await deviceStore.getAudioVolume();
+  await deviceStore.fetchAudioVolume();
   loading.value.audio = false;
 }
 
@@ -397,7 +397,7 @@ async function setVolumeToMute () {
 
 async function refreshDisplayBrightness () {
   loading.value.brightness = true;
-  deviceStore.displayBrightness = await deviceStore.getDisplayBrightness();
+  await deviceStore.fetchDisplayBrightness();
   loading.value.brightness = false;
 }
 
@@ -476,8 +476,8 @@ async function deleteMatterPairings () {
 async function init () {
   showRebootingModal.value = false;
 
-  await deviceStore.getDeviceStatus();
-  await deviceStore.getApiVersion();
+  await deviceStore.fetchDeviceStatus();
+  await deviceStore.fetchApiVersion();
   await refreshAudioVolume();
   await refreshDisplayBrightness();
   if (!tzListStore.timezoneOptions || tzListStore.timezoneOptions.length === 0) {

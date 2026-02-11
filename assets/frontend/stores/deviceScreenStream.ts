@@ -7,7 +7,7 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
   const currentScreen = ref<DeviceScreen>(DeviceScreen.FRONT);
 
   const screenStream = ref<ScreenStream | null>(null);
-  const isConnected = ref(false);
+  const isWebSocketConnected = ref(false);
 
   type DataCallback = (data: Uint8Array) => void;
   type StopCallback = () => void;
@@ -24,12 +24,12 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
     });
 
     screenStream.value.onData((data: Uint8Array) => {
-      isConnected.value = true;
+      isWebSocketConnected.value = true;
       dataCallback(data);
     });
 
     screenStream.value.onStop(() => {
-      isConnected.value = false;
+      isWebSocketConnected.value = false;
       deviceStore.checkConnection();
       stopCallback();
     });
@@ -38,7 +38,7 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
       raw
     }) => {
       console.error('WebSocket error', raw);
-      isConnected.value = false;
+      isWebSocketConnected.value = false;
       deviceStore.checkConnection();
       stopCallback();
     });
@@ -47,7 +47,7 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
   }
 
   function closeWebsocket (): Promise<void> {
-    isConnected.value = false;
+    isWebSocketConnected.value = false;
 
     return new Promise(resolve => {
       if (screenStream.value) {
@@ -83,10 +83,9 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
   // }
 
   return {
-    // state
-    isConnected,
+    isWebSocketConnected,
     currentScreen,
-    // actions
+
     startScreenStream,
     stopScreenStream
     // setCurrentScreen
