@@ -15,6 +15,19 @@
   --color-brand-900: #091933;
   --color-brand-950: #050F20;
 
+  --color-error: #EB334E;
+  --color-error-50: #FDE6E9;
+  --color-error-100: #FACCD3;
+  --color-error-200: #F599A7;
+  --color-error-300: #F0667A;
+  --color-error-400: #EB334E;
+  --color-error-500: #E60022;
+  --color-error-600: #B8001B;
+  --color-error-700: #8A0014;
+  --color-error-800: #5C000E;
+  --color-error-900: #2E0007;
+  --color-error-950: #1D0004;
+
   --font-sans: 'Inter', sans-serif;
 }
 
