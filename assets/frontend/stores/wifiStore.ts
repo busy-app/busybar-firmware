@@ -10,7 +10,7 @@ export const useWifiStore = defineStore('wifi', () => {
   const wifi = ref<WifiState | undefined>(undefined);
 
   async function fetchWifiState (): Promise<WifiState | undefined> {
-    const state = await deviceStore.busyBar.WifiStatus()
+    const state = await deviceStore.busyBar.WifiStatusGet()
       .then(response => {
         wifi.value = response;
         return response;
@@ -25,7 +25,7 @@ export const useWifiStore = defineStore('wifi', () => {
 
   async function listWifiNetworks () {
     deviceStore.clearRefreshInterval();
-    return await deviceStore.busyBar.WifiNetworks({ timeout: 45000 })
+    return await deviceStore.busyBar.WifiNetworksGet({ timeout: 45000 })
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');

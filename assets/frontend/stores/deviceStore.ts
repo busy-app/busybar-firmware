@@ -12,9 +12,9 @@ export const useDeviceStore = defineStore('device', () => {
   const wifiStore = useWifiStore();
   const firmwareStore = useFirmwareStore();
 
-  const busyBar = new BusyBar({
+  const busyBar = shallowRef(new BusyBar({
     addr: useRuntimeConfig().public.barUrl || window.location.origin
-  });
+  }));
 
   // Assume device is connected unless the screenstream stops.
   // Upon stream failure, a probing HTTP request is sent. If it fails too, set isConnected to false.
@@ -116,7 +116,7 @@ export const useDeviceStore = defineStore('device', () => {
   // API version
   const apiVersion = ref<VersionInfo | undefined>(undefined);
   async function fetchApiVersion (): Promise<VersionInfo | undefined> {
-    const version = await busyBar.SystemVersion()
+    const version = await busyBar.value.SystemVersionGet()
       .then(response => {
         apiVersion.value = response;
         return response;
@@ -132,7 +132,7 @@ export const useDeviceStore = defineStore('device', () => {
   // Device status
   const deviceStatus = ref<DeviceStatus | undefined>(undefined);
   async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
-    const status = await busyBar.SystemStatus()
+    const status = await busyBar.value.SystemStatusGet()
       .then(response => {
         deviceStatus.value = response;
         return response;
@@ -149,7 +149,7 @@ export const useDeviceStore = defineStore('device', () => {
   const DEFAULT_DEVICE_NAME = 'BUSY Bar';
   const deviceName = ref<string | undefined>(undefined);
   async function fetchDeviceName (throwError: boolean = false): Promise<string> {
-    const name = await busyBar.SettingsName()
+    const name = await busyBar.value.SettingsNameGet()
       .then(response => {
         deviceName.value = response.name;
         return response.name;
@@ -165,7 +165,7 @@ export const useDeviceStore = defineStore('device', () => {
     return name;
   }
   async function setDeviceName (name: string): Promise<boolean> {
-    return await busyBar.SettingsNameSet({ name })
+    return await busyBar.value.SettingsNameSet({ name })
       .then(() => {
         deviceName.value = name;
         return true;
@@ -179,7 +179,7 @@ export const useDeviceStore = defineStore('device', () => {
   // HTTP API
   const httpAPIAccess = ref<HttpAccessInfo | undefined>(undefined);
   async function fetchHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
-    const access = await busyBar.SettingsAccess()
+    const access = await busyBar.value.SettingsAccessGet()
       .then(response => {
         httpAPIAccess.value = response;
         return response;
@@ -200,7 +200,7 @@ export const useDeviceStore = defineStore('device', () => {
       payload['key'] = key;
     }
 
-    return await busyBar.SettingsAccessSet(payload as HttpAccessParams)
+    return await busyBar.value.SettingsAccessSet(payload as HttpAccessParams)
       .then(async () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
         return true;

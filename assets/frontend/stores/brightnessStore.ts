@@ -2,11 +2,11 @@ import { defineStore } from 'pinia';
 import type { DisplayBrightnessParams } from '@busy-app/busy-lib';
 
 export const useBrightnessStore = defineStore('brightness', () => {
-  const { busyBar } = useDeviceStore();
+  const deviceStore = useDeviceStore();
 
   const displayBrightness = ref<DisplayBrightnessParams | undefined>(undefined);
   async function fetchDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
-    const brightness = await busyBar.DisplayBrightness()
+    const brightness = await deviceStore.busyBar.DisplayBrightnessGet()
       .then(response => {
         const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
@@ -22,7 +22,7 @@ export const useBrightnessStore = defineStore('brightness', () => {
     return brightness;
   }
   async function setDisplayBrightness (brightness: DisplayBrightnessParams): Promise<boolean> {
-    return await busyBar.DisplayBrightnessSet(brightness)
+    return await deviceStore.busyBar.DisplayBrightnessSet(brightness)
       .then(() => {
         displayBrightness.value = brightness;
         return true;

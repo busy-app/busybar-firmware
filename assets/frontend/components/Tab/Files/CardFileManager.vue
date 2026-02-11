@@ -432,7 +432,7 @@ async function onInputMenuModelUpdate (newValue: string) {
   }
   console.log([dir, filter]);
 
-  const options = await deviceStore.busyBar.StorageList({ path: `/ext${dir}` })
+  const options = await deviceStore.busyBar.StorageListGet({ path: `/ext${dir}` })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
@@ -485,7 +485,7 @@ const selectStartIndex = ref(-1);
 async function list (path: string) {
   selectedItems.value.clear();
   loading.value.list = true;
-  await deviceStore.busyBar.StorageList({ path })
+  await deviceStore.busyBar.StorageListGet({ path })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');

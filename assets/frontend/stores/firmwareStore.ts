@@ -1,78 +1,23 @@
 import { defineStore } from 'pinia';
+import type { UpdateStatus } from '@busy-app/busy-lib';
 
-enum UpdateEvent {
-  SESSION_START = 'session_start',
-  SESSION_STOP = 'session_stop',
-  ACTION_BEGIN = 'action_begin',
-  ACTION_DONE = 'action_done',
-  DETAIL_CHANGE = 'detail_change',
-  ACTION_PROGRESS = 'action_progress',
-  NONE = 'none'
-}
-enum UpdateAction {
-  DOWNLOAD = 'download',
-  SHA_VERIFICATION = 'sha_verification',
-  UNPACK = 'unpack',
-  PREPARE = 'prepare',
-  APPLY = 'apply',
-  NONE = 'none'
-}
-enum UpdateStatusCode {
-  OK = 'ok',
-  BATTERY_LOW = 'battery_low',
-  BUSY = 'busy',
-  DOWNLOAD_FAILURE = 'download_failure',
-  DOWNLOAD_ABORT = 'download_abort',
-  SHA_MISMATCH = 'sha_mismatch',
-  UNPACK_STAGING_DIR_FAILURE = 'unpack_staging_dir_failure',
-  UNPACK_ARCHIVE_OPEN_FAILURE = 'unpack_archive_open_failure',
-  UNPACK_ARCHIVE_UNPACK_FAILURE = 'unpack_archive_unpack_failure',
-  INSTALL_MANIFEST_NOT_FOUND = 'install_manifest_not_found',
-  INSTALL_MANIFEST_INVALID = 'install_manifest_invalid',
-  INSTALL_SESSION_CONFIG_FAILURE = 'install_session_config_failure',
-  INSTALL_POINTER_SETUP_FAILURE = 'install_pointer_setup_failure',
-  UNKNOWN_FAILURE = 'unknown_failure'
-}
+type UpdateStatusCheckResult = NonNullable<UpdateStatus['check']>['status'];
+
 export enum UpdateStage {
-  IDLE = 'idle',
-  UPLOADING = 'uploading',
-  UNPACKING = 'unpacking',
-  UPDATING = 'updating',
-  ERROR = 'error',
-  // ! Adding success for file update purposes
-  SUCCESS = 'success'
-}
-interface UpdateDownloadStatus {
-  speed_bytes_per_sec: number;
-  received_bytes: number;
-  total_bytes: number;
-}
-interface UpdateInstallStatus {
-  is_allowed: boolean;
-  event: UpdateEvent;
-  action: UpdateAction;
-  status: UpdateStatusCode;
-  detail: string;
-  download: UpdateDownloadStatus;
-}
-export type UpdateCheckResult = 'available' | 'not_available' | 'failure' | 'none';
-interface UpdateCheckStatus {
-  available_version: string;
-  event: 'start' | 'stop' | 'none';
-  status: UpdateCheckResult;
-}
-export interface UpdateStatus {
-  install: UpdateInstallStatus;
-  check: UpdateCheckStatus;
+  IDLE,
+  LOADING,
+  UPDATING,
+  ERROR,
+  SUCCESS
 }
 
 export const useFirmwareStore = defineStore('firmware', () => {
-  const { apiRequest } = useApiStore();
+  const deviceStore = useDeviceStore();
   const screenStreamStore = useScreenStreamStore();
 
   const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
   const autoUpdate = ref({
-    status: null as UpdateCheckResult | null,
+    status: null as UpdateStatusCheckResult | null,
     availableVersion: null as string | null,
     isAllowed: null as boolean | null,
 
@@ -107,9 +52,16 @@ export const useFirmwareStore = defineStore('firmware', () => {
     autoUpdate.value.error.stage = UpdateStage.IDLE;
     autoUpdate.value.error.message = null;
   }
-  async function fetchAutoUpdateStatus (): Promise<void> {
-    return apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
+  async function fetchAutoUpdateStatus (attempt: number = 0): Promise<void> {
+    return deviceStore.busyBar.UpdateStatusGet({ timeout: 10000 })
       .then(async status => {
+        if (!status.check?.status || !status.check.event) {
+          throw new Error('Invalid update status response: missing check info');
+        }
+        if (!status.install) {
+          throw new Error('Invalid update status response: missing install info');
+        }
+
         if (status.check.event === 'stop' && status.check.status === 'failure') {
           // auto-update check failed (e.g. no internet connection)
           console.warn('Auto-update check failed', status);
@@ -139,13 +91,16 @@ export const useFirmwareStore = defineStore('firmware', () => {
           await new Promise(resolve => {
             setTimeout(resolve, 3000);
           });
-          return fetchAutoUpdateStatus();
+          if (attempt >= 10) {
+            throw new Error('Auto-update check is taking too long, please try again later');
+          }
+          return fetchAutoUpdateStatus(attempt ? attempt + 1 : 1);
         }
         autoUpdate.value.isChecking = false;
 
         autoUpdate.value.status = status.check.status || null;
         autoUpdate.value.availableVersion = status.check.available_version || null;
-        autoUpdate.value.isAllowed = status.install.is_allowed;
+        autoUpdate.value.isAllowed = !!status.install.is_allowed;
 
         if (autoUpdate.value.isManualCheck && status.check.status === 'not_available') {
           autoUpdate.value.isManualCheck = false;
@@ -175,7 +130,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     autoUpdate.value.isChecking = true;
 
-    return apiRequest('/api/update/check', { method: 'POST', timeout: 10000 })
+    return deviceStore.busyBar.UpdateCheck({ timeout: 10000 })
       .then(async () => {
         console.debug('Auto-update check requested');
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -200,9 +155,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
 
   async function fetchAutoUpdateChangelog (version: string) {
-    await apiRequest<{ changelog: string }>(`/api/update/changelog?version=${version}`)
+    await deviceStore.busyBar.UpdateChangelogGet({ version })
       .then(response => {
-        autoUpdate.value.changelog = response.changelog;
+        autoUpdate.value.changelog = response.changelog || null;
       })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t fetch update changelog');
@@ -217,10 +172,10 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     console.debug('Requesting auto-update installation');
 
-    return apiRequest(`/api/update/install?version=${autoUpdate.value.availableVersion}`, { method: 'POST', timeout: 10000 });
+    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion, timeout: 10000 });
   }
   async function abortAutoUpdateDownload () {
-    await apiRequest('/api/update/abort_download', { method: 'POST' })
+    await deviceStore.busyBar.UpdateAbort()
       .then(() => {
         console.debug('Auto-update download abort requested');
         autoUpdate.value.modals.updating = false;
@@ -235,7 +190,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     console.debug('Starting auto-update process');
 
     // enable loading before sending the request
-    autoUpdate.value.stage = UpdateStage.UPLOADING;
+    autoUpdate.value.stage = UpdateStage.LOADING;
 
     await requestAutoUpdateInstallation()
       .catch(async error => {
@@ -244,19 +199,23 @@ export const useFirmwareStore = defineStore('firmware', () => {
       });
 
     autoUpdate.value.progressPollingInterval = setInterval(async () => {
-      await apiRequest<UpdateStatus>('/api/update/status', { timeout: 10000 })
+      await deviceStore.busyBar.UpdateStatusGet({ timeout: 10000 })
         .then(status => {
+          if (!status.install) {
+            throw new Error('Invalid update status response: missing install info');
+          }
+
           // handle session stop event
-          if (status.install.event === UpdateEvent.SESSION_STOP) {
+          if (status.install.event === 'session_stop') {
             if (autoUpdate.value.progressPollingInterval) {
               clearInterval(autoUpdate.value.progressPollingInterval);
               autoUpdate.value.progressPollingInterval = null;
             }
 
-            if (status.install.status === UpdateStatusCode.OK) {
+            if (status.install.status === 'ok') {
               // wait for device to complete the installation and reboot
               return;
-            } else if (status.install.status === UpdateStatusCode.BUSY) {
+            } else if (status.install.status === 'busy') {
               console.warn('Received session_stop event with status busy. Is this a firmware bug?');
               // ignore and wait for the device to reboot
               return;
@@ -269,7 +228,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
             return;
           }
 
-          if (status.install.status !== UpdateStatusCode.OK && status.install.status !== UpdateStatusCode.BUSY) {
+          if (status.install.status !== 'ok' && status.install.status !== 'busy') {
             console.error('Update failed with status:', status);
             autoUpdate.value.error.stage = autoUpdate.value.stage;
             autoUpdate.value.error.message = `Update failed: ${status.install.status}`;
@@ -278,12 +237,23 @@ export const useFirmwareStore = defineStore('firmware', () => {
             return;
           }
 
-          if (status.install.action === UpdateAction.DOWNLOAD) {
-            autoUpdate.value.stage = UpdateStage.UPLOADING;
-            if (status.install.download.total_bytes > 0) {
-              autoUpdate.value.progress = Math.round((status.install.download.received_bytes / status.install.download.total_bytes) * 100);
+          if (status.install.action === 'download') {
+            let totalBytes = Number(status.install.download?.total_bytes);
+            if (isNaN(totalBytes)) {
+              console.warn('Received invalid total_bytes value in update status, defaulting to 0', status.install.download?.total_bytes);
+              totalBytes = 0;
             }
-          } else if (status.install.action !== UpdateAction.NONE) {
+            let receivedBytes = Number(status.install.download?.received_bytes);
+            if (isNaN(receivedBytes)) {
+              console.warn('Received invalid received_bytes value in update status, defaulting to 0', status.install.download?.received_bytes);
+              receivedBytes = 0;
+            }
+
+            autoUpdate.value.stage = UpdateStage.LOADING;
+            if (totalBytes > 0) {
+              autoUpdate.value.progress = Math.round((receivedBytes / totalBytes) * 100);
+            }
+          } else if (status.install.action !== 'none') {
             autoUpdate.value.stage = UpdateStage.UPDATING;
             autoUpdate.value.progress = 0;
             clearInterval(autoUpdate.value.progressPollingInterval!);
@@ -319,11 +289,12 @@ export const useFirmwareStore = defineStore('firmware', () => {
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
         fileUpdate.value.progress = Math.round((event.loaded / event.total) * 100);
-        // temp
+        // fixme: use unified update state
         autoUpdate.value.progress = fileUpdate.value.progress;
 
         if (fileUpdate.value.progress === 100) {
-          fileUpdate.value.stage = UpdateStage.UNPACKING;
+          // used UNPACKING here, now deprecated
+          fileUpdate.value.stage = UpdateStage.UPDATING;
         }
       }
     };
@@ -365,7 +336,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
       fileUpdate.value.error = 'An error occurred during the upload.';
     };
 
-    fileUpdate.value.stage = UpdateStage.UPLOADING;
+    fileUpdate.value.stage = UpdateStage.LOADING;
     fileUpdate.value.progress = 0;
     xhr.send(fileUpdate.value.firmwareFile);
 

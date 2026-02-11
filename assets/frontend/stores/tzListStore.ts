@@ -1,17 +1,12 @@
 import { defineStore } from 'pinia';
-
-export interface TimezoneOption {
-  name: string;
-  offset: string;
-  abbr: string;
-}
+import type { TimezoneItem } from '@busy-app/busy-lib';
 
 export const useTzListStore = defineStore('tzList', () => {
-  const apiRequest = useApiStore().apiRequest;
-  const timezoneOptions = ref<TimezoneOption[]>();
+  const deviceStore = useDeviceStore();
+  const timezoneOptions = ref<TimezoneItem[]>();
 
-  async function fetchTimezoneOptions (): Promise<TimezoneOption[] | undefined> {
-    return await apiRequest<TimezoneOption[]>('/api/time/tzlist')
+  async function fetchTimezoneOptions (): Promise<TimezoneItem[] | undefined> {
+    return await deviceStore.busyBar.TimeTzListGet()
       .then(data => {
         timezoneOptions.value = data;
         return data;

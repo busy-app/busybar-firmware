@@ -63,7 +63,7 @@ async function init () {
 
     // request fresh auto-update status, non-blocking
     if (wifiStore.wifi?.state === 'connected') {
-      firmwareStore.fetchAutoUpdateStatus();
+      await firmwareStore.fetchAutoUpdateStatus();
     }
   } catch (error) {
     if ((error as { status: number }).status === 403) {

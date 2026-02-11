@@ -3,8 +3,8 @@
     v-model:open="firmwareStore.autoUpdate.modals.updating"
     data-id="modal-auto-update-updating"
     title="Update firmware"
-    :dismissible="stage !== UpdateStage.UPLOADING && stage !== UpdateStage.UPDATING"
-    :description="stage"
+    :dismissible="stage !== UpdateStage.LOADING && stage !== UpdateStage.UPDATING"
+    :description="String(stage)"
     :ui="{
       content: 'max-w-[640px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
       description: 'hidden',
@@ -23,7 +23,7 @@
           <div>Update firmware</div>
 
           <UButton
-            v-if="stage !== UpdateStage.UPLOADING && stage !== UpdateStage.UPDATING"
+            v-if="stage !== UpdateStage.LOADING && stage !== UpdateStage.UPDATING"
             color="neutral"
             variant="ghost"
             icon="i-bi-cross"
@@ -31,7 +31,7 @@
           />
         </div>
 
-        <template v-if="stage === UpdateStage.UPLOADING">
+        <template v-if="stage === UpdateStage.LOADING">
           <div class="flex items-center justify-between mt-2.5">
             <div class="flex items-center gap-2.5">
               <UIcon
@@ -64,7 +64,7 @@
           </div>
         </template>
 
-        <template v-if="stage === UpdateStage.UPDATING || stage === UpdateStage.UNPACKING">
+        <template v-if="stage === UpdateStage.UPDATING">
           <div class="flex items-center justify-between mt-2.5">
             <div class="flex items-center gap-2.5">
               <UIcon
@@ -99,12 +99,12 @@
               name="i-bi-error-fill"
               class="size-6 text-red-600"
             />
-            <div>An error occurred during the {{ firmwareStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? 'download' : 'update' }}</div>
+            <div>An error occurred during the {{ firmwareStore.autoUpdate.error.stage === UpdateStage.LOADING ? 'download' : 'update' }}</div>
           </div>
 
           <div class="p-4 bg-accented/25 rounded-xl text-sm">
             <MDC
-              :value="firmwareStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? downloadErrorMarkdown : updateErrorMarkdown"
+              :value="firmwareStore.autoUpdate.error.stage === UpdateStage.LOADING ? downloadErrorMarkdown : updateErrorMarkdown"
               tag="article"
             />
           </div>
@@ -128,7 +128,7 @@ const stage = computed(() => {
 });
 
 function handleAbortDownload () {
-  if (firmwareStore.fileUpdate.stage === UpdateStage.UPLOADING) {
+  if (firmwareStore.fileUpdate.stage === UpdateStage.LOADING) {
     window.location.reload();
   }
   firmwareStore.abortAutoUpdateDownload();

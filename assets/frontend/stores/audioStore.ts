@@ -2,11 +2,11 @@ import { defineStore } from 'pinia';
 import type { AudioVolumeInfo } from '@busy-app/busy-lib';
 
 export const useAudioStore = defineStore('audio', () => {
-  const { busyBar } = useDeviceStore();
+  const deviceStore = useDeviceStore();
 
   const audio = ref<AudioVolumeInfo | undefined>(undefined);
   async function fetchAudioVolume (): Promise<AudioVolumeInfo | undefined> {
-    const volume = await busyBar.AudioVolume()
+    const volume = await deviceStore.busyBar.AudioVolumeGet()
       .then(response => {
         audio.value = response;
         return response;
@@ -19,7 +19,7 @@ export const useAudioStore = defineStore('audio', () => {
     return volume;
   }
   async function setAudioVolume (volume: number): Promise<boolean> {
-    return await busyBar.AudioVolumeSet({ volume })
+    return await deviceStore.busyBar.AudioVolumeSet({ volume })
       .then(() => {
         if (audio.value) {
           audio.value.volume = volume;

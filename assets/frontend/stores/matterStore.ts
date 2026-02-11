@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia';
+import type { MatterStatus } from '@busy-app/busy-lib';
 import encodeQR from 'qr';
 
 export const useMatterStore = defineStore('matter', () => {
-  const { apiRequest } = useApiStore();
+  const deviceStore = useDeviceStore();
 
   const matterCommissioning = ref({
     fabricCount: 0,
-    latestStatus: ''
+    latestStatus: undefined as MatterStatus['latest_commissioning_status']
   });
   const matterLink = ref({
     qrCode: '',
@@ -18,19 +19,19 @@ export const useMatterStore = defineStore('matter', () => {
     timeout: null as NodeJS.Timeout | null
   });
   async function fetchMatterCommissioning (): Promise<void> {
-    await apiRequest<{ fabric_count: number; latest_status: string }>('/api/matter/commissioning')
+    await deviceStore.busyBar.MatterStatusGet()
       .then(response => {
-        matterCommissioning.value.fabricCount = response.fabric_count;
-        matterCommissioning.value.latestStatus = response.latest_status;
+        matterCommissioning.value.fabricCount = response.fabric_count || 0;
+        matterCommissioning.value.latestStatus = response.latest_commissioning_status;
       })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t get Matter commissioning status', true);
       });
   }
   async function requestMatterLink (): Promise<void> {
-    await apiRequest<{ qr_code: string; manual_code: string; available_until: number }>('/api/matter/commissioning', { method: 'POST' })
+    await deviceStore.busyBar.MatterPair()
       .then(response => {
-        matterLink.value.manualCode = response.manual_code;
+        matterLink.value.manualCode = response.manual_code || '';
         matterLink.value.availableUntil = new Date(Number(response.available_until));
 
         if (matterLink.value.timeout) {
@@ -57,7 +58,7 @@ export const useMatterStore = defineStore('matter', () => {
       });
   }
   async function deleteAllPairings (): Promise<void> {
-    await apiRequest('/api/matter/commissioning', { method: 'DELETE' })
+    await deviceStore.busyBar.MatterErase()
       .then(() => {
         console.debug('All Matter pairings deleted, waiting for device to reboot');
       })

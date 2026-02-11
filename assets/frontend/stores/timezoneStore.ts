@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
 
 export const useTimezoneStore = defineStore('timezone', () => {
-  const { apiRequest } = useApiStore();
+  const deviceStore = useDeviceStore();
 
   const timezone = ref<string | undefined>(undefined);
   async function fetchTimezone (): Promise<string | undefined> {
-    const tz = await apiRequest<{ timezone: string }>('/api/time/timezone')
+    const tz = await deviceStore.busyBar.TimeTimezoneGet()
       .then(response => {
         timezone.value = response.timezone;
         return response.timezone;
@@ -18,7 +18,7 @@ export const useTimezoneStore = defineStore('timezone', () => {
     return tz;
   }
   async function setTimezone (tz: string): Promise<boolean> {
-    return await apiRequest('/api/time/timezone', { method: 'POST', query: { timezone: tz } })
+    return await deviceStore.busyBar.TimeTimezoneSet({ timezone: tz })
       .then(() => {
         timezone.value = tz;
         return true;
