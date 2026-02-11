@@ -4,11 +4,8 @@ import type {
   VersionInfo,
   Status as DeviceStatus,
   HttpAccessInfo,
-  HttpAccessParams,
-  DisplayBrightnessParams,
-  AudioVolumeInfo
+  HttpAccessParams
 } from '@busy-app/busy-lib';
-import encodeQR from 'qr';
 
 enum UpdateEvent {
   SESSION_START = 'session_start',
@@ -276,157 +273,6 @@ export const useDeviceStore = defineStore('device', () => {
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t set HTTP API access state');
         return false;
-      });
-  }
-
-  // Display brightness
-  const displayBrightness = ref<DisplayBrightnessParams | undefined>(undefined);
-  async function fetchDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
-    const brightness = await busyBar.DisplayBrightness()
-      .then(response => {
-        const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
-        const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
-        const result = { front: frontParsed, back: backParsed } as DisplayBrightnessParams;
-        displayBrightness.value = result;
-        return result;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t get display brightness', true);
-        return displayBrightness.value;
-      });
-
-    return brightness;
-  }
-  async function setDisplayBrightness (brightness: DisplayBrightnessParams): Promise<boolean> {
-    return await busyBar.DisplayBrightnessSet(brightness)
-      .then(() => {
-        displayBrightness.value = brightness;
-        return true;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t set display brightness');
-        return false;
-      });
-  }
-
-  // Audio volume
-  const audio = ref<AudioVolumeInfo | undefined>(undefined);
-  async function fetchAudioVolume (): Promise<AudioVolumeInfo | undefined> {
-    const volume = await busyBar.AudioVolume()
-      .then(response => {
-        audio.value = response;
-        return response;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t get audio volume', true);
-        return audio.value;
-      });
-
-    return volume;
-  }
-  async function setAudioVolume (volume: number): Promise<boolean> {
-    return await busyBar.AudioVolumeSet({ volume })
-      .then(() => {
-        if (audio.value) {
-          audio.value.volume = volume;
-        } else {
-          audio.value = { volume };
-        }
-        return true;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t set audio volume');
-        return false;
-      });
-  }
-
-  // Timezone
-  const timezone = ref<string | undefined>(undefined);
-  async function fetchTimezone (): Promise<string | undefined> {
-    const tz = await apiRequest<{ timezone: string }>('/api/time/timezone')
-      .then(response => {
-        timezone.value = response.timezone;
-        return response.timezone;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t get timezone', true);
-        return timezone.value;
-      });
-
-    return tz;
-  }
-  async function setTimezone (tz: string): Promise<boolean> {
-    return await apiRequest('/api/time/timezone', { method: 'POST', query: { timezone: tz } })
-      .then(() => {
-        timezone.value = tz;
-        return true;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t set timezone');
-        return false;
-      });
-  }
-
-  // Matter
-  const matterCommissioning = ref({
-    fabricCount: 0,
-    latestStatus: ''
-  });
-  const matterLink = ref({
-    qrCode: '',
-    manualCode: '',
-    availableUntil: null as Date | null,
-
-    showModal: false,
-    expiresInMs: 0,
-    timeout: null as NodeJS.Timeout | null
-  });
-  async function fetchMatterCommissioning (): Promise<void> {
-    await apiRequest<{ fabric_count: number; latest_status: string }>('/api/matter/commissioning')
-      .then(response => {
-        matterCommissioning.value.fabricCount = response.fabric_count;
-        matterCommissioning.value.latestStatus = response.latest_status;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t get Matter commissioning status', true);
-      });
-  }
-  async function requestMatterLink (): Promise<void> {
-    await apiRequest<{ qr_code: string; manual_code: string; available_until: number }>('/api/matter/commissioning', { method: 'POST' })
-      .then(response => {
-        matterLink.value.manualCode = response.manual_code;
-        matterLink.value.availableUntil = new Date(Number(response.available_until));
-
-        if (matterLink.value.timeout) {
-          clearTimeout(matterLink.value.timeout);
-        }
-        matterLink.value.expiresInMs = matterLink.value.availableUntil.getTime() - Date.now();
-
-        const svgElement = encodeQR(matterLink.value.qrCode, 'svg');
-        matterLink.value.qrCode = svgElement;
-
-        matterLink.value.timeout = setTimeout(() => {
-          matterLink.value.showModal = false;
-          matterLink.value.qrCode = '';
-          matterLink.value.manualCode = '';
-          matterLink.value.availableUntil = null;
-          matterLink.value.timeout = null;
-          console.debug('Matter commissioning link expired');
-        }, matterLink.value.expiresInMs);
-
-        matterLink.value.showModal = true;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t request Matter commissioning link');
-      });
-  }
-  async function deleteAllPairings (): Promise<void> {
-    await apiRequest('/api/matter/commissioning', { method: 'DELETE' })
-      .then(() => {
-        console.debug('All Matter pairings deleted, waiting for device to reboot');
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t delete pairings');
       });
   }
 
@@ -765,24 +611,6 @@ export const useDeviceStore = defineStore('device', () => {
     httpAPIAccess,
     fetchHttpAPIAccess,
     setHttpAPIAccess,
-
-    displayBrightness,
-    fetchDisplayBrightness,
-    setDisplayBrightness,
-
-    audio,
-    fetchAudioVolume,
-    setAudioVolume,
-
-    timezone,
-    fetchTimezone,
-    setTimezone,
-
-    matterCommissioning,
-    matterLink,
-    fetchMatterCommissioning,
-    requestMatterLink,
-    deleteAllPairings,
 
     autoUpdate,
     resetAutoUpdateState,

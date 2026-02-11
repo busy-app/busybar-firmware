@@ -121,7 +121,7 @@
     <template #actions>
       <USelect
         v-if="tzListStore.timezoneOptions?.length"
-        v-model="deviceStore.timezone"
+        v-model="timezoneStore.timezone"
         :items="tzListStore.timezoneOptions.map(tz => ({ label: `UTC${tz.offset}, ${tz.name}`, value: tz.name }))"
         variant="soft"
         size="xl"
@@ -131,7 +131,7 @@
           label: 'text-base',
           item: 'text-base'
         }"
-        @update:model-value="deviceStore.setTimezone(deviceStore.timezone!)"
+        @update:model-value="timezoneStore.setTimezone(timezoneStore.timezone!)"
       />
     </template>
   </SectionCard>
@@ -140,11 +140,11 @@
     data-id="settings-section-matter"
     icon="i-bi-smart-home"
     title="Smart home"
-    :subtitle="deviceStore.matterCommissioning.fabricCount > 0 ? `${deviceStore.matterCommissioning.fabricCount} connections` : ''"
+    :subtitle="matterStore.matterCommissioning.fabricCount > 0 ? `${matterStore.matterCommissioning.fabricCount} connections` : ''"
   >
     <template #actions>
       <UButton
-        v-if="deviceStore.matterCommissioning.fabricCount > 0"
+        v-if="matterStore.matterCommissioning.fabricCount > 0"
         label="Forget all pairings"
         variant="outline"
         color="neutral"
@@ -153,11 +153,11 @@
       <UButton
         label="Pair device"
         icon="i-bi-plus"
-        @click="deviceStore.requestMatterLink()"
+        @click="matterStore.requestMatterLink()"
       />
 
       <ModalGeneric
-        v-model:open="deviceStore.matterLink.showModal"
+        v-model:open="matterStore.matterLink.showModal"
         data-id="modal-matter-link"
         title="Pair device with Matter"
         :icon="colorMode.value === 'dark' ? 'i-bi-matter-bubble-dark' : 'i-bi-matter-bubble'"
@@ -177,12 +177,12 @@
             <div
               data-id="matter-link-qr-code"
               class="w-[184px] bg-white rounded-xl mb-6"
-              v-html="deviceStore.matterLink.qrCode"
+              v-html="matterStore.matterLink.qrCode"
             />
 
             <div>Or enter the code in your smart home app</div>
             <CopyButton
-              :text="deviceStore.matterLink.manualCode"
+              :text="matterStore.matterLink.manualCode"
               variant="subtle"
               color="neutral"
               size="xl"
@@ -190,7 +190,7 @@
             />
 
             <div class="w-full flex justify-end mt-6 text-muted text-sm">
-              Expires in&nbsp;<CountDown :ms="deviceStore.matterLink.expiresInMs" />
+              Expires in&nbsp;<CountDown :ms="matterStore.matterLink.expiresInMs" />
             </div>
           </div>
         </template>
@@ -331,7 +331,11 @@
 import matterDeleteImage from '@/assets/images/matter-delete.png';
 
 const deviceStore = useDeviceStore();
+const audioStore = useAudioStore();
+const brightnessStore = useBrightnessStore();
+const timezoneStore = useTimezoneStore();
 const tzListStore = useTzListStore();
+const matterStore = useMatterStore();
 const colorMode = useColorMode();
 
 const system = computed(() => deviceStore.deviceStatus?.system);
@@ -344,7 +348,7 @@ const loading = ref({
 
 async function refreshAudioVolume () {
   loading.value.audio = true;
-  await deviceStore.fetchAudioVolume();
+  await audioStore.fetchAudioVolume();
   loading.value.audio = false;
 }
 
@@ -353,7 +357,7 @@ const volumeNumber = computed(() => {
   if (mute.value.isMuted) {
     return mute.value.volumeBeforeMute;
   } else {
-    return deviceStore.audio?.volume === undefined ? 50 : deviceStore.audio?.volume;
+    return audioStore.audio?.volume === undefined ? 50 : audioStore.audio?.volume;
   }
 });
 const mute = ref({
@@ -379,8 +383,8 @@ async function setAudioVolume () {
   loading.value.audio = true;
   const v = nextVolumeNumber.value;
 
-  await deviceStore.setAudioVolume(v);
-  deviceStore.audio = { volume: v };
+  await audioStore.setAudioVolume(v);
+  audioStore.audio = { volume: v };
 
   setTimeout(() => {
     loading.value.audio = false;
@@ -390,20 +394,20 @@ async function setAudioVolume () {
 async function setVolumeToMute () {
   loading.value.audio = true;
   mute.value.volumeBeforeMute = volumeNumber.value;
-  await deviceStore.setAudioVolume(0);
+  await audioStore.setAudioVolume(0);
   mute.value.isMuted = true;
   loading.value.audio = false;
 }
 
 async function refreshDisplayBrightness () {
   loading.value.brightness = true;
-  await deviceStore.fetchDisplayBrightness();
+  await brightnessStore.fetchDisplayBrightness();
   loading.value.brightness = false;
 }
 
 const nextBrightnessNumber = ref<number | undefined>(undefined);
-const brightnessNumber = computed(() => isNaN(Number(deviceStore.displayBrightness?.front)) ? 50 : Number(deviceStore.displayBrightness?.front));
-const isBrightnessAuto = computed(() => deviceStore.displayBrightness?.front === 'auto');
+const brightnessNumber = computed(() => isNaN(Number(brightnessStore.displayBrightness?.front)) ? 50 : Number(brightnessStore.displayBrightness?.front));
+const isBrightnessAuto = computed(() => brightnessStore.displayBrightness?.front === 'auto');
 
 function disableAutoBrightness () {
   nextBrightnessNumber.value = 50;
@@ -422,11 +426,11 @@ async function setDisplayBrightness () {
   loading.value.brightness = true;
   const b = nextBrightnessNumber.value;
 
-  await deviceStore.setDisplayBrightness({
+  await brightnessStore.setDisplayBrightness({
     front: b,
     back: b
   });
-  deviceStore.displayBrightness = {
+  brightnessStore.displayBrightness = {
     front: b,
     back: b
   };
@@ -438,11 +442,11 @@ async function setDisplayBrightness () {
 
 async function setBrightnessToAuto () {
   loading.value.brightness = true;
-  await deviceStore.setDisplayBrightness({
+  await brightnessStore.setDisplayBrightness({
     front: 'auto',
     back: 'auto'
   });
-  deviceStore.displayBrightness = {
+  brightnessStore.displayBrightness = {
     front: 'auto',
     back: 'auto'
   };
@@ -451,16 +455,16 @@ async function setBrightnessToAuto () {
 }
 
 function onMatterLinkModalClose () {
-  if (deviceStore.matterLink.timeout) {
-    clearTimeout(deviceStore.matterLink.timeout);
+  if (matterStore.matterLink.timeout) {
+    clearTimeout(matterStore.matterLink.timeout);
   }
-  deviceStore.matterLink.qrCode = '';
-  deviceStore.matterLink.manualCode = '';
-  deviceStore.matterLink.availableUntil = null;
-  deviceStore.matterLink.timeout = null;
-  deviceStore.matterLink.expiresInMs = 0;
+  matterStore.matterLink.qrCode = '';
+  matterStore.matterLink.manualCode = '';
+  matterStore.matterLink.availableUntil = null;
+  matterStore.matterLink.timeout = null;
+  matterStore.matterLink.expiresInMs = 0;
 
-  return deviceStore.fetchMatterCommissioning();
+  return matterStore.fetchMatterCommissioning();
 }
 
 const showMatterDeleteModal = ref(false);
@@ -468,7 +472,7 @@ const showRebootingModal = ref(false);
 const indeterminateProgressModel = ref(60);
 
 async function deleteMatterPairings () {
-  await deviceStore.deleteAllPairings();
+  await matterStore.deleteAllPairings();
   showMatterDeleteModal.value = false;
   showRebootingModal.value = true;
 }
@@ -483,8 +487,8 @@ async function init () {
   if (!tzListStore.timezoneOptions || tzListStore.timezoneOptions.length === 0) {
     await tzListStore.fetchTimezoneOptions();
   }
-  await deviceStore.fetchTimezone();
-  await deviceStore.fetchMatterCommissioning();
+  await timezoneStore.fetchTimezone();
+  await matterStore.fetchMatterCommissioning();
 }
 
 onMounted(async () => {
