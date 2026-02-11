@@ -1,21 +1,21 @@
 <template>
   <ModalGeneric
-    v-model:open="deviceStore.autoUpdate.modals.changelog"
+    v-model:open="firmwareStore.autoUpdate.modals.changelog"
     data-id="modal-auto-update-changelog"
     :dismissible="true"
     :show-close-button="true"
-    :title="`Firmware update available (${deviceStore.autoUpdate.availableVersion})`"
+    :title="`Firmware update available (${firmwareStore.autoUpdate.availableVersion})`"
     wide
     :primary-action-props="{
       label: 'Start update',
-      loading: deviceStore.autoUpdate.stage === UpdateStage.UPLOADING,
-      onClick: deviceStore.startAutoUpdate
+      loading: firmwareStore.autoUpdate.stage === UpdateStage.UPLOADING,
+      onClick: firmwareStore.startAutoUpdate
     }"
   >
     <template #body>
       <MDC
-        v-if="deviceStore.autoUpdate.changelog"
-        :value="deviceStore.autoUpdate.changelog"
+        v-if="firmwareStore.autoUpdate.changelog"
+        :value="firmwareStore.autoUpdate.changelog"
         tag="article"
       />
     </template>
@@ -23,5 +23,5 @@
 </template>
 
 <script lang="ts" setup>
-const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
 </script>

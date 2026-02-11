@@ -18,9 +18,9 @@
         {{ tab.label }}
 
         <div
-          v-if="deviceStore.autoUpdate.status === 'available' && tab.value === 'firmware'"
+          v-if="firmwareStore.autoUpdate.status === 'available' && tab.value === 'firmware'"
           class="size-2 rounded-full"
-          :class="deviceStore.autoUpdate.isAllowed ? 'bg-success' : 'bg-warning'"
+          :class="firmwareStore.autoUpdate.isAllowed ? 'bg-success' : 'bg-warning'"
         />
       </div>
     </div>
@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 const tabStore = useTabStore();
-const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
 
 const options = computed(() => {
   return tabStore.tabOptions.filter(tab => {

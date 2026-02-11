@@ -44,18 +44,19 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
 
 const updateAvailable = computed(() => {
-  return deviceStore.autoUpdate.status === 'available';
+  return firmwareStore.autoUpdate.status === 'available';
 });
 
 const canUpdate = computed(() => {
-  return updateAvailable.value && deviceStore.autoUpdate.isAllowed && deviceStore.autoUpdate.availableVersion !== null;
+  return updateAvailable.value && firmwareStore.autoUpdate.isAllowed && firmwareStore.autoUpdate.availableVersion !== null;
 });
 
 // battery too low
 const notAllowed = computed(() => {
-  return updateAvailable.value && !deviceStore.autoUpdate.isAllowed;
+  return updateAvailable.value && !firmwareStore.autoUpdate.isAllowed;
 });
 
 const backgroundGradientClass = computed(() => {
@@ -73,9 +74,9 @@ async function handleUpdateClick () {
   const charge = deviceStore.deviceStatus?.power?.battery_charge;
 
   if (charge !== undefined && charge < 40) {
-    deviceStore.autoUpdate.modals.batteryLow = true;
+    firmwareStore.autoUpdate.modals.batteryLow = true;
   } else {
-    deviceStore.autoUpdate.modals.changelog = true;
+    firmwareStore.autoUpdate.modals.changelog = true;
   }
 }
 </script>

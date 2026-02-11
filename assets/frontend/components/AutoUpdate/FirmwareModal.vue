@@ -1,6 +1,6 @@
 <template>
   <UModal
-    v-model:open="deviceStore.autoUpdate.modals.updating"
+    v-model:open="firmwareStore.autoUpdate.modals.updating"
     data-id="modal-auto-update-updating"
     title="Update firmware"
     :dismissible="stage !== UpdateStage.UPLOADING && stage !== UpdateStage.UPDATING"
@@ -41,11 +41,11 @@
               <div>Downloading firmware</div>
             </div>
 
-            <div class="text-muted">{{ deviceStore.autoUpdate.progress }}%</div>
+            <div class="text-muted">{{ firmwareStore.autoUpdate.progress }}%</div>
           </div>
 
           <UProgress
-            v-model="deviceStore.autoUpdate.progress"
+            v-model="firmwareStore.autoUpdate.progress"
             size="lg"
             color="success"
             class="mb-2.5"
@@ -99,12 +99,12 @@
               name="i-bi-error-fill"
               class="size-6 text-red-600"
             />
-            <div>An error occurred during the {{ deviceStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? 'download' : 'update' }}</div>
+            <div>An error occurred during the {{ firmwareStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? 'download' : 'update' }}</div>
           </div>
 
           <div class="p-4 bg-accented/25 rounded-xl text-sm">
             <MDC
-              :value="deviceStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? downloadErrorMarkdown : updateErrorMarkdown"
+              :value="firmwareStore.autoUpdate.error.stage === UpdateStage.UPLOADING ? downloadErrorMarkdown : updateErrorMarkdown"
               tag="article"
             />
           </div>
@@ -116,27 +116,27 @@
 
 <script lang="ts" setup>
 import updateSuccessImage from '@/assets/images/update-success.png';
-import { UpdateStage } from '@/stores/deviceStore';
 
 const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
 const stage = computed(() => {
-  if (deviceStore.fileUpdate.stage !== UpdateStage.IDLE) {
-    return deviceStore.fileUpdate.stage;
+  if (firmwareStore.fileUpdate.stage !== UpdateStage.IDLE) {
+    return firmwareStore.fileUpdate.stage;
   }
-  return deviceStore.autoUpdate.stage;
+  return firmwareStore.autoUpdate.stage;
 });
 
 function handleAbortDownload () {
-  if (deviceStore.fileUpdate.stage === UpdateStage.UPLOADING) {
+  if (firmwareStore.fileUpdate.stage === UpdateStage.UPLOADING) {
     window.location.reload();
   }
-  deviceStore.abortAutoUpdateDownload();
+  firmwareStore.abortAutoUpdateDownload();
 }
 
 function handleModalClose () {
-  deviceStore.fileUpdate.stage = UpdateStage.IDLE;
-  deviceStore.autoUpdate.stage = UpdateStage.IDLE;
-  deviceStore.autoUpdate.modals.updating = false;
+  firmwareStore.fileUpdate.stage = UpdateStage.IDLE;
+  firmwareStore.autoUpdate.stage = UpdateStage.IDLE;
+  firmwareStore.autoUpdate.modals.updating = false;
 }
 
 const downloadErrorMarkdown = `

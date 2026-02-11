@@ -38,11 +38,12 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 
 if (!useRuntimeConfig().public.disablePolling) {
   deviceStore.setRefreshInterval();
-  deviceStore.setAutoUpdateBackgroundCheckInterval();
+  firmwareStore.setAutoUpdateBackgroundCheckInterval();
 } else {
   console.log('Polling disabled');
 }
@@ -57,11 +58,11 @@ async function init () {
     await wifiStore.fetchWifiState();
 
     // clear auto-update state (stale after fw update)
-    deviceStore.resetAutoUpdateState();
+    firmwareStore.resetAutoUpdateState();
 
     // request fresh auto-update status, non-blocking
     if (wifiStore.wifi?.state === 'connected') {
-      deviceStore.fetchAutoUpdateStatus();
+      firmwareStore.fetchAutoUpdateStatus();
     }
   } catch (error) {
     if ((error as { status: number }).status === 403) {
@@ -74,13 +75,13 @@ async function init () {
 onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
-  window.addEventListener('wifi-reconnected', deviceStore.requestAutoUpdateCheck);
+  window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
-  deviceStore.clearAutoUpdateBackgroundCheckInterval();
+  firmwareStore.clearAutoUpdateBackgroundCheckInterval();
   window.removeEventListener('device-reconnected', init);
-  window.removeEventListener('wifi-reconnected', deviceStore.requestAutoUpdateCheck);
+  window.removeEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 </script>

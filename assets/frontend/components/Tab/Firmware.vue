@@ -25,8 +25,8 @@
           data-id="firmware-section-primary-check-for-updates-button"
           label="Check for updates"
           :disabled="wifiStore.wifi?.state !== 'connected'"
-          :loading="deviceStore.autoUpdate.isChecking"
-          @click="deviceStore.autoUpdate.isManualCheck = true; deviceStore.requestAutoUpdateCheck()"
+          :loading="firmwareStore.autoUpdate.isChecking"
+          @click="firmwareStore.autoUpdate.isManualCheck = true; firmwareStore.requestAutoUpdateCheck()"
         />
       </UTooltip>
 
@@ -127,6 +127,7 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 const deviceScreenStreamStore = useDeviceScreenStreamStore();
 
@@ -146,40 +147,40 @@ async function initFirmwareUpdateFromFile () {
   const charge = deviceStore.deviceStatus?.power?.battery_charge;
 
   if (charge !== undefined && charge < 40) {
-    deviceStore.autoUpdate.modals.batteryLow = true;
+    firmwareStore.autoUpdate.modals.batteryLow = true;
     return;
   }
 
-  deviceStore.fileUpdate.stage = UpdateStage.IDLE;
-  deviceStore.fileUpdate.progress = 0;
-  deviceStore.fileUpdate.error = '';
-  deviceStore.fileUpdate.firmwareFile = null;
+  firmwareStore.fileUpdate.stage = UpdateStage.IDLE;
+  firmwareStore.fileUpdate.progress = 0;
+  firmwareStore.fileUpdate.error = '';
+  firmwareStore.fileUpdate.firmwareFile = null;
   firmwareFileModel.value = null;
   showUpdateModal.value = true;
 }
 
 async function startFirmwareUpdateFromFile () {
-  deviceStore.fileUpdate.firmwareFile = firmwareFileModel.value;
+  firmwareStore.fileUpdate.firmwareFile = firmwareFileModel.value;
   try {
     await deviceScreenStreamStore.stopScreenStream();
 
     // temp
     showUpdateModal.value = false;
-    deviceStore.autoUpdate.modals.updating = true;
+    firmwareStore.autoUpdate.modals.updating = true;
 
-    await deviceStore.uploadFirmware();
-    if (deviceStore.fileUpdate.stage !== UpdateStage.ERROR) {
-      deviceStore.fileUpdate.stage = UpdateStage.UPDATING;
+    await firmwareStore.uploadFirmware();
+    if (firmwareStore.fileUpdate.stage !== UpdateStage.ERROR) {
+      firmwareStore.fileUpdate.stage = UpdateStage.UPDATING;
     }
   } catch (error) {
     console.error('Firmware update failed:', error);
-    deviceStore.fileUpdate.stage = UpdateStage.ERROR;
-    deviceStore.fileUpdate.error = error instanceof Error ? error.message : 'Unknown error';
+    firmwareStore.fileUpdate.stage = UpdateStage.ERROR;
+    firmwareStore.fileUpdate.error = error instanceof Error ? error.message : 'Unknown error';
   }
 }
 
 const updatePollingInterval = ref<NodeJS.Timeout | null>(null);
-watch(() => deviceStore.fileUpdate.stage, newStage => {
+watch(() => firmwareStore.fileUpdate.stage, newStage => {
   if (newStage !== UpdateStage.UPDATING) {
     if (newStage === UpdateStage.SUCCESS) {
       if (updatePollingInterval.value) {
@@ -200,8 +201,8 @@ watch(() => deviceStore.fileUpdate.stage, newStage => {
     deviceStore.fetchDeviceName(true) // throw the error to avoid exiting the polling
       .then(() => {
         clearInterval(updatePollingInterval.value!);
-        deviceStore.fileUpdate.stage = UpdateStage.SUCCESS;
-        deviceStore.fileUpdate.progress = 0;
+        firmwareStore.fileUpdate.stage = UpdateStage.SUCCESS;
+        firmwareStore.fileUpdate.progress = 0;
       })
       .catch(() => {
         // ignore the error

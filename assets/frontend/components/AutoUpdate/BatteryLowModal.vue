@@ -1,6 +1,6 @@
 <template>
   <UModal
-    v-model:open="deviceStore.autoUpdate.modals.batteryLow"
+    v-model:open="firmwareStore.autoUpdate.modals.batteryLow"
     data-id="modal-auto-update-battery-low"
     title="Charge your BUSY bar"
     description="The battery charge is too low to start the update (must be 40% or higher)."
@@ -28,7 +28,7 @@
             color="neutral"
             label="Got it"
             class="min-w-20 justify-center"
-            @click="deviceStore.autoUpdate.modals.batteryLow = false"
+            @click="firmwareStore.autoUpdate.modals.batteryLow = false"
           />
         </div>
       </div>
@@ -39,5 +39,5 @@
 <script lang="ts" setup>
 import batteryLowImage from '@/assets/images/battery-low.png';
 
-const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
 </script>
