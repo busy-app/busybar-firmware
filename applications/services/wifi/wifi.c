@@ -90,6 +90,8 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
     WifiStatus status = response->status;
 
+    bool disconnect_pending = false;
+
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeInit) {
             wifi_net_init(instance, response->hw_address);
@@ -129,7 +131,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
             } else {
                 status = WifiStatusTimeout;
-                wifi_state_transition(instance, WifiStateDisconnected);
+                disconnect_pending = true;
             }
 
         } else if(request_type == WifiRequestTypeDisconnect) {
@@ -153,6 +155,10 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
     }
 
     wifi_api_unlock(instance, status);
+
+    if(disconnect_pending) {
+        wifi_schedule_disconnect_request(instance);
+    }
 }
 
 static void
