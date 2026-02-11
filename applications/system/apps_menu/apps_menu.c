@@ -79,9 +79,11 @@ static bool apps_menu_gui_input_callback(const InputEvent* event, void* context)
     return consumed;
 }
 
-static AppsMenu* apps_menu_alloc(void) {
+static AppsMenu* apps_menu_alloc(void* launching_subapp) {
     AppsMenu* app = malloc(sizeof(AppsMenu));
     FuriThread* thread = furi_thread_get_current();
+
+    app->launching_subapp = launching_subapp;
 
     app->event_loop = furi_event_loop_alloc();
     app->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
@@ -129,6 +131,10 @@ static AppsMenu* apps_menu_alloc(void) {
 
     scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdStart);
 
+    if(app->launching_subapp) {
+        scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdMain);
+    }
+
     return app;
 }
 
@@ -166,7 +172,7 @@ void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
 int32_t apps_menu_app(void* arg) {
     UNUSED(arg);
 
-    AppsMenu* app = apps_menu_alloc();
+    AppsMenu* app = apps_menu_alloc(arg);
     furi_event_loop_run(app->event_loop);
     apps_menu_free(app);
 
