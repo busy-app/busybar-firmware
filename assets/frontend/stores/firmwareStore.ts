@@ -68,6 +68,7 @@ export interface UpdateStatus {
 
 export const useFirmwareStore = defineStore('firmware', () => {
   const { apiRequest } = useApiStore();
+  const screenStreamStore = useDeviceScreenStreamStore();
 
   const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
   const autoUpdate = ref({
@@ -302,6 +303,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
   const fileUpdate = ref({
     firmwareBundleName: 'firmware',
     firmwareFile: null as File | null,
+    showFileUploadModal: false,
     stage: UpdateStage.IDLE as UpdateStage,
     progress: 0,
     error: null as string | null
@@ -379,6 +381,23 @@ export const useFirmwareStore = defineStore('firmware', () => {
       fileUpdate.value.progress = 0;
     }
   }
+  async function startFirmwareUpdateFromFile () {
+    try {
+      await screenStreamStore.stopScreenStream();
+
+      fileUpdate.value.showFileUploadModal = false;
+      autoUpdate.value.modals.updating = true;
+
+      await uploadFirmware();
+      if (fileUpdate.value.stage !== UpdateStage.ERROR) {
+        fileUpdate.value.stage = UpdateStage.UPDATING;
+      }
+    } catch (error) {
+      console.error('Firmware update failed:', error);
+      fileUpdate.value.stage = UpdateStage.ERROR;
+      fileUpdate.value.error = error instanceof Error ? error.message : 'Unknown error';
+    }
+  }
 
   return {
     autoUpdate,
@@ -391,6 +410,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     abortAutoUpdateDownload,
 
     fileUpdate,
-    uploadFirmware
+    uploadFirmware,
+    startFirmwareUpdateFromFile
   };
 });

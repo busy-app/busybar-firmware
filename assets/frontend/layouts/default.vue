@@ -15,6 +15,7 @@
         <AutoUpdateChangelogModal />
         <AutoUpdateBatteryLowModal />
         <AutoUpdateFirmwareModal />
+        <FileUpdateUploadModal />
 
         <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
           <DefaultLayoutTabs />

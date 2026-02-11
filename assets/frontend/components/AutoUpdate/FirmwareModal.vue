@@ -38,7 +38,7 @@
                 name="i-bi-download"
                 class="size-6"
               />
-              <div>Downloading firmware</div>
+              <div>{{ updateType === 'file' ? 'Uploading firmware' : 'Downloading firmware' }}</div>
             </div>
 
             <div class="text-muted">{{ firmwareStore.autoUpdate.progress }}%</div>
@@ -119,8 +119,9 @@ import updateSuccessImage from '@/assets/images/update-success.png';
 
 const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
+const updateType = computed(() => firmwareStore.fileUpdate.stage !== UpdateStage.IDLE ? 'file' : 'auto');
 const stage = computed(() => {
-  if (firmwareStore.fileUpdate.stage !== UpdateStage.IDLE) {
+  if (updateType.value === 'file') {
     return firmwareStore.fileUpdate.stage;
   }
   return firmwareStore.autoUpdate.stage;
