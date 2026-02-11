@@ -68,7 +68,7 @@ export interface UpdateStatus {
 
 export const useFirmwareStore = defineStore('firmware', () => {
   const { apiRequest } = useApiStore();
-  const screenStreamStore = useDeviceScreenStreamStore();
+  const screenStreamStore = useScreenStreamStore();
 
   const BACKGROUND_AUTO_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
   const autoUpdate = ref({

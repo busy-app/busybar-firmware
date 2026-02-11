@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ScreenStream, DeviceScreen } from '@busy-app/busy-lib';
 
-export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () => {
+export const useScreenStreamStore = defineStore('screenStream', () => {
   const deviceStore = useDeviceStore();
 
   const currentScreen = ref<DeviceScreen>(DeviceScreen.FRONT);
