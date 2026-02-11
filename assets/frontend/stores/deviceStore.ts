@@ -287,6 +287,7 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
     const access = await busyBar.SettingsAccess()
       .then(response => {
+        httpAPIAccess.value = response;
         return response;
       })
       .catch(async error => {
