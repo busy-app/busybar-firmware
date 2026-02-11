@@ -53,10 +53,6 @@ typedef struct {
 } BusyTimerEventTimerPaused;
 
 typedef struct {
-    BusyTimerSnapshot snapshot;
-} BusyTimerEventUserInteracted;
-
-typedef struct {
     BusyTimerEventType type;
     union {
         BusyTimerTime time;
@@ -64,7 +60,6 @@ typedef struct {
         BusyTimerState state;
         bool is_force_ended;
         BusyTimerEventTimerPaused timer_paused;
-        BusyTimerEventUserInteracted user_interacted;
     };
 } BusyTimerEvent;
 
