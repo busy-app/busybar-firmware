@@ -195,11 +195,13 @@ onMounted(async () => {
 
   await init();
   window.addEventListener('device-reconnected', init);
+  window.addEventListener('screen-stream-restart', init);
 });
 onBeforeUnmount(async () => {
   window.removeEventListener('resize', handleResize);
   await screenStreamStore.stopScreenStream();
   window.removeEventListener('device-reconnected', init);
+  window.removeEventListener('screen-stream-restart', init);
 });
 </script>
 

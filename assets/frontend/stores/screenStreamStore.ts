@@ -12,6 +12,8 @@ export const useScreenStreamStore = defineStore('screenStream', () => {
   type DataCallback = (data: Uint8Array) => void;
   type StopCallback = () => void;
 
+  const restartTimeout = ref<NodeJS.Timeout | null>(null);
+
   async function openWebsocket (
     deviceScreen: DeviceScreen,
     dataCallback: DataCallback,
@@ -26,6 +28,16 @@ export const useScreenStreamStore = defineStore('screenStream', () => {
     screenStream.value.onData((data: Uint8Array) => {
       isWebSocketConnected.value = true;
       dataCallback(data);
+
+      if (restartTimeout.value) {
+        clearTimeout(restartTimeout.value);
+        restartTimeout.value = null;
+      }
+      restartTimeout.value = setTimeout(() => {
+        console.warn('WebSocket connection seems to be lost, restarting...');
+        screenStream.value?.closeWebsocket();
+        window.dispatchEvent(new CustomEvent('screen-stream-restart'));
+      }, 3000);
     });
 
     screenStream.value.onStop(() => {
