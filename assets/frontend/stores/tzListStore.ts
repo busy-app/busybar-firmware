@@ -29,6 +29,6 @@ export const useTzListStore = defineStore('tzList', () => {
 }, {
   persist: {
     key: 'tzListStore',
-    storage: piniaPluginPersistedstate.localStorage()
+    storage: piniaPluginPersistedstate.sessionStorage()
   }
 });
