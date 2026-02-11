@@ -3,7 +3,7 @@
     :key="title + (connected ? '-connected' : '') + (showNetworksList ? '-networks-list' : '')"
     data-id="network-section-wifi"
     :title="title"
-    :icon="showNetworksList ? undefined : (connected || wifiStore.wifi?.state === 'connecting') ? 'i-bi-wifi-4' : 'i-bi-wifi-off'"
+    :icon="sectionIcon"
   >
     <template
       v-if="!connected && showNetworksList"
@@ -526,6 +526,20 @@ function wifiIconByRssi (rssi: WifiNetwork['rssi']): string {
   }
   return 'i-bi-wifi-2';
 }
+
+const sectionIcon = computed(() => {
+  // showNetworksList ? undefined : (connected || wifiStore.wifi?.state === 'connecting') ? 'i-bi-wifi-4' : 'i-bi-wifi-off'
+  if (showNetworksList.value) {
+    return undefined;
+  }
+  if (wifiStore.wifi?.state === 'connecting') {
+    return 'i-bi-wifi-4';
+  }
+  if (connected.value) {
+    return wifiIconByRssi(wifiStore.wifi?.rssi);
+  }
+  return 'i-bi-wifi-off';
+});
 
 async function init () {
   await refreshWifiState();
