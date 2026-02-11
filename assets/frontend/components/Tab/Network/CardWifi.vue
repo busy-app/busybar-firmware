@@ -54,7 +54,7 @@
         data-id="network-section-wifi-select-button"
         :label="wifiStore.wifi?.state === 'connecting' ? 'Connecting...' : 'Select network'"
         :ui="{
-          base: 'px-2.5 py-2 rounded-full'
+          base: 'rounded-full'
         }"
         class="justify-center sm:justify-start"
         :loading="loading.state || loading.list || wifiStore.wifi?.state === 'connecting'"
@@ -64,10 +64,10 @@
         v-if="connected && !showNetworksList"
         data-id="network-section-wifi-forget-button"
         label="Forget network"
-        variant="soft"
-        color="error"
+        variant="outline"
+        color="neutral"
         :ui="{
-          base: 'px-2.5 py-2 rounded-full'
+          base: 'rounded-full hover:bg-error/20 hover:text-error hover:ring-0'
         }"
         class="justify-center sm:justify-start"
         :loading="loading.forget"
@@ -171,6 +171,8 @@
       v-if="!connected && showNetworksList"
       #raw-body
     >
+      <div class="mb-3 relative -top-2">If your network isn’t listed, try a manual scan using the Refresh button.</div>
+
       <div
         data-id="network-section-wifi-networks"
         class="flex flex-col gap-1.5"
@@ -240,7 +242,6 @@
     data-id="modal-connect-wifi"
     :title="connectToExistingNetwork ? `Connect to ${connectModel.ssid}` : 'Add network'"
     :description="connectToExistingNetwork ? 'Enter the network security password.' : 'Enter the name and security type of the network you want to connect to.'"
-    wide
     :primary-action-props="{
       label: 'Connect',
       loading: loading.connect,
@@ -254,6 +255,12 @@
       onClick: () => { showConnectModal = false; }
     }"
   >
+    <template #icon>
+      <UIcon
+        :name="connectToExistingNetwork ? 'i-bi-wifi-4' : 'i-bi-wifi-add-network'"
+        class="size-8 text-muted"
+      />
+    </template>
     <template #body>
       <template v-if="!connectToExistingNetwork">
         <UFormField label="Network name">
@@ -261,8 +268,9 @@
             v-model="connectModel.ssid"
             name="ssid"
             size="xl"
-            variant="soft"
-            :ui="{ base: 'ring-1 ring-glass' }"
+            placeholder="Enter SSID"
+            variant="subtle"
+            :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
             @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
           />
         </UFormField>
@@ -285,7 +293,7 @@
             ]"
             size="xl"
             variant="soft"
-            :ui="{ base: 'ring-1 ring-glass' }"
+            :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
             class="w-full"
           />
         </UFormField>
@@ -299,14 +307,14 @@
           name="password"
           size="xl"
           variant="soft"
-          :ui="{ base: 'ring-1 ring-glass' }"
+          :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
           :type="showPassword ? 'text' : 'password'"
           :placeholder="connectToExistingNetwork ? 'Password' : ''"
           @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
         >
           <template #trailing>
             <UButton
-              :icon="showPassword ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
+              :icon="showPassword ? 'i-ri-eye-line' : 'i-ri-eye-close-line'"
               variant="ghost"
               color="neutral"
               square
@@ -347,7 +355,7 @@
                 :items="['dhcp', 'static']"
                 size="xl"
                 variant="soft"
-                :ui="{ base: 'ring-1 ring-glass' }"
+                :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
                 class="w-full"
               />
             </UFormField>
@@ -357,10 +365,10 @@
                   v-model="connectModel.ipConfig.address"
                   v-maska="'###.###.###.###'"
                   name="ip-address"
-                  placeholder="___.___.___.___"
+                  placeholder="___ ___ ___ ___"
                   size="xl"
                   variant="soft"
-                  :ui="{ base: 'ring-1 ring-glass' }"
+                  :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
                   @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
@@ -369,10 +377,10 @@
                   v-model="connectModel.ipConfig.mask"
                   v-maska="'###.###.###.###'"
                   name="subnet-mask"
-                  placeholder="___.___.___.___"
+                  placeholder="___ ___ ___ ___"
                   size="xl"
                   variant="soft"
-                  :ui="{ base: 'ring-1 ring-glass' }"
+                  :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
                   @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
@@ -381,10 +389,10 @@
                   v-model="connectModel.ipConfig.gateway"
                   v-maska="'###.###.###.###'"
                   name="gateway"
-                  placeholder="___.___.___.___"
+                  placeholder="___ ___ ___ ___"
                   size="xl"
                   variant="soft"
-                  :ui="{ base: 'ring-1 ring-glass' }"
+                  :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
                   @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
@@ -421,7 +429,9 @@ const networks = ref<WifiNetwork[]>([]);
 const showNetworksList = ref(false);
 async function listWifiNetworks () {
   loading.value.list = true;
-  networks.value = await wifiStore.listWifiNetworks();
+  if (!(networks.value.length > 0 && showConnectModal.value)) {
+    networks.value = await wifiStore.listWifiNetworks();
+  }
   loading.value.list = false;
   showNetworksList.value = true;
 
@@ -528,7 +538,6 @@ function wifiIconByRssi (rssi: WifiNetwork['rssi']): string {
 }
 
 const sectionIcon = computed(() => {
-  // showNetworksList ? undefined : (connected || wifiStore.wifi?.state === 'connecting') ? 'i-bi-wifi-4' : 'i-bi-wifi-off'
   if (showNetworksList.value) {
     return undefined;
   }
@@ -538,7 +547,7 @@ const sectionIcon = computed(() => {
   if (connected.value) {
     return wifiIconByRssi(wifiStore.wifi?.rssi);
   }
-  return 'i-bi-wifi-off';
+  return 'i-bi-wifi-1';
 });
 
 async function init () {
