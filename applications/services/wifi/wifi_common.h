@@ -43,6 +43,7 @@ typedef enum {
     WifiStatusAccessPointNotFound, /**< Wifi access point was not found. */
     WifiStatusAuthenticationFailed, /**< Wifi authentication failed. */
     WifiStatusMax, /**< Special value, internal use */
+    WifiStatusInvalid, /**< Special value, internal use */
 } WifiStatus;
 
 /** Enumeration of possible states for the Wifi system. */
