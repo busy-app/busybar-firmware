@@ -127,10 +127,13 @@ char* busy_timer_profile_serialize(const BusyTimerProfile* profile) {
     return json_text;
 }
 
-bool busy_timer_profile_deserialize(const char* json_text, BusyTimerProfile* profile) {
+bool busy_timer_profile_deserialize(
+    BusyTimerProfile* profile,
+    const char* json_text,
+    size_t json_text_len) {
     bool success = false;
 
-    cJSON* json = cJSON_Parse(json_text);
+    cJSON* json = cJSON_ParseWithLength(json_text, json_text_len);
 
     do {
         if(!cJSON_IsObject(json)) {
@@ -171,5 +174,5 @@ bool busy_timer_profile_deserialize(const char* json_text, BusyTimerProfile* pro
 bool busy_timer_profile_is_valid(const BusyTimerProfile* profile) {
     UNUSED(profile);
     // TODO: Implementation
-    return false;
+    return true;
 }

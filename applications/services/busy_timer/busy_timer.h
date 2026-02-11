@@ -5,6 +5,7 @@
 #include <busy/busy_common.h>
 
 #include "busy_timer_common.h"
+#include "busy_timer_profile.h"
 #include "busy_timer_snapshot.h"
 
 #define RECORD_BUSY_TIMER "busy_timer"
@@ -109,7 +110,17 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot);
 
 void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot);
 
-void busy_timer_set_profile(BusyTimer* instance, BusyTimerProfileId profile_id);
+void busy_timer_get_profile(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerProfile* profile);
+
+void busy_timer_set_profile(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerProfile* profile);
+
+void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id);
 
 const char** busy_timer_get_mode_names(void);
 

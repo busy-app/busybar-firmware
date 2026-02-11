@@ -322,7 +322,7 @@ void busy_exit(BusyApp* instance) {
 void busy_load_config(BusyApp* instance) {
     furi_assert(instance);
 
-    busy_timer_set_profile(
+    busy_timer_load_profile(
         instance->busy_timer, busy_get_global_preset(instance)->timer_profile_id);
     busy_timer_get_app_config(instance->busy_timer, &instance->app_config);
 }

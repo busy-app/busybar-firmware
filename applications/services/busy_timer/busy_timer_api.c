@@ -179,12 +179,52 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
     busy_timer_send_message(instance, &message);
 }
 
-void busy_timer_set_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
+void busy_timer_get_profile(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerProfile* profile) {
+    furi_check(instance);
+    furi_check(profile_id < BusyTimerProfileIdMax);
+    furi_check(profile);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeGetProfile,
+        .data.get_profile =
+            {
+                .profile_id = profile_id,
+                .profile = profile,
+            },
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
+void busy_timer_set_profile(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerProfile* profile) {
+    furi_check(instance);
+    furi_check(profile_id < BusyTimerProfileIdMax);
+    furi_check(profile);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeSetProfile,
+        .data.set_profile =
+            {
+                .profile_id = profile_id,
+                .profile = profile,
+            },
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
+void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
     furi_check(instance);
     furi_check(profile_id < BusyTimerProfileIdMax);
 
     BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeSetProfile,
+        .type = BusyTimerMessageTypeLoadProfile,
         .data.profile_id = profile_id,
     };
 

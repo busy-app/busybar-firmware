@@ -15,6 +15,10 @@
 #define TIMER_SNAPSHOT_MQTT_TOPIC "busy/snapshot"
 #define TIMER_SNAPSHOT_MQTT_QOS   MqttQosAtLeastOnce
 
+#define TIMER_PROFILE_MQTT_QOS          MqttQosAtLeastOnce
+#define TIMER_PROFILE_BUSY_MQTT_TOPIC   "busy/profiles/busy"
+#define TIMER_PROFILE_CUSTOM_MQTT_TOPIC "busy/profiles/custom"
+
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
@@ -524,17 +528,51 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
     }
 }
 
-static void busy_timer_mqtt_subscription_callback(const MqttMessage* message, void* context) {
+static void busy_timer_mqtt_shapshot_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
     BusyTimer* instance = context;
 
+    size_t json_text_len;
+    const char* json_text = mqtt_message_get_data(message, &json_text_len);
+
     BusyTimerSnapshot snapshot;
-    // TODO: take data size into account
-    if(busy_timer_snapshot_deserialize(&snapshot, mqtt_message_get_data(message, NULL))) {
+    if(busy_timer_snapshot_deserialize(&snapshot, json_text, json_text_len)) {
         busy_timer_set_snapshot(instance, &snapshot);
     } else {
         FURI_LOG_W(TAG, "Invalid snapshot data");
+    }
+}
+
+static void busy_timer_mqtt_profile_busy_callback(const MqttMessage* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+    BusyTimer* instance = context;
+
+    size_t json_text_len;
+    const char* json_text = mqtt_message_get_data(message, &json_text_len);
+
+    BusyTimerProfile profile;
+    if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
+        busy_timer_set_profile(instance, BusyTimerProfileIdBusy, &profile);
+    } else {
+        FURI_LOG_W(TAG, "Invalid profile data");
+    }
+}
+
+static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+    BusyTimer* instance = context;
+
+    size_t json_text_len;
+    const char* json_text = mqtt_message_get_data(message, &json_text_len);
+
+    BusyTimerProfile profile;
+    if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
+        busy_timer_set_profile(instance, BusyTimerProfileIdCustom, &profile);
+    } else {
+        FURI_LOG_W(TAG, "Invalid profile data");
     }
 }
 
@@ -718,7 +756,21 @@ static void
 }
 
 static void
+    busy_timer_get_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    UNUSED(instance);
+    UNUSED(data);
+    // TODO: Get profile
+}
+
+static void
     busy_timer_set_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    UNUSED(instance);
+    UNUSED(data);
+    // TODO: Set profile
+}
+
+static void
+    busy_timer_load_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     if(instance->profile_id != data->profile_id) {
         instance->profile_id = data->profile_id;
         busy_timer_load_settings(instance);
@@ -745,12 +797,6 @@ static BusyTimer* busy_timer_alloc(void) {
     instance->event_pubsub = furi_pubsub_alloc();
 
     instance->mqtt = furi_record_open(RECORD_MQTT);
-    mqtt_subscribe(
-        instance->mqtt,
-        TIMER_SNAPSHOT_MQTT_QOS,
-        TIMER_SNAPSHOT_MQTT_TOPIC,
-        busy_timer_mqtt_subscription_callback,
-        instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -760,6 +806,27 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
 
     busy_timer_load_settings(instance);
+
+    mqtt_subscribe(
+        instance->mqtt,
+        TIMER_SNAPSHOT_MQTT_QOS,
+        TIMER_SNAPSHOT_MQTT_TOPIC,
+        busy_timer_mqtt_shapshot_callback,
+        instance);
+
+    mqtt_subscribe(
+        instance->mqtt,
+        TIMER_PROFILE_MQTT_QOS,
+        TIMER_PROFILE_BUSY_MQTT_TOPIC,
+        busy_timer_mqtt_profile_busy_callback,
+        instance);
+
+    mqtt_subscribe(
+        instance->mqtt,
+        TIMER_PROFILE_MQTT_QOS,
+        TIMER_PROFILE_CUSTOM_MQTT_TOPIC,
+        busy_timer_mqtt_profile_custom_callback,
+        instance);
 
     furi_record_create(RECORD_BUSY_TIMER, instance);
 
@@ -791,5 +858,7 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
     [BusyTimerMessageTypeGetSnapshot] = busy_timer_get_snapshot_message_handler,
     [BusyTimerMessageTypeSetSnapshot] = busy_timer_set_snapshot_message_handler,
+    [BusyTimerMessageTypeGetProfile] = busy_timer_get_profile_message_handler,
     [BusyTimerMessageTypeSetProfile] = busy_timer_set_profile_message_handler,
+    [BusyTimerMessageTypeLoadProfile] = busy_timer_load_profile_message_handler,
 };

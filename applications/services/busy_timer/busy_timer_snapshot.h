@@ -66,9 +66,13 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot);
  *
  * @param[out] snapshot pointer to the object to load into (must be allocated)
  * @param[in] json_text pointer to a character string containing the JSON text
+ * @param[in] json_text_len length of the JSON text string
  * @returns @c true if the JSON could be successfully parsed, @c false otherwise
  */
-bool busy_timer_snapshot_deserialize(BusyTimerSnapshot* snapshot, const char* json_text);
+bool busy_timer_snapshot_deserialize(
+    BusyTimerSnapshot* snapshot,
+    const char* json_text,
+    size_t json_text_len);
 
 /**
  * @brief Check whether a BusyTimerSnapshot object represents a valid state.

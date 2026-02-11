@@ -299,10 +299,13 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
     return json_text;
 }
 
-bool busy_timer_snapshot_deserialize(BusyTimerSnapshot* snapshot, const char* json_text) {
+bool busy_timer_snapshot_deserialize(
+    BusyTimerSnapshot* snapshot,
+    const char* json_text,
+    size_t json_text_len) {
     bool success = false;
 
-    cJSON* json = cJSON_Parse(json_text);
+    cJSON* json = cJSON_ParseWithLength(json_text, json_text_len);
 
     do {
         if(!cJSON_IsObject(json)) {

@@ -28,7 +28,10 @@ typedef struct {
 
 char* busy_timer_profile_serialize(const BusyTimerProfile* profile);
 
-bool busy_timer_profile_deserialize(const char* json_text, BusyTimerProfile* profile);
+bool busy_timer_profile_deserialize(
+    BusyTimerProfile* profile,
+    const char* json_text,
+    size_t json_text_len);
 
 bool busy_timer_profile_is_valid(const BusyTimerProfile* profile);
 
