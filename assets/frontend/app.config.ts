@@ -45,6 +45,9 @@ export default defineAppConfig({
       variants: {
         size: {
           md: {
+            base: 'px-3 py-2'
+          },
+          lg: {
             base: 'px-3 py-2.5'
           },
           xl: {

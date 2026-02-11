@@ -110,7 +110,7 @@
             name="new-name"
             size="xl"
             variant="soft"
-            :ui="{ base: 'ring-1 ring-glass' }"
+            :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
             :disabled="loading.rename"
             @keyup.enter="updateDeviceName"
           />

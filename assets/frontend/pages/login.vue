@@ -38,7 +38,7 @@
           >
             <template #trailing>
               <UButton
-                :icon="pms.passwordModel.showCurrent ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
+                :icon="pms.passwordModel.showCurrent ? 'i-ri-eye-line' : 'i-ri-eye-close-line'"
                 variant="ghost"
                 color="neutral"
                 square
