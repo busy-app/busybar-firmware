@@ -86,16 +86,6 @@ void busy_timer_get_time(const BusyTimer* instance, BusyTimerTime* time);
 
 void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles);
 
-void busy_timer_get_config(const BusyTimer* instance, BusyTimerConfig* config);
-
-void busy_timer_set_config(const BusyTimer* instance, const BusyTimerConfig* config);
-
-void busy_timer_get_app_config(const BusyTimer* instance, BusyAppConfig* config);
-
-void busy_timer_set_app_config(const BusyTimer* instance, const BusyAppConfig* config);
-
-void busy_timer_save_config(const BusyTimer* instance);
-
 void busy_timer_start(BusyTimer* instance);
 
 void busy_timer_stop(BusyTimer* instance);

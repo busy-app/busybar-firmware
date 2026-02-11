@@ -14,16 +14,9 @@
 #define BUSY_TIMER_TIME_MIN_S M_TO_S(BUSY_TIMER_TIME_MIN_MN)
 #define BUSY_TIMER_TIME_MAX_S M_TO_S(BUSY_TIMER_TIME_MAX_MN)
 
-#define SPEED_MULTIPLIER (60)
-
 typedef enum {
     BusyTimerMessageTypeStart,
     BusyTimerMessageTypeStop,
-    BusyTimerMessageTypeGetConfig,
-    BusyTimerMessageTypeSetConfig,
-    BusyTimerMessageTypeGetAppConfig,
-    BusyTimerMessageTypeSetAppConfig,
-    BusyTimerMessageTypeSaveConfig,
     BusyTimerMessageTypeGetState,
     BusyTimerMessageTypeGetTime,
     BusyTimerMessageTypeGetCycles,
@@ -53,10 +46,6 @@ typedef union {
     BusyTimerState* state;
     BusyTimerTime* time;
     BusyTimerCycles* cycles;
-    BusyTimerConfig* config;
-    const BusyTimerConfig* config_c;
-    BusyAppConfig* app_config;
-    const BusyAppConfig* app_config_c;
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
     const BusyTimerSnapshot* snapshot_c;
@@ -79,13 +68,18 @@ struct BusyTimer {
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
+    // TODO: Refactor the mess below
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
-    BusyTimerSettings settings;
     BusyTimerTime time;
     BusyTimerMode mode;
     BusyTimerState state;
-    BusyTimerProfileId profile_id;
+    union {
+        BusyTimerSimpleSettings simple_settings;
+        BusyTimerIntervalSettings interval_settings;
+    };
     BusyTimerSnapshot user_snapshot;
+    BusyAppConfig busy_bar_settings;
+    char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     bool timer_running;
 };

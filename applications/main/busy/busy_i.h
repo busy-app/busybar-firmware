@@ -100,9 +100,9 @@ struct BusyApp {
     NavBar* nav_bar;
     // Misc state
     BusyTheme* theme;
-    BusyAppConfig app_config;
     BusyAppRunMode run_mode;
     BusyAppGlobalPresetId global_preset_id;
+    BusyTimerProfile profile;
     bool show_timer_requested;
 };
 
@@ -126,8 +126,12 @@ bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);
 
-void busy_load_config(BusyApp* instance);
+void busy_load_profile(BusyApp* instance);
 
-void busy_apply_config(BusyApp* instance);
+void busy_save_profile(BusyApp* instance);
+
+void busy_apply_busy_bar_settings(BusyApp* instance);
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);
+
+BusyTimerProfileId busy_get_profile_id(const BusyApp* instance);

@@ -13,8 +13,8 @@ static void busy_scene_setup_smart_home_enabled_changed_callback(VarItem* item, 
     furi_assert(item);
     furi_assert(context);
 
-    BusyAppConfig* app_config = context;
-    app_config->is_smart_home_enabled = var_item_get_value(item);
+    BusyAppConfig* busy_bar_settings = context;
+    busy_bar_settings->is_smart_home_enabled = var_item_get_value(item);
 }
 
 static void busy_scene_setup_smart_home_on_enter(void* context) {
@@ -24,7 +24,7 @@ static void busy_scene_setup_smart_home_on_enter(void* context) {
     BusySceneSetupSmartHome* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupSmartHome);
 
-    BusyAppConfig* app_config = &instance->app_config;
+    BusyAppConfig* busy_bar_settings = &instance->profile.busy_bar_settings;
 
     with_gui(instance->gui, {
         data->front_list = var_item_list_alloc(instance->front_window);
@@ -36,11 +36,11 @@ static void busy_scene_setup_smart_home_on_enter(void* context) {
             data->front_list,
             ITEM_LABEL_ENABLE,
             busy_scene_setup_smart_home_enabled_changed_callback,
-            app_config);
-        var_item_set_value(item, app_config->is_smart_home_enabled);
+            busy_bar_settings);
+        var_item_set_value(item, busy_bar_settings->is_smart_home_enabled);
 
         item = var_item_list_add_switch(data->back_list, ITEM_LABEL_ENABLE, NULL, NULL);
-        var_item_set_value(item, app_config->is_smart_home_enabled);
+        var_item_set_value(item, busy_bar_settings->is_smart_home_enabled);
     });
 }
 
@@ -51,8 +51,7 @@ static void busy_scene_setup_smart_home_on_exit(void* context) {
     BusySceneSetupSmartHome* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupSmartHome);
 
-    busy_timer_set_app_config(instance->busy_timer, &instance->app_config);
-    busy_timer_save_config(instance->busy_timer);
+    busy_save_profile(instance);
 
     with_gui(instance->gui, {
         var_item_list_free(data->front_list);

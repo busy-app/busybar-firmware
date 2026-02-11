@@ -233,7 +233,7 @@ static bool
         snapshot->type = snapshot_type;
 
         item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS);
-        if(!busy_timer_common_deserialize_busy_bar_settings(item, &snapshot->app_config)) {
+        if(!busy_timer_common_deserialize_busy_bar_settings(item, &snapshot->busy_bar_settings)) {
             // TODO: Nothing for now, but will be an error in the future
         }
 
@@ -289,7 +289,7 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
         busy_timer_snapshot_serialize_snapshot_interval(snapshot_json, &snapshot->interval);
     }
 
-    busy_timer_common_serialize_busy_bar_settings(snapshot_json, &snapshot->app_config);
+    busy_timer_common_serialize_busy_bar_settings(snapshot_json, &snapshot->busy_bar_settings);
 
     cJSON_AddNumberToObject(json, KEY_TIMESTAMP, snapshot->timestamp_ms);
 

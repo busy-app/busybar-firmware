@@ -41,13 +41,14 @@ typedef struct {
 
 typedef struct {
     BusyTimerSnapshotType type;
-    time_t timestamp_ms;
     union {
+        BusyTimerSnapshotCommon common;
         BusyTimerSnapshotInfinite infinite;
         BusyTimerSnapshotSimple simple;
         BusyTimerSnapshotInterval interval;
     };
-    BusyAppConfig app_config;
+    BusyAppConfig busy_bar_settings;
+    time_t timestamp_ms;
 } BusyTimerSnapshot;
 
 /**
