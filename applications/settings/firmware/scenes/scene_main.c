@@ -76,7 +76,10 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
 
         case ThisSceneEventSettings:
             scene_manager_next_scene(instance->scene_manager, ThisSceneIdxSettings);
-            nav_bar_push_location(instance->back_nav_bar, "SETTINGS");
+
+            with_gui(instance->gui, {
+                nav_bar_push_location(instance->back_nav_bar, "SETTINGS");
+            });
             return true;
 
         default:
