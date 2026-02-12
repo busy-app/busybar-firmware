@@ -1,5 +1,7 @@
 #include "busy_timer_settings_interface_v1.h"
 
+#include <toolbox/strint.h>
+
 #include "../busy_timer_common_i.h"
 
 #define STRING_VALUE_DEFAULT ""
@@ -68,6 +70,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                     .title = "busy",
                     .card_id = "00000000-0000-0000-0000-000000000000",
                 },
+            .timestamp_ms = 0,
         },
     [BusyTimerProfileIdCustom] =
         {
@@ -87,6 +90,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                     .title = "custom",
                     .card_id = "00000000-0000-0000-0000-000000000001",
                 },
+            .timestamp_ms = 0,
         },
 };
 
@@ -184,10 +188,7 @@ static bool busy_timer_settings_v1_timestamp_deserialize_cb(
     const FuriString* string) {
     UNUSED(setting);
 
-    time_t* timestamp = value;
-    const int num_read = sscanf(furi_string_get_cstr(string), "%llu", timestamp);
-
-    return num_read == 1;
+    return strint_to_int64(furi_string_get_cstr(string), NULL, value, 10) == StrintParseNoError;
 }
 
 static const SettingProviderSetting busy_timer_settings_v1_busy_bar_settings[] = {

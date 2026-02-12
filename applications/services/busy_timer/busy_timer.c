@@ -782,6 +782,9 @@ static void
         settings.timestamp_ms = profile->timestamp_ms;
 
         busy_timer_settings_save(&settings, set_profile->profile_id);
+
+    } else {
+        FURI_LOG_W(TAG, "Ignoring outdated profile with timestamp %llu", profile->timestamp_ms);
     }
 }
 
