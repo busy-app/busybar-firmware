@@ -108,6 +108,7 @@ static void mqtt_link_timeout(void* data) {
     MqttLinkContext* link_ctx = data;
 
     MG_REPLY_INTERNAL_ERROR(link_ctx->conn, "PIN request timeout");
+    link_ctx->conn->is_draining = true;
 }
 
 static void mqtt_link_wakeup_callback(struct mg_connection* conn, void* data, size_t len) {
@@ -125,6 +126,7 @@ static void mqtt_link_wakeup_callback(struct mg_connection* conn, void* data, si
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
     furi_string_free(json_str);
+    conn->is_draining = true;
 }
 
 static void mqtt_link_close_callback(struct mg_connection* conn) {
