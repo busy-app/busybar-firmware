@@ -55,7 +55,6 @@ struct Wifi {
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
-    WifiStatus status_last;
 };
 
 // API management

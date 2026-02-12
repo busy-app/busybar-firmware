@@ -77,13 +77,16 @@ static void wifi_process_request(Wifi* instance) {
 
     } else {
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
-        if(instance->status_last == WifiStatusInvalid) {
-            wifi_api_unlock(instance, status);
-        } else {
-            wifi_api_unlock(instance, instance->status_last);
-            instance->status_last = WifiStatusInvalid;
-        }
+        wifi_api_unlock(instance, status);
     }
+}
+
+static void
+    wifi_followup_request(Wifi* instance, WifiRequestType request_type, WifiStatus prev_status) {
+    instance->api_message.request_type = request_type;
+    *instance->api_message.status = prev_status;
+
+    wifi_process_request(instance);
 }
 
 static void wifi_process_response(Wifi* instance, const WifiResponse* response) {
@@ -135,11 +138,10 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 wifi_print_connection_info(instance);
 
             } else {
-                instance->status_last = WifiStatusTimeout;
                 unlock_api = false;
 
-                instance->api_message.request_type = WifiRequestTypeDisconnect;
-                wifi_process_request(instance);
+                wifi_followup_request(
+                    instance, WifiRequestTypeDisconnect, WifiStatusConfigurationFailed);
             }
 
         } else if(request_type == WifiRequestTypeDisconnect) {
@@ -163,12 +165,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
     }
 
     if(unlock_api) {
-        if(instance->status_last == WifiStatusInvalid) {
-            wifi_api_unlock(instance, status);
-        } else {
-            wifi_api_unlock(instance, instance->status_last);
-            instance->status_last = WifiStatusInvalid;
-        }
+        wifi_api_unlock(instance, status);
     }
 }
 
@@ -254,7 +251,6 @@ static Wifi* wifi_alloc(void) {
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-    instance->status_last = WifiStatusInvalid;
 
     furi_record_open(RECORD_NETWORK);
 
