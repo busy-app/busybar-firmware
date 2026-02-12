@@ -309,8 +309,6 @@ BleIntercomServiceData* ble_service_create_intercom_service_data_pack(
     size_t total_data_size =
         ble_service_count_characteristics_and_size(instance, modified_only, &chars_count);
 
-    furi_check(chars_count > 0);
-
     size_t total_config_size = sizeof(BleCharacteristicDataHeader) * chars_count +
                                total_data_size + sizeof(BleCharacteristicCountType);
 
