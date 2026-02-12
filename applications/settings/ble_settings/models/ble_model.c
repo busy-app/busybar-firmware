@@ -1,7 +1,10 @@
 #include "ble_model.h"
 #include <device_name/device_name.h>
+#include <busy_timer/time_macros.h>
 
 #define TAG "BLE Model"
+
+#define BLE_PAIRING_TIMEOUT_MIN (5)
 
 struct BleModel {
     DeviceName* device_name;
@@ -10,6 +13,7 @@ struct BleModel {
     BleStatus status;
     FuriPubSubSubscription* ble_subscription;
     FuriPubSubSubscription* device_name_subscription;
+    FuriTimer* pairing_timer;
 
     BleModelStateCallback callback;
     void* context;
@@ -23,6 +27,7 @@ static void ble_model_on_state_change_callback(const void* message, void* contex
 
     furi_mutex_acquire(model->lock, FuriWaitForever);
     memcpy(&model->status, status, sizeof(BleStatus));
+    furi_timer_stop(model->pairing_timer);
     furi_mutex_release(model->lock);
 
     if(model->callback) {
@@ -37,6 +42,14 @@ static void ble_model_on_device_name_change_callback(const void* message, void* 
 
     if(model->callback) {
         model->callback(BleModelStateEventNameChanged, model->context);
+    }
+}
+
+static void ble_pairing_timeout_callback(void* ctx) {
+    BleModel* model = ctx;
+
+    if(model->callback) {
+        model->callback(BleModelStateEventBleChanged, model->context);
     }
 }
 
@@ -59,6 +72,9 @@ BleModel* ble_model_alloc(void) {
     model->ble_subscription =
         furi_pubsub_subscribe(pubsub, ble_model_on_state_change_callback, model);
 
+    model->pairing_timer =
+        furi_timer_alloc(ble_pairing_timeout_callback, FuriTimerTypeOnce, model);
+
     return model;
 }
 
@@ -66,6 +82,7 @@ void ble_model_free(BleModel* model) {
     furi_assert(model);
     model->callback = NULL;
 
+    furi_timer_free(model->pairing_timer);
     furi_pubsub_unsubscribe(
         device_name_get_pubsub(model->device_name), model->device_name_subscription);
     furi_pubsub_unsubscribe(ble_get_pubsub(model->ble), model->ble_subscription);
@@ -107,12 +124,14 @@ void ble_model_start(BleModel* model) {
     furi_assert(model);
     bool result = ble_start(model->ble);
     furi_assert(result);
+    furi_timer_start(model->pairing_timer, M_TO_MS(BLE_PAIRING_TIMEOUT_MIN));
 }
 
 void ble_model_stop(BleModel* model) {
     furi_assert(model);
     bool result = ble_stop(model->ble);
     furi_assert(result);
+    furi_timer_stop(model->pairing_timer);
 }
 
 void ble_model_forget(BleModel* model) {

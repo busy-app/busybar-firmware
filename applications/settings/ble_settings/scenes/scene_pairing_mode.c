@@ -137,6 +137,10 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
         if(event->event == SceneEventBlePairingEvent) {
             if(ble_model_is_device_paired(instance->model)) {
                 scene_manager_next_scene(instance->scene_manager, SceneIdConnected);
+                consumed = true;
+            } else {
+                consumed = desktop_replace_current_app(
+                    instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
             }
         } else if(event->event == SceneEventDeviceNameChangedEvent) {
             BleSettingsPairingSceneData* data =
@@ -145,6 +149,7 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
             with_gui(instance->gui, {
                 named_label_set_text(data->name_view, furi_string_get_cstr(data->name_label_text));
             });
+            consumed = true;
         }
     } else if(event->type == SceneManagerEventTypeBack) {
         consumed =
