@@ -152,15 +152,18 @@ bool anim_player_set_section(AnimPlayer* instance, AnimFilePlayFlag flags, const
     return anim_file_set_section(instance->file, flags, name);
 }
 
-void anim_player_start(AnimPlayer* instance) {
+bool anim_player_start(AnimPlayer* instance) {
     furi_check(instance);
-    furi_check(instance->file);
+    if(!instance->file) return false;
     lv_timer_resume(instance->timer);
+    return true;
 }
 
-void anim_player_pause(AnimPlayer* instance) {
+bool anim_player_pause(AnimPlayer* instance) {
     furi_check(instance);
+    if(!instance->file) return false;
     lv_timer_pause(instance->timer);
+    return true;
 }
 
 void anim_player_set_frame_callback(
