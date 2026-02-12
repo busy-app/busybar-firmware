@@ -4,17 +4,6 @@
 
 #define STRING_VALUE_DEFAULT ""
 
-#define IS_SMART_HOME_ENABLED_DEFAULT     (true)
-#define IS_SHOW_WORK_ONLY_ENABLED_DEFAULT (false)
-
-#define TIME_DEFAULT_MN      (20)
-#define WORK_TIME_DEFAULT_MN (20)
-#define REST_TIME_DEFAULT_MN (5)
-#define CYCLE_COUNT_DEFAULT  (3)
-
-#define ENABLE_AUTOSTART_DEFAULT (false)
-#define ENABLE_DEMO_MODE_DEFAULT (false)
-
 #define SORT_ORDER_DEFAULT (-1)
 
 typedef enum {
@@ -173,7 +162,7 @@ static const SettingProviderSetting busy_timer_settings_v1_app_config[] = {
             .name = "is_smart_home_enabled",
             .interface =
                 &(const SettingProviderBoolInterface){
-                    .default_value = IS_SMART_HOME_ENABLED_DEFAULT,
+                    .default_value = BUSY_BAR_IS_SMART_HOME_ENABLED_DEFAULT,
                 },
             .field_offset = offsetof(BusyAppConfig, is_smart_home_enabled),
             .type = SettingProviderSettingTypeBool,
@@ -183,7 +172,7 @@ static const SettingProviderSetting busy_timer_settings_v1_app_config[] = {
             .name = "is_show_work_only_enabled",
             .interface =
                 &(const SettingProviderBoolInterface){
-                    .default_value = IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+                    .default_value = BUSY_BAR_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
                 },
             .field_offset = offsetof(BusyAppConfig, is_show_work_only_enabled),
             .type = SettingProviderSettingTypeBool,
@@ -209,7 +198,7 @@ static const SettingProviderSetting busy_timer_settings_v1_timer_config[] = {
             .name = "simple_time_minutes",
             .interface =
                 &(const SettingProviderIntInterface){
-                    .default_value = TIME_DEFAULT_MN,
+                    .default_value = BUSY_TIMER_TIME_DEFAULT_MN,
                 },
             .field_offset = offsetof(BusyTimerConfig, time_mn),
             .type = SettingProviderSettingTypeInt,
@@ -219,7 +208,7 @@ static const SettingProviderSetting busy_timer_settings_v1_timer_config[] = {
             .name = "work_time_minutes",
             .interface =
                 &(const SettingProviderIntInterface){
-                    .default_value = WORK_TIME_DEFAULT_MN,
+                    .default_value = BUSY_TIMER_WORK_TIME_DEFAULT_MN,
                 },
             .field_offset = offsetof(BusyTimerConfig, work_time_mn),
             .type = SettingProviderSettingTypeInt,
@@ -229,7 +218,7 @@ static const SettingProviderSetting busy_timer_settings_v1_timer_config[] = {
             .name = "rest_time_minutes",
             .interface =
                 &(const SettingProviderIntInterface){
-                    .default_value = REST_TIME_DEFAULT_MN,
+                    .default_value = BUSY_TIMER_REST_TIME_DEFAULT_MN,
                 },
             .field_offset = offsetof(BusyTimerConfig, rest_time_mn),
             .type = SettingProviderSettingTypeInt,
@@ -239,7 +228,7 @@ static const SettingProviderSetting busy_timer_settings_v1_timer_config[] = {
             .name = "work_cycles_count",
             .interface =
                 &(const SettingProviderIntInterface){
-                    .default_value = CYCLE_COUNT_DEFAULT,
+                    .default_value = BUSY_TIMER_CYCLE_COUNT_DEFAULT,
                 },
             .field_offset = offsetof(BusyTimerConfig, cycle_count),
             .type = SettingProviderSettingTypeInt,
@@ -249,7 +238,7 @@ static const SettingProviderSetting busy_timer_settings_v1_timer_config[] = {
             .name = "is_autostart_enabled",
             .interface =
                 &(const SettingProviderBoolInterface){
-                    .default_value = ENABLE_AUTOSTART_DEFAULT,
+                    .default_value = BUSY_TIMER_ENABLE_AUTOSTART_DEFAULT,
                 },
             .field_offset = offsetof(BusyTimerConfig, enable_autostart),
             .type = SettingProviderSettingTypeBool,
@@ -259,7 +248,7 @@ static const SettingProviderSetting busy_timer_settings_v1_timer_config[] = {
             .name = "is_demo_mode_enabled",
             .interface =
                 &(const SettingProviderBoolInterface){
-                    .default_value = ENABLE_DEMO_MODE_DEFAULT,
+                    .default_value = BUSY_TIMER_ENABLE_DEMO_MODE_DEFAULT,
                 },
             .field_offset = offsetof(BusyTimerConfig, enable_demo_mode),
             .type = SettingProviderSettingTypeBool,
