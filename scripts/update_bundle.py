@@ -38,6 +38,12 @@ class Main(App):
             default=None,
         )
         self.parser.add_argument(
+            "--bkp-resources",
+            help="Path to the folder containing resource files for /bkp partition",
+            type=str,
+            default=None,
+        )
+        self.parser.add_argument(
             "--sil-fw", required=False, help="Updater SIL firmware file"
         )
         self.parser.add_argument(
@@ -135,6 +141,14 @@ class Main(App):
                         f"Failed to create TAR from {args.resources}: {e}"
                     )
                     return 1
+
+            # BKP resources
+            if args.bkp_resources:
+                bkp_resources_output_path = os.path.join(actual_output_path, "resources")
+                self.logger.info(
+                    f"Copying BKP resources from folder: {args.bkp_resources} into {bkp_resources_output_path}"
+                )
+                shutil.copytree(args.bkp_resources, bkp_resources_output_path)
 
             if args.sil_fw:
                 sil_fw_basename = os.path.basename(args.sil_fw)
