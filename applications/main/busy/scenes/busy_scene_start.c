@@ -1,7 +1,7 @@
 #include "../busy_i.h"
-#include "../widgets/anim_menu.h"
 
 #include <gui/modules/menu.h>
+#include <gui/modules/anim_menu.h>
 #include <gui/modules/anim_player.h>
 #include <gui/modules/flex_layout.h>
 
