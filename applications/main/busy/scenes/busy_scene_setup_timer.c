@@ -46,7 +46,7 @@ static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
             },
     };
 
-    const BusyTimerMode timer_mode = data->profile->settings.mode;
+    const BusyTimerMode timer_mode = data->profile->timer_settings.mode;
     const bool* const is_shown_in_mode = is_shown_table[timer_mode];
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
@@ -64,7 +64,7 @@ static void busy_scene_setup_timer_mode_changed_callback(VarItem* item, void* co
     furi_assert(context);
 
     BusySceneSetupTimer* data = context;
-    data->profile->settings.mode = var_item_get_value(item);
+    data->profile->timer_settings.mode = var_item_get_value(item);
 
     busy_scene_setup_timer_filter_items(data);
 }
@@ -133,7 +133,7 @@ static void
     VarItemListId item_id = 0;
     VarItem* item;
 
-    BusyTimerProfileSettings* settings = &data->profile->settings;
+    BusyTimerProfileSettings* settings = &data->profile->timer_settings;
     BusyAppConfig* busy_bar_settings = &data->profile->busy_bar_settings;
 
     item = var_item_list_add_selector(

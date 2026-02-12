@@ -42,7 +42,7 @@ static void busy_scene_setup_on_enter(void* context) {
 
     BusyTimerProfile* profile = &instance->profile;
 
-    const char* mode_name = busy_timer_get_mode_names()[profile->settings.mode];
+    const char* mode_name = busy_timer_get_mode_names()[profile->timer_settings.mode];
 
     const bool is_smart_home_enabled = profile->busy_bar_settings.is_smart_home_enabled;
     const char* smart_home_sublabel = is_smart_home_enabled ? ITEM_SUBLABEL_ON : ITEM_SUBLABEL_OFF;

@@ -87,7 +87,7 @@ static void busy_scene_ending_on_enter(void* context) {
     BusySceneEndig* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdEnding);
 
-    const BusyTimerIntervalSettings* interval_settings = &instance->profile.settings.interval;
+    const BusyTimerIntervalSettings* interval_settings = &instance->profile.timer_settings.interval;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);

@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct {
     BusyAppConfig busy_bar_settings;
-    BusyTimerProfileSettings settings;
+    BusyTimerProfileSettings timer_settings;
     BusyTimerProfileInfo info;
     time_t timestamp_ms;
 } BusyTimerProfile;

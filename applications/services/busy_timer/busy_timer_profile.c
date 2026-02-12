@@ -115,7 +115,7 @@ char* busy_timer_profile_serialize(const BusyTimerProfile* profile) {
 
     busy_timer_profile_serialize_profile_info(json, &profile->info);
 
-    busy_timer_profile_serialize_timer_settings(json, &profile->settings);
+    busy_timer_profile_serialize_timer_settings(json, &profile->timer_settings);
 
     busy_timer_common_serialize_busy_bar_settings(json, &profile->busy_bar_settings);
 
@@ -147,7 +147,7 @@ bool busy_timer_profile_deserialize(
         const cJSON* item;
 
         item = cJSON_GetObjectItem(json, KEY_PROFILE_TIMER_SETTINGS);
-        if(!busy_timer_profile_deserialize_timer_settings(item, &profile->settings)) {
+        if(!busy_timer_profile_deserialize_timer_settings(item, &profile->timer_settings)) {
             break;
         }
 

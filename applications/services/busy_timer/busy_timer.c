@@ -55,7 +55,7 @@ static void
     BusyTimerConfig* timer_config = &settings->timer_config;
     memset(timer_config, 0, sizeof(BusyTimerConfig));
 
-    const BusyTimerProfileSettings* profile_settings = &profile->settings;
+    const BusyTimerProfileSettings* profile_settings = &profile->timer_settings;
     const BusyTimerMode timer_mode = profile_settings->mode;
 
     if(timer_mode == BusyTimerModeSimple) {
@@ -94,7 +94,7 @@ static void
     profile->info = settings->profile_info;
     profile->timestamp_ms = settings->timestamp;
 
-    BusyTimerProfileSettings* profile_settings = &profile->settings;
+    BusyTimerProfileSettings* profile_settings = &profile->timer_settings;
     memset(profile_settings, 0, sizeof(BusyTimerProfileSettings));
 
     const BusyTimerConfig* timer_config = &settings->timer_config;

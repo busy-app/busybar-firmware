@@ -59,7 +59,7 @@ static void busy_scene_finish_on_enter(void* context) {
     BusySceneFinish* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdFinish);
 
-    const BusyTimerProfileSettings* profile_settings = &instance->profile.settings;
+    const BusyTimerProfileSettings* timer_settings = &instance->profile.timer_settings;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -76,8 +76,8 @@ static void busy_scene_finish_on_enter(void* context) {
         prompt_overlay_set_animation_target(
             data->front_prompt, summary_label_get_base(data->front_summary));
 
-        if(profile_settings->mode == BusyTimerModeInterval) {
-            const BusyTimerIntervalSettings* interval_settings = &profile_settings->interval;
+        if(timer_settings->mode == BusyTimerModeInterval) {
+            const BusyTimerIntervalSettings* interval_settings = &timer_settings->interval;
             summary_label_set_cycles_count(data->front_summary, interval_settings->cycles_count);
             prompt_overlay_set_callback(
                 data->front_prompt, busy_scene_finish_prompt_overlay_callback, instance);
