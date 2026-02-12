@@ -25,14 +25,16 @@ AnimFileFrameFlag anim_file_seq_load_current_frame(AnimFile* anim) {
     AnimFileSeq* seq = &anim->seq;
     AnimFileFrameHeader* frame_hdr = &seq->frame_hdr;
 
-    if(seq->disp_frame_idx == seq->last_disp_frame) {
-        if(!anim_file_start_last_frame(anim)) return seq->flags;
-    }
-
     if(seq->loaded_file_frame == seq->requested_file_frame) {
         if(!seq->remaining_duration) return AnimFileFrameFlagNoChange;
+
+        if(seq->disp_frame_idx == seq->last_disp_frame) {
+            if(!anim_file_start_last_frame(anim)) return AnimFileFrameFlagNoChange;
+        }
+
         seq->disp_frame_idx++;
         if(--seq->remaining_duration > 0) return AnimFileFrameFlagNoChange;
+
         seq->requested_file_frame += sizeof(*frame_hdr) + frame_hdr->encoded_length;
     }
 
