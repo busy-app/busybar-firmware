@@ -16,6 +16,7 @@
 typedef enum {
     SceneEventBlePairingEvent = AppEventSceneEventsStart,
     SceneEventDeviceNameChangedEvent,
+    SceneEventBlePairingTimeout,
 } SceneEvent;
 
 typedef struct {
@@ -38,6 +39,7 @@ static void scene_pairing_model_changed_callback(BleModelStateEvent event, void*
     const SceneEvent model_to_scene_events[BleModelStateEventCount] = {
         [BleModelStateEventBleChanged] = SceneEventBlePairingEvent,
         [BleModelStateEventNameChanged] = SceneEventDeviceNameChangedEvent,
+        [BleModelStateEventPairingTimeout] = SceneEventBlePairingTimeout,
     };
 
     SceneEvent scene_event = model_to_scene_events[event];
@@ -134,14 +136,12 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
     BleSettings* instance = context;
 
     bool consumed = false;
+    bool exit = false;
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventBlePairingEvent) {
             if(ble_model_is_device_paired(instance->model)) {
                 scene_manager_next_scene(instance->scene_manager, SceneIdConnected);
                 consumed = true;
-            } else {
-                consumed = desktop_replace_current_app(
-                    instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
             }
         } else if(event->event == SceneEventDeviceNameChangedEvent) {
             BleSettingsPairingSceneData* data =
@@ -151,8 +151,14 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
                 named_label_set_text(data->name_view, furi_string_get_cstr(data->name_label_text));
             });
             consumed = true;
+        } else if(event->event == SceneEventBlePairingTimeout) {
+            exit = true;
         }
     } else if(event->type == SceneManagerEventTypeBack) {
+        exit = true;
+    }
+
+    if(exit) {
         consumed =
             desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
     }

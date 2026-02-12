@@ -10,6 +10,7 @@ extern "C" {
 typedef enum {
     BleModelStateEventBleChanged,
     BleModelStateEventNameChanged,
+    BleModelStateEventPairingTimeout,
 
     BleModelStateEventCount,
 } BleModelStateEvent;

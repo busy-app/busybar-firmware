@@ -49,7 +49,7 @@ static void ble_pairing_timeout_callback(void* ctx) {
     BleModel* model = ctx;
 
     if(model->callback) {
-        model->callback(BleModelStateEventBleChanged, model->context);
+        model->callback(BleModelStateEventPairingTimeout, model->context);
     }
 }
 
