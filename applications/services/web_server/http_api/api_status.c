@@ -1,7 +1,9 @@
 #include "http_api.h"
 #include <power/power_service/power.h>
 #include <version.h>
+#include <furi_hal_version.h>
 #include <furi_hal_rtc.h>
+#include <toolbox/hex.h>
 
 #define TAG "HttpStatus"
 
@@ -13,6 +15,16 @@ bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
     const Version* firmware_version = version_get();
 
     furi_string_cat_printf(json_str, "{");
+
+    FuriString* serial_str = furi_string_alloc();
+    hex_bytes_to_string(furi_hal_version_uid(), furi_hal_version_uid_size(), serial_str);
+    furi_string_cat_printf(
+        json_str, "\"serial_number\":\"%s\",", furi_string_get_cstr(serial_str));
+    furi_string_free(serial_str);
+
+    const uint8_t api_ver[] = API_VERSION;
+    furi_string_cat_printf(
+        json_str, "\"api_semver\":\"%u.%u.%u\",", api_ver[0], api_ver[1], api_ver[2]);
 
     furi_string_cat_printf(json_str, "\"version\":\"%s\",", version_get_version(firmware_version));
     furi_string_cat_printf(

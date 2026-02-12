@@ -1997,14 +1997,22 @@ components:
     StatusSystem:
       type: object
       properties:
-        branch:
+        serial_number:
           type: string
-          description: Git branch name
-          example: "main"
+          description: Device serial number
+          example: "203638485431500400123456"
+        api_semver:
+          type: string
+          description: API SemVer
+          example: "0.0.0"
         version:
           type: string
           description: Firmware version
           example: "1.0.0"
+        branch:
+          type: string
+          description: Git branch name
+          example: "main"
         build_date:
           type: string
           description: Build date
