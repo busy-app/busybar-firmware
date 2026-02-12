@@ -63,16 +63,6 @@ typedef struct {
     };
 } BusyTimerEvent;
 
-typedef struct {
-    BusyTimerMode mode;
-    uint32_t time_mn;
-    uint32_t work_time_mn;
-    uint32_t rest_time_mn;
-    uint32_t cycle_count;
-    bool enable_autostart;
-    bool enable_demo_mode;
-} BusyTimerConfig;
-
 FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
 BusyTimerState busy_timer_get_state(const BusyTimer* instance);

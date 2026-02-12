@@ -45,72 +45,6 @@ static const char* busy_timer_get_mode_name(BusyTimerMode mode) {
     return busy_timer_mode_names[mode];
 }
 
-// TODO: ============================== Temporary functions start
-static void
-    busy_timer_profile_to_settings(BusyTimerSettings* settings, const BusyTimerProfile* profile) {
-    settings->busy_bar_settings = profile->busy_bar_settings;
-    settings->profile_info = profile->info;
-    settings->timestamp = profile->timestamp_ms;
-
-    BusyTimerConfig* timer_config = &settings->timer_config;
-    memset(timer_config, 0, sizeof(BusyTimerConfig));
-
-    const BusyTimerProfileSettings* profile_settings = &profile->timer_settings;
-    const BusyTimerMode timer_mode = profile_settings->mode;
-
-    if(timer_mode == BusyTimerModeSimple) {
-        const BusyTimerSimpleSettings* simple = &profile_settings->simple;
-        timer_config->time_mn = MS_TO_M(simple->total_time_ms);
-
-    } else if(timer_mode == BusyTimerModeInterval) {
-        const BusyTimerIntervalSettings* interval = &profile_settings->interval;
-        timer_config->work_time_mn = MS_TO_M(interval->work_time_ms);
-        timer_config->rest_time_mn = MS_TO_M(interval->rest_time_ms);
-        timer_config->cycle_count = interval->cycles_count;
-        timer_config->enable_autostart = interval->is_autostart_enabled;
-    }
-
-    timer_config->mode = timer_mode;
-}
-
-static void busy_timer_config_to_simple(
-    BusyTimerSimpleSettings* simple,
-    const BusyTimerConfig* timer_config) {
-    simple->total_time_ms = M_TO_MS(timer_config->time_mn);
-}
-
-static void busy_timer_config_to_interval(
-    BusyTimerIntervalSettings* interval,
-    const BusyTimerConfig* timer_config) {
-    interval->work_time_ms = M_TO_MS(timer_config->work_time_mn);
-    interval->rest_time_ms = M_TO_MS(timer_config->rest_time_mn);
-    interval->cycles_count = timer_config->cycle_count;
-    interval->is_autostart_enabled = timer_config->enable_autostart;
-}
-
-static void
-    busy_timer_settings_to_profile(BusyTimerProfile* profile, const BusyTimerSettings* settings) {
-    profile->busy_bar_settings = settings->busy_bar_settings;
-    profile->info = settings->profile_info;
-    profile->timestamp_ms = settings->timestamp;
-
-    BusyTimerProfileSettings* profile_settings = &profile->timer_settings;
-    memset(profile_settings, 0, sizeof(BusyTimerProfileSettings));
-
-    const BusyTimerConfig* timer_config = &settings->timer_config;
-    const BusyTimerMode timer_mode = timer_config->mode;
-
-    if(timer_mode == BusyTimerModeSimple) {
-        busy_timer_config_to_simple(&profile_settings->simple, timer_config);
-    } else if(timer_mode == BusyTimerModeInterval) {
-        busy_timer_config_to_interval(&profile_settings->interval, timer_config);
-    }
-
-    profile_settings->mode = timer_mode;
-}
-
-// TODO: ================================= Temporary functions end
-
 #ifdef BUSY_TIMER_TICK_DEBUG
 static void busy_timer_get_time_str(uint32_t time_s, char buf[TIME_MAX_LEN]) {
     const uint32_t h = S_TO_H(time_s);
@@ -568,14 +502,14 @@ static void busy_timer_load_settings(BusyTimer* instance, BusyTimerProfileId pro
     BusyTimerSettings settings;
     busy_timer_settings_load(&settings, profile_id);
 
-    instance->mode = settings.timer_config.mode;
+    instance->mode = settings.timer_settings.mode;
     instance->busy_bar_settings = settings.busy_bar_settings;
     strcpy(instance->card_id, settings.profile_info.card_id);
 
     if(instance->mode == BusyTimerModeSimple) {
-        busy_timer_config_to_simple(&instance->simple_settings, &settings.timer_config);
+        instance->simple_settings = settings.timer_settings.simple;
     } else if(instance->mode == BusyTimerModeInterval) {
-        busy_timer_config_to_interval(&instance->interval_settings, &settings.timer_config);
+        instance->interval_settings = settings.timer_settings.interval;
     }
 }
 
@@ -824,7 +758,11 @@ static void
     BusyTimerSettings settings;
     busy_timer_settings_load(&settings, get_profile->profile_id);
 
-    busy_timer_settings_to_profile(get_profile->profile, &settings);
+    BusyTimerProfile* profile = get_profile->profile;
+    profile->busy_bar_settings = settings.busy_bar_settings;
+    profile->timer_settings = settings.timer_settings;
+    profile->info = settings.profile_info;
+    profile->timestamp_ms = settings.timestamp_ms;
 }
 
 static void
@@ -837,8 +775,12 @@ static void
     busy_timer_settings_load(&settings, set_profile->profile_id);
 
     const BusyTimerProfile* profile = set_profile->profile;
-    if(profile->timestamp_ms > settings.timestamp) {
-        busy_timer_profile_to_settings(&settings, profile);
+    if(profile->timestamp_ms > settings.timestamp_ms) {
+        settings.busy_bar_settings = profile->busy_bar_settings;
+        settings.timer_settings = profile->timer_settings;
+        settings.profile_info = profile->info;
+        settings.timestamp_ms = profile->timestamp_ms;
+
         busy_timer_settings_save(&settings, set_profile->profile_id);
     }
 }

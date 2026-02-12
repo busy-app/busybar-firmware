@@ -7,9 +7,9 @@
 
 typedef struct {
     BusyAppConfig busy_bar_settings;
-    BusyTimerConfig timer_config;
+    BusyTimerProfileSettings timer_settings;
     BusyTimerProfileInfo profile_info;
-    time_t timestamp;
+    time_t timestamp_ms;
 } BusyTimerSettingsV1;
 
 extern const SettingProviderSetting busy_timer_settings_v1_root;

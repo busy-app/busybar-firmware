@@ -84,10 +84,7 @@ static bool busy_timer_profile_deserialize_timer_settings(
             break;
         }
 
-        const cJSON* item;
-
-        item = cJSON_GetObjectItem(json, KEY_PROFILE_TIMER_SETTINGS_TYPE);
-        if(!busy_timer_common_deserialize_timer_mode(item, &timer_settings->mode)) {
+        if(!busy_timer_common_deserialize_timer_mode(json, &timer_settings->mode)) {
             break;
         }
 

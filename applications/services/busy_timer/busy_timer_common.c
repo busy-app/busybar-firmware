@@ -103,11 +103,13 @@ bool busy_timer_common_deserialize_timer_mode(const cJSON* json, BusyTimerMode* 
     bool success = false;
 
     do {
-        if(!cJSON_IsString(json)) {
+        cJSON* item = cJSON_GetObjectItem(json, KEY_COMMON_TIMER_SETTINGS_TYPE);
+
+        if(!cJSON_IsString(item)) {
             break;
         }
 
-        const char* mode_name = cJSON_GetStringValue(json);
+        const char* mode_name = cJSON_GetStringValue(item);
 
         BusyTimerMode found_mode;
         for(found_mode = 0; found_mode < BusyTimerModeMax; ++found_mode) {
