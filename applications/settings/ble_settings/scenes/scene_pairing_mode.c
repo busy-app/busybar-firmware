@@ -96,7 +96,8 @@ static void scene_pairing_mode_on_enter(void* context) {
     });
 
     status_lights_set_brightness(instance->status_lights, STATUS_LIGHTS_BRIGHTNESS_MAX);
-    status_lights_run_preset(instance->status_lights, StatusLightsPresetFade, STATUS_LIGHTS_COLOR);
+    status_lights_run_preset(
+        instance->status_lights, StatusLightsPresetBlink, STATUS_LIGHTS_COLOR);
 }
 
 static void scene_pairing_mode_on_exit(void* context) {
