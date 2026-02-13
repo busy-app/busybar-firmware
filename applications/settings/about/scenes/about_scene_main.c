@@ -90,7 +90,7 @@ static bool about_scene_main_on_event(const SceneManagerEvent* event, void* cont
             consumed = true;
         } else if(event->event == SceneEventComplianceInfo) {
             scene_manager_next_scene(instance->scene_manager, SceneIdCompliance);
-            about_push_location(instance, "COMPLIENCE INFO");
+            about_push_location(instance, "COMPLIANCE INFO");
             consumed = true;
         }
         data->menu_index = event->event;
