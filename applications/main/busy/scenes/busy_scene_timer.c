@@ -91,8 +91,8 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
         data->is_force_ended = event->is_force_ended;
         busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
 
-    } else if(event->type == BusyTimerEventTypeTimerPaused) {
-        data->is_paused = event->timer_paused.is_paused;
+    } else if(event->type == BusyTimerEventTypePaused) {
+        data->is_paused = event->paused.is_paused;
         busy_send_custom_event(instance, BusyCustomEventTimerPaused);
     }
 }

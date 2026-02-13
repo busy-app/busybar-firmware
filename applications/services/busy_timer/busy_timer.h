@@ -28,7 +28,7 @@ typedef enum {
     BusyTimerEventTypeModeChanged,
     BusyTimerEventTypeStateChanged,
     BusyTimerEventTypeIntervalEnded,
-    BusyTimerEventTypeTimerPaused,
+    BusyTimerEventTypePaused,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
@@ -50,7 +50,7 @@ typedef struct {
 
 typedef struct {
     bool is_paused;
-} BusyTimerEventTimerPaused;
+} BusyTimerEventPaused;
 
 typedef struct {
     BusyTimerEventType type;
@@ -59,7 +59,7 @@ typedef struct {
         BusyTimerMode mode;
         BusyTimerState state;
         bool is_force_ended;
-        BusyTimerEventTimerPaused timer_paused;
+        BusyTimerEventPaused paused;
     };
 } BusyTimerEvent;
 

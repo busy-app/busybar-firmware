@@ -144,8 +144,8 @@ static void busy_timer_notify_paused(const BusyTimer* instance) {
     FURI_LOG_D(TAG, "Paused: %s", busy_timer_get_state_name(instance->state));
 
     BusyTimerEvent event = {
-        .type = BusyTimerEventTypeTimerPaused,
-        .timer_paused =
+        .type = BusyTimerEventTypePaused,
+        .paused =
             {
                 .is_paused = !instance->timer_running,
             },
