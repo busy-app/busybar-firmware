@@ -184,6 +184,11 @@ void theme_picker_set_current_item(ThemePicker* instance, uint32_t index) {
     theme_picker_update_image(instance);
 }
 
+uint32_t theme_picker_get_current_index(const ThemePicker* instance) {
+    furi_check(instance);
+    return instance->current_idx;
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t theme_picker_lvgl_class = {

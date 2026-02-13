@@ -44,7 +44,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
         const BusyApiMessageType type = message.type;
 
         if(type == BusyApiMessageTypeSetConfig) {
-            instance->profile.busy_bar_settings = *message.data.set_config.config;
+            instance->busy_bar_settings = *message.data.set_config.config;
             busy_apply_busy_bar_settings(instance);
 
         } else if(type == BusyApiMessageTypeShowTimer) {
@@ -184,7 +184,9 @@ static BusyApp* busy_alloc(const char* arg) {
         instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
-        busy_load_profile(instance);
+        busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
+
+        busy_load_busy_bar_settings(instance);
         busy_apply_busy_bar_settings(instance);
 
         busy_set_status_lights(instance, BusyStatusLightsTypeOff);
@@ -285,14 +287,14 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 
 void busy_set_matter(BusyApp* instance, bool switch_state) {
     furi_assert(instance);
-    if(instance->profile.busy_bar_settings.is_smart_home_enabled) {
+    if(instance->busy_bar_settings.is_smart_home_enabled) {
         matter_set_switch_state(instance->matter, switch_state);
     }
 }
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {
     furi_assert(instance);
-    if(instance->profile.busy_bar_settings.is_show_work_only_enabled) {
+    if(instance->busy_bar_settings.is_show_work_only_enabled) {
         front_display_set_blanked(instance->front_display, is_blanked);
     }
 }
@@ -321,32 +323,33 @@ void busy_exit(BusyApp* instance) {
     furi_event_loop_stop(instance->event_loop);
 }
 
-void busy_load_profile(BusyApp* instance) {
+void busy_load_busy_bar_settings(BusyApp* instance) {
     furi_assert(instance);
 
-    const BusyTimerProfileId profile_id = busy_get_profile_id(instance);
-
-    busy_timer_load_profile(instance->busy_timer, profile_id);
-    busy_timer_get_profile(instance->busy_timer, profile_id, &instance->profile);
-}
-
-void busy_save_profile(BusyApp* instance) {
-    furi_assert(instance);
-
-    instance->profile.timestamp_ms = furi_hal_rtc_get_timestamp_ms();
-    busy_timer_set_profile(
-        instance->busy_timer, busy_get_profile_id(instance), &instance->profile);
+    BusyTimerProfile profile;
+    busy_get_timer_profile(instance, &profile);
+    instance->busy_bar_settings = profile.busy_bar_settings;
 }
 
 void busy_apply_busy_bar_settings(BusyApp* instance) {
     furi_assert(instance);
 
-    const char* theme_name = instance->profile.busy_bar_settings.theme_name;
-
-    if(!busy_theme_read(instance->theme, theme_name)) {
+    if(!busy_theme_read(instance->theme, instance->busy_bar_settings.theme_name)) {
         FURI_LOG_W(TAG, "Setting default theme");
         busy_theme_set_default(instance->theme);
     }
+}
+
+void busy_get_timer_profile(BusyApp* instance, BusyTimerProfile* timer_profile) {
+    furi_assert(instance);
+    busy_timer_get_profile(instance->busy_timer, busy_get_profile_id(instance), timer_profile);
+}
+
+void busy_set_timer_profile(BusyApp* instance, BusyTimerProfile* timer_profile) {
+    furi_assert(instance);
+
+    timer_profile->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
+    busy_timer_set_profile(instance->busy_timer, busy_get_profile_id(instance), timer_profile);
 }
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance) {

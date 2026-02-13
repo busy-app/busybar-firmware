@@ -46,6 +46,21 @@ void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles) {
     busy_timer_send_message(instance, &message);
 }
 
+void busy_timer_get_info(const BusyTimer* instance, BusyTimerInfo* info) {
+    furi_assert(instance);
+    furi_assert(info);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeGetInfo,
+        .data.get_info =
+            {
+                .info = info,
+            },
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
 void busy_timer_start(BusyTimer* instance) {
     furi_assert(instance);
 

@@ -20,6 +20,7 @@ typedef enum {
     BusyTimerMessageTypeGetState,
     BusyTimerMessageTypeGetTime,
     BusyTimerMessageTypeGetCycles,
+    BusyTimerMessageTypeGetInfo,
     BusyTimerMessageTypeAddTime,
     BusyTimerMessageTypeToggle,
     BusyTimerMessageTypeSkip,
@@ -31,6 +32,10 @@ typedef enum {
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
+
+typedef struct {
+    BusyTimerInfo* info;
+} BusyTimerMessageGetInfo;
 
 typedef struct {
     BusyTimerProfileId profile_id;
@@ -49,6 +54,7 @@ typedef union {
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
     const BusyTimerSnapshot* snapshot_c;
+    BusyTimerMessageGetInfo get_info;
     BusyTimerMessageGetProfile get_profile;
     BusyTimerMessageSetProfile set_profile;
     BusyTimerProfileId profile_id;

@@ -98,9 +98,10 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
 
             busy_prepare_transition(instance, BusyTransitionTypeSelect);
 
-            const BusyTimerMode timer_mode = instance->profile.timer_settings.mode;
+            BusyTimerInfo timer_info;
+            busy_timer_get_info(instance->busy_timer, &timer_info);
 
-            if(timer_mode == BusyTimerModeInterval) {
+            if(timer_info.timer_settings.mode == BusyTimerModeInterval) {
                 scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
             } else {
                 scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);

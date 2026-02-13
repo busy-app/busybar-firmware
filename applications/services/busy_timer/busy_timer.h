@@ -50,6 +50,10 @@ typedef struct {
 } BusyTimerCycles;
 
 typedef struct {
+    BusyTimerProfileSettings timer_settings;
+} BusyTimerInfo;
+
+typedef struct {
     bool is_paused;
 } BusyTimerEventPaused;
 
@@ -76,6 +80,8 @@ BusyTimerState busy_timer_get_state(const BusyTimer* instance);
 void busy_timer_get_time(const BusyTimer* instance, BusyTimerTime* time);
 
 void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles);
+
+void busy_timer_get_info(const BusyTimer* instance, BusyTimerInfo* info);
 
 void busy_timer_start(BusyTimer* instance);
 

@@ -669,6 +669,20 @@ static void
     data->cycles->current_idx = instance->current_interval_index;
 }
 
+static void busy_timer_get_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    BusyTimerInfo* timer_info = data->get_info.info;
+    BusyTimerProfileSettings* timer_settings = &timer_info->timer_settings;
+
+    const BusyTimerMode timer_mode = instance->mode;
+    timer_settings->mode = timer_mode;
+
+    if(timer_mode == BusyTimerModeSimple) {
+        timer_settings->simple = instance->simple_settings;
+    } else if(timer_mode == BusyTimerModeInterval) {
+        timer_settings->interval = instance->interval_settings;
+    }
+}
+
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     if(!busy_timer_is_running(instance)) {
         // Ignore if the timer is not running (paused)
@@ -887,6 +901,7 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
     [BusyTimerMessageTypeGetTime] = busy_timer_get_time_message_handler,
     [BusyTimerMessageTypeGetCycles] = busy_timer_get_cycles_message_handler,
+    [BusyTimerMessageTypeGetInfo] = busy_timer_get_info_message_handler,
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
     [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,

@@ -39,13 +39,6 @@ static bool busy_scene_setup_theme_input_callback(const InputEvent* event, void*
     return consumed;
 }
 
-static void busy_scene_setup_theme_picker_callback(uint32_t index, void* context) {
-    furi_assert(context);
-
-    BusyApp* instance = context;
-    busy_send_custom_event(instance, index);
-}
-
 static void busy_scene_setup_theme_read_extra_themes(ThemePickerModel* model) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
@@ -73,23 +66,33 @@ static void busy_scene_setup_theme_read_extra_themes(ThemePickerModel* model) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void busy_scene_setup_theme_handle_theme_changed(BusyApp* instance, uint32_t theme_idx) {
-    const BusySceneSetupTheme* data =
+static void busy_scene_setup_theme_handle_theme_accepted(BusyApp* instance) {
+    busy_pop_location(instance);
+    scene_manager_previous_scene(instance->scene_manager);
+}
+
+static void busy_scene_setup_theme_save_selected_theme(BusyApp* instance) {
+    BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
-    const BusyTheme* selected_theme = theme_picker_model_get_item(data->picker_model, theme_idx);
-    busy_theme_set(instance->theme, selected_theme);
+    BusyTimerProfile timer_profile;
+    busy_get_timer_profile(instance, &timer_profile);
 
-    BusyAppConfig* busy_bar_settings = &instance->profile.busy_bar_settings;
+    const uint32_t selected_theme_idx = theme_picker_get_current_index(data->front_picker);
+    const BusyTheme* selected_theme =
+        theme_picker_model_get_item(data->picker_model, selected_theme_idx);
+
+    BusyAppConfig* busy_bar_settings = &timer_profile.busy_bar_settings;
+
     strlcpy(
         busy_bar_settings->theme_name,
         busy_theme_get_name(selected_theme),
         sizeof(busy_bar_settings->theme_name));
-}
 
-static void busy_scene_setup_theme_handle_theme_accepted(BusyApp* instance) {
-    busy_pop_location(instance);
-    scene_manager_previous_scene(instance->scene_manager);
+    busy_theme_set(instance->theme, selected_theme);
+
+    instance->busy_bar_settings = *busy_bar_settings;
+    busy_set_timer_profile(instance, &timer_profile);
 }
 
 static void busy_scene_setup_theme_on_enter(void* context) {
@@ -126,10 +129,6 @@ static void busy_scene_setup_theme_on_enter(void* context) {
             theme_picker_set_current_item(data->front_picker, selected_theme_index);
             theme_picker_set_current_item(data->back_picker, selected_theme_index);
         }
-
-        // Needed only once
-        theme_picker_set_callback(
-            data->front_picker, busy_scene_setup_theme_picker_callback, instance);
     });
 }
 
@@ -140,7 +139,7 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
-    busy_save_profile(instance);
+    busy_scene_setup_theme_save_selected_theme(instance);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -161,10 +160,7 @@ static bool busy_scene_setup_theme_on_event(const SceneManagerEvent* event, void
     BusyApp* instance = context;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event < BusyCustomEventIndexMax) {
-            busy_scene_setup_theme_handle_theme_changed(instance, event->event);
-
-        } else if(event->event == BusyCustomEventStartShortPressed) {
+        if(event->event == BusyCustomEventStartShortPressed) {
             busy_scene_setup_theme_handle_theme_accepted(instance);
 
         } else if(event->event == BusyCustomEventOkShortPressed) {
