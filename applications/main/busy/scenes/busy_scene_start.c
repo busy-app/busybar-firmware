@@ -98,6 +98,8 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
 
             busy_prepare_transition(instance, BusyTransitionTypeSelect);
 
+            busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
+
             BusyTimerInfo timer_info;
             busy_timer_get_info(instance->busy_timer, &timer_info);
 

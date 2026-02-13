@@ -184,8 +184,6 @@ static BusyApp* busy_alloc(const char* arg) {
         instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
-        busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
-
         busy_load_busy_bar_settings(instance);
         busy_apply_busy_bar_settings(instance);
 
