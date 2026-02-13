@@ -318,6 +318,10 @@ static void cli_socket_client_event(FuriEventLoopObject* object, void* context) 
 
     if(flags & CliSocketClientEventTcpTxDone) {
         furi_semaphore_acquire(client->tx_semaphore, 0);
+        if(pipe_bytes_available(client->own_pipe) > 0) {
+            tcpip_callback(cli_socket_client_try_copy_sh2cl, client);
+            cli_socket_client_wait_tcpip_unlock(client);
+        }
     }
 
     if((flags & CliSocketClientEventDisconnected) || (flags & CliSocketClientEventShellExit)) {
@@ -375,8 +379,10 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     client->shell_pipe = pipes.bobs_side;
     pipe_attach_to_event_loop(client->own_pipe, client->event_loop);
     pipe_set_callback_context(client->own_pipe, client);
-    pipe_set_data_arrived_callback(client->own_pipe, cli_socket_client_data_from_shell, 0);
-    pipe_set_space_freed_callback(client->own_pipe, cli_socket_client_space_freed, 0);
+    pipe_set_data_arrived_callback(
+        client->own_pipe, cli_socket_client_data_from_shell, FuriEventLoopEventFlagEdge);
+    pipe_set_space_freed_callback(
+        client->own_pipe, cli_socket_client_space_freed, FuriEventLoopEventFlagEdge);
     pipe_set_broken_callback(client->own_pipe, cli_socket_client_shell_exit_callback, 0);
 
     tcpip_callback(cli_socket_client_init_callback, client);
