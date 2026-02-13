@@ -155,8 +155,8 @@ dist_env.PhonyTarget(
 )
 
 # Recovery firmware including BKP assets
-update_recovery_tgz = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/recovery_${F_TARGET_HW}.tgz"),
+update_bkp_tgz = dist_env.Command(
+    u5_env["FW_ENV"].File("${BUILD_DIR}/bkp_${F_TARGET_HW}.tgz"),
     None,
     [
         [
@@ -183,7 +183,7 @@ update_recovery_tgz = dist_env.Command(
 )
 
 Depends(
-    update_recovery_tgz,
+    update_bkp_tgz,
     [
         u5_env["UPD_ENV"]["FW_BIN"],
         u5_env["FW_ENV"]["FW_DFU"],
@@ -222,9 +222,9 @@ installs.extend(
         ),
         InstallAs(
             dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-recovery-${DIST_SUFFIX}.tgz")
+                u5_env.subst("busybar-${F_TARGET_HW}-bkp-${DIST_SUFFIX}.tgz")
             ),
-            update_recovery_tgz,
+            update_bkp_tgz,
         ),
         # U5 firmware artifacts
         InstallAs(
