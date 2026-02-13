@@ -76,8 +76,6 @@ void theme_picker_set_model(ThemePicker* instance, const ThemePickerModel* model
  */
 void theme_picker_set_current_item(ThemePicker* instance, uint32_t index);
 
-uint32_t theme_picker_get_current_index(const ThemePicker* instance);
-
 #ifdef __cplusplus
 }
 #endif

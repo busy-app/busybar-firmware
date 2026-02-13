@@ -116,6 +116,7 @@ static bool theme_picker_input_callback(Widget* widget, const InputEvent* event)
                 ++instance->current_idx;
             }
 
+            theme_picker_update_image(instance);
             consumed = true;
 
         } else if(event->key == InputKeyDown) {
@@ -125,15 +126,15 @@ static bool theme_picker_input_callback(Widget* widget, const InputEvent* event)
                 --instance->current_idx;
             }
 
+            theme_picker_update_image(instance);
             consumed = true;
-        }
-    }
 
-    if(consumed) {
-        theme_picker_update_image(instance);
+        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
+            if(instance->callback) {
+                instance->callback(instance->current_idx, instance->callback_context);
+            }
 
-        if(instance->callback) {
-            instance->callback(instance->current_idx, instance->callback_context);
+            consumed = true;
         }
     }
 
@@ -182,11 +183,6 @@ void theme_picker_set_current_item(ThemePicker* instance, uint32_t index) {
 
     instance->current_idx = index;
     theme_picker_update_image(instance);
-}
-
-uint32_t theme_picker_get_current_index(const ThemePicker* instance) {
-    furi_check(instance);
-    return instance->current_idx;
 }
 
 // LVGL class descriptor
