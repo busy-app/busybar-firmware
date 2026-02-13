@@ -163,8 +163,7 @@ static void cli_intercom_attach_own_pipe(CliIntercom* cli_intercom, PipeSide* pi
     pipe_attach_to_event_loop(pipe, cli_intercom->event_loop);
     pipe_set_callback_context(pipe, cli_intercom);
     pipe_set_data_arrived_callback(pipe, cli_intercom_data_from_pipe, 0);
-    pipe_set_space_freed_callback(
-        pipe, cli_intercom_pipe_space_freed, FuriEventLoopEventFlagEdge);
+    pipe_set_space_freed_callback(pipe, cli_intercom_pipe_space_freed, FuriEventLoopEventFlagEdge);
     pipe_set_broken_callback(pipe, cli_intercom_pipe_broken, FuriEventLoopEventFlagEdge);
 
     // Drain any data that arrived in the stream buffer before the pipe was attached
@@ -331,8 +330,7 @@ static void cli_intercom_drain_rx_to_pipe(CliIntercom* cli_intercom) {
         uint8_t buffer[to_transfer];
         furi_check(
             furi_stream_buffer_receive(
-                cli_intercom->intercom_rx_stream, buffer, sizeof(buffer), 0) ==
-            sizeof(buffer));
+                cli_intercom->intercom_rx_stream, buffer, sizeof(buffer), 0) == sizeof(buffer));
         pipe_send(cli_intercom->own_pipe, buffer, sizeof(buffer));
     }
 }
