@@ -44,6 +44,7 @@ Depends(
         u5_env["UPD_ENV"]["FW_BIN"],
         u5_env["FW_ENV"]["FW_DFU"],
         u5_env["FW_ENV"]["FW_RESOURCES_MANIFEST"],
+        u5_env["FW_ENV"]["FW_BKP_RESOURCES"],
         sil_env["FW_ENV"]["FW_RPS"],
     ],
 )
