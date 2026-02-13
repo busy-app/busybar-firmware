@@ -200,3 +200,68 @@ bool busy_timer_common_deserialize_interval_settings(
 
     return success;
 }
+
+bool busy_timer_common_is_valid_card_id(const char* card_id) {
+    uint32_t i;
+
+    for(i = 0; i < BUSY_TIMER_CARD_ID_LEN; ++i) {
+        const char c = card_id[i];
+
+        if(c == '\0') {
+            break;
+        }
+
+        if(i == 8 || i == 13 || i == 18 || i == 23) {
+            if(c != '-') {
+                break;
+            }
+
+        } else {
+            if(!isxdigit(c)) {
+                break;
+            }
+        }
+    }
+
+    return i == BUSY_TIMER_CARD_ID_LEN;
+}
+
+bool busy_timer_common_is_valid_simple_settings(const BusyTimerSimpleSettings* simple_settings) {
+    bool is_valid = false;
+
+    do {
+        if(simple_settings->total_time_ms > M_TO_MS(BUSY_TIMER_TIME_MAX_MN)) {
+            break;
+        }
+
+        is_valid = true;
+    } while(false);
+
+    return is_valid;
+}
+
+bool busy_timer_common_is_valid_interval_settings(
+    const BusyTimerIntervalSettings* interval_settings) {
+    bool is_valid = false;
+
+    do {
+        if(interval_settings->cycles_count < BUSY_TIMER_CYCLE_COUNT_MIN ||
+           interval_settings->cycles_count > BUSY_TIMER_CYCLE_COUNT_MAX) {
+            break;
+        }
+
+        if(interval_settings->work_time_ms < M_TO_MS(BUSY_TIMER_WORK_TIME_MIN_MN) ||
+           interval_settings->work_time_ms > M_TO_MS(BUSY_TIMER_WORK_TIME_MAX_MN)) {
+            break;
+        }
+
+        if(interval_settings->rest_time_ms < M_TO_MS(BUSY_TIMER_REST_TIME_MIN_MN) ||
+           interval_settings->rest_time_ms > M_TO_MS(BUSY_TIMER_REST_TIME_MAX_MN)) {
+            break;
+        }
+
+        is_valid = true;
+    } while(false);
+
+    return is_valid;
+}

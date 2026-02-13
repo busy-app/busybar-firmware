@@ -169,7 +169,32 @@ bool busy_timer_profile_deserialize(
 }
 
 bool busy_timer_profile_is_valid(const BusyTimerProfile* profile) {
-    UNUSED(profile);
-    // TODO: Implementation
-    return true;
+    bool is_valid = false;
+
+    do {
+        if(!busy_timer_common_is_valid_card_id(profile->info.card_id)) {
+            break;
+        }
+
+        const BusyTimerProfileSettings* timer_settings = &profile->timer_settings;
+        const BusyTimerMode timer_mode = timer_settings->mode;
+
+        if(timer_mode == BusyTimerModeInfinite) {
+            // Nothing to validate
+        } else if(timer_mode == BusyTimerModeSimple) {
+            if(!busy_timer_common_is_valid_simple_settings(&timer_settings->simple)) {
+                break;
+            }
+        } else if(timer_mode == BusyTimerModeInterval) {
+            if(!busy_timer_common_is_valid_interval_settings(&timer_settings->interval)) {
+                break;
+            }
+        } else {
+            break;
+        }
+
+        is_valid = true;
+    } while(false);
+
+    return is_valid;
 }

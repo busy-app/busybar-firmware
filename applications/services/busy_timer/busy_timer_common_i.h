@@ -51,3 +51,12 @@ bool busy_timer_common_deserialize_simple_settings(
 bool busy_timer_common_deserialize_interval_settings(
     const cJSON* json,
     BusyTimerIntervalSettings* interval_settings);
+
+// Validation
+
+bool busy_timer_common_is_valid_card_id(const char* card_id);
+
+bool busy_timer_common_is_valid_simple_settings(const BusyTimerSimpleSettings* simple_settings);
+
+bool busy_timer_common_is_valid_interval_settings(
+    const BusyTimerIntervalSettings* interval_settings);
