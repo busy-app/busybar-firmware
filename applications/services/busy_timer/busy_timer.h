@@ -77,8 +77,6 @@ FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
 BusyTimerState busy_timer_get_state(const BusyTimer* instance);
 
-void busy_timer_get_time(const BusyTimer* instance, BusyTimerTime* time);
-
 void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles);
 
 void busy_timer_get_info(const BusyTimer* instance, BusyTimerInfo* info);

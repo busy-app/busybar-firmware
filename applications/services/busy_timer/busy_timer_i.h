@@ -18,7 +18,6 @@ typedef enum {
     BusyTimerMessageTypeStart,
     BusyTimerMessageTypeStop,
     BusyTimerMessageTypeGetState,
-    BusyTimerMessageTypeGetTime,
     BusyTimerMessageTypeGetCycles,
     BusyTimerMessageTypeGetInfo,
     BusyTimerMessageTypeAddTime,
@@ -49,7 +48,6 @@ typedef struct {
 
 typedef union {
     BusyTimerState* state;
-    BusyTimerTime* time;
     BusyTimerCycles* cycles;
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
