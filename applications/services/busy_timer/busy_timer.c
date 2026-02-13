@@ -774,6 +774,11 @@ static void
 
     const time_t profile_timestamp_ms = profile->timestamp_ms;
 
+    if(!busy_timer_profile_is_valid(profile)) {
+        FURI_LOG_E(TAG, "Ignoring invalid profile with timestamp %llu", profile_timestamp_ms);
+        return;
+    }
+
     if(profile_timestamp_ms > furi_hal_rtc_get_timestamp_ms() + M_TO_MS(10)) {
         FURI_LOG_W(
             TAG, "Ignoring profile from the future with timestamp %llu", profile_timestamp_ms);
