@@ -593,7 +593,7 @@ void var_item_set_value(VarItem* item, int32_t value) {
 
     VarItemEditor* editor = item->editor;
     value = CLAMP(value, editor->max, editor->min);
-    furi_check(value % editor->step == 0);
+    value -= value % editor->step;
 
     if(editor->value != value) {
         editor->value = value;
