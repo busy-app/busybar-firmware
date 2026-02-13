@@ -29,6 +29,7 @@ typedef enum {
     BusyTimerEventTypeStateChanged,
     BusyTimerEventTypeIntervalEnded,
     BusyTimerEventTypePaused,
+    BusyTimerEventTypeProfileChanged,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
@@ -53,6 +54,10 @@ typedef struct {
 } BusyTimerEventPaused;
 
 typedef struct {
+    BusyTimerProfileId profile_id;
+} BusyTimerEventProfileChanged;
+
+typedef struct {
     BusyTimerEventType type;
     union {
         BusyTimerTime time;
@@ -60,6 +65,7 @@ typedef struct {
         BusyTimerState state;
         bool is_force_ended;
         BusyTimerEventPaused paused;
+        BusyTimerEventProfileChanged profile_changed;
     };
 } BusyTimerEvent;
 

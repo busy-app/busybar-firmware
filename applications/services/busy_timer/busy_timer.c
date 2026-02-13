@@ -145,10 +145,19 @@ static void busy_timer_notify_paused(const BusyTimer* instance) {
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypePaused,
-        .paused =
-            {
-                .is_paused = !instance->timer_running,
-            },
+        .paused.is_paused = !instance->timer_running,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
+}
+
+static void
+    busy_timer_notify_profile_changed(const BusyTimer* instance, BusyTimerProfileId profile_id) {
+    FURI_LOG_D(TAG, "Profile changed: %d", profile_id);
+
+    BusyTimerEvent event = {
+        .type = BusyTimerEventTypeProfileChanged,
+        .profile_changed.profile_id = profile_id,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -771,6 +780,7 @@ static void
 
     const BusyTimerMessageSetProfile* set_profile = &data->set_profile;
     const BusyTimerProfile* profile = set_profile->profile;
+    const BusyTimerProfileId profile_id = set_profile->profile_id;
 
     const time_t profile_timestamp_ms = profile->timestamp_ms;
 
@@ -779,26 +789,28 @@ static void
         return;
     }
 
-    if(profile_timestamp_ms > furi_hal_rtc_get_timestamp_ms() + M_TO_MS(10)) {
-        FURI_LOG_W(
-            TAG, "Ignoring profile from the future with timestamp %llu", profile_timestamp_ms);
+    const time_t max_future_timestamp_ms = furi_hal_rtc_get_timestamp_ms() + M_TO_MS(10);
+
+    if(profile_timestamp_ms > max_future_timestamp_ms) {
+        FURI_LOG_W(TAG, "Ignoring profile from future with timestamp %llu", profile_timestamp_ms);
         return;
     }
 
     BusyTimerSettings settings;
-    busy_timer_settings_load(&settings, set_profile->profile_id);
+    busy_timer_settings_load(&settings, profile_id);
 
-    if(profile_timestamp_ms > settings.timestamp_ms) {
-        settings.busy_bar_settings = profile->busy_bar_settings;
-        settings.timer_settings = profile->timer_settings;
-        settings.profile_info = profile->info;
-        settings.timestamp_ms = profile->timestamp_ms;
-
-        busy_timer_settings_save(&settings, set_profile->profile_id);
-
-    } else {
-        FURI_LOG_W(TAG, "Ignoring outdated profile with timestamp %llu", profile_timestamp_ms);
+    if(profile_timestamp_ms <= settings.timestamp_ms) {
+        FURI_LOG_D(TAG, "Ignoring outdated profile with timestamp %llu", profile_timestamp_ms);
+        return;
     }
+
+    settings.busy_bar_settings = profile->busy_bar_settings;
+    settings.timer_settings = profile->timer_settings;
+    settings.profile_info = profile->info;
+    settings.timestamp_ms = profile->timestamp_ms;
+
+    busy_timer_settings_save(&settings, profile_id);
+    busy_timer_notify_profile_changed(instance, profile_id);
 }
 
 static void
