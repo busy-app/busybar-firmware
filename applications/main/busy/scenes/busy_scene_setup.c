@@ -43,7 +43,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->front_menu,
             "Timer",
             mode_name,
-            BUSY_IMG_PATH("timer_8x8.bin"),
+            BUSY_ANIM_PATH("timer_icon_8x8.anim"),
             BusySceneSetupMenuIndexTimer,
             busy_scene_setup_menu_callback,
             instance);
@@ -51,7 +51,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->front_menu,
             "Theme",
             "",
-            BUSY_IMG_PATH("theme_8x8.bin"),
+            BUSY_ANIM_PATH("theme_icon_8x8.anim"),
             BusySceneSetupMenuIndexTheme,
             busy_scene_setup_menu_callback,
             instance);
@@ -60,9 +60,9 @@ static void busy_scene_setup_on_enter(void* context) {
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
-            data->back_menu, "TIMER", mode_name, BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
+            data->back_menu, "Timer", mode_name, BUSY_IMG_PATH("timer_11x11.bin"), 0, NULL, NULL);
         menu_add_item(
-            data->back_menu, "THEME", "", BUSY_IMG_PATH("theme_12x12.bin"), 0, NULL, NULL);
+            data->back_menu, "Theme", "", BUSY_IMG_PATH("theme_11x11.bin"), 0, NULL, NULL);
 
         menu_set_selected_item_index(data->back_menu, data->menu_idx);
     });
