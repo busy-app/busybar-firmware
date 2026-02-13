@@ -770,12 +770,20 @@ static void
     UNUSED(instance);
 
     const BusyTimerMessageSetProfile* set_profile = &data->set_profile;
+    const BusyTimerProfile* profile = set_profile->profile;
+
+    const time_t profile_timestamp_ms = profile->timestamp_ms;
+
+    if(profile_timestamp_ms > furi_hal_rtc_get_timestamp_ms() + M_TO_MS(10)) {
+        FURI_LOG_W(
+            TAG, "Ignoring profile from the future with timestamp %llu", profile_timestamp_ms);
+        return;
+    }
 
     BusyTimerSettings settings;
     busy_timer_settings_load(&settings, set_profile->profile_id);
 
-    const BusyTimerProfile* profile = set_profile->profile;
-    if(profile->timestamp_ms > settings.timestamp_ms) {
+    if(profile_timestamp_ms > settings.timestamp_ms) {
         settings.busy_bar_settings = profile->busy_bar_settings;
         settings.timer_settings = profile->timer_settings;
         settings.profile_info = profile->info;
@@ -784,7 +792,7 @@ static void
         busy_timer_settings_save(&settings, set_profile->profile_id);
 
     } else {
-        FURI_LOG_W(TAG, "Ignoring outdated profile with timestamp %llu", profile->timestamp_ms);
+        FURI_LOG_W(TAG, "Ignoring outdated profile with timestamp %llu", profile_timestamp_ms);
     }
 }
 
