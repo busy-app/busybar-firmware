@@ -57,6 +57,7 @@ typedef struct {
 
 static void cli_intercom_pipe_broken(PipeSide* pipe, void* context);
 static void cli_intercom_data_from_pipe(PipeSide* pipe, void* context);
+static void cli_intercom_drain_rx_to_pipe(CliIntercom* cli_intercom);
 
 // =================
 // Protocol handling
@@ -150,13 +151,24 @@ static void cli_intercom_intercom_rx_callback(const void* data, size_t data_size
 // Service helpers
 // ===============
 
+static void cli_intercom_pipe_space_freed(PipeSide* pipe, void* context) {
+    UNUSED(pipe);
+    CliIntercom* cli_intercom = context;
+    cli_intercom_drain_rx_to_pipe(cli_intercom);
+}
+
 static void cli_intercom_attach_own_pipe(CliIntercom* cli_intercom, PipeSide* pipe) {
     furi_check(!cli_intercom->own_pipe);
     cli_intercom->own_pipe = pipe;
     pipe_attach_to_event_loop(pipe, cli_intercom->event_loop);
     pipe_set_callback_context(pipe, cli_intercom);
     pipe_set_data_arrived_callback(pipe, cli_intercom_data_from_pipe, 0);
+    pipe_set_space_freed_callback(
+        pipe, cli_intercom_pipe_space_freed, FuriEventLoopEventFlagEdge);
     pipe_set_broken_callback(pipe, cli_intercom_pipe_broken, FuriEventLoopEventFlagEdge);
+
+    // Drain any data that arrived in the stream buffer before the pipe was attached
+    cli_intercom_drain_rx_to_pipe(cli_intercom);
 }
 
 static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
@@ -206,6 +218,7 @@ static void cli_intercom_do_protocol_disconnect(CliIntercom* cli_intercom) {
     FURI_LOG_D(TAG, "ProtocolDisconnect");
 
     cli_intercom_detach_own_pipe(cli_intercom);
+    furi_stream_buffer_reset(cli_intercom->intercom_rx_stream);
 
     if(cli_intercom->join_lock) {
         api_lock_unlock(cli_intercom->join_lock);
@@ -299,20 +312,35 @@ static void cli_intercom_pipe_broken(PipeSide* pipe, void* context) {
     cli_intercom_send_protocol_status(
         cli_intercom, CliIntercomMessageTypeDisconnect, CLI_INTERCOM_TIMEOUT);
     cli_intercom_detach_own_pipe(cli_intercom);
+    furi_stream_buffer_reset(cli_intercom->intercom_rx_stream);
     cli_intercom_free_shell(cli_intercom);
 }
 
+static void cli_intercom_drain_rx_to_pipe(CliIntercom* cli_intercom) {
+    if(!cli_intercom->own_pipe) return;
+
+    while(true) {
+        size_t bytes_in_buffer =
+            furi_stream_buffer_bytes_available(cli_intercom->intercom_rx_stream);
+        if(!bytes_in_buffer) break;
+
+        size_t spaces_in_pipe = pipe_spaces_available(cli_intercom->own_pipe);
+        if(!spaces_in_pipe) break;
+
+        size_t to_transfer = MIN(MIN(bytes_in_buffer, spaces_in_pipe), DATA_BATCH_SIZE);
+        uint8_t buffer[to_transfer];
+        furi_check(
+            furi_stream_buffer_receive(
+                cli_intercom->intercom_rx_stream, buffer, sizeof(buffer), 0) ==
+            sizeof(buffer));
+        pipe_send(cli_intercom->own_pipe, buffer, sizeof(buffer));
+    }
+}
+
 static void cli_intercom_intercom_rx_handler(FuriEventLoopObject* object, void* context) {
-    FuriStreamBuffer* rx_stream = object;
+    UNUSED(object);
     CliIntercom* cli_intercom = context;
-
-    size_t bytes_in_buffer = furi_stream_buffer_bytes_available(rx_stream);
-    size_t spaces_in_pipe = pipe_spaces_available(cli_intercom->own_pipe);
-    size_t to_transfer = MIN(MIN(bytes_in_buffer, spaces_in_pipe), DATA_BATCH_SIZE);
-
-    uint8_t buffer[to_transfer];
-    furi_check(furi_stream_buffer_receive(rx_stream, buffer, sizeof(buffer), 0) == sizeof(buffer));
-    pipe_send(cli_intercom->own_pipe, buffer, sizeof(buffer));
+    cli_intercom_drain_rx_to_pipe(cli_intercom);
 }
 
 // ============
@@ -343,7 +371,7 @@ static CliIntercom* cli_intercom_alloc(void) {
     furi_event_loop_subscribe_stream_buffer(
         cli_intercom->event_loop,
         cli_intercom->intercom_rx_stream,
-        FuriEventLoopEventIn,
+        FuriEventLoopEventIn | FuriEventLoopEventFlagEdge,
         cli_intercom_intercom_rx_handler,
         cli_intercom);
 
