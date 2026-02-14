@@ -72,3 +72,4 @@ while the device is connected via USB and its virtual ethernet interface is init
 - `targets`             - Firmware targets: platform specific code
 
 Also, see `ReadMe.md` files inside those directories for further details.
+
