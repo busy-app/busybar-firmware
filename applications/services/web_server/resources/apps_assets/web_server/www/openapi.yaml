@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 4.1.0
+  version: 6.0.0
   contact:
     name: tbd
 
@@ -378,7 +378,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid app_id or deletion failed
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Delete failed
           content:
             application/json:
               schema:
@@ -653,21 +659,13 @@ paths:
         Set brightness for one or both displays
       operationId: setDisplayBrightness
       parameters:
-        - name: front
+        - name: value
           in: query
           required: false
           schema:
             type: string
             pattern: "^[a-zA-Z0-9._-]+$"
-          description: Front display brightness (0-100/auto)
-          example: "auto"
-        - name: back
-          in: query
-          required: false
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._/-]+$"
-          description: Back display brightness (0-100/auto)
+          description: Displays brightness (0-100/auto)
           example: "50"
       responses:
         "200":
@@ -1949,14 +1947,10 @@ components:
     DisplayBrightnessInfo:
       type: object
       properties:
-        front:
+        value:
           type: string
-          description: Front display brightness (0-100/auto)
+          description: Displays brightness (0-100/auto)
           example: "auto"
-        back:
-          type: string
-          description: Back display brightness (0-100/auto)
-          example: "50"
 
     AudioVolumeInfo:
       type: object
@@ -1997,14 +1991,22 @@ components:
     StatusSystem:
       type: object
       properties:
-        branch:
+        serial_number:
           type: string
-          description: Git branch name
-          example: "main"
+          description: Device serial number
+          example: "203638485431500400123456"
+        api_semver:
+          type: string
+          description: API SemVer
+          example: "0.0.0"
         version:
           type: string
           description: Firmware version
           example: "1.0.0"
+        branch:
+          type: string
+          description: Git branch name
+          example: "main"
         build_date:
           type: string
           description: Build date
@@ -2017,6 +2019,10 @@ components:
           type: string
           description: System uptime
           example: "00d 00h 04m 13s"
+        boot_time:
+          type: integer
+          description: System boot timestamp
+          example: 1767225600
 
     StatusPower:
       type: object
