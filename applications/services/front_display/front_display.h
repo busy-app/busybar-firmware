@@ -35,3 +35,13 @@ void front_display_set_brightness(FrontDisplaySrv* instance, uint8_t brightness)
  *                   or FRONT_DISPLAY_BRIGHTNESS_AUTO if automatic brightness is enabled
  */
 uint8_t front_display_get_brightness_setting(FrontDisplaySrv* instance);
+
+/**
+ * @brief Enable or disable display blanking.
+ *
+ * When the display is blanked, it will not show anything until it is unblanked.
+ *
+ * @param instance Pointer to the FrontDisplaySrv instance
+ * @param is_blanked blank the display if @c true, unblank otherwise
+ */
+void front_display_set_blanked(FrontDisplaySrv* instance, bool is_blanked);

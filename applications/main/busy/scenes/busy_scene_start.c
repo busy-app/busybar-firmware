@@ -37,6 +37,8 @@ static void busy_scene_start_on_enter(void* context) {
     BusySceneStart* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdStart);
 
+    busy_set_front_display_blanking(instance, false);
+
     with_gui(instance->gui, {
         nav_bar_reset_location(instance->nav_bar);
 
@@ -57,9 +59,9 @@ static void busy_scene_start_on_enter(void* context) {
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
-            data->back_menu, "START", NULL, BUSY_IMG_PATH("start_12x12.bin"), 0, NULL, NULL);
+            data->back_menu, "Start", NULL, BUSY_IMG_PATH("start_11x11.bin"), 0, NULL, NULL);
         menu_add_item(
-            data->back_menu, "SETUP", NULL, BUSY_IMG_PATH("setup_12x12.bin"), 0, NULL, NULL);
+            data->back_menu, "Setup", NULL, BUSY_IMG_PATH("setup_11x11.bin"), 0, NULL, NULL);
     });
 
     busy_start_transition(instance);

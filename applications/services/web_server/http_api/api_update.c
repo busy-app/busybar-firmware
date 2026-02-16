@@ -524,11 +524,9 @@ static bool api_update_install_callback(
                 break;
             }
 
-            UpdaterStatus update_status = updater_install_from_url(
-                updater, furi_string_get_cstr(check_url), furi_string_get_cstr(check_sha256));
-
-            if(update_status != UpdaterStatusOk) {
-                switch(update_status) {
+            UpdaterStatus session_status = updater_session_start(updater);
+            if(session_status != UpdaterStatusOk) {
+                switch(session_status) {
                 case UpdaterStatusBatteryLow:
                     error_code = 503;
                     break;
@@ -542,9 +540,12 @@ static bool api_update_install_callback(
                     break;
                 }
 
-                error_text = updater_get_status_string(update_status);
+                error_text = updater_get_status_string(session_status);
                 break;
             }
+
+            updater_install_from_url(
+                updater, furi_string_get_cstr(check_url), furi_string_get_cstr(check_sha256));
 
             is_success = true;
         } while(false);

@@ -13,6 +13,7 @@ typedef enum {
     BusyAppSceneIdSetup,
     BusyAppSceneIdSetupTimer,
     BusyAppSceneIdSetupTheme,
+    BusyAppSceneIdSetupSmartHome,
     BusyAppSceneIdShowTimer,
     BusyAppSceneIdMax,
 } BusyAppSceneId;
