@@ -1,0 +1,10 @@
+App(
+    appid="firmware",
+    name="Settings Firmware",
+    apptype=FlipperAppType.SETTINGS,
+    entry_point="settings_firmware_app_entry",
+    requires=["gui", "updater"],
+    stack_size=4 * 1024,
+    order=60,
+    targets=["f20", "f21", "f22"],
+)

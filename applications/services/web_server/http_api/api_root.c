@@ -284,6 +284,8 @@ static const HttpHandler handlers_api_root[] = {
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = http_api_status_callback,
+        .ctx_alloc = http_api_status_alloc,
+        .ctx_free = http_api_status_free,
     },
     {
         .uri = "wifi",
