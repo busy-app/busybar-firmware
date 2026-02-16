@@ -505,8 +505,9 @@ static void busy_timer_schedule_send_snapshot(BusyTimer* instance) {
     furi_event_loop_timer_start(instance->debounce_timer, DEBOUNCE_TIMER_DELAY_MS);
 }
 
-static void
-    busy_timer_get_profile_internal(BusyTimerProfile* profile, BusyTimerProfileId profile_id) {
+static void busy_timer_load_profile_from_settings(
+    BusyTimerProfile* profile,
+    BusyTimerProfileId profile_id) {
     BusyTimerSettings settings;
     busy_timer_settings_load(&settings, profile_id);
 
@@ -516,7 +517,21 @@ static void
     profile->timestamp_ms = settings.timestamp_ms;
 }
 
+static void busy_timer_save_profile_to_settings(
+    const BusyTimerProfile* profile,
+    BusyTimerProfileId profile_id) {
+    BusyTimerSettings settings;
+
+    settings.busy_bar_settings = profile->busy_bar_settings;
+    settings.timer_settings = profile->timer_settings;
+    settings.metadata = profile->metadata;
+    settings.timestamp_ms = profile->timestamp_ms;
+
+    busy_timer_settings_save(&settings, profile_id);
+}
+
 static BusyTimerSetProfileResult busy_timer_set_profile_internal(
+    BusyTimer* instance,
     const BusyTimerProfile* profile,
     BusyTimerProfileId profile_id) {
     BusyTimerSetProfileResult result;
@@ -539,26 +554,23 @@ static BusyTimerSetProfileResult busy_timer_set_profile_internal(
             break;
         }
 
-        BusyTimerSettings settings;
-        busy_timer_settings_load(&settings, profile_id);
+        BusyTimerProfile* current_profile = &instance->profiles[profile_id];
+        const time_t current_profile_timestamp_ms = current_profile->timestamp_ms;
 
-        if(profile_timestamp_ms < settings.timestamp_ms) {
+        if(profile_timestamp_ms < current_profile_timestamp_ms) {
             FURI_LOG_D(TAG, "Ignoring stale profile with timestamp %llu", profile_timestamp_ms);
             result = BusyTimerSetProfileResultRejectedOutdated;
             break;
 
-        } else if(profile_timestamp_ms == settings.timestamp_ms) {
+        } else if(profile_timestamp_ms == current_profile_timestamp_ms) {
             FURI_LOG_D(TAG, "Ignoring own profile with timestamp %llu", profile_timestamp_ms);
             result = BusyTimerSetProfileResultRejectedOwn;
             break;
         }
 
-        settings.busy_bar_settings = profile->busy_bar_settings;
-        settings.timer_settings = profile->timer_settings;
-        settings.metadata = profile->metadata;
-        settings.timestamp_ms = profile->timestamp_ms;
+        *current_profile = *profile;
+        busy_timer_save_profile_to_settings(current_profile, profile_id);
 
-        busy_timer_settings_save(&settings, profile_id);
         result = BusyTimerSetProfileResultAccepted;
     } while(false);
 
@@ -566,10 +578,9 @@ static BusyTimerSetProfileResult busy_timer_set_profile_internal(
 }
 
 static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    BusyTimerProfile profile;
-    busy_timer_get_profile_internal(&profile, profile_id);
+    const BusyTimerProfile* profile = &instance->profiles[profile_id];
 
-    char* profile_str = busy_timer_profile_serialize(&profile);
+    char* profile_str = busy_timer_profile_serialize(profile);
     furi_check(profile_str);
 
     const char* mqtt_topic;
@@ -586,23 +597,6 @@ static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId p
         instance->mqtt, TIMER_PROFILE_MQTT_QOS, mqtt_topic, profile_str, strlen(profile_str));
 
     free(profile_str);
-}
-
-static void busy_timer_load_settings(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    UNUSED(instance);
-
-    BusyTimerSettings settings;
-    busy_timer_settings_load(&settings, profile_id);
-
-    instance->mode = settings.timer_settings.mode;
-    instance->busy_bar_settings = settings.busy_bar_settings;
-    strcpy(instance->card_id, settings.metadata.card_id);
-
-    if(instance->mode == BusyTimerModeSimple) {
-        instance->simple_settings = settings.timer_settings.simple;
-    } else if(instance->mode == BusyTimerModeInterval) {
-        instance->interval_settings = settings.timer_settings.interval;
-    }
 }
 
 static void busy_timer_poll_timer_callback(void* context) {
@@ -853,14 +847,12 @@ static void
 
 static void
     busy_timer_get_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    UNUSED(instance);
-
     const BusyTimerMessageGetProfile* get_profile = &data->get_profile;
 
     BusyTimerProfile* const profile = get_profile->profile;
     const BusyTimerProfileId profile_id = get_profile->profile_id;
 
-    busy_timer_get_profile_internal(profile, profile_id);
+    *profile = instance->profiles[profile_id];
 }
 
 static void
@@ -870,7 +862,8 @@ static void
     const BusyTimerProfile* profile = set_profile->profile;
     const BusyTimerProfileId profile_id = set_profile->profile_id;
 
-    const BusyTimerSetProfileResult result = busy_timer_set_profile_internal(profile, profile_id);
+    const BusyTimerSetProfileResult result =
+        busy_timer_set_profile_internal(instance, profile, profile_id);
     furi_check(result < BusyTimerSetProfileResultMax);
 
     if(result == BusyTimerSetProfileResultAccepted) {
@@ -884,7 +877,22 @@ static void
 
 static void
     busy_timer_load_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    busy_timer_load_settings(instance, data->profile_id);
+    const BusyTimerProfileId profile_id = data->profile_id;
+    furi_assert(profile_id < BusyTimerProfileIdMax);
+
+    const BusyTimerProfile* profile = &instance->profiles[profile_id];
+
+    instance->busy_bar_settings = profile->busy_bar_settings;
+    strcpy(instance->card_id, profile->metadata.card_id);
+
+    const BusyTimerProfileSettings* timer_settings = &profile->timer_settings;
+    instance->mode = timer_settings->mode;
+
+    if(instance->mode == BusyTimerModeSimple) {
+        instance->simple_settings = timer_settings->simple;
+    } else if(instance->mode == BusyTimerModeInterval) {
+        instance->interval_settings = timer_settings->interval;
+    }
 }
 
 // Service
@@ -905,8 +913,11 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
     instance->event_pubsub = furi_pubsub_alloc();
-
     instance->mqtt = furi_record_open(RECORD_MQTT);
+
+    for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
+        busy_timer_load_profile_from_settings(&instance->profiles[id], id);
+    }
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,

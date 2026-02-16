@@ -81,6 +81,7 @@ struct BusyTimer {
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
+    BusyTimerProfile profiles[BusyTimerProfileIdMax];
     // TODO: Refactor the mess below
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
