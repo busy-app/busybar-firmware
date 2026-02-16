@@ -3,16 +3,25 @@
 #include <gui/modules/menu.h>
 #include <gui/modules/anim_player.h>
 
+#define ITEM_LABEL_TIMER      "Timer"
+#define ITEM_LABEL_THEME      "Theme"
+#define ITEM_LABEL_SMART_HOME "Smart home"
+
+#define ITEM_SUBLABEL_ON  "On"
+#define ITEM_SUBLABEL_OFF "Off"
+
+#define ITEM_SUBLABEL_DUMMY ""
+
 typedef struct {
     Menu* front_menu;
     Menu* back_menu;
-
-    size_t menu_idx;
+    uint32_t menu_idx;
 } BusySceneSetup;
 
 typedef enum {
     BusySceneSetupMenuIndexTimer,
     BusySceneSetupMenuIndexTheme,
+    BusySceneSetupMenuIndexSmartHome,
     BusySceneSetupMenuIndexMax,
 } BusySceneSetupMenuIndex;
 
@@ -36,23 +45,36 @@ static void busy_scene_setup_on_enter(void* context) {
 
     const char* mode_name = busy_timer_get_mode_names()[timer_config.mode];
 
+    const BusySettings* settings = &instance->settings;
+
+    const char* smart_home_str = settings->is_smart_home_enabled ? ITEM_SUBLABEL_ON :
+                                                                   ITEM_SUBLABEL_OFF;
+
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_window);
 
         menu_add_item(
             data->front_menu,
-            "Timer",
+            ITEM_LABEL_TIMER,
             mode_name,
-            BUSY_IMG_PATH("timer_8x8.bin"),
+            BUSY_IMG_PATH("hourglass_8x8.bin"),
             BusySceneSetupMenuIndexTimer,
             busy_scene_setup_menu_callback,
             instance);
         menu_add_item(
             data->front_menu,
-            "Theme",
-            "",
-            BUSY_IMG_PATH("theme_8x8.bin"),
+            ITEM_LABEL_THEME,
+            ITEM_SUBLABEL_DUMMY,
+            BUSY_IMG_PATH("palette_8x8.bin"),
             BusySceneSetupMenuIndexTheme,
+            busy_scene_setup_menu_callback,
+            instance);
+        menu_add_item(
+            data->front_menu,
+            ITEM_LABEL_SMART_HOME,
+            smart_home_str,
+            BUSY_IMG_PATH("smart_home_8x8.bin"),
+            BusySceneSetupMenuIndexSmartHome,
             busy_scene_setup_menu_callback,
             instance);
 
@@ -60,9 +82,29 @@ static void busy_scene_setup_on_enter(void* context) {
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
-            data->back_menu, "TIMER", mode_name, BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
+            data->back_menu,
+            ITEM_LABEL_TIMER,
+            mode_name,
+            BUSY_IMG_PATH("hourglass_11x11.bin"),
+            BusySceneSetupMenuIndexTimer,
+            NULL,
+            NULL);
         menu_add_item(
-            data->back_menu, "THEME", "", BUSY_IMG_PATH("theme_12x12.bin"), 0, NULL, NULL);
+            data->back_menu,
+            ITEM_LABEL_THEME,
+            ITEM_SUBLABEL_DUMMY,
+            BUSY_IMG_PATH("palette_11x11.bin"),
+            BusySceneSetupMenuIndexTheme,
+            NULL,
+            NULL);
+        menu_add_item(
+            data->back_menu,
+            ITEM_LABEL_SMART_HOME,
+            smart_home_str,
+            BUSY_IMG_PATH("smart_home_11x11.bin"),
+            BusySceneSetupMenuIndexSmartHome,
+            NULL,
+            NULL);
 
         menu_set_selected_item_index(data->back_menu, data->menu_idx);
     });
@@ -99,6 +141,10 @@ static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* cont
         } else if(event->event == BusySceneSetupMenuIndexTheme) {
             busy_push_location(instance, "THEME");
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTheme);
+
+        } else if(event->event == BusySceneSetupMenuIndexSmartHome) {
+            busy_push_location(instance, "SMART HOME");
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupSmartHome);
         }
 
         consumed = true;

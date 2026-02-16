@@ -1545,15 +1545,48 @@ components:
               description: Whether update installation is allowed (battery check)
             event:
               type: string
-              enum: ["session_start", "session_stop", "action_begin", "action_done", "detail_change", "action_progress", "none"]
+              enum:
+                [
+                  "session_start",
+                  "session_stop",
+                  "action_begin",
+                  "action_done",
+                  "detail_change",
+                  "action_progress",
+                  "none",
+                ]
               description: Current update event
             action:
               type: string
-              enum: ["download", "sha_verification", "unpack", "prepare", "apply", "none"]
+              enum:
+                [
+                  "download",
+                  "sha_verification",
+                  "unpack",
+                  "prepare",
+                  "apply",
+                  "none",
+                ]
               description: Current update action
             status:
               type: string
-              enum: ["ok", "battery_low", "busy", "download_failure", "download_abort", "sha_mismatch", "unpack_staging_dir_failure", "unpack_archive_open_failure", "unpack_archive_unpack_failure", "install_manifest_not_found", "install_manifest_invalid", "install_session_config_failure", "install_pointer_setup_failure", "unknown_failure"]
+              enum:
+                [
+                  "ok",
+                  "battery_low",
+                  "busy",
+                  "download_failure",
+                  "download_abort",
+                  "sha_mismatch",
+                  "unpack_staging_dir_failure",
+                  "unpack_archive_open_failure",
+                  "unpack_archive_unpack_failure",
+                  "install_manifest_not_found",
+                  "install_manifest_invalid",
+                  "install_session_config_failure",
+                  "install_pointer_setup_failure",
+                  "unknown_failure",
+                ]
               description: Current or last operation status
             detail:
               type: string
@@ -1864,16 +1897,16 @@ components:
         - type: object
           allOf:
             - oneOf:
-              - properties:
-                  path:
-                    type: string
-                    pattern: "^[a-zA-Z0-9._/-]+$"
-                    description: Path to the animation file in the app's assets
-              - properties:
-                  builtin_anim:
-                    type: string
-                    pattern: "^[a-z_]+/[a-z0-9_]+$"
-                    description: Identifier of builtin animation
+                - properties:
+                    path:
+                      type: string
+                      pattern: "^[a-zA-Z0-9._/-]+$"
+                      description: Path to the animation file in the app's assets
+                - properties:
+                    builtin_anim:
+                      type: string
+                      pattern: "^[a-z_]+/[a-z0-9_]+$"
+                      description: Identifier of builtin animation
             - properties:
                 loop:
                   type: boolean
@@ -2092,6 +2125,12 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
+            ip_type:
+              type: string
+              example: ipv4
+              enum:
+                - ipv4
+                - ipv6
             address:
               type: string
               example: 192.168.50.5
@@ -2330,7 +2369,7 @@ components:
         fabric_count:
           type: integer
           example: 1
-          description: "Number of Matter smart homes (\"fabrics\") that this device is linked with (\"commissioned into\")"
+          description: 'Number of Matter smart homes ("fabrics") that this device is linked with ("commissioned into")'
         latest_commissioning_status:
           type: object
           properties:
@@ -2341,7 +2380,7 @@ components:
                 - started
                 - completed_successfully
                 - failed
-              description: "Latest state of Matter smart home linking (\"commissioning\") process. Note: \"never_started\" only refers to the current power cycle of the device; this status is not recorded across reboots."
+              description: 'Latest state of Matter smart home linking ("commissioning") process. Note: "never_started" only refers to the current power cycle of the device; this status is not recorded across reboots.'
               example: "completed_successfully"
             timestamp:
               type: string
@@ -2352,15 +2391,15 @@ components:
       properties:
         available_until:
           type: string
-          description: "Linking with (\"commissioning into\") a Matter smart home using the provided payload is possible before this UTC Unix millisecond timestamp. Note: it's a number in a string."
+          description: 'Linking with ("commissioning into") a Matter smart home using the provided payload is possible before this UTC Unix millisecond timestamp. Note: it''s a number in a string.'
           example: "1769437579000"
         qr_code:
           type: string
-          description: "Payload of the QR code for linking with (\"commissioning into\") a Matter smart home"
+          description: 'Payload of the QR code for linking with ("commissioning into") a Matter smart home'
           example: "MT:YNDA0-O913..VV7I000"
         manual_code:
           type: string
-          description: "Manual code for linking with (\"commissioning into\") a Matter smart home"
+          description: 'Manual code for linking with ("commissioning into") a Matter smart home'
           example: "1155-360-0377"
     MatterEndpointState:
       type: object
@@ -2369,11 +2408,11 @@ components:
           type: string
           enum:
             - switch
-          description: "Type of device emulated by a Matter endpoint. Currently only \"switch\" is implemented."
+          description: 'Type of device emulated by a Matter endpoint. Currently only "switch" is implemented.'
           example: switch
         state:
           type: boolean
-          description: "State of device emulated by a Matter endpoint. Boolean for \"switch\" device type."
+          description: 'State of device emulated by a Matter endpoint. Boolean for "switch" device type.'
           example: false
         startup:
           type: string
@@ -2382,7 +2421,7 @@ components:
             - "on"
             - toggle
             - last
-          description: "For the \"switch\" device type, specifies the value on startup. Never sent by the server, but can be specified by the client."
+          description: 'For the "switch" device type, specifies the value on startup. Never sent by the server, but can be specified by the client.'
 
 tags:
   - name: System
