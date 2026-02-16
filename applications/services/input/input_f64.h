@@ -13,7 +13,6 @@ extern "C" {
 #define RECORD_INPUT        "input"
 #define RECORD_INPUT_EVENTS "input_events"
 
-// TODO [FW-503]: replace this w/ furi_state
 /**
  * @brief Gets the state of all absolute controls, i.e. the buttons and the mode
  *        switch
@@ -22,7 +21,7 @@ extern "C" {
  * 
  * @returns State of all absolute controls
  */
-InputAbsoluteState FURI_DEPRECATED input_get_absolute_state(Input* instance);
+InputAbsoluteState input_get_absolute_state(Input* instance);
 
 #ifdef __cplusplus
 }
