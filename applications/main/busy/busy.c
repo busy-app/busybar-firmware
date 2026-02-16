@@ -103,7 +103,7 @@ static void busy_process_arguments(BusyApp* instance, const char* arg) {
         instance->run_mode = BusyAppRunModeTimer;
     }
     if(strstr(arg, BUSY_APP_CUSTOM_MODE)) {
-        instance->global_preset_id = BusyAppGlobalPresetIdCustom;
+        instance->preset_id = BusyAppPresetIdCustom;
     }
 }
 
@@ -352,7 +352,7 @@ void busy_set_timer_profile(BusyApp* instance, BusyTimerProfile* timer_profile) 
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance) {
     furi_assert(instance);
-    return &busy_app_global_presets[instance->global_preset_id];
+    return &busy_app_global_presets[instance->preset_id];
 }
 
 BusyTimerProfileId busy_get_profile_id(const BusyApp* instance) {

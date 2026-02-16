@@ -54,10 +54,10 @@ typedef enum {
 } BusyTimerLabelType;
 
 typedef enum {
-    BusyAppGlobalPresetIdBusy,
-    BusyAppGlobalPresetIdCustom,
-    BusyAppGlobalPresetIdMax,
-} BusyAppGlobalPresetId;
+    BusyAppPresetIdBusy,
+    BusyAppPresetIdCustom,
+    BusyAppPresetIdMax,
+} BusyAppPresetId;
 
 typedef struct {
     const char* const header_img_path;
@@ -76,4 +76,4 @@ extern const TimerIndicatorTransition
 
 extern const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax];
 
-extern const BusyAppGlobalPreset busy_app_global_presets[BusyAppGlobalPresetIdMax];
+extern const BusyAppGlobalPreset busy_app_global_presets[BusyAppPresetIdMax];

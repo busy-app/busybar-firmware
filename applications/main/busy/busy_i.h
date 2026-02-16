@@ -102,7 +102,7 @@ struct BusyApp {
     BusyTheme* theme;
     BusyAppRunMode run_mode;
     BusyAppConfig config;
-    BusyAppGlobalPresetId global_preset_id;
+    BusyAppPresetId preset_id;
     bool show_timer_requested;
 };
 
