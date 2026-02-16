@@ -537,6 +537,8 @@ def pytest_runtest_makereport(item, call):
 
     if crash_info and report.when == "teardown":
         report.outcome = "failed"
+        allure.dynamic.tag("DEVICE_CRASH")
+        allure.dynamic.tag(f"crash:{crash_info.processor}")
         crash_msg = (
             f"DEVICE CRASH DETECTED during test!\n"
             f"Processor: {crash_info.processor}\n"
