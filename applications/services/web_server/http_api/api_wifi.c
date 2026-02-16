@@ -40,6 +40,7 @@ static const ApiWifiResponseData wifi_response_data[WifiStatusMax] = {
     [WifiStatusScanNotPossible] = {.code = 400, "Scan not possible when connected"},
     [WifiStatusAccessPointNotFound] = {.code = 400, "Access point not found"},
     [WifiStatusAuthenticationFailed] = {.code = 400, "Authentication failed"},
+    [WifiStatusConfigurationFailed] = {.code = 400, "DHCP error"},
 };
 
 static const char* const security_modes[WifiSecurityModeMax] = {

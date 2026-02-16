@@ -378,7 +378,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid app_id or deletion failed
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Delete failed
           content:
             application/json:
               schema:
@@ -2113,6 +2119,12 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
+            ip_type:
+              type: string
+              example: ipv4
+              enum:
+                - ipv4
+                - ipv6
             address:
               type: string
               example: 192.168.50.5

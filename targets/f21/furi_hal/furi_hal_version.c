@@ -355,13 +355,11 @@ const char* furi_hal_version_get_model_code(void) {
 }
 
 const char* furi_hal_version_get_fcc_id(void) {
-    // TODO: Return proper FCC ID based on model
-    return "";
+    return "2BR7V-BB1";
 }
 
 const char* furi_hal_version_get_ic_id(void) {
-    // TODO: Return proper IC ID based on model
-    return "";
+    return "34565-BB1";
 }
 
 const char* furi_hal_version_get_mic_id(void) {
