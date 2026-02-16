@@ -66,9 +66,9 @@ static void apps_menu_scene_main_on_enter(void* context) {
         data->back_menu = menu_alloc(instance->back_scene_window);
         menu_add_item(
             data->back_menu,
-            "CLOCK",
+            "Clock",
             "",
-            APPS_MENU_IMG_PATH("clock_back_12x12.bin"),
+            APPS_MENU_IMG_PATH("clock_back_11x11.bin"),
             AppsSceneMainMenuIndexClock,
             NULL,
             instance);

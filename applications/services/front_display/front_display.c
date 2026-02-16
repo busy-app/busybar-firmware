@@ -18,7 +18,7 @@
 
 #define FRONT_DISPLAY_FRAME_SIZE (FRONT_DISPLAY_W * FRONT_DISPLAY_H * 3) // RGB888
 
-#define FRONT_DISPLAY_TRANSITION_DURATION_MS      (330)
+#define FRONT_DISPLAY_TRANSITION_DURATION_MS      (200)
 #define FRONT_DISPLAY_TRANSITION_STEP_DURATION_MS (16)
 #define FRONT_DISPLAY_TRANSITION_STEP_COUNT \
     (FRONT_DISPLAY_TRANSITION_DURATION_MS / FRONT_DISPLAY_TRANSITION_STEP_DURATION_MS)
@@ -252,6 +252,11 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
     case FrontDisplayMessageTypeDraw:
         furi_check(message.frame_buffer);
         FRONT_DISPLAY_DEBUG("Front display draw request");
+
+        if(display->is_blanked) {
+            break;
+        }
+
         memcpy(display->last_frame, message.frame_buffer, FRONT_DISPLAY_FRAME_SIZE);
 
         if(display->enabled && !display->send_in_progress) {
