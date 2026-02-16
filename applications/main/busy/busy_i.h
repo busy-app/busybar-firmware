@@ -101,7 +101,7 @@ struct BusyApp {
     // Misc state
     BusyTheme* theme;
     BusyAppRunMode run_mode;
-    BusyAppConfig busy_bar_settings;
+    BusyAppConfig config;
     BusyAppGlobalPresetId global_preset_id;
     bool show_timer_requested;
 };

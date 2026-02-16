@@ -44,7 +44,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
         const BusyApiMessageType type = message.type;
 
         if(type == BusyApiMessageTypeSetConfig) {
-            instance->busy_bar_settings = *message.data.set_config.config;
+            instance->config = *message.data.set_config.config;
             busy_apply_busy_bar_settings(instance);
 
         } else if(type == BusyApiMessageTypeShowTimer) {
@@ -285,14 +285,14 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 
 void busy_set_matter(BusyApp* instance, bool switch_state) {
     furi_assert(instance);
-    if(instance->busy_bar_settings.is_smart_home_enabled) {
+    if(instance->config.is_smart_home_enabled) {
         matter_set_switch_state(instance->matter, switch_state);
     }
 }
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {
     furi_assert(instance);
-    if(instance->busy_bar_settings.is_show_work_only_enabled) {
+    if(instance->config.is_show_work_only_enabled) {
         front_display_set_blanked(instance->front_display, is_blanked);
     }
 }
@@ -326,13 +326,13 @@ void busy_load_busy_bar_settings(BusyApp* instance) {
 
     BusyTimerProfile profile;
     busy_get_timer_profile(instance, &profile);
-    instance->busy_bar_settings = profile.busy_bar_settings;
+    instance->config = profile.busy_bar_settings;
 }
 
 void busy_apply_busy_bar_settings(BusyApp* instance) {
     furi_assert(instance);
 
-    if(!busy_theme_read(instance->theme, instance->busy_bar_settings.theme_name)) {
+    if(!busy_theme_read(instance->theme, instance->config.theme_name)) {
         FURI_LOG_W(TAG, "Setting default theme");
         busy_theme_set_default(instance->theme);
     }

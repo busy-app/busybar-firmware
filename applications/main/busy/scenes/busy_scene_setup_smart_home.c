@@ -51,7 +51,7 @@ static void busy_scene_setup_smart_home_on_exit(void* context) {
     BusyAppConfig* busy_bar_settings = &timer_profile.busy_bar_settings;
     busy_bar_settings->is_smart_home_enabled = var_item_get_value(data->saved_item);
 
-    instance->busy_bar_settings = *busy_bar_settings;
+    instance->config = *busy_bar_settings;
     busy_set_timer_profile(instance, &timer_profile);
 
     with_gui(instance->gui, {

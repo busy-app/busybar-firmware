@@ -63,7 +63,7 @@ static void busy_scene_setup_theme_save_selected_theme(BusyApp* instance, uint32
 
     busy_theme_set(instance->theme, selected_theme);
 
-    instance->busy_bar_settings = *busy_bar_settings;
+    instance->config = *busy_bar_settings;
     busy_set_timer_profile(instance, &timer_profile);
 }
 
