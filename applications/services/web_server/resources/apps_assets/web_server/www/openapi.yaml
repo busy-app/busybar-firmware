@@ -597,6 +597,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "409":
+          description: Requested priority level is below that of currently active app
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "500":
           description: Display error
           content:
@@ -1749,6 +1755,10 @@ components:
           pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID for organizing assets
           example: "my_app"
+        priority:
+          type: integer
+          description: Draw requests with a lower priority than the currently active draw request will be ignored. Value is 1 through 10, inclusive, higher number means higher priority. Any built-in app is treated as priority level 5.
+          default: 6
         elements:
           type: array
           items:
