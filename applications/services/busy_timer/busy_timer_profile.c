@@ -24,14 +24,16 @@ static void busy_timer_profile_serialize_metadata(cJSON* json, const BusyTimerMe
 static void busy_timer_profile_serialize_timer_settings(
     cJSON* json,
     const BusyTimerProfileSettings* timer_settings) {
-    const BusyTimerMode timer_mode = timer_settings->mode;
+    cJSON* timer_settings_json = cJSON_AddObjectToObject(json, KEY_PROFILE_TIMER_SETTINGS);
 
-    busy_timer_common_serialize_timer_mode(json, timer_mode);
+    const BusyTimerMode timer_mode = timer_settings->mode;
+    busy_timer_common_serialize_timer_mode(timer_settings_json, timer_mode);
 
     if(timer_mode == BusyTimerModeSimple) {
-        busy_timer_common_serialize_simple_settings(json, &timer_settings->simple);
-    } else if(timer_mode == BusyTimerModeInfinite) {
-        busy_timer_common_serialize_interval_settings(json, &timer_settings->interval);
+        busy_timer_common_serialize_simple_settings(timer_settings_json, &timer_settings->simple);
+    } else if(timer_mode == BusyTimerModeInterval) {
+        busy_timer_common_serialize_interval_settings(
+            timer_settings_json, &timer_settings->interval);
     }
 }
 
