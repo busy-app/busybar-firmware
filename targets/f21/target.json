@@ -139,6 +139,7 @@
         "fw_cdb",
         "sdk_extapps",
         "bsb_assets",
+        "bsb_assets_bkp",
         "link_builddir"
     ],
     "dist_modules": [

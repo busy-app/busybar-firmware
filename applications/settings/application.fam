@@ -3,6 +3,7 @@ App(
     name="Package with all settings apps",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
+        "about",
         "brightness_settings",
         "sound_settings",
         "debug_app_list",

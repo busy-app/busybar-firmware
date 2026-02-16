@@ -9,6 +9,7 @@ typedef enum {
     VarItemListIdRest,
     VarItemListIdCycles,
     VarItemListIdAutostart,
+    VarItemListIdShowWork,
     // Demo Mode is not included because it is always shown
     VarItemListIdMax,
 } VarItemListId;
@@ -21,14 +22,29 @@ typedef struct {
 typedef struct {
     VarItemListContainer containers[GuiDisplayIdMax];
     BusyTimerConfig timer_config;
+    BusySettings* settings;
 } BusySceneSetupTimer;
 
 static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
     // Which items to show w/ respect to the current timer mode
     static const bool is_shown_table[BusyTimerModeMax][VarItemListIdMax] = {
-        [BusyTimerModeInfinite] = {0},
-        [BusyTimerModeSimple] = {true, /* filled with zeroes */},
-        [BusyTimerModeInterval] = {false, true, true, true, true},
+        [BusyTimerModeInfinite] =
+            {
+                [VarItemListIdShowWork] = true,
+            },
+        [BusyTimerModeSimple] =
+            {
+                [VarItemListIdTime] = true,
+                [VarItemListIdShowWork] = true,
+            },
+        [BusyTimerModeInterval] =
+            {
+                [VarItemListIdWork] = true,
+                [VarItemListIdRest] = true,
+                [VarItemListIdCycles] = true,
+                [VarItemListIdAutostart] = true,
+                [VarItemListIdShowWork] = true,
+            },
     };
 
     const BusyTimerMode timer_mode = data->timer_config.mode;
@@ -60,6 +76,14 @@ static void busy_scene_setup_timer_time_changed_callback(VarItem* item, void* co
 
     BusySceneSetupTimer* data = context;
     data->timer_config.time_mn = var_item_get_value(item);
+}
+
+static void busy_scene_setup_timer_show_work_changed_callback(VarItem* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    BusySceneSetupTimer* data = context;
+    data->settings->is_show_work_only_enabled = var_item_get_value(item);
 }
 
 static void busy_scene_setup_timer_work_changed_callback(VarItem* item, void* context) {
@@ -188,6 +212,16 @@ static void
 
     item = var_item_list_add_switch(
         container->list,
+        "Show work\nphase only",
+        set_cb ? busy_scene_setup_timer_show_work_changed_callback : NULL,
+        data);
+
+    var_item_set_value(item, data->settings->is_show_work_only_enabled);
+
+    container->items[item_id++] = item;
+
+    item = var_item_list_add_switch(
+        container->list,
         "Demo mode",
         set_cb ? busy_scene_setup_timer_demo_mode_changed_callback : NULL,
         data);
@@ -205,6 +239,8 @@ static void busy_scene_setup_timer_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
     busy_timer_get_config(instance->busy_timer, &data->timer_config);
+
+    data->settings = &instance->settings;
 
     with_gui(instance->gui, {
         data->containers[GuiDisplayIdFront].list = var_item_list_alloc(instance->front_window);
@@ -228,6 +264,7 @@ static void busy_scene_setup_timer_on_exit(void* context) {
     if(!instance->show_timer_requested) {
         // Do not save settings if timer was launched from another device while this scene was active
         busy_timer_set_config(instance->busy_timer, &data->timer_config);
+        busy_save_settings(instance);
     }
 
     with_gui(instance->gui, {
