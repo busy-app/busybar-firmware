@@ -81,6 +81,14 @@ static void wifi_process_request(Wifi* instance) {
     }
 }
 
+static void
+    wifi_followup_request(Wifi* instance, WifiRequestType request_type, WifiStatus prev_status) {
+    instance->api_message.request_type = request_type;
+    *instance->api_message.status = prev_status;
+
+    wifi_process_request(instance);
+}
+
 static void wifi_process_response(Wifi* instance, const WifiResponse* response) {
     furi_assert(wifi_api_is_locked(instance));
     WifiMessage* message = &instance->api_message;
@@ -89,6 +97,8 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
     furi_assert(request_type == response->type);
 
     WifiStatus status = response->status;
+
+    bool unlock_api = true;
 
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeInit) {
@@ -128,8 +138,10 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 wifi_print_connection_info(instance);
 
             } else {
-                status = WifiStatusTimeout;
-                wifi_state_transition(instance, WifiStateDisconnected);
+                unlock_api = false;
+
+                wifi_followup_request(
+                    instance, WifiRequestTypeDisconnect, WifiStatusConfigurationFailed);
             }
 
         } else if(request_type == WifiRequestTypeDisconnect) {
@@ -152,7 +164,9 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
         }
     }
 
-    wifi_api_unlock(instance, status);
+    if(unlock_api) {
+        wifi_api_unlock(instance, status);
+    }
 }
 
 static void

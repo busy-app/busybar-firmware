@@ -2131,6 +2131,12 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
+            ip_type:
+              type: string
+              example: ipv4
+              enum:
+                - ipv4
+                - ipv6
             address:
               type: string
               example: 192.168.50.5
