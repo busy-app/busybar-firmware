@@ -476,7 +476,7 @@ static bool ble_worker_start_advertising(
 #endif
 
     ble_adv.status = RSI_BLE_START_ADV;
-    ble_adv.adv_type = UNDIR_CONN;
+    ble_adv.adv_type = advertise_to_paired_only ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
 
     ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
     ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
@@ -487,6 +487,8 @@ static bool ble_worker_start_advertising(
         rsi_ble_addto_acceptlist((int8_t*)key->Identity_addr, key->Identity_addr_type);
         ble_adv.filter_type = ALLOW_SCAN_REQ_ACCEPT_LIST_CONN_REQ_ACCEPT_LIST;
         ble_adv.own_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
+        memcpy(ble_adv.direct_addr, key->Identity_addr, 6);
+        ble_adv.direct_addr_type = key->Identity_addr_type;
     } else {
         ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
         ble_adv.own_addr_type = LE_PUBLIC_ADDRESS;
