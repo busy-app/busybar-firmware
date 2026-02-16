@@ -505,6 +505,89 @@ static void busy_timer_schedule_send_snapshot(BusyTimer* instance) {
     furi_event_loop_timer_start(instance->debounce_timer, DEBOUNCE_TIMER_DELAY_MS);
 }
 
+static void
+    busy_timer_get_profile_internal(BusyTimerProfile* profile, BusyTimerProfileId profile_id) {
+    BusyTimerSettings settings;
+    busy_timer_settings_load(&settings, profile_id);
+
+    profile->busy_bar_settings = settings.busy_bar_settings;
+    profile->timer_settings = settings.timer_settings;
+    profile->metadata = settings.metadata;
+    profile->timestamp_ms = settings.timestamp_ms;
+}
+
+static BusyTimerSetProfileResult busy_timer_set_profile_internal(
+    const BusyTimerProfile* profile,
+    BusyTimerProfileId profile_id) {
+    BusyTimerSetProfileResult result;
+
+    do {
+        const time_t profile_timestamp_ms = profile->timestamp_ms;
+
+        if(!busy_timer_profile_is_valid(profile)) {
+            FURI_LOG_E(TAG, "Ignoring invalid profile with timestamp %llu", profile_timestamp_ms);
+            result = BusyTimerSetProfileResultRejectedInvalid;
+            break;
+        }
+
+        const time_t max_future_timestamp_ms = furi_hal_rtc_get_timestamp_ms() + M_TO_MS(10);
+
+        if(profile_timestamp_ms > max_future_timestamp_ms) {
+            FURI_LOG_W(
+                TAG, "Ignoring profile from future with timestamp %llu", profile_timestamp_ms);
+            result = BusyTimerSetProfileResultRejectedFuture;
+            break;
+        }
+
+        BusyTimerSettings settings;
+        busy_timer_settings_load(&settings, profile_id);
+
+        if(profile_timestamp_ms < settings.timestamp_ms) {
+            FURI_LOG_D(TAG, "Ignoring stale profile with timestamp %llu", profile_timestamp_ms);
+            result = BusyTimerSetProfileResultRejectedOutdated;
+            break;
+
+        } else if(profile_timestamp_ms == settings.timestamp_ms) {
+            FURI_LOG_D(TAG, "Ignoring own profile with timestamp %llu", profile_timestamp_ms);
+            result = BusyTimerSetProfileResultRejectedOwn;
+            break;
+        }
+
+        settings.busy_bar_settings = profile->busy_bar_settings;
+        settings.timer_settings = profile->timer_settings;
+        settings.metadata = profile->metadata;
+        settings.timestamp_ms = profile->timestamp_ms;
+
+        busy_timer_settings_save(&settings, profile_id);
+        result = BusyTimerSetProfileResultAccepted;
+    } while(false);
+
+    return result;
+}
+
+static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
+    BusyTimerProfile profile;
+    busy_timer_get_profile_internal(&profile, profile_id);
+
+    char* profile_str = busy_timer_profile_serialize(&profile);
+    furi_check(profile_str);
+
+    const char* mqtt_topic;
+
+    if(profile_id == BusyTimerProfileIdBusy) {
+        mqtt_topic = TIMER_PROFILE_BUSY_MQTT_TOPIC;
+    } else if(profile_id == BusyTimerProfileIdCustom) {
+        mqtt_topic = TIMER_PROFILE_CUSTOM_MQTT_TOPIC;
+    } else {
+        furi_crash("Invalid BusyTimerProfileId value");
+    }
+
+    mqtt_publish(
+        instance->mqtt, TIMER_PROFILE_MQTT_QOS, mqtt_topic, profile_str, strlen(profile_str));
+
+    free(profile_str);
+}
+
 static void busy_timer_load_settings(BusyTimer* instance, BusyTimerProfileId profile_id) {
     UNUSED(instance);
 
@@ -774,53 +857,29 @@ static void
 
     const BusyTimerMessageGetProfile* get_profile = &data->get_profile;
 
-    BusyTimerSettings settings;
-    busy_timer_settings_load(&settings, get_profile->profile_id);
+    BusyTimerProfile* const profile = get_profile->profile;
+    const BusyTimerProfileId profile_id = get_profile->profile_id;
 
-    BusyTimerProfile* profile = get_profile->profile;
-    profile->busy_bar_settings = settings.busy_bar_settings;
-    profile->timer_settings = settings.timer_settings;
-    profile->metadata = settings.metadata;
-    profile->timestamp_ms = settings.timestamp_ms;
+    busy_timer_get_profile_internal(profile, profile_id);
 }
 
 static void
     busy_timer_set_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    UNUSED(instance);
-
     const BusyTimerMessageSetProfile* set_profile = &data->set_profile;
+
     const BusyTimerProfile* profile = set_profile->profile;
     const BusyTimerProfileId profile_id = set_profile->profile_id;
 
-    const time_t profile_timestamp_ms = profile->timestamp_ms;
+    const BusyTimerSetProfileResult result = busy_timer_set_profile_internal(profile, profile_id);
+    furi_check(result < BusyTimerSetProfileResultMax);
 
-    if(!busy_timer_profile_is_valid(profile)) {
-        FURI_LOG_E(TAG, "Ignoring invalid profile with timestamp %llu", profile_timestamp_ms);
-        return;
+    if(result == BusyTimerSetProfileResultAccepted) {
+        busy_timer_notify_profile_changed(instance, profile_id);
     }
-
-    const time_t max_future_timestamp_ms = furi_hal_rtc_get_timestamp_ms() + M_TO_MS(10);
-
-    if(profile_timestamp_ms > max_future_timestamp_ms) {
-        FURI_LOG_W(TAG, "Ignoring profile from future with timestamp %llu", profile_timestamp_ms);
-        return;
+    // Do not re-publish own profiles to avoid infinite loops
+    if(result != BusyTimerSetProfileResultRejectedOwn) {
+        busy_timer_publish_profile(instance, profile_id);
     }
-
-    BusyTimerSettings settings;
-    busy_timer_settings_load(&settings, profile_id);
-
-    if(profile_timestamp_ms <= settings.timestamp_ms) {
-        FURI_LOG_D(TAG, "Ignoring outdated profile with timestamp %llu", profile_timestamp_ms);
-        return;
-    }
-
-    settings.busy_bar_settings = profile->busy_bar_settings;
-    settings.timer_settings = profile->timer_settings;
-    settings.metadata = profile->metadata;
-    settings.timestamp_ms = profile->timestamp_ms;
-
-    busy_timer_settings_save(&settings, profile_id);
-    busy_timer_notify_profile_changed(instance, profile_id);
 }
 
 static void

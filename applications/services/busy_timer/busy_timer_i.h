@@ -64,6 +64,15 @@ typedef struct {
     FuriApiLock lock;
 } BusyTimerMessage;
 
+typedef enum {
+    BusyTimerSetProfileResultRejectedInvalid,
+    BusyTimerSetProfileResultRejectedOutdated,
+    BusyTimerSetProfileResultRejectedFuture,
+    BusyTimerSetProfileResultRejectedOwn,
+    BusyTimerSetProfileResultAccepted,
+    BusyTimerSetProfileResultMax,
+} BusyTimerSetProfileResult;
+
 struct BusyTimer {
     FuriThread* thread;
     FuriEventLoop* event_loop;
