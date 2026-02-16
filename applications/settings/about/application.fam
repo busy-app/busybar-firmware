@@ -1,0 +1,10 @@
+App(
+    appid="about",
+    name="About",
+    apptype=FlipperAppType.SETTINGS,
+    entry_point="about_entry",
+    requires=["gui", "front_display", "back_display"],
+    stack_size=4 * 1024,
+    order=80,
+    targets=["f20", "f21", "f22"],
+)
