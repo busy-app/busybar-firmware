@@ -168,7 +168,7 @@ static void busy_scene_setup_init_var_item_values(
     VarItem* const* items = container->items;
 
     const BusyAppConfig* busy_bar_settings = &profile->busy_bar_settings;
-    const BusyTimerProfileSettings* timer_settings = &profile->timer_settings;
+    const BusyTimerConfig* timer_settings = &profile->timer_settings;
 
     var_item_set_value(items[VarItemListIdMode], timer_settings->mode);
 
@@ -195,7 +195,7 @@ static void busy_scene_setup_get_var_item_values(
     VarItem* const* items = data->containers[GuiDisplayIdFront].items;
 
     BusyAppConfig* busy_bar_settings = &timer_profile->busy_bar_settings;
-    BusyTimerProfileSettings* timer_settings = &timer_profile->timer_settings;
+    BusyTimerConfig* timer_settings = &timer_profile->timer_settings;
 
     timer_settings->mode = var_item_get_value(items[VarItemListIdMode]);
 

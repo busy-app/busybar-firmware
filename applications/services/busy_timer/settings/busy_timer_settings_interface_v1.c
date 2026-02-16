@@ -94,7 +94,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
         },
 };
 
-static const BusyTimerProfileSettings busy_timer_settings_v1_timer_settings_default = {
+static const BusyTimerConfig busy_timer_settings_v1_timer_settings_default = {
     .mode = BusyTimerModeMax,
     .interval = {0},
 };
@@ -107,7 +107,7 @@ static bool busy_timer_settings_v1_timer_settings_serialize_cb(
     const void* value) {
     UNUSED(setting);
 
-    const BusyTimerProfileSettings* timer_settings = value;
+    const BusyTimerConfig* timer_settings = value;
 
     cJSON* json = cJSON_CreateObject();
 
@@ -145,7 +145,7 @@ static bool busy_timer_settings_v1_timer_settings_deserialize_cb(
             break;
         }
 
-        BusyTimerProfileSettings* timer_settings = value;
+        BusyTimerConfig* timer_settings = value;
 
         if(!busy_timer_common_deserialize_timer_mode(json, &timer_settings->mode)) {
             break;

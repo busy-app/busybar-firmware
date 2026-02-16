@@ -23,7 +23,7 @@ static void busy_timer_profile_serialize_metadata(cJSON* json, const BusyTimerMe
 
 static void busy_timer_profile_serialize_timer_settings(
     cJSON* json,
-    const BusyTimerProfileSettings* timer_settings) {
+    const BusyTimerConfig* timer_settings) {
     cJSON* timer_settings_json = cJSON_AddObjectToObject(json, KEY_PROFILE_TIMER_SETTINGS);
 
     const BusyTimerMode timer_mode = timer_settings->mode;
@@ -75,7 +75,7 @@ static bool
 
 static bool busy_timer_profile_deserialize_timer_settings(
     const cJSON* json,
-    BusyTimerProfileSettings* timer_settings) {
+    BusyTimerConfig* timer_settings) {
     bool success = false;
 
     do {
@@ -175,7 +175,7 @@ bool busy_timer_profile_is_valid(const BusyTimerProfile* profile) {
             break;
         }
 
-        const BusyTimerProfileSettings* timer_settings = &profile->timer_settings;
+        const BusyTimerConfig* timer_settings = &profile->timer_settings;
         const BusyTimerMode timer_mode = timer_settings->mode;
 
         if(timer_mode == BusyTimerModeInfinite) {

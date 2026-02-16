@@ -50,7 +50,7 @@ typedef struct {
 } BusyTimerCycles;
 
 typedef struct {
-    BusyTimerProfileSettings timer_settings;
+    BusyTimerConfig timer_settings;
 } BusyTimerInfo;
 
 typedef struct {

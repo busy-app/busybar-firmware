@@ -62,7 +62,7 @@ static void busy_scene_finish_on_enter(void* context) {
     BusyTimerInfo timer_info;
     busy_timer_get_info(instance->busy_timer, &timer_info);
 
-    const BusyTimerProfileSettings* timer_settings = &timer_info.timer_settings;
+    const BusyTimerConfig* timer_settings = &timer_info.timer_settings;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);

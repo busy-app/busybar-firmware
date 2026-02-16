@@ -17,11 +17,11 @@ typedef struct {
         BusyTimerSimpleSettings simple;
         BusyTimerIntervalSettings interval;
     };
-} BusyTimerProfileSettings;
+} BusyTimerConfig;
 
 typedef struct {
     BusyAppConfig busy_bar_settings;
-    BusyTimerProfileSettings timer_settings;
+    BusyTimerConfig timer_settings;
     BusyTimerMetadata metadata;
     time_t timestamp_ms;
 } BusyTimerProfile;

@@ -744,7 +744,7 @@ static void
 
 static void busy_timer_get_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     BusyTimerInfo* timer_info = data->get_info.info;
-    BusyTimerProfileSettings* timer_settings = &timer_info->timer_settings;
+    BusyTimerConfig* timer_settings = &timer_info->timer_settings;
 
     const BusyTimerMode timer_mode = instance->mode;
     timer_settings->mode = timer_mode;
@@ -885,7 +885,7 @@ static void
     instance->busy_bar_settings = profile->busy_bar_settings;
     strcpy(instance->card_id, profile->metadata.card_id);
 
-    const BusyTimerProfileSettings* timer_settings = &profile->timer_settings;
+    const BusyTimerConfig* timer_settings = &profile->timer_settings;
     instance->mode = timer_settings->mode;
 
     if(instance->mode == BusyTimerModeSimple) {
