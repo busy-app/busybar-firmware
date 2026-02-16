@@ -1,7 +1,7 @@
 #include "wifi_i.h"
 
 static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
-    WifiStatus status;
+    WifiStatus status = WifiStatusMax;
 
     message->status = &status;
     message->lock = api_lock_alloc_locked();
@@ -32,7 +32,9 @@ void wifi_api_unlock(Wifi* instance, WifiStatus status) {
 
     if(message->lock) {
         furi_assert(message->status);
-        *message->status = status;
+        if(*message->status == WifiStatusMax) {
+            *message->status = status;
+        }
 
         api_lock_unlock(message->lock);
     }
