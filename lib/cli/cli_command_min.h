@@ -22,6 +22,8 @@ typedef enum {
     // internal flags (do not set them yourselves!)
 
     CliCommandFlagExternal = (1 << 4), /**< The command comes from a .fal file */
+    CliCommandFlagExclusive =
+        (1 << 5), /**< Only one instance of the command can be run at a time */
 } CliCommandFlag;
 
 typedef struct PipeSide PipeSide;

@@ -4,38 +4,35 @@ dist_env = DIST_ENV
 u5_env = U5_ENV
 sil_env = SIL_ENV
 
-def update_bundle_command(is_tgz: bool, is_min: bool, is_bkp: bool):
-    output_flag = "--output-tgz" if is_tgz else "--output-tar"
-    argv = [
-        "${PYTHON3}",
-        dist_env.Real("#scripts/update_bundle.py"),
-        "--target",
-        u5_env.subst("$TARGET_HW"),
-        output_flag,
-        "$TARGET",
-        "--stage",
-        u5_env["UPD_ENV"]["FW_BIN"][0],
-        "--dfu",
-        u5_env["FW_ENV"]["FW_DFU"][0],
-        "--sil-fw",
-        sil_env["FW_ENV"]["FW_RPS"][0],
-    ]
-    if not is_min:
-        argv.extend([
-            "--resources",
-            u5_env["FW_ENV"]["RESOURCES_ROOT"],
-            "--sil-radio-fw",
-            dist_env.Real(sil_env["SI917_NWP_STACK"]),  # FIXME
-        ])
-    if is_bkp:
-        argv.extend(["--bkp-resources", u5_env["FW_ENV"]["BKP_RESOURCES_ROOT"]])
-    return argv
+base_args = [
+    "${PYTHON3}",
+    dist_env.Real("#scripts/update_bundle.py"),
+    "--target",
+    u5_env.subst("$TARGET_HW"),
+    "--stage",
+    u5_env["UPD_ENV"]["FW_BIN"][0],
+    "--dfu",
+    u5_env["FW_ENV"]["FW_DFU"][0],
+    "--sil-fw",
+    sil_env["FW_ENV"]["FW_RPS"][0],
+]
 
+tar_args = ["--output-tar", "$TARGET"]
+tgz_args = ["--output-tgz", "$TARGET"]
+
+res_args = [
+    "--resources",
+    u5_env["FW_ENV"]["RESOURCES_ROOT"],
+    "--sil-radio-fw",
+    dist_env.Real(sil_env["SI917_NWP_STACK"]),  # FIXME
+]
+
+bkp_args = ["--bkp-resources", u5_env["FW_ENV"]["BKP_RESOURCES_ROOT"]]
 
 update_tar = dist_env.Command(
     u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tar"),
     None,
-    [update_bundle_command(is_tgz=False, is_min=False, is_bkp=True)],
+    [base_args + tar_args + res_args],
 )
 
 Depends(
@@ -94,7 +91,7 @@ dist_env.PhonyTarget(
 min_update_tar = dist_env.Command(
     u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tar"),
     None,
-    [update_bundle_command(is_tgz=False, is_min=True, is_bkp=True)],
+    [base_args + tar_args],
 )
 
 Depends(
@@ -152,7 +149,7 @@ dist_env.PhonyTarget(
 update_bkp_tgz = dist_env.Command(
     u5_env["FW_ENV"].File("${BUILD_DIR}/bkp_${F_TARGET_HW}.tgz"),
     None,
-    [update_bundle_command(is_tgz=True, is_min=False, is_bkp=True)],
+    [base_args + tgz_args + res_args + bkp_args],
 )
 
 Depends(
