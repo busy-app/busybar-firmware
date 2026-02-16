@@ -15,12 +15,10 @@
 
 // Profile serialization
 
-static void busy_timer_profile_serialize_profile_info(
-    cJSON* json,
-    const BusyTimerProfileInfo* profile_info) {
-    cJSON_AddNumberToObject(json, KEY_PROFILE_SORT_ORDER, profile_info->sort_order);
-    cJSON_AddStringToObject(json, KEY_PROFILE_TITLE, profile_info->title);
-    cJSON_AddStringToObject(json, KEY_PROFILE_ID, profile_info->card_id);
+static void busy_timer_profile_serialize_metadata(cJSON* json, const BusyTimerMetadata* metadata) {
+    cJSON_AddNumberToObject(json, KEY_PROFILE_SORT_ORDER, metadata->sort_order);
+    cJSON_AddStringToObject(json, KEY_PROFILE_TITLE, metadata->title);
+    cJSON_AddStringToObject(json, KEY_PROFILE_ID, metadata->card_id);
 }
 
 static void busy_timer_profile_serialize_timer_settings(
@@ -39,9 +37,8 @@ static void busy_timer_profile_serialize_timer_settings(
 
 // Profile deserialization
 
-static bool busy_timer_profile_deserialize_profile_info(
-    const cJSON* json,
-    BusyTimerProfileInfo* profile_info) {
+static bool
+    busy_timer_profile_deserialize_metadata(const cJSON* json, BusyTimerMetadata* metadata) {
     bool success = false;
 
     do {
@@ -52,21 +49,21 @@ static bool busy_timer_profile_deserialize_profile_info(
             break;
         }
 
-        profile_info->sort_order = cJSON_GetNumberValue(item);
+        metadata->sort_order = cJSON_GetNumberValue(item);
 
         item = cJSON_GetObjectItem(json, KEY_PROFILE_TITLE);
         if(!cJSON_IsString(item)) {
             break;
         }
 
-        strlcpy(profile_info->title, cJSON_GetStringValue(item), sizeof(profile_info->title));
+        strlcpy(metadata->title, cJSON_GetStringValue(item), sizeof(metadata->title));
 
         item = cJSON_GetObjectItem(json, KEY_PROFILE_ID);
         if(!cJSON_IsString(item)) {
             break;
         }
 
-        strlcpy(profile_info->card_id, cJSON_GetStringValue(item), sizeof(profile_info->card_id));
+        strlcpy(metadata->card_id, cJSON_GetStringValue(item), sizeof(metadata->card_id));
 
         success = true;
     } while(false);
@@ -110,7 +107,7 @@ static bool busy_timer_profile_deserialize_timer_settings(
 char* busy_timer_profile_serialize(const BusyTimerProfile* profile) {
     cJSON* json = cJSON_CreateObject();
 
-    busy_timer_profile_serialize_profile_info(json, &profile->info);
+    busy_timer_profile_serialize_metadata(json, &profile->metadata);
 
     busy_timer_profile_serialize_timer_settings(json, &profile->timer_settings);
 
@@ -137,7 +134,7 @@ bool busy_timer_profile_deserialize(
             break;
         }
 
-        if(!busy_timer_profile_deserialize_profile_info(json, &profile->info)) {
+        if(!busy_timer_profile_deserialize_metadata(json, &profile->metadata)) {
             break;
         }
 
@@ -172,7 +169,7 @@ bool busy_timer_profile_is_valid(const BusyTimerProfile* profile) {
     bool is_valid = false;
 
     do {
-        if(!busy_timer_common_is_valid_card_id(profile->info.card_id)) {
+        if(!busy_timer_common_is_valid_card_id(profile->metadata.card_id)) {
             break;
         }
 

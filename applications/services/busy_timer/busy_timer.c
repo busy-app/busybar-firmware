@@ -513,7 +513,7 @@ static void busy_timer_load_settings(BusyTimer* instance, BusyTimerProfileId pro
 
     instance->mode = settings.timer_settings.mode;
     instance->busy_bar_settings = settings.busy_bar_settings;
-    strcpy(instance->card_id, settings.profile_info.card_id);
+    strcpy(instance->card_id, settings.metadata.card_id);
 
     if(instance->mode == BusyTimerModeSimple) {
         instance->simple_settings = settings.timer_settings.simple;
@@ -780,7 +780,7 @@ static void
     BusyTimerProfile* profile = get_profile->profile;
     profile->busy_bar_settings = settings.busy_bar_settings;
     profile->timer_settings = settings.timer_settings;
-    profile->info = settings.profile_info;
+    profile->metadata = settings.metadata;
     profile->timestamp_ms = settings.timestamp_ms;
 }
 
@@ -816,7 +816,7 @@ static void
 
     settings.busy_bar_settings = profile->busy_bar_settings;
     settings.timer_settings = profile->timer_settings;
-    settings.profile_info = profile->info;
+    settings.metadata = profile->metadata;
     settings.timestamp_ms = profile->timestamp_ms;
 
     busy_timer_settings_save(&settings, profile_id);

@@ -64,7 +64,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                             .is_autostart_enabled = BUSY_TIMER_ENABLE_AUTOSTART_DEFAULT,
                         },
                 },
-            .profile_info =
+            .metadata =
                 {
                     .sort_order = SORT_ORDER_DEFAULT,
                     .title = "busy",
@@ -84,7 +84,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                 {
                     .mode = BusyTimerModeInfinite,
                 },
-            .profile_info =
+            .metadata =
                 {
                     .sort_order = SORT_ORDER_DEFAULT,
                     .title = "custom",
@@ -226,7 +226,7 @@ static const SettingProviderSetting busy_timer_settings_v1_busy_bar_settings[] =
         },
 };
 
-static const SettingProviderSetting busy_timer_settings_v1_profile_info[] = {
+static const SettingProviderSetting busy_timer_settings_v1_metadata[] = {
     [BusyTimerSettingsV1ProfileInfoIdxSortOrder] =
         {
             .name = "sort_order",
@@ -234,7 +234,7 @@ static const SettingProviderSetting busy_timer_settings_v1_profile_info[] = {
                 &(const SettingProviderIntInterface){
                     .default_value = 0,
                 },
-            .field_offset = offsetof(BusyTimerProfileInfo, sort_order),
+            .field_offset = offsetof(BusyTimerMetadata, sort_order),
             .type = SettingProviderSettingTypeInt,
         },
     [BusyTimerSettingsV1ProfileInfoIdxTitle] =
@@ -244,9 +244,9 @@ static const SettingProviderSetting busy_timer_settings_v1_profile_info[] = {
                 &(const SettingProviderStringInterface){
                     .default_value = STRING_VALUE_DEFAULT,
                     // Including zero terminator
-                    .max_length = SIZEOF_MEMBER(BusyTimerProfileInfo, title),
+                    .max_length = SIZEOF_MEMBER(BusyTimerMetadata, title),
                 },
-            .field_offset = offsetof(BusyTimerProfileInfo, title),
+            .field_offset = offsetof(BusyTimerMetadata, title),
             .type = SettingProviderSettingTypeString,
         },
     [BusyTimerSettingsV1ProfileInfoIdxId] =
@@ -256,9 +256,9 @@ static const SettingProviderSetting busy_timer_settings_v1_profile_info[] = {
                 &(const SettingProviderStringInterface){
                     .default_value = STRING_VALUE_DEFAULT,
                     // Including zero terminator
-                    .max_length = SIZEOF_MEMBER(BusyTimerProfileInfo, card_id),
+                    .max_length = SIZEOF_MEMBER(BusyTimerMetadata, card_id),
                 },
-            .field_offset = offsetof(BusyTimerProfileInfo, card_id),
+            .field_offset = offsetof(BusyTimerMetadata, card_id),
             .type = SettingProviderSettingTypeString,
         },
 };
@@ -293,10 +293,10 @@ static const SettingProviderSetting busy_timer_settings_v1[] = {
             .name = "profile_metadata",
             .interface =
                 &(const SettingProviderStructureInterface){
-                    .inner_settings = busy_timer_settings_v1_profile_info,
-                    .inner_settings_count = COUNT_OF(busy_timer_settings_v1_profile_info),
+                    .inner_settings = busy_timer_settings_v1_metadata,
+                    .inner_settings_count = COUNT_OF(busy_timer_settings_v1_metadata),
                 },
-            .field_offset = offsetof(BusyTimerSettingsV1, profile_info),
+            .field_offset = offsetof(BusyTimerSettingsV1, metadata),
             .type = SettingProviderSettingTypeStructure,
         },
     [BusyTimerSettingsV1IdxTimestamp] =
@@ -332,7 +332,7 @@ bool busy_timer_settings_v1_apply_defaults(
     const bool are_values_missing =
         (settings_v1->timer_settings.mode == BusyTimerModeMax) ||
         (strcmp(settings_v1->busy_bar_settings.theme_name, STRING_VALUE_DEFAULT) == 0) ||
-        (strcmp(settings_v1->profile_info.card_id, STRING_VALUE_DEFAULT) == 0);
+        (strcmp(settings_v1->metadata.card_id, STRING_VALUE_DEFAULT) == 0);
 
     if(are_values_missing) {
         *settings_v1 = busy_timer_settings_v1_defaults[profile_id];

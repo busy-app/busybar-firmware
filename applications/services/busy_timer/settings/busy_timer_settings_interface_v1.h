@@ -8,7 +8,7 @@
 typedef struct {
     BusyAppConfig busy_bar_settings;
     BusyTimerProfileSettings timer_settings;
-    BusyTimerProfileInfo profile_info;
+    BusyTimerMetadata metadata;
     time_t timestamp_ms;
 } BusyTimerSettingsV1;
 

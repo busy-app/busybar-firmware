@@ -50,7 +50,7 @@ typedef struct {
     int sort_order;
     char title[BUSY_TIMER_TITLE_LEN + 1];
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
-} BusyTimerProfileInfo;
+} BusyTimerMetadata;
 
 typedef struct {
     uint32_t total_time_ms;
