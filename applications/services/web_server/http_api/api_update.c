@@ -311,16 +311,17 @@ static bool api_update_raw_hdr_callback(
         return true;
     }
 
-    update_ctx = alloc_raw_update_context();
-    conn_ctx->context = update_ctx;
-
-    update_ctx->total_file_size = msg->body.len;
-    if(update_ctx->total_file_size == 0) {
+    if(msg->body.len == 0) {
         FURI_LOG_W(TAG, "on_headers: Content-Length is 0 or missing/invalid. No file to upload?");
         MG_REPLY_BAD_REQUEST(conn);
         conn->is_draining = 1;
         return true;
     }
+
+    update_ctx = alloc_raw_update_context();
+    conn_ctx->context = update_ctx;
+
+    update_ctx->total_file_size = msg->body.len;
     if(update_ctx->total_file_size > MAX_UPLOAD_FILE_SIZE) {
         FURI_LOG_E(
             TAG,
@@ -448,7 +449,7 @@ static bool api_update_changelog_callback(
                     .changelog = check_changelog,
                 });
 
-            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
+            if(strcmp(furi_string_get_cstr(check_version), version) != 0) {
                 error_text = "Version mismatch";
                 break;
             }
@@ -523,7 +524,7 @@ static bool api_update_install_callback(
                     .changelog = NULL,
                 });
 
-            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
+            if(strcmp(furi_string_get_cstr(check_version), version) != 0) {
                 error_code = 400;
                 error_text = "Version mismatch";
                 break;
