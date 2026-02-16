@@ -331,48 +331,56 @@ static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* elemen
         memcpy(&widget, widget_old, sizeof(CanvasWidget));
     }
 
-    with_gui(canvas->gui, {
-        widget.type = element->type;
-        widget.display = element->display;
-        GuiLayer* gui_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
-        Widget* root = gui_layer_get_root_widget(gui_layer, element->display);
-        Widget* base = canvas_element_update_specific(&widget, root, element);
-        canvas_element_update_generic(base, root, element);
-    });
-
-    uint32_t effective_timeout = 0;
+    int32_t effective_timeout = -1;
     if(element->timeout > 0) {
         furi_check(element->display_until == 0);
         effective_timeout = element->timeout;
     } else if(element->display_until > 0) {
         furi_check(element->timeout == 0);
         time_t current_stamp = furi_hal_rtc_get_timestamp();
-        effective_timeout = MAX(1, element->display_until - current_stamp);
+        effective_timeout = MAX(0, element->display_until - current_stamp);
     }
 
-    if((effective_timeout > 0) || (widget.timeout_timer)) {
-        if(!widget.timeout_context) {
-            widget.timeout_context = malloc(sizeof(CanvasWidgetTimeoutContext));
-            widget.timeout_context->id = strdup(element->id);
-            widget.timeout_context->canvas = canvas;
+    if(effective_timeout == 0) {
+        if(widget_old) {
+            canvas_widget_destroy(canvas, widget_old);
+            CanvasWidgetsDict_erase(canvas->widgets, element->id);
+            return true;
         }
-    }
+    } else {
+        with_gui(canvas->gui, {
+            widget.type = element->type;
+            widget.display = element->display;
+            GuiLayer* gui_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
+            Widget* root = gui_layer_get_root_widget(gui_layer, element->display);
+            Widget* base = canvas_element_update_specific(&widget, root, element);
+            canvas_element_update_generic(base, root, element);
+        });
 
-    if(effective_timeout > 0) {
-        if(!widget.timeout_timer) {
-            widget.timeout_timer = furi_event_loop_timer_alloc(
-                canvas->event_loop,
-                canvas_element_timeout,
-                FuriEventLoopTimerTypeOnce,
-                widget.timeout_context);
+        if((effective_timeout > 0) || (widget.timeout_timer)) {
+            if(!widget.timeout_context) {
+                widget.timeout_context = malloc(sizeof(CanvasWidgetTimeoutContext));
+                widget.timeout_context->id = strdup(element->id);
+                widget.timeout_context->canvas = canvas;
+            }
         }
-        furi_event_loop_timer_start(widget.timeout_timer, effective_timeout * 1000);
-    } else if((widget.timeout_timer) && (effective_timeout == 0)) {
-        furi_event_loop_timer_free(widget.timeout_timer);
-        widget.timeout_timer = NULL;
-    }
 
-    CanvasWidgetsDict_set_at(canvas->widgets, element->id, widget);
+        if(effective_timeout > 0) {
+            if(!widget.timeout_timer) {
+                widget.timeout_timer = furi_event_loop_timer_alloc(
+                    canvas->event_loop,
+                    canvas_element_timeout,
+                    FuriEventLoopTimerTypeOnce,
+                    widget.timeout_context);
+            }
+            furi_event_loop_timer_start(widget.timeout_timer, effective_timeout * 1000);
+        } else if((widget.timeout_timer) && (effective_timeout == -1)) {
+            furi_event_loop_timer_free(widget.timeout_timer);
+            widget.timeout_timer = NULL;
+        }
+
+        CanvasWidgetsDict_set_at(canvas->widgets, element->id, widget);
+    }
 
     return true;
 }
@@ -390,6 +398,9 @@ static bool canvas_update_all(CanvasApp* canvas, CanvasElementsArray_t elements)
         }
     }
     canvas_check_back_screen_empty(canvas);
+    if(CanvasWidgetsDict_empty_p(canvas->widgets)) {
+        furi_event_loop_stop(canvas->event_loop);
+    }
     return success;
 }
 
