@@ -35,7 +35,7 @@ def update_bundle_command(is_tgz: bool, is_min: bool, is_bkp: bool):
 update_tar = dist_env.Command(
     u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tar"),
     None,
-    [update_bundle_command(is_tgz=False, is_min=False, is_bkp=True)],
+    [update_bundle_command(is_tgz=False, is_min=False, is_bkp=False)],
 )
 
 Depends(
@@ -94,7 +94,7 @@ dist_env.PhonyTarget(
 min_update_tar = dist_env.Command(
     u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tar"),
     None,
-    [update_bundle_command(is_tgz=False, is_min=True, is_bkp=True)],
+    [update_bundle_command(is_tgz=False, is_min=True, is_bkp=False)],
 )
 
 Depends(
