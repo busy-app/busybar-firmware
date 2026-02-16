@@ -55,7 +55,7 @@ static void busy_scene_start_on_enter(void* context) {
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);
         anim_menu_set_source(
-            data->front_menu, BUSY_ANIM_PATH("start_menu_31x16.anim"), ANIM_MENU_OPTIONS);
+            data->front_menu, SHARED_ANIM_PATH("start_menu_31x16.anim"), ANIM_MENU_OPTIONS);
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
