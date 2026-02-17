@@ -11,19 +11,17 @@ typedef struct {
     BatteryStatusInfo prev_status;
 } BleBatteryServiceContext;
 
-///TODO: Temporary blocked events from battery service
-///because they cause crash. Unblock when fixed
-// static void ble_power_pubsub_message_callback(const void* message, void* context) {
-//     BleServiceObject* instance = context;
-//     const PowerEvent* event = message;
+static void ble_power_pubsub_message_callback(const void* message, void* context) {
+    BleServiceObject* instance = context;
+    const PowerEvent* event = message;
 
-//     if(ble_service_lock(instance)) {
-//         BleBatteryServiceContext* ctx = instance->context;
-//         ctx->event_type = event->type;
-//         ble_service_enqueue_run(instance);
-//         ble_service_unlock(instance);
-//     }
-// }
+    if(ble_service_lock(instance)) {
+        BleBatteryServiceContext* ctx = instance->context;
+        ctx->event_type = event->type;
+        ble_service_enqueue_run(instance);
+        ble_service_unlock(instance);
+    }
+}
 
 static void ble_service_battery_update(BleServiceObject* instance) {
     PowerInfo info = {0};
@@ -66,12 +64,10 @@ bool ble_service_battery_init(void* object) {
 
     ble_service_battery_update(instance);
 
-    ///TODO: Temporary blocked events from battery service
-    ///because they cause crash. Unblock when fixed
-    // Power* power = furi_record_open(RECORD_POWER);
-    // context->pubsub_subscription = furi_pubsub_subscribe(
-    //     power_get_pubsub(power), ble_power_pubsub_message_callback, instance);
-    // furi_record_close(RECORD_POWER);
+    Power* power = furi_record_open(RECORD_POWER);
+    context->pubsub_subscription = furi_pubsub_subscribe(
+        power_get_pubsub(power), ble_power_pubsub_message_callback, instance);
+    furi_record_close(RECORD_POWER);
 
     return true;
 }
