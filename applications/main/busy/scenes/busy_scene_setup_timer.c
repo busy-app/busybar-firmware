@@ -1,5 +1,7 @@
 #include "../busy_i.h"
 
+#include <furi_hal_nvm.h>
+
 #include <gui/modules/var_item_list.h>
 
 typedef enum {
@@ -85,6 +87,10 @@ static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
         for(VarItemListId item_id = 0; item_id < VarItemListIdMax; ++item_id) {
             VarItem* item = items[item_id];
             widget_set_visible((Widget*)item, is_shown_in_mode[item_id]);
+        }
+
+        if(!furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+            widget_set_visible((Widget*)items[VarItemListIdDemoMode], false);
         }
     }
 }
