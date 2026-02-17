@@ -3,11 +3,11 @@
     data-id="layout-default-header"
     class="relative h-12 flex justify-between items-center"
   >
-    <div class="flex gap-6">
+    <div class="flex gap-3">
       <UIcon
         data-id="layout-default-header-logo"
         name="i-busy-bar-logo"
-        class="w-[70px] h-[28px]"
+        class="w-[70px] h-[28px] mr-5"
         @click="onLogoClick"
       />
       <div
@@ -24,27 +24,36 @@
         </div>
         <div>{{ power?.battery_charge }}%</div>
       </div>
-      <div class="hidden md:flex items-center gap-2">
+      <CopyButton
+        :text="urlHost"
+        size="md"
+        variant="ghost"
+        color="neutral"
+        class="group hidden md:flex items-center text-base gap-2 px-1 py-0.5 rounded-md"
+        icon-class="opacity-0 transition-opacity group-hover:opacity-100"
+      >
         <div
           data-id="layout-default-header-connection-state"
-          class="flex items-center gap-1"
+          class="flex items-center gap-3"
         >
           <template v-if="deviceStore.isConnected">
             <UIcon
-              :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb' : 'i-bi-wifi-4'"
-              class="w-[18px] h-[22px]"
+              :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb-alt' : 'i-bi-wifi-4'"
+              class="size-5"
             />
             Connected
           </template>
           <template v-else>
             <UIcon
               name="i-bi-alert"
-              class="w-[18px] h-[22px] text-red-500"
+              class="size-5 text-warning"
             />
             Disconnected
           </template>
+
+          <div class="opacity-0 transition-opacity group-hover:opacity-100">{{ urlHost }}</div>
         </div>
-      </div>
+      </CopyButton>
     </div>
 
     <div class="absolute left-1/2 -translate-x-1/2">
@@ -330,6 +339,8 @@ async function init () {
 
   nameModel.value = await deviceStore.fetchDeviceName();
 }
+
+const urlHost = computed(() => window.location.host);
 
 onMounted(async () => {
   await init();

@@ -8,8 +8,8 @@
       class="justify-between"
       @click="copyToClipboard"
     >
-        <template v-if="props.text">{{ props.text }}</template>
-        <slot v-else />
+        <template v-if="!$slots.default">{{ props.text }}</template>
+        <slot />
 
         <UIcon
           :name="currentIcon"
@@ -22,6 +22,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   text: string;
+  iconClass?: string;
 }>();
 
 const copyState = ref<'idle' | 'copying' | 'copied' | 'error'>('idle');
@@ -42,11 +43,11 @@ const currentIcon = computed(() => {
 const iconClassName = computed(() => {
   switch (copyState.value) {
     case 'copied':
-      return 'text-green-500';
+      return `${props.iconClass ?? ''} text-green-500`;
     case 'error':
-      return 'text-red-500';
+      return `${props.iconClass ?? ''} text-red-500`;
     default:
-      return '';
+      return props.iconClass ?? '';
   }
 });
 
