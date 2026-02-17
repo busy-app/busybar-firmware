@@ -5,7 +5,6 @@
     :dismissible="false"
     title="Set password"
     description="This password will be asked each time you open this page with a BUSY Bar connected via Wi-Fi. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
-    wide
     :primary-action-props="{
       label: 'Set password',
       loading: pms.loading,
@@ -19,6 +18,12 @@
       onClick: () => { pms.showSetPasswordModal = false; }
     }"
   >
+    <template #icon>
+      <UIcon
+        name="i-bi-password"
+        class="size-8 text-muted"
+      />
+    </template>
     <template #body>
       <UFormField
         label="Password"
@@ -30,14 +35,14 @@
           name="new-password"
           size="xl"
           variant="soft"
-          :ui="{ base: 'ring-1 ring-glass' }"
+          :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
           :type="pms.passwordModel.showNew ? 'text' : 'password'"
           placeholder="From 4 to 10 digits"
           @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
         >
           <template #trailing>
             <UButton
-              :icon="pms.passwordModel.showNew ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
+              :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
               variant="ghost"
               color="neutral"
               square

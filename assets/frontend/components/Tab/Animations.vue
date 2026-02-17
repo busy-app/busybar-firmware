@@ -24,8 +24,6 @@
           <UButton
             :label="filesModel?.length ? 'Add more files' : 'Select files'"
             color="neutral"
-            variant="soft"
-            :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
             class="mt-2"
           />
         </template>
@@ -38,7 +36,7 @@
             <p class="font-bold">Files ({{ files?.length }})</p>
 
             <UButton
-              icon="i-ri-close-line"
+              icon="i-bi-cross"
               label="Clear"
               color="error"
               variant="ghost"
@@ -50,26 +48,36 @@
       </UFileUpload>
 
       <div class="w-full flex items-end justify-between gap-6">
-        <UFormField label="Frames per second">
-          <UInput
-            v-model="fpsModel"
-            type="number"
-            :min="1"
-            @update:model-value="saveFps"
-          />
-        </UFormField>
+        <div class="flex gap-4">
+          <UFormField label="FPS">
+            <UInput
+              v-model="fpsModel"
+              type="number"
+              :min="1"
+              @update:model-value="saveFps"
+            />
+          </UFormField>
+
+          <UFormField label="Color Mode">
+            <USelect
+              v-model="colorModeModel"
+              :items="colorModeOptions"
+              @update:model-value="saveColorMode"
+            />
+          </UFormField>
+        </div>
 
         <div class="flex gap-2">
           <UButton
             icon="i-bi-download"
             label="Save animation file"
-            color="primary"
+            color="neutral"
             variant="ghost"
             @click="composeAndDownload"
           />
           <UButton
-            icon="i-bi-upload"
-            label="Upload to device"
+            icon="i-bi-control-play"
+            label="Play on device"
             color="neutral"
             variant="solid"
             @click="composeAndUpload"
@@ -82,11 +90,19 @@
 
 <script setup lang="ts">
 import { composeAnimation } from '@/util/seq2anim';
+import type { ColorMode } from '@/util/seq2anim';
+import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 const deviceStore = useDeviceStore();
 
 const filesModel = ref<File[] | null>(null);
-const fpsModel = ref<number>(60);
+const fpsModel = ref<number>(30);
+const colorModeModel = ref<ColorMode>('rgb888');
+
+const colorModeOptions = [
+  { label: 'RGB888 (Front)', value: 'rgb888' },
+  { label: 'Gray4 (Back)', value: 'gray4' }
+];
 
 const animationOutput = ref<Blob | null>(null);
 
@@ -98,7 +114,10 @@ async function handleComposeAnimation () {
 
   try {
     toast.remove('animation-compose-error');
-    const animation = await composeAnimation(filesModel.value, fpsModel.value);
+    const animation = await composeAnimation(filesModel.value, {
+      fps: fpsModel.value,
+      colorMode: colorModeModel.value
+    });
     animationOutput.value = animation;
     console.log('Composed animation:', animationOutput.value);
   } catch (error) {
@@ -133,34 +152,72 @@ async function composeAndDownload () {
 async function composeAndUpload () {
   await handleComposeAnimation();
   if (animationOutput.value) {
-    await deviceStore.busyBar.uploadFile({
-      file: animationOutput.value,
-      path: '/ext/animations/test.anim'
-    })
-      .then(() => {
-        toast.add({
-          title: 'Animation uploaded',
-          description: 'Open Settings > Debug Apps > Animation Player to view it',
-          icon: 'i-bi-checkmark-circle',
-          color: 'success',
-          duration: 0,
-          close: true,
-          closeIcon: 'i-bi-cross'
-        });
-      })
-      .catch(error => {
-        console.error('Error uploading animation file:', error);
-        toast.add({
-          title: 'Upload Failed',
-          description: `Failed to upload animation file: ${error}`,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 0,
-          close: true,
-          closeIcon: 'i-bi-cross'
-        });
+    try {
+      await deleteAssets();
+
+      await uploadAnimation(animationOutput.value);
+
+      await drawAnimation();
+
+      toast.add({
+        title: 'Animation uploaded',
+        description: 'Check the front display to view it',
+        icon: 'i-bi-checkmark-circle',
+        color: 'success',
+        duration: 10000,
+        close: true,
+        closeIcon: 'i-bi-cross'
       });
+    } catch {
+      //
+    }
   }
+}
+
+async function deleteAssets () {
+  return deviceStore.busyBar.AssetsDelete({
+    appId: 'virtual-lan-animation-test'
+  })
+    .catch(async error => {
+      await handleHTTPError(error, 'Couldn\'t delete existing animation assets', true);
+      throw error;
+    });
+}
+
+async function uploadAnimation (animation: Blob) {
+  return deviceStore.busyBar.AssetsUpload({
+    appId: 'virtual-lan-animation-test',
+    file: animation,
+    fileName: 'test.anim'
+  })
+    .catch(async error => {
+      await handleHTTPError(error, 'Couldn\'t upload animation file', true);
+      throw error;
+    });
+}
+
+async function drawAnimation () {
+  return deviceStore.busyBar.DisplayDraw({
+    appId: 'virtual-lan-animation-test',
+    elements: [
+      {
+        id: '0',
+        timeout: 0,
+        align: 'top_left',
+        display: 'front',
+        x: 0,
+        y: 0,
+        type: 'anim',
+        path: 'test.anim',
+        section_name: 'loop',
+        loop: true
+      }
+    ]
+  } as unknown as DisplayDrawParams)
+    .catch(async error => {
+      await handleHTTPError(error, 'Display draw command failed', true);
+      throw error;
+    });
 }
 
 function createObjectUrl (file: File | Blob): string {
@@ -171,10 +228,18 @@ function saveFps () {
   localStorage.setItem('animation-fps', fpsModel.value.toString());
 }
 
+function saveColorMode () {
+  localStorage.setItem('animation-color-mode', colorModeModel.value);
+}
+
 function init () {
   const savedFps = localStorage.getItem('animation-fps');
   if (savedFps) {
     fpsModel.value = parseInt(savedFps, 10);
+  }
+  const savedColorMode = localStorage.getItem('animation-color-mode');
+  if (savedColorMode) {
+    colorModeModel.value = savedColorMode as ColorMode;
   }
 }
 

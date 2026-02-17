@@ -1,0 +1,25 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="20.0031" cy="20.0002" r="19.7531" fill="url(#paint0_radial_4292_73463)" fill-opacity="0.3"/>
+<circle cx="20.0031" cy="20.0002" r="19.7531" fill="url(#paint1_radial_4292_73463)" fill-opacity="0.45"/>
+<circle cx="20.0031" cy="20.0002" r="19.4444" stroke="url(#paint2_linear_4292_73463)" stroke-width="0.617284"/>
+<g clip-path="url(#clip0_4292_73463)">
+<path d="M16.3623 14.4853C17.1152 15.0961 18.0103 15.5069 18.9644 15.6793V10.5885L20.0013 9.99023L21.0372 10.5885V15.6793C21.9916 15.5067 22.8869 15.096 23.6403 14.4853L25.5225 15.5739C22.4612 18.6026 17.5324 18.6026 14.4711 15.5739L16.3623 14.4853ZM18.6499 27.4856C19.7416 23.3188 17.2749 19.0499 13.1197 17.9151V20.0933C14.0254 20.4399 14.829 21.0096 15.456 21.7494L11.0469 24.2949V25.4922L12.0837 26.0872L16.492 23.5418C16.8197 24.4545 16.9114 25.4352 16.7587 26.3928L18.6499 27.4856ZM26.878 17.9151C22.725 19.0524 20.261 23.3204 21.3526 27.4856L23.239 26.3961C23.0865 25.4384 23.1782 24.4578 23.5057 23.545L27.9107 26.0872L28.9467 25.489V24.2949L24.5376 21.7494C25.1648 21.0098 25.9683 20.4402 26.8739 20.0933L26.878 17.9151Z" fill="white"/>
+</g>
+<defs>
+<radialGradient id="paint0_radial_4292_73463" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(20.0031 20.0002) rotate(90) scale(19.7531)">
+<stop stop-opacity="0"/>
+<stop offset="1" stop-color="#404040"/>
+</radialGradient>
+<radialGradient id="paint1_radial_4292_73463" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(20.0031 20.0002) rotate(90) scale(19.7531)">
+<stop offset="0.721154" stop-opacity="0"/>
+<stop offset="1" stop-color="#737373"/>
+</radialGradient>
+<linearGradient id="paint2_linear_4292_73463" x1="20.0031" y1="0.24707" x2="20.0031" y2="39.7532" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FAFAFA" stop-opacity="0.2"/>
+<stop offset="1" stop-opacity="0"/>
+</linearGradient>
+<clipPath id="clip0_4292_73463">
+<rect width="17.9012" height="17.5502" fill="white" transform="translate(11.0469 9.99023)"/>
+</clipPath>
+</defs>
+</svg>
