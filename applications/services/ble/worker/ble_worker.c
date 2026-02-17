@@ -476,7 +476,10 @@ static bool ble_worker_start_advertising(
 #endif
 
     ble_adv.status = RSI_BLE_START_ADV;
-    ble_adv.adv_type = advertise_to_paired_only ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
+    ///TODO: This is blocked because it doesn't work on IPhone. It just doesn't see
+    ///BSB in case of direct advertise.
+    // ble_adv.adv_type = advertise_to_paired_only ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
+    ble_adv.adv_type = UNDIR_CONN;
 
     ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
     ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
