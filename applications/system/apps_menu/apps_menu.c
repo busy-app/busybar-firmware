@@ -8,8 +8,6 @@
 
 #define TAG "AppsMenu"
 
-#define APPS_MENU_NAV_BAR_HEIGHT 20
-
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
 
@@ -120,10 +118,10 @@ static AppsMenu* apps_menu_alloc(void* launching_subapp) {
         flex_layout_set_spacing(app->back_container, 2);
 
         app->back_nav_bar = nav_bar_alloc(flex_layout_get_base(app->back_container));
-        nav_bar_set_header_image(app->back_nav_bar, APPS_MENU_IMG_PATH("apps_menu_back_7x7.bin"));
+        nav_bar_set_header_image(app->back_nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.bin"));
         nav_bar_set_header_text(app->back_nav_bar, "APPS");
-        widget_set_height(nav_bar_get_base(app->back_nav_bar), APPS_MENU_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(app->back_nav_bar), 6, 6, 0, 0);
+        widget_set_height(nav_bar_get_base(app->back_nav_bar), 14);
+        widget_set_padding(nav_bar_get_base(app->back_nav_bar), 1, 0, 0, 0);
 
         app->back_scene_window = widget_alloc(flex_layout_get_base(app->back_container));
         flex_layout_set_child_widget_grow(app->back_container, app->back_scene_window, 1);
