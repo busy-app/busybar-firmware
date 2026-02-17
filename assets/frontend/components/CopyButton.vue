@@ -1,19 +1,22 @@
 <template>
-  <UButton
-    class="px-0 justify-between"
-    @click="copyToClipboard"
+  <UTooltip
+    :delay-duration="0"
+    :text="copyState === 'idle' ? 'Copy to clipboard' : copyState === 'copied' ? 'Copied!' : undefined"
   >
-    {{ props.text }}
-    <UTooltip
-      :delay-duration="0"
-      :text="copyState === 'idle' ? 'Copy to clipboard' : copyState === 'copied' ? 'Copied!' : undefined"
+    <UButton
+      v-bind="$attrs"
+      class="justify-between"
+      @click="copyToClipboard"
     >
-      <UIcon
-        :name="currentIcon"
-        :class="iconClassName"
-      />
-    </UTooltip>
-  </UButton>
+        <template v-if="props.text">{{ props.text }}</template>
+        <slot v-else />
+
+        <UIcon
+          :name="currentIcon"
+          :class="iconClassName"
+        />
+    </UButton>
+  </UTooltip>
 </template>
 
 <script setup lang="ts">
@@ -84,7 +87,7 @@ async function copyToClipboard () {
     });
     setTimeout(() => {
       copyState.value = 'idle';
-    }, 1500);
+    }, 2000);
   }
 }
 </script>
