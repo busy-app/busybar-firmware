@@ -47,7 +47,7 @@
             :default-value="volumeNumber"
             :ui="{
               root: '',
-              track: 'h-[14px]',
+              track: 'h-[14px] bg-accented/50 dark:bg-accented',
               range: `${mute.isMuted ? 'bg-neutral' : 'bg-primary-500'} rounded-r-none`,
               thumb: `${mute.isMuted ? 'bg-neutral' : 'bg-primary-500'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
@@ -102,7 +102,7 @@
             :default-value="brightnessNumber"
             :ui="{
               root: '',
-              track: 'h-[14px]',
+              track: 'h-[14px] bg-accented/50 dark:bg-accented',
               range: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary-500'} rounded-r-none`,
               thumb: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary-500'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"

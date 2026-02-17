@@ -46,6 +46,7 @@
 
   --ui-text: var(--color-neutral-700);
   --ui-bg: var(--color-neutral-50);
+  --ui-bg-accented: var(--color-neutral-300);
   --ui-info: var(--color-info-500);
   --ui-success: var(--color-success-500);
   --ui-error: var(--color-error-500);
@@ -59,6 +60,7 @@
 .dark {
   --ui-text: var(--color-neutral-200);
   --ui-bg: var(--color-old-neutral-950);
+  --ui-bg-accented: var(--color-neutral-700);
   --ui-success: var(--color-success-400);
   --ui-error: var(--color-error-400);
   --ui-modal-bg: --alpha(var(--color-neutral-800) / 75%);
