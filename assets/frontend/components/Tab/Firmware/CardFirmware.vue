@@ -37,7 +37,9 @@
           'Version': system?.version,
           'Build date': system?.build_date,
           'Branch': system?.branch,
-          'Commit hash': system?.commit_hash
+          'API version': deviceStore.apiVersion?.api_semver || 'Unknown',
+          'Commit hash': system?.commit_hash,
+          'Uptime': system?.uptime ? system.uptime.slice(0, system.uptime.lastIndexOf(' ')) :'Unknown'
         })"
         :key="property"
         class="flex"
