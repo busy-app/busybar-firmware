@@ -1,7 +1,9 @@
 #include "power_i.h"
 #include <toolbox/dsp.h>
 #include <drivers/bq25798/bq25798.h>
+#if defined(SRV_STORAGE)
 #include <storage/storage.h>
+#endif
 
 #include <furi_hal_nvm.h>
 
@@ -88,9 +90,11 @@ static void power_gpio_isr(void* context) {
 }
 
 static void shutdown_storage(void) {
+#if defined(SRV_STORAGE)
     Storage* storage = furi_record_open(RECORD_STORAGE);
     storage_common_shutdown(storage);
     furi_record_close(RECORD_STORAGE);
+#endif
 }
 
 static void power_handle_shutdown(Power* power, bool full_shutdown) {
