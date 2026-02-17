@@ -8,9 +8,8 @@ export const useBrightnessStore = defineStore('brightness', () => {
   async function fetchDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
     const brightness = await deviceStore.busyBar.DisplayBrightnessGet()
       .then(response => {
-        const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
-        const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
-        const result = { front: frontParsed, back: backParsed } as DisplayBrightnessParams;
+        const valueParsed = response.value === 'auto' ? 'auto' : Number(response.value);
+        const result = { value: valueParsed } as DisplayBrightnessParams;
         displayBrightness.value = result;
         return result;
       })

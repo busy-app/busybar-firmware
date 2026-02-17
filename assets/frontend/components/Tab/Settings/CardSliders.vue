@@ -183,8 +183,8 @@ async function refreshDisplayBrightness () {
 }
 
 const nextBrightnessNumber = ref<number | undefined>(undefined);
-const brightnessNumber = computed(() => isNaN(Number(brightnessStore.displayBrightness?.front)) ? 50 : Number(brightnessStore.displayBrightness?.front));
-const isBrightnessAuto = computed(() => brightnessStore.displayBrightness?.front === 'auto');
+const brightnessNumber = computed(() => isNaN(Number(brightnessStore.displayBrightness?.value)) ? 50 : Number(brightnessStore.displayBrightness?.value));
+const isBrightnessAuto = computed(() => brightnessStore.displayBrightness?.value === 'auto');
 
 function disableAutoBrightness () {
   nextBrightnessNumber.value = 50;
@@ -204,12 +204,10 @@ async function setDisplayBrightness () {
   const b = nextBrightnessNumber.value;
 
   await brightnessStore.setDisplayBrightness({
-    front: b,
-    back: b
+    value: b
   });
   brightnessStore.displayBrightness = {
-    front: b,
-    back: b
+    value: b
   };
 
   setTimeout(() => {
@@ -220,12 +218,10 @@ async function setDisplayBrightness () {
 async function setBrightnessToAuto () {
   loading.value.brightness = true;
   await brightnessStore.setDisplayBrightness({
-    front: 'auto',
-    back: 'auto'
+    value: 'auto'
   });
   brightnessStore.displayBrightness = {
-    front: 'auto',
-    back: 'auto'
+    value: 'auto'
   };
   nextBrightnessNumber.value = 50;
   loading.value.brightness = false;
