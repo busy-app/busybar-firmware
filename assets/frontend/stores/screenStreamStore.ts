@@ -22,6 +22,7 @@ export const useScreenStreamStore = defineStore('screenStream', () => {
   ) {
     screenStream.value = new ScreenStream({
       addr: useRuntimeConfig().public.barUrl || window.location.origin,
+      apiKey: useApiStore().apiKey || '',
       deviceScreen
     });
 

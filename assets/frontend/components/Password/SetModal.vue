@@ -5,7 +5,6 @@
     :dismissible="false"
     title="Set password"
     description="This password will be asked each time you open this page with a BUSY Bar connected via Wi-Fi. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
-    wide
     :primary-action-props="{
       label: 'Set password',
       loading: pms.loading,
@@ -19,6 +18,12 @@
       onClick: () => { pms.showSetPasswordModal = false; }
     }"
   >
+    <template #icon>
+      <UIcon
+        name="i-bi-password"
+        class="size-8 text-muted"
+      />
+    </template>
     <template #body>
       <UFormField
         label="Password"

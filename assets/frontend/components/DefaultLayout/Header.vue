@@ -196,16 +196,18 @@ const colorMode = useColorMode();
 const passwordSetItems = [
   {
     label: 'Lock down',
-    icon: 'i-ri-lock-fill',
-    onSelect: () => lockDown
+    icon: 'i-bi-lock',
+    onSelect: () => {
+      lockDown();
+    }
   },
   {
-    label: 'Password',
-    icon: 'i-ri-lock-password-line',
+    label: 'Virtual LAN password',
+    icon: 'i-bi-password',
     children: [
       {
         label: 'Change',
-        icon: 'i-ri-pencil-line',
+        icon: 'i-bi-edit',
         onSelect: () => {
           pms.passwordModel.current = '';
           pms.passwordModel.currentWrong = false;
@@ -215,7 +217,7 @@ const passwordSetItems = [
       },
       {
         label: 'Remove',
-        icon: 'i-ri-lock-unlock-line',
+        icon: 'i-bi-unlock',
         onSelect: () => {
           pms.passwordModel.current = '';
           pms.passwordModel.currentWrong = false;
@@ -243,8 +245,8 @@ const userDropdownItems = computed(() => {
   const baseItems = [
     [
       {
-        label: 'Sign in to BUSY Account',
-        icon: 'i-ri-account-circle-fill',
+        label: 'Log in to BUSY Account',
+        icon: 'i-bi-user',
         slot: 'signin' as const,
         type: 'link',
         href: 'https://cloud.busy.app',
@@ -253,7 +255,7 @@ const userDropdownItems = computed(() => {
     ],
     [
       {
-        label: `${colorMode.value === 'dark' ? 'Light' : 'Dark'} theme`,
+        label: `${colorMode.value === 'dark' ? 'Switch to light' : 'Switch to dark'} theme`,
         icon: colorMode.value === 'dark' ? 'i-ri-sun-line' : 'i-ri-moon-line',
         onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
       }
@@ -313,7 +315,7 @@ async function restartDevice () {
 async function lockDown () {
   apiStore.apiKey = null;
   deviceStore.busyBar.setApiKey('');
-  await navigateTo('/login');
+  await navigateTo('/login', { external: true });
 }
 
 const power = computed(() => deviceStore.deviceStatus?.power);

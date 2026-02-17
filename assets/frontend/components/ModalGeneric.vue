@@ -12,7 +12,7 @@
       description: 'hidden',
       header: 'min-h-20',
       title: 'text-xl flex items-center gap-2',
-      body: 'pt-0 sm:pt-0 sm:p-5 overflow-y-auto',
+      body: 'pt-0 sm:pt-0 sm:px-5 sm:pb-5 overflow-y-auto',
       close: showCloseButton ? 'flex top-6 end-5' :'hidden'
     }"
   >

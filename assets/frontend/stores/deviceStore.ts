@@ -208,6 +208,11 @@ export const useDeviceStore = defineStore('device', () => {
     return await busyBar.value.SettingsAccessSet(payload as HttpAccessParams)
       .then(async () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
+        toast.add({
+          title: mode === 'key' ? 'Password set' : 'Changes saved',
+          icon: 'i-bi-checkmark-circle-fill',
+          color: 'success'
+        });
         return true;
       })
       .catch(async error => {
