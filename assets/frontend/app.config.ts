@@ -29,15 +29,6 @@ export default defineAppConfig({
     container: {
       base: 'p-0 sm:p-0 lg:p-0'
     },
-    badge: {
-      compoundVariants: [
-        {
-          color: 'neutral',
-          variant: 'soft',
-          class: 'text-neutral-400 dark:text-neutral-500 bg-elevated'
-        }
-      ]
-    },
     button: {
       slots: {
         base: 'rounded-full cursor-pointer'
@@ -59,14 +50,18 @@ export default defineAppConfig({
         {
           color: 'primary',
           variant: 'solid',
-          class: '!text-white dark:text-white dark:bg-primary-500'
+          class: 'dark:text-white dark:bg-primary-500'
+        },
+        {
+          color: 'neutral',
+          variant: 'outline',
+          class: 'bg-transparent'
         }
       ]
     },
     formField: {
       slots: {
-        help: 'mt-1 text-label text-xs text-neutral-500 dark:text-neutral-400',
-        error: 'mt-1 text-label text-xs text-red-500 dark:text-red-400'
+        error: 'mt-1 text-xs'
       }
     },
     input: {
@@ -90,14 +85,19 @@ export default defineAppConfig({
       variants: {
         fullscreen: {
           false: {
-            content: 'rounded-3xl'
+            content: 'max-w-[480px] rounded-3xl divide-none bg-modal ring-1 ring-glass',
+            overlay: 'bg-modal-overlay'
           }
         }
       }
     },
     switch: {
       slots: {
+        base: 'dark:data-[state=checked]:bg-primary-500',
         thumb: 'bg-white dark:bg-white'
+      },
+      defaultVariants: {
+        size: 'xl'
       }
     }
   }

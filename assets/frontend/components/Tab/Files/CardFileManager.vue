@@ -46,7 +46,7 @@
             v-if="inputMenuModel.length > 0 && inputMenuItems.length > 0"
             class="fim-focus-visible
               w-full absolute top-8 flex flex-col gap-0.5 p-1.5
-              rounded-md text-sm bg-white dark:bg-neutral-900 ring ring-inset ring-accented z-30"
+              rounded-md text-sm bg-default ring ring-inset ring-accented z-30"
           >
             <div
               v-for="(item, index) in inputMenuItems"
@@ -257,8 +257,7 @@
               icon: 'size-6',
               label: 'text-lg',
               description: 'text-sm',
-              files: 'max-h-[175px] overflow-y-auto',
-              file: 'bg-neutral-200 dark:bg-neutral-900'
+              files: 'max-h-[175px] overflow-y-auto'
             }"
             @update:model-value="removeUpdatedFiles"
           >
@@ -266,8 +265,6 @@
               <UButton
                 :label="filesModel?.length ? 'Add more files' : 'Select files'"
                 color="neutral"
-                variant="soft"
-                :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
                 class="mt-2"
                 :disabled="loading.write"
               />
@@ -297,7 +294,7 @@
                 <div
                   v-for="(file, index) in filesModel"
                   :key="index"
-                  class="min-h-8 flex justify-between gap-2 items-center p-2 rounded bg-neutral-200 dark:bg-neutral-900"
+                  class="min-h-8 flex justify-between gap-2 items-center p-2 rounded"
                 >
                   <div class="flex items-center gap-2">
                     <UIcon
@@ -655,7 +652,7 @@ function getItemClass (item: StorageListElement, index: number) {
   const isPrevSelected = index > 0 && selectedItems.value.has(currentDir.value[index - 1].name);
   const isNextSelected = index < currentDir.value.length - 1 && selectedItems.value.has(currentDir.value[index + 1].name);
 
-  let classes = 'bg-neutral-200 dark:bg-neutral-700';
+  let classes = 'bg-accented';
 
   if (isPrevSelected && isNextSelected) {
     classes += ' rounded-none';

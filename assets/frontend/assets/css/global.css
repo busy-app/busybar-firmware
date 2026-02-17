@@ -49,6 +49,8 @@
   --ui-info: var(--color-info-500);
   --ui-success: var(--color-success-500);
   --ui-error: var(--color-error-500);
+  --ui-modal-bg: --alpha(var(--color-neutral-100) / 90%);
+  --ui-modal-overlay-bg: --alpha(var(--color-neutral-900) / 20%);
 
   --glass-ring-inner: --alpha(var(--color-white) / 10%);
   --glass-ring-outer: --alpha(var(--color-black) / 4%);
@@ -59,7 +61,8 @@
   --ui-bg: var(--color-old-neutral-950);
   --ui-success: var(--color-success-400);
   --ui-error: var(--color-error-400);
-
+  --ui-modal-bg: --alpha(var(--color-neutral-800) / 75%);
+  --ui-modal-overlay-bg: --alpha(var(--color-neutral-900) / 80%);
   --glass-ring-inner: --alpha(var(--color-white) / 10%);
   --glass-ring-outer: --alpha(var(--color-white) / 4%);
 }
@@ -103,6 +106,14 @@
     var(--tw-ring-offset-shadow),
     var(--ring-shadow),
     var(--tw-shadow) !important;
+}
+
+@utility bg-modal {
+  background-color: var(--ui-modal-bg);
+  backdrop-filter: blur(5px);
+}
+@utility bg-modal-overlay {
+  background-color: var(--ui-modal-overlay-bg);
 }
 
 @layer utilities {

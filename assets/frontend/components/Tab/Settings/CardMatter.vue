@@ -65,12 +65,10 @@
         title="Forget all pairings?"
         description="Your BUSY Bar will be removed from your smart home automations. The device will restart after removal."
         :ui="{
-          content: 'max-w-[480px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
           description: 'hidden',
           header: 'hidden',
           body: 'p-0 sm:p-0 overflow-visible',
-          close: 'hidden',
-          overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
+          close: 'hidden'
         }"
       >
         <template #body>
@@ -109,12 +107,11 @@
         title="Restarting BUSY Bar..."
         description="Restarting BUSY Bar..."
         :ui="{
-          content: 'max-w-[360px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
+          content: 'max-w-[360px]',
           description: 'hidden',
           header: 'hidden',
           body: 'p-5 sm:p-5',
-          close: 'hidden',
-          overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
+          close: 'hidden'
         }"
       >
         <template #body>

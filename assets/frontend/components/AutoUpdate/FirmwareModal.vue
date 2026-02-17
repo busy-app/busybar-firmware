@@ -6,12 +6,11 @@
     :dismissible="stage !== UpdateStage.LOADING && stage !== UpdateStage.UPDATING"
     :description="String(stage)"
     :ui="{
-      content: 'max-w-[640px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
+      content: 'max-w-[640px]',
       description: 'hidden',
       header: 'hidden',
       body: 'p-0 sm:p-0 overflow-visible',
-      close: 'hidden',
-      overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
+      close: 'hidden'
     }"
   >
     <template #body>
@@ -57,6 +56,7 @@
           <div class="w-full flex justify-end">
             <UButton
               color="neutral"
+              size="lg"
               variant="ghost"
               label="Cancel"
               @click="handleAbortDownload"

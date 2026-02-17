@@ -24,8 +24,6 @@
           <UButton
             :label="filesModel?.length ? 'Add more files' : 'Select files'"
             color="neutral"
-            variant="soft"
-            :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
             class="mt-2"
           />
         </template>

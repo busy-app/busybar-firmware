@@ -5,12 +5,10 @@
     title="Charge your BUSY bar"
     description="The battery charge is too low to start the update (must be 40% or higher)."
     :ui="{
-      content: 'max-w-[480px] divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass',
       description: 'hidden',
       header: 'hidden',
       body: 'p-0 sm:p-0 overflow-visible',
-      close: 'hidden',
-      overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
+      close: 'hidden'
     }"
   >
     <template #body>
@@ -27,6 +25,7 @@
           <UButton
             color="neutral"
             label="Got it"
+            size="lg"
             class="min-w-20 justify-center"
             @click="firmwareStore.autoUpdate.modals.batteryLow = false"
           />
