@@ -1831,7 +1831,11 @@ components:
         elements:
           type: array
           items:
-            $ref: "#/components/schemas/DisplayElement"
+            oneOf:
+              - $ref: "#/components/schemas/TextElement"
+              - $ref: "#/components/schemas/ImageElement"
+              - $ref: "#/components/schemas/AnimElement"
+              - $ref: "#/components/schemas/CountdownElement"
           description: Array of elements to display
       required:
         - app_id
