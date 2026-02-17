@@ -13,14 +13,14 @@
         <div class="flex justify-between items-center">
           <UIcon
             data-id="mute-icon"
-            :name="mute.isMuted ? 'i-ri-volume-mute-line' : 'i-ri-volume-up-line'"
+            :name="mute.isMuted ? 'i-bi-sound-off' : 'i-bi-sound'"
             class="size-7"
           />
 
           <UButton
             data-id="mute-button"
             label="Mute"
-            icon="i-ri-volume-mute-line"
+            icon="i-bi-sound-off"
             size="sm"
             :variant="mute.isMuted ? 'solid' : 'subtle'"
             color="neutral"
@@ -48,8 +48,8 @@
             :ui="{
               root: '',
               track: 'h-[14px]',
-              range: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
-              thumb: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
+              range: `${mute.isMuted ? 'bg-neutral' : 'bg-primary-500'} rounded-r-none`,
+              thumb: `${mute.isMuted ? 'bg-neutral' : 'bg-primary-500'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
             @change="onChangeAudioSlider"
           />
@@ -60,7 +60,7 @@
         <div class="flex justify-between items-center">
           <UIcon
             data-id="brightness-auto-icon"
-            :name="isBrightnessAuto ? 'i-busy-brightness-auto' : 'i-ri-sun-line'"
+            :name="isBrightnessAuto ? 'i-bi-brightness-auto-control' : 'i-bi-brightness'"
             class="size-7"
           />
 
@@ -103,8 +103,8 @@
             :ui="{
               root: '',
               track: 'h-[14px]',
-              range: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
-              thumb: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
+              range: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary-500'} rounded-r-none`,
+              thumb: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary-500'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
             @change="onChangeBrightnessSlider"
           />
@@ -231,14 +231,29 @@ async function setBrightnessToAuto () {
   loading.value.brightness = false;
 }
 
+const refreshInterval = ref<NodeJS.Timeout | null>(null);
+
 async function init () {
   await refreshAudioVolume();
   await refreshDisplayBrightness();
+
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value);
+  }
+  refreshInterval.value = setInterval(() => {
+    refreshAudioVolume();
+    refreshDisplayBrightness();
+  }, 30000);
 }
 
 onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
 });
-onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
+onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', init);
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value);
+  }
+});
 </script>
