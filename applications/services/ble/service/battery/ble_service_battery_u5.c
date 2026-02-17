@@ -7,6 +7,8 @@
 typedef struct {
     PowerEventType event_type;
     FuriPubSubSubscription* pubsub_subscription;
+    uint8_t prev_charge;
+    BatteryStatusInfo prev_status;
 } BleBatteryServiceContext;
 
 ///TODO: Temporary blocked events from battery service
@@ -28,11 +30,14 @@ static void ble_service_battery_update(BleServiceObject* instance) {
     Power* power = furi_record_open(RECORD_POWER);
     power_get_info(power, &info);
     furi_record_close(RECORD_POWER);
-
-    BleCharacteristicObject* ch = instance->chars[BleSrvBatteryCharacterIndexBatteryLevel];
-    ble_characteristic_set_data(ch, &info.charge, sizeof(info.charge));
-
     BleBatteryServiceContext* ctx = instance->context;
+
+    if(info.charge != ctx->prev_charge) {
+        BleCharacteristicObject* ch = instance->chars[BleSrvBatteryCharacterIndexBatteryLevel];
+        ble_characteristic_set_data(ch, &info.charge, sizeof(info.charge));
+        ctx->prev_charge = info.charge;
+    }
+
     BatteryStatusInfo battery_status = {0};
     battery_status.flags = 0;
     battery_status.state.fields.battery_present =
@@ -44,8 +49,12 @@ static void ble_service_battery_update(BleServiceObject* instance) {
     battery_status.state.fields.charging_type = 2;
     battery_status.state.fields.charging_fault_reason = 0;
 
-    ch = instance->chars[BleSrvBatteryCharacterIndexBatteryStatus];
-    ble_characteristic_set_data(ch, &battery_status, sizeof(BatteryStatusInfo));
+    if(battery_status.state.value != ctx->prev_status.state.value) {
+        BleCharacteristicObject* ch = instance->chars[BleSrvBatteryCharacterIndexBatteryStatus];
+        ble_characteristic_set_data(ch, &battery_status, sizeof(BatteryStatusInfo));
+        ctx->prev_status.flags = 0;
+        ctx->prev_status.state.value = battery_status.state.value;
+    }
 }
 
 bool ble_service_battery_init(void* object) {
