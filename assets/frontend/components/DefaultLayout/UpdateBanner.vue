@@ -83,10 +83,16 @@ async function handleUpdateClick () {
 
 <style scoped>
 .can-update {
-  background: linear-gradient(90deg, var(--success-950, rgba(5, 46, 22, 0.80)) 29.96%, var(--success-800, rgba(1, 101, 56, 0.80)) 100%);
+  background: var(--color-success-50);
+}
+.dark .can-update {
+  background: linear-gradient(90deg, var(--color-success-950) 29.96%, var(--color-success-800) 100%);
 }
 
 .not-allowed {
-  background: linear-gradient(90deg, var(--warning-800, rgba(137, 75, 0, 0.40)) 29.96%, var(--warning-500, rgba(239, 177, 0, 0.40)) 100%);
+  background: var(--color-warning-50);
+}
+.dark .not-allowed {
+  background: linear-gradient(90deg, var(--color-warning-800) 29.96%, var(--color-warning-500) 100%);
 }
 </style>
