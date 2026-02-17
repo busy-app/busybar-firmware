@@ -181,7 +181,11 @@ static void cli_commands_init(CliRegistry* registry) {
 
 #ifdef SRV_INTERCOM
     cli_registry_add_command(
-        registry, "sl_cli", CliCommandFlagParallelSafe, cli_command_sl_cli, NULL);
+        registry,
+        "sl_cli",
+        CliCommandFlagParallelSafe | CliCommandFlagExclusive,
+        cli_command_sl_cli,
+        NULL);
 #endif // SRV_INTERCOM
     cli_registry_add_command(
         registry, "date", CliCommandFlagParallelSafe, cli_command_rtc_date, NULL);

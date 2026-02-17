@@ -156,6 +156,7 @@ bool anim_player_start(AnimPlayer* instance) {
     furi_check(instance);
     if(!instance->file) return false;
     lv_timer_resume(instance->timer);
+    lv_timer_ready(instance->timer);
     return true;
 }
 

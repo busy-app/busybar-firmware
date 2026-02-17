@@ -42,6 +42,7 @@ typedef enum {
     WifiStatusScanNotPossible, /**< Failed to scan due to Wifi being connected. */
     WifiStatusAccessPointNotFound, /**< Wifi access point was not found. */
     WifiStatusAuthenticationFailed, /**< Wifi authentication failed. */
+    WifiStatusConfigurationFailed, /**<  Wifi configuration failed (e.g. DHCP failure). */
     WifiStatusMax, /**< Special value, internal use */
 } WifiStatus;
 

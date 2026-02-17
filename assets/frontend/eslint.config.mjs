@@ -1,12 +1,12 @@
 // @ts-check
-import stylisticTs from '@stylistic/eslint-plugin-ts';
+import stylistic from '@stylistic/eslint-plugin';
 import { withNuxt } from './.nuxt/eslint.config.mjs';
 
 export default withNuxt(
   {},
   {
     plugins: {
-      '@stylistic/ts': stylisticTs
+      '@stylistic': stylistic
     },
     ignores: ['**/.output', '**/.nitro', '**/.netlify', '**/.nuxt', '**/*.gen.*'],
     rules: {
@@ -27,7 +27,7 @@ export default withNuxt(
       '@stylistic/indent-binary-ops': ['error', 2],
       '@stylistic/max-statements-per-line': ['error', { max: 1 }],
       '@stylistic/new-parens': 'error',
-      '@stylistic/no-mixed-operators': 'error',
+      '@stylistic/no-mixed-operators': 'off',
       '@stylistic/no-mixed-spaces-and-tabs': 'error',
       '@stylistic/no-multi-spaces': 'error',
       '@stylistic/no-multiple-empty-lines': ['error', { max: 1 }],
@@ -46,24 +46,23 @@ export default withNuxt(
       '@stylistic/type-generic-spacing': ['error'],
       '@stylistic/type-named-tuple-spacing': ['error'],
 
-      // https://eslint.style/packages/ts#rules
-      '@stylistic/ts/block-spacing': 'error',
-      '@stylistic/ts/brace-style': 'error',
-      '@stylistic/ts/comma-dangle': ['error', 'never'],
-      '@stylistic/ts/comma-spacing': 'error',
-      '@stylistic/ts/function-call-spacing': ['error', 'never'],
-      '@stylistic/ts/indent': 'off', // https://github.com/typescript-eslint/typescript-eslint/issues/1824
-      '@stylistic/ts/key-spacing': ['error', { beforeColon: false }],
-      '@stylistic/ts/keyword-spacing': ['error', { after: true, before: true }],
-      '@stylistic/ts/member-delimiter-style': 'error',
-      '@stylistic/ts/no-extra-semi': 'error',
-      '@stylistic/ts/no-unused-vars': 0,
-      '@stylistic/ts/quotes': ['error', 'single'],
-      '@stylistic/ts/semi': 'error',
-      '@stylistic/ts/space-before-blocks': 'error',
-      '@stylistic/ts/space-before-function-paren': 'error',
-      '@stylistic/ts/space-infix-ops': 'error',
-      '@stylistic/ts/type-annotation-spacing': 'error',
+      // ts
+      '@stylistic/block-spacing': 'error',
+      '@stylistic/brace-style': 'error',
+      '@stylistic/comma-dangle': ['error', 'never'],
+      '@stylistic/comma-spacing': 'error',
+      '@stylistic/function-call-spacing': ['error', 'never'],
+      '@stylistic/indent': ['error', 2], // careful, https://github.com/typescript-eslint/typescript-eslint/issues/1824
+      '@stylistic/key-spacing': ['error', { beforeColon: false }],
+      '@stylistic/keyword-spacing': ['error', { after: true, before: true }],
+      '@stylistic/member-delimiter-style': 'error',
+      '@stylistic/no-extra-semi': 'error',
+      '@stylistic/no-unused-vars': 0,
+      '@stylistic/quotes': ['error', 'single'],
+      '@stylistic/semi': 'error',
+      '@stylistic/space-before-blocks': 'error',
+      '@stylistic/space-infix-ops': 'error',
+      '@stylistic/type-annotation-spacing': 'error',
 
       'unicorn/consistent-function-scoping': 0,
       'unicorn/filename-case': 0,

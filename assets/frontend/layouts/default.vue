@@ -6,15 +6,23 @@
     <UContainer>
       <template v-if="shouldLoadDefaultPage">
         <DefaultLayoutHeader />
-        <DefaultLayoutPreview class="pb-10" />
+        <DefaultLayoutPreview class="pb-6" />
 
         <PasswordSetModal />
         <PasswordUpdateModal />
         <PasswordRemoveModal />
 
+        <AutoUpdateChangelogModal />
+        <AutoUpdateBatteryLowModal />
+        <AutoUpdateFirmwareModal />
+        <FileUpdateUploadModal />
+
         <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
           <DefaultLayoutTabs />
-          <div class="w-full max-w-[688px] mx-auto">
+          <div class="w-full max-w-[688px] flex flex-col gap-4 mx-auto">
+            <!-- <DevtoolsPalette /> -->
+
+            <DefaultLayoutUpdateBanner />
             <slot />
           </div>
         </div>
@@ -33,18 +41,32 @@
 
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
+const firmwareStore = useFirmwareStore();
+const wifiStore = useWifiStore();
 
 if (!useRuntimeConfig().public.disablePolling) {
   deviceStore.setRefreshInterval();
+  firmwareStore.setAutoUpdateBackgroundCheckInterval();
 } else {
   console.log('Polling disabled');
 }
 
 const shouldLoadDefaultPage = ref(false);
 async function init () {
-  // early access check
   try {
     await deviceStore.fetchDeviceName(true);
+
+    // initialize device and wifi state
+    await deviceStore.fetchDeviceStatus();
+    await wifiStore.fetchWifiState();
+
+    // clear auto-update state (stale after fw update)
+    firmwareStore.resetAutoUpdateState();
+
+    // request fresh auto-update status, non-blocking
+    if (wifiStore.wifi?.state === 'connected') {
+      await firmwareStore.fetchAutoUpdateStatus();
+    }
   } catch (error) {
     if ((error as { status: number }).status === 403) {
       return await navigateTo('/login');
@@ -56,10 +78,13 @@ async function init () {
 onMounted(async () => {
   await init();
   window.addEventListener('device-reconnected', init);
+  window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
+  firmwareStore.clearAutoUpdateBackgroundCheckInterval();
   window.removeEventListener('device-reconnected', init);
+  window.removeEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 </script>

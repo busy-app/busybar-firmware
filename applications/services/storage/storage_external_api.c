@@ -1033,6 +1033,7 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path) {
     File* dir = storage_file_alloc(storage);
     cur_dir = furi_string_alloc_set(path);
     bool go_deeper = false;
+    FS_Error error = FSE_OK;
 
     while(1) {
         if(!storage_dir_open(dir, furi_string_get_cstr(cur_dir))) {
@@ -1048,11 +1049,13 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path) {
             }
 
             fullname = furi_string_alloc_printf("%s/%s", furi_string_get_cstr(cur_dir), name);
-            FS_Error error = storage_common_remove(storage, furi_string_get_cstr(fullname));
-            furi_check(error == FSE_OK);
+            error = storage_common_remove(storage, furi_string_get_cstr(fullname));
             furi_string_free(fullname);
+            if(error != FSE_OK) break;
         }
         storage_dir_close(dir);
+
+        if(error != FSE_OK) break;
 
         if(go_deeper) {
             go_deeper = false;
@@ -1075,7 +1078,7 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path) {
     storage_file_free(dir);
     furi_string_free(cur_dir);
     free(name);
-    return result;
+    return result && (error == FSE_OK);
 } //-V773
 
 bool storage_simply_remove(Storage* storage, const char* path) {
