@@ -149,6 +149,11 @@ button {
   @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
 }
 
+input[aria-invalid="true"] {
+  --glass-ring-inner: var(--ui-error);
+  --glass-ring-outer: var(--ui-error);
+}
+
 article > ul {
   list-style-type: disc;
   padding-left: 1.25rem;
