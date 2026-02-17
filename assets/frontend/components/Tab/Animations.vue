@@ -48,14 +48,26 @@
       </UFileUpload>
 
       <div class="w-full flex items-end justify-between gap-6">
-        <UFormField label="Frames per second">
-          <UInput
-            v-model="fpsModel"
-            type="number"
-            :min="1"
-            @update:model-value="saveFps"
-          />
-        </UFormField>
+        <div class="flex gap-4">
+          <UFormField label="Frames per second">
+            <UInput
+              v-model="fpsModel"
+              type="number"
+              :min="1"
+              @update:model-value="saveFps"
+            />
+          </UFormField>
+
+          <UFormField label="Color Mode">
+            <USelect
+              v-model="colorModeModel"
+              :options="colorModeOptions"
+              option-attribute="label"
+              value-attribute="value"
+              @update:model-value="saveColorMode"
+            />
+          </UFormField>
+        </div>
 
         <div class="flex gap-2">
           <UButton
@@ -80,11 +92,18 @@
 
 <script setup lang="ts">
 import { composeAnimation } from '@/util/seq2anim';
+import type { ColorMode } from '@/util/seq2anim';
 
 const deviceStore = useDeviceStore();
 
 const filesModel = ref<File[] | null>(null);
-const fpsModel = ref<number>(60);
+const fpsModel = ref<number>(30);
+const colorModeModel = ref<ColorMode>('rgb888');
+
+const colorModeOptions = [
+  { label: 'RGB888 (Front)', value: 'rgb888' },
+  { label: 'Gray4 (Back)', value: 'gray4' }
+];
 
 const animationOutput = ref<Blob | null>(null);
 
@@ -96,7 +115,10 @@ async function handleComposeAnimation () {
 
   try {
     toast.remove('animation-compose-error');
-    const animation = await composeAnimation(filesModel.value, fpsModel.value);
+    const animation = await composeAnimation(filesModel.value, {
+      fps: fpsModel.value,
+      colorMode: colorModeModel.value
+    });
     animationOutput.value = animation;
     console.log('Composed animation:', animationOutput.value);
   } catch (error) {
@@ -133,7 +155,7 @@ async function composeAndUpload () {
   if (animationOutput.value) {
     await deviceStore.busyBar.StorageWrite({
       file: animationOutput.value,
-      path: '/ext/animations/test.anim'
+      path: '/ext/animations/temp.anim'
     })
       .then(() => {
         toast.add({
@@ -169,10 +191,18 @@ function saveFps () {
   localStorage.setItem('animation-fps', fpsModel.value.toString());
 }
 
+function saveColorMode () {
+  localStorage.setItem('animation-color-mode', colorModeModel.value);
+}
+
 function init () {
   const savedFps = localStorage.getItem('animation-fps');
   if (savedFps) {
     fpsModel.value = parseInt(savedFps, 10);
+  }
+  const savedColorMode = localStorage.getItem('animation-color-mode');
+  if (savedColorMode) {
+    colorModeModel.value = savedColorMode as ColorMode;
   }
 }
 
