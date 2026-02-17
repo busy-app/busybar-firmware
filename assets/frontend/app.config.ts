@@ -99,6 +99,11 @@ export default defineAppConfig({
       defaultVariants: {
         size: 'xl'
       }
+    },
+    tooltip: {
+      slots: {
+        content: 'bg-inverted text-inverted'
+      }
     }
   }
 });
