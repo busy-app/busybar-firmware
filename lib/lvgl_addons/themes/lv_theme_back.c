@@ -122,7 +122,6 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_image_recolor_opa(&theme->styles.menu_icon, LV_OPA_COVER);
 
     lv_style_init(&theme->styles.menu_arrow);
-    lv_style_set_pad_top(&theme->styles.menu_arrow, MENU_ITEM_PAD_HOR / 2);
     lv_style_set_pad_left(&theme->styles.menu_arrow, MENU_ITEM_PAD_HOR / 2);
     lv_style_set_text_font(&theme->styles.menu_arrow, theme->base.font_small);
 

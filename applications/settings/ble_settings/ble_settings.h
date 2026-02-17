@@ -6,6 +6,8 @@
 
 #include <furi.h>
 
+#include "models/ble_model.h"
+#include <device_name/device_name.h>
 #include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <front_display/front_display.h>
@@ -30,8 +32,10 @@ typedef enum {
 #define THIS_SETTINGS_APP "ble_settings"
 #define ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_SETTINGS_APP) "/" path
 #define IMG_PATH(path)    ASSETS_PATH("images") "/" path
+#define ANIM_PATH(path)   ASSETS_PATH("animations") "/" path
 
 typedef struct {
+    BleModel* model;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;

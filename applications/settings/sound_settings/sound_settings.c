@@ -167,8 +167,8 @@ int32_t sound_settings_entry(void* arg) {
         furi_string_set_str(descriptor->front_title, "Sound");
         furi_string_set_str(descriptor->back_title, "Sound");
         volume_model_format(model, descriptor->menu_extra);
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("speaker_front_7x7.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("speaker_on_back_12x12.bin"));
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("speaker_front_8x8.bin"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("speaker_back_11x11.bin"));
 
         volume_model_free(model);
         return 0;

@@ -22,10 +22,12 @@ typedef struct {
     lv_style_t focused;
     lv_style_t disabled;
     lv_style_t transparent;
+    lv_style_t transparent_all;
     lv_style_t scrollbar;
 
     lv_style_t menu_item;
     lv_style_t menu_icon;
+    lv_style_t menu_icon_animated;
     lv_style_t menu_sublabel;
     lv_style_t menu_arrow;
 
@@ -83,6 +85,9 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_text_opa(&theme->styles.transparent, LV_OPA_TRANSP);
     lv_style_set_image_opa(&theme->styles.transparent, LV_OPA_TRANSP);
 
+    lv_style_init(&theme->styles.transparent_all);
+    lv_style_set_opa(&theme->styles.transparent_all, LV_OPA_TRANSP);
+
     lv_style_init(&theme->styles.scrollbar);
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
@@ -94,6 +99,9 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.menu_icon);
     lv_style_set_image_opa(&theme->styles.menu_icon, LV_OPA_COVER);
+
+    lv_style_init(&theme->styles.menu_icon_animated);
+    lv_style_set_opa(&theme->styles.menu_icon_animated, LV_OPA_COVER);
 
     lv_style_init(&theme->styles.menu_sublabel);
     lv_style_set_max_width(&theme->styles.menu_sublabel, MENU_SUBLABEL_MAX_WIDTH);
@@ -203,6 +211,12 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &menu_icon_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN | LV_STATE_FOCUSED);
+
+    } else if(lv_obj_check_type(obj, &menu_icon_animated_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.menu_icon_animated, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.transparent_all, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN | LV_STATE_FOCUSED);
 

@@ -1,26 +1,8 @@
 #include "ble_settings.h"
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
-#include <ble/ble.h>
 
-static bool ble_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
-    UNUSED(arg);
-
-    BleSettings* instance = context;
-
-    switch(signal) {
-    case FuriSignalExit:
-        furi_event_loop_stop(instance->event_loop);
-        return true;
-
-    case FuriSignalAboutToExit:
-        ble_settings_send_custom_event(instance, AppEventAboutToExit);
-        return true;
-
-    default:
-        return false;
-    }
-}
+#define TAG "BleSettings"
 
 static void ble_settings_input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -60,9 +42,7 @@ static bool ble_settings_gui_input_callback(const InputEvent* event, void* conte
 
     bool consumed = false;
     if(event->type == InputTypeShort) {
-        if(event->key == InputKeyBack) {
-            consumed = true;
-        }
+        consumed = true;
     }
 
     if(consumed) {
@@ -75,6 +55,7 @@ static bool ble_settings_gui_input_callback(const InputEvent* event, void* conte
 
 static BleSettings* ble_settings_alloc() {
     BleSettings* instance = malloc(sizeof(BleSettings));
+    instance->model = ble_model_alloc();
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(4, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(4, sizeof(uint32_t));
@@ -122,7 +103,9 @@ static BleSettings* ble_settings_alloc() {
         ble_settings_event_queue_callback,
         instance);
 
-    scene_manager_next_scene(instance->scene_manager, SceneIdMain);
+    const bool not_paired = !ble_model_is_device_paired(instance->model);
+    scene_manager_next_scene(
+        instance->scene_manager, not_paired ? SceneIdPairingMode : SceneIdForgetDevice);
     return instance;
 }
 
@@ -151,7 +134,36 @@ static void ble_settings_free(BleSettings* instance) {
     furi_message_queue_free(instance->event_queue);
 
     furi_event_loop_free(instance->event_loop);
+    ble_model_free(instance->model);
     free(instance);
+}
+
+static void ble_settings_set_icon_by_status(
+    SettingsAppDescriptor* const descriptor,
+    const BleStatus* const status) {
+    struct {
+        const char* front;
+        const char* back;
+    } icon;
+
+    if(status->state == BleServiceStateReady) {
+        icon.front = "ble_front_gray_8x8.bin";
+        icon.back = "ble_back_12x12.bin";
+    } else if(status->state == BleServiceStateAdvertising) {
+        const bool paired = status->pairing == BlePairingStatePaired;
+        icon.front = paired ? "ble_front_paired_8x8.bin" : "ble_front_8x8.bin";
+        icon.back = paired ? "ble_back_paired_12x12.bin" : "ble_back_12x12.bin";
+    } else if(status->state == BleServiceStateConnected) {
+        icon.front = "ble_front_checkmark_8x8.bin";
+        icon.back = "ble_back_paired_11x11.bin";
+    } else {
+        FURI_LOG_W(TAG, "Wrong state!");
+        icon.front = "ble_front_gray_8x8.bin";
+        icon.back = "ble_back_12x12.bin";
+    }
+
+    furi_string_printf(descriptor->front_icon, IMG_PATH("%s"), icon.front);
+    furi_string_printf(descriptor->back_icon, IMG_PATH("%s"), icon.back);
 }
 
 int32_t ble_settings_entry(void* arg) {
@@ -160,16 +172,17 @@ int32_t ble_settings_entry(void* arg) {
         furi_string_set_str(descriptor->front_title, "Bluetooth");
         furi_string_set_str(descriptor->back_title, "Bluetooth");
 
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("ble_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("ble_back_12x12.bin"));
+        BleModel* model = ble_model_alloc();
+        BleStatus status = {0};
+        ble_model_get_status(model, &status);
+        ble_settings_set_icon_by_status(descriptor, &status);
+        ble_model_free(model);
+
         return 0;
     }
 
     BleSettings* instance = ble_settings_alloc();
-    FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, ble_settings_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
-    furi_thread_set_signal_callback(thread, NULL, NULL);
     ble_settings_free(instance);
 
     return 0;

@@ -270,6 +270,16 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
         }
 #endif
 
+        if(command_data.run_semaphore) {
+            if(furi_semaphore_acquire(command_data.run_semaphore, 0) != FuriStatusOk) {
+                printf(
+                    ANSI_FG_RED
+                    "command `%s` can only be run once, try closing other instances of the CLI shell" ANSI_RESET,
+                    furi_string_get_cstr(command_name));
+                break;
+            }
+        }
+
         if(command_data.flags & CliCommandFlagUseShellThread) {
             // run command in this thread
             command_data.execute_callback(cli_shell->pipe, args, command_data.context);
@@ -290,6 +300,9 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
             furi_thread_join(thread);
             furi_thread_free(thread);
             cli_shell_install_pipe(cli_shell);
+        }
+        if(command_data.run_semaphore) {
+            furi_semaphore_release(command_data.run_semaphore);
         }
     } while(0);
 
