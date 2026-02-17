@@ -17,10 +17,12 @@ typedef struct {
     enum {
         CanvasAppEventUpdate,
         CanvasAppEventClear,
+        CanvasAppEventGetPriority,
     } type;
     FuriApiLock lock;
     bool* result;
     char* app_id;
+    int* priority;
     union {
         CanvasElementsArray_t elements;
     };
@@ -53,6 +55,7 @@ struct CanvasApp {
     CanvasWidgetsDict_t widgets;
     DisplayMirror* display_mirror;
     char* app_id;
+    int priority;
 };
 
 static bool canvas_app_input_callback(const InputEvent* event, void* context) {
@@ -175,6 +178,8 @@ static void canvas_app_clear_all(CanvasApp* canvas) {
     if(CanvasWidgetsDict_empty_p(canvas->widgets)) {
         furi_event_loop_stop(canvas->event_loop);
     }
+
+    canvas->priority = INT_MIN;
 }
 
 static Widget* canvas_element_update_specific(
@@ -400,10 +405,12 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
 
     CanvasAppQueueEvent event;
     furi_check(furi_message_queue_get(canvas->event_queue, &event, 0) == FuriStatusOk);
+    furi_assert(event.result);
 
     bool success = false;
 
     if(event.type == CanvasAppEventUpdate) {
+        furi_assert(event.priority);
         if(canvas->app_id) {
             bool new_id = (strcmp(event.app_id, canvas->app_id) != 0);
             if(new_id) {
@@ -415,6 +422,7 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
         } else {
             canvas->app_id = strdup(event.app_id);
         }
+        canvas->priority = *event.priority;
         success = canvas_update_all(canvas, event.elements);
         CanvasElementsArray_clear(event.elements);
 
@@ -429,7 +437,13 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
             canvas_app_clear_all(canvas);
             success = true;
         }
+
+    } else if(event.type == CanvasAppEventGetPriority) {
+        furi_assert(event.priority);
+        *event.priority = canvas->priority;
+        success = true;
     }
+
     if(event.app_id) {
         free(event.app_id);
         event.app_id = NULL;
@@ -459,6 +473,8 @@ static CanvasApp* canvas_app_alloc() {
         Widget* back_root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
         canvas->display_mirror = display_mirror_alloc(back_root);
     });
+
+    canvas->priority = INT_MIN;
 
     return canvas;
 }
@@ -510,9 +526,14 @@ int32_t canvas_app(void* arg) {
     return 0;
 }
 
-bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsArray_t elements) {
+bool canvas_show_elements(
+    CanvasApp* canvas,
+    const char* app_id,
+    int priority,
+    CanvasElementsArray_t elements) {
     furi_assert(canvas);
     furi_assert(app_id);
+    furi_assert(priority >= 0);
 
     bool success = false;
 
@@ -520,6 +541,7 @@ bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsA
         .lock = api_lock_alloc_locked(),
         .type = CanvasAppEventUpdate,
         .app_id = strdup(app_id),
+        .priority = &priority,
         .result = &success,
     };
 
@@ -528,6 +550,23 @@ bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsA
 
     api_lock_wait_unlock_and_free(evt.lock);
     return success;
+}
+
+int canvas_active_priority(CanvasApp* canvas) {
+    furi_assert(canvas);
+
+    bool success = false;
+    int priority = 0;
+    CanvasAppQueueEvent evt = {
+        .lock = api_lock_alloc_locked(),
+        .type = CanvasAppEventGetPriority,
+        .priority = &priority,
+        .result = &success,
+    };
+    furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
+
+    api_lock_wait_unlock_and_free(evt.lock);
+    return success ? priority : INT_MIN;
 }
 
 bool canvas_delete_elements(CanvasApp* canvas, const char* app_id) {

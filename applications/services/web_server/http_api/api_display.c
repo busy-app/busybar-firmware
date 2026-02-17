@@ -17,6 +17,9 @@
 #define DISPLAY_BRIGHTNESS_MAX  (100)
 #define DISPLAY_BRIGHTNESS_AUTO (FRONT_DISPLAY_BRIGHTNESS_AUTO)
 
+#define BUILTIN_APP_PRIORITY     5
+#define DEFAULT_ELEMENT_PRIORITY 6
+
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
     const char* app_id,
@@ -319,6 +322,32 @@ static bool api_display_draw_parse_element(
     return success;
 }
 
+static int api_display_active_priority(void) {
+    int priority = INT_MIN;
+
+    Loader* loader = furi_record_open(RECORD_LOADER);
+    FuriString* app_name = furi_string_alloc();
+
+    do {
+        bool canvas_running = furi_record_exists(RECORD_CANVAS);
+        if(canvas_running) {
+            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+            priority = MAX(priority, canvas_active_priority(canvas));
+            furi_record_close(RECORD_CANVAS);
+        }
+
+        if(!loader_get_application_name(loader, app_name)) break;
+        if(furi_string_search_str(app_name, "Settings") != FURI_STRING_FAILURE) break;
+        if(furi_string_cmp_str(app_name, "Software Power Off") == 0) break;
+        priority = MAX(priority, BUILTIN_APP_PRIORITY);
+    } while(0);
+
+    furi_string_free(app_name);
+    furi_record_close(RECORD_LOADER);
+
+    return priority;
+}
+
 static bool api_display_draw_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -333,9 +362,18 @@ static bool api_display_draw_callback(
 
     char* app_id = NULL;
     bool success = false;
+    double json_num = 0;
+    int priority = DEFAULT_ELEMENT_PRIORITY;
+
     do {
         app_id = mg_json_get_str(msg->body, "$.app_id");
         if(!app_id) break;
+
+        if(mg_json_get_num(msg->body, "$.priority", &json_num)) {
+            priority = json_num;
+        }
+        if(priority <= 0) break;
+        if(priority > 10) break;
 
         struct mg_str elements_obj = mg_json_get_tok(msg->body, "$.elements");
         if(!elements_obj.buf) break;
@@ -348,48 +386,38 @@ static bool api_display_draw_callback(
             success = api_display_draw_parse_element(elements_array, app_id, element);
             if(!success) break;
         }
+
+        if(!success) {
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        int active_priority = api_display_active_priority();
+        if(priority < active_priority) {
+            MG_REPLY_ERROR(conn, 409, "Not drawn due to low priority");
+            break;
+        }
+
+        bool canvas_running = furi_record_exists(RECORD_CANVAS);
+        if(!canvas_running) {
+            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+            if(desktop_replace_current_app(desktop, "canvas", "")) {
+                canvas_running = true;
+            } else {
+                MG_REPLY_ERROR(conn, 503, "Failed to load canvas app");
+            }
+            furi_record_close(RECORD_DESKTOP);
+            if(!canvas_running) break;
+        }
+
+        CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+        if(!canvas_show_elements(canvas, app_id, priority, elements_array)) {
+            MG_REPLY_BAD_REQUEST(conn);
+        }
+        furi_record_close(RECORD_CANVAS);
+
+        MG_REPLY_OK(conn);
     } while(0);
-
-    if(success) {
-        bool app_running = furi_record_exists(RECORD_CANVAS);
-        if(!app_running) {
-            Loader* loader = furi_record_open(RECORD_LOADER);
-            FuriString* app_name = furi_string_alloc();
-            bool loader_busy = false;
-            if(loader_get_application_name(loader, app_name)) {
-                if(furi_string_cmp(app_name, "Busy") == 0) {
-                    loader_busy = true;
-                }
-            }
-            furi_string_free(app_name);
-            furi_record_close(RECORD_LOADER);
-
-            if(loader_busy) {
-                MG_REPLY_ERROR(conn, 423, "Loader is busy with another app");
-            } else {
-                Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-                if(!desktop_replace_current_app(desktop, "canvas", "")) {
-                    MG_REPLY_ERROR(conn, 503, "Failed to load app");
-                } else {
-                    app_running = true;
-                }
-                furi_record_close(RECORD_DESKTOP);
-            }
-        }
-
-        if(app_running) {
-            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-            if(canvas_show_elements(canvas, app_id, elements_array)) {
-                MG_REPLY_OK(conn);
-            } else {
-                MG_REPLY_BAD_REQUEST(conn);
-            }
-            furi_record_close(RECORD_CANVAS);
-        }
-
-    } else {
-        MG_REPLY_BAD_REQUEST(conn);
-    }
 
     CanvasElementsArray_clear(elements_array);
     if(app_id) free(app_id);

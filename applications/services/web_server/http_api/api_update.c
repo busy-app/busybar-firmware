@@ -8,6 +8,7 @@
 #include <toolbox/fetch/fetch_file_save.h>
 #include <applications/system/updater/updater.h>
 #include <applications/system/updater/updater_paths.h>
+#include <applications/system/updater/settings/settings.h>
 #include <cjson/cJSON.h>
 
 #define TAG "HttpApiUpdate"
@@ -27,6 +28,10 @@
 #define UPDATE_JSON_KEY_RECEIVED_BYTES    "received_bytes"
 #define UPDATE_JSON_KEY_TOTAL_BYTES       "total_bytes"
 #define UPDATE_JSON_KEY_AVAILABLE_VERSION "available_version"
+
+#define UPDATE_JSON_KEY_AUTOUPDATE_ENABLED "is_enabled"
+#define UPDATE_JSON_KEY_AUTOUPDATE_START   "interval_start"
+#define UPDATE_JSON_KEY_AUTOUPDATE_END     "interval_end"
 
 // Context for the update handler (raw upload)
 typedef struct {
@@ -306,16 +311,17 @@ static bool api_update_raw_hdr_callback(
         return true;
     }
 
-    update_ctx = alloc_raw_update_context();
-    conn_ctx->context = update_ctx;
-
-    update_ctx->total_file_size = msg->body.len;
-    if(update_ctx->total_file_size == 0) {
+    if(msg->body.len == 0) {
         FURI_LOG_W(TAG, "on_headers: Content-Length is 0 or missing/invalid. No file to upload?");
         MG_REPLY_BAD_REQUEST(conn);
         conn->is_draining = 1;
         return true;
     }
+
+    update_ctx = alloc_raw_update_context();
+    conn_ctx->context = update_ctx;
+
+    update_ctx->total_file_size = msg->body.len;
     if(update_ctx->total_file_size > MAX_UPLOAD_FILE_SIZE) {
         FURI_LOG_E(
             TAG,
@@ -443,7 +449,7 @@ static bool api_update_changelog_callback(
                     .changelog = check_changelog,
                 });
 
-            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
+            if(strcmp(furi_string_get_cstr(check_version), version) != 0) {
                 error_text = "Version mismatch";
                 break;
             }
@@ -518,7 +524,7 @@ static bool api_update_install_callback(
                     .changelog = NULL,
                 });
 
-            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
+            if(strcmp(furi_string_get_cstr(check_version), version) != 0) {
                 error_code = 400;
                 error_text = "Version mismatch";
                 break;
@@ -687,6 +693,138 @@ static bool api_update_abort_download_callback(
     return true;
 }
 
+static void format_time_minutes(uint32_t minutes_total, FuriString* buffer) {
+    int hours = minutes_total / 60;
+    int minutes = minutes_total % 60;
+
+    furi_string_printf(buffer, "%02d:%02d", hours, minutes);
+}
+
+static bool parse_time_minutes(const char* time_string, uint32_t* minutes_total) {
+    int hours, minutes;
+
+    if(sscanf(time_string, "%d:%d", &hours, &minutes) != 2) return false;
+    if(hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return false;
+
+    *minutes_total = hours * 60 + minutes;
+    return true;
+}
+
+static bool api_update_autoupdate_get_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    FURI_LOG_I(TAG, "Received autoupdate settings get request");
+
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+
+    UpdaterSettings settings = {
+        .check_url = furi_string_alloc(),
+        .check_channel_id = furi_string_alloc(),
+    };
+    updater_get_settings(updater, &settings);
+
+    cJSON* response = cJSON_CreateObject();
+    cJSON_AddBoolToObject(
+        response, UPDATE_JSON_KEY_AUTOUPDATE_ENABLED, settings.autoupdate_enabled);
+
+    FuriString* time_buffer = furi_string_alloc();
+    format_time_minutes(settings.autoupdate_interval_start, time_buffer);
+    cJSON_AddStringToObject(
+        response, UPDATE_JSON_KEY_AUTOUPDATE_START, furi_string_get_cstr(time_buffer));
+
+    format_time_minutes(settings.autoupdate_interval_end, time_buffer);
+    cJSON_AddStringToObject(
+        response, UPDATE_JSON_KEY_AUTOUPDATE_END, furi_string_get_cstr(time_buffer));
+
+    char* json_string = cJSON_Print(response);
+    MG_REPLY_OK_BODY(conn, "%s\n", json_string);
+
+    cJSON_free(json_string);
+    cJSON_Delete(response);
+
+    furi_string_free(time_buffer);
+    furi_string_free(settings.check_url);
+    furi_string_free(settings.check_channel_id);
+    furi_record_close(RECORD_UPDATER);
+
+    return true;
+}
+
+static bool api_update_autoupdate_post_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    FURI_LOG_I(TAG, "Received autoupdate settings set request");
+
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+    UpdaterSettings settings = {
+        .check_url = furi_string_alloc(),
+        .check_channel_id = furi_string_alloc(),
+    };
+    updater_get_settings(updater, &settings);
+
+    bool is_success;
+    do {
+        bool value;
+        if(mg_json_get_bool(msg->body, "$." UPDATE_JSON_KEY_AUTOUPDATE_ENABLED, &value)) {
+            settings.autoupdate_enabled = value;
+        }
+
+        char* time_string;
+        uint32_t minutes_total;
+        time_string = mg_json_get_str(msg->body, "$." UPDATE_JSON_KEY_AUTOUPDATE_START);
+        if(time_string) {
+            is_success = parse_time_minutes(time_string, &minutes_total);
+            free(time_string);
+
+            if(is_success) {
+                settings.autoupdate_interval_start = minutes_total;
+            } else {
+                MG_REPLY_BAD_REQUEST(conn);
+                break;
+            }
+        }
+
+        time_string = mg_json_get_str(msg->body, "$." UPDATE_JSON_KEY_AUTOUPDATE_END);
+        if(time_string) {
+            is_success = parse_time_minutes(time_string, &minutes_total);
+            free(time_string);
+
+            if(is_success) {
+                settings.autoupdate_interval_end = minutes_total;
+            } else {
+                MG_REPLY_BAD_REQUEST(conn);
+                break;
+            }
+        }
+
+        is_success = updater_set_settings(updater, &settings);
+        if(is_success) {
+            MG_REPLY_OK(conn);
+        } else {
+            MG_REPLY_INTERNAL_ERROR(conn, "Failed to apply updater settings");
+        }
+    } while(false);
+
+    furi_string_free(settings.check_url);
+    furi_string_free(settings.check_channel_id);
+    furi_record_close(RECORD_UPDATER);
+
+    return true;
+}
+
 static const HttpHandler api_update_handlers[] = {
     {
         .uri = "check",
@@ -717,6 +855,18 @@ static const HttpHandler api_update_handlers[] = {
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_update_abort_download_callback,
+    },
+    {
+        .uri = "autoupdate",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = api_update_autoupdate_get_callback,
+    },
+    {
+        .uri = "autoupdate",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_request = api_update_autoupdate_post_callback,
     },
     {
         .uri = "",

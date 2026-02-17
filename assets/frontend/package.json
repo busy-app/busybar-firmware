@@ -8,27 +8,31 @@
     "dev": "nuxt dev --dotenv .env.development",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint": "eslint --ext .js,.ts,.vue --ignore-pattern .gitignore ."
+    "lint": "eslint --ext .js,.ts,.vue --ignore-pattern .gitignore .",
+    "lint/tsc": "tsc --noEmit"
   },
   "dependencies": {
-    "@busy-app/busy-lib": "^0.6.0",
+    "@busy-app/busy-lib": "^0.10.0",
     "@nuxt/eslint": "1.4.1",
     "@nuxt/ui": "3.3.4",
+    "@nuxtjs/mdc": "0.20.1",
     "@pinia/nuxt": "^0.10.1",
     "eslint": "^9.35.0",
     "maska": "^3.2.0",
     "nuxt": "^3.19.2",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
+    "qr": "^0.5.4",
     "tailwindcss": "^4.1.13",
-    "typescript": "^5.9.2",
     "vite-plugin-eslint2": "^5.0.4",
     "vue": "^3.5.21",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "worker-timers": "^8.0.30"
   },
   "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee",
   "devDependencies": {
     "@iconify-json/ri": "^1.2.5",
-    "@stylistic/eslint-plugin-ts": "^4.4.1"
+    "@stylistic/eslint-plugin": "^5.7.1",
+    "typescript": "^5.9.2"
   }
 }

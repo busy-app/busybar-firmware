@@ -11,35 +11,22 @@ typedef struct {
     HttpHandlersList_t handlers;
 } ApiMatterCtx;
 
-typedef struct {
-    MatterSrv* matter;
-} ApiMatterRequestCtx;
-
-static void* api_matter_request_ctx_alloc(void) {
-    ApiMatterRequestCtx* ctx = malloc(sizeof(ApiMatterRequestCtx));
-    ctx->matter = furi_record_open(RECORD_MATTER);
-    return ctx;
-}
-
-static void api_matter_request_ctx_free(void* untyped_ctx) {
-    furi_record_close(RECORD_MATTER);
-    free(untyped_ctx);
-}
-
 static bool api_matter_commissioning_status(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* untyped_ctx) {
     UNUSED(msg);
-    ApiMatterRequestCtx* ctx = untyped_ctx;
-    furi_assert(ctx);
+    UNUSED(untyped_ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
+    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    MatterCommissionedFabrics fabrics = matter_commissioned_fabrics(matter);
+    furi_record_close(RECORD_MATTER);
+
     cJSON* object = cJSON_CreateObject();
 
-    MatterCommissionedFabrics fabrics = matter_commissioned_fabrics(ctx->matter);
     cJSON_AddNumberToObject(object, "fabric_count", fabrics.count);
     cJSON* status_upd = cJSON_AddObjectToObject(object, "latest_commissioning_status");
 
@@ -72,8 +59,7 @@ static bool api_matter_enable_commissioning(
     struct mg_http_message* msg,
     void* untyped_ctx) {
     UNUSED(msg);
-    ApiMatterRequestCtx* ctx = untyped_ctx;
-    furi_assert(ctx);
+    UNUSED(untyped_ctx);
 
     bool success = false;
     if(!IS_HTTP_ENDPOINT(path)) return success;
@@ -82,7 +68,10 @@ static bool api_matter_enable_commissioning(
     FuriString* manual_code = furi_string_alloc();
 
     do {
-        size_t seconds_left = matter_enable_commissioning(ctx->matter, qr_code, manual_code);
+        MatterSrv* matter = furi_record_open(RECORD_MATTER);
+        size_t seconds_left = matter_enable_commissioning(matter, qr_code, manual_code);
+        furi_record_close(RECORD_MATTER);
+
         if(!seconds_left) break;
 
         cJSON* object = cJSON_CreateObject();
@@ -106,8 +95,7 @@ static bool api_matter_enable_commissioning(
     furi_string_free(qr_code);
     furi_string_free(manual_code);
 
-    bool handled = true;
-    return handled;
+    return true;
 }
 
 static bool api_matter_factory_reset(
@@ -116,13 +104,14 @@ static bool api_matter_factory_reset(
     struct mg_http_message* msg,
     void* untyped_ctx) {
     UNUSED(msg);
-    ApiMatterRequestCtx* ctx = untyped_ctx;
-    furi_assert(ctx);
+    UNUSED(untyped_ctx);
 
     bool success = false;
     if(!IS_HTTP_ENDPOINT(path)) return success;
 
-    success = matter_factory_reset(ctx->matter);
+    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    success = matter_factory_reset(matter);
+    furi_record_close(RECORD_MATTER);
 
     if(success) {
         MG_REPLY_OK(conn);
@@ -130,8 +119,7 @@ static bool api_matter_factory_reset(
         MG_REPLY_ERROR(conn, 503, "Matter unavailable");
     }
 
-    bool handled = true;
-    return handled;
+    return true;
 }
 
 static bool api_matter_switch_get(
@@ -140,14 +128,18 @@ static bool api_matter_switch_get(
     struct mg_http_message* msg,
     void* untyped_ctx) {
     UNUSED(msg);
+    UNUSED(untyped_ctx);
+
     bool handled = true;
-    ApiMatterRequestCtx* ctx = untyped_ctx;
-    furi_assert(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     bool state;
-    if(!matter_get_switch_state(ctx->matter, &state)) {
+    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    bool result = matter_get_switch_state(matter, &state);
+    furi_record_close(RECORD_MATTER);
+
+    if(!result) {
         MG_REPLY_ERROR(conn, 503, "Matter unavailable");
         return handled;
     }
@@ -169,14 +161,14 @@ static bool api_matter_switch_set(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* untyped_ctx) {
-    ApiMatterRequestCtx* ctx = untyped_ctx;
-    furi_assert(ctx);
+    UNUSED(untyped_ctx);
 
     bool success = false;
     bool matter_request_error = false;
     char* device_type = NULL;
     char* switch_startup = NULL;
 
+    MatterSrv* matter = furi_record_open(RECORD_MATTER);
     do {
         if(!IS_HTTP_ENDPOINT(path)) break;
 
@@ -193,7 +185,7 @@ static bool api_matter_switch_set(
         if(!has_switch_state && !has_switch_startup) break;
 
         if(has_switch_state) {
-            if(!matter_set_switch_state(ctx->matter, switch_state)) {
+            if(!matter_set_switch_state(matter, switch_state)) {
                 matter_request_error = true;
                 break;
             }
@@ -210,7 +202,7 @@ static bool api_matter_switch_set(
                 switch_startup, switch_startup_modes, COUNT_OF(switch_startup_modes));
             furi_assert(startup < MatterSwitchStartupModeMAX);
 
-            if(!matter_set_switch_startup_mode(ctx->matter, startup)) {
+            if(!matter_set_switch_startup_mode(matter, startup)) {
                 matter_request_error = true;
                 break;
             }
@@ -218,6 +210,7 @@ static bool api_matter_switch_set(
 
         success = true;
     } while(0);
+    furi_record_close(RECORD_MATTER);
 
     if(device_type) free(device_type);
     if(switch_startup) free(switch_startup);
@@ -232,8 +225,7 @@ static bool api_matter_switch_set(
         }
     }
 
-    bool handled = true;
-    return handled;
+    return true;
 }
 
 static const HttpHandler handlers_matter[] = {
@@ -241,40 +233,30 @@ static const HttpHandler handlers_matter[] = {
         .uri = "commissioning",
         .method = "GET",
         .type = HttpHandlerCustom,
-        .ctx_alloc = api_matter_request_ctx_alloc,
-        .ctx_free = api_matter_request_ctx_free,
         .on_request = api_matter_commissioning_status,
     },
     {
         .uri = "commissioning",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .ctx_alloc = api_matter_request_ctx_alloc,
-        .ctx_free = api_matter_request_ctx_free,
         .on_request = api_matter_enable_commissioning,
     },
     {
         .uri = "commissioning",
         .method = "DELETE",
         .type = HttpHandlerCustom,
-        .ctx_alloc = api_matter_request_ctx_alloc,
-        .ctx_free = api_matter_request_ctx_free,
         .on_request = api_matter_factory_reset,
     },
     {
         .uri = "endpoint/1",
         .method = "GET",
         .type = HttpHandlerCustom,
-        .ctx_alloc = api_matter_request_ctx_alloc,
-        .ctx_free = api_matter_request_ctx_free,
         .on_request = api_matter_switch_get,
     },
     {
         .uri = "endpoint/1",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .ctx_alloc = api_matter_request_ctx_alloc,
-        .ctx_free = api_matter_request_ctx_free,
         .on_request = api_matter_switch_set,
     },
 };
