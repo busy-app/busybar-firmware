@@ -71,7 +71,7 @@
         }"
         class="justify-center sm:justify-start"
         :loading="loading.forget"
-        @click="forgetNetwork"
+        @click="forgetNetworkModal = true"
       />
       <UTooltip
         v-if="!connected && showNetworksList"
@@ -130,7 +130,7 @@
           :text="wifiStore.wifi?.ip_config?.address"
           variant="link"
           color="neutral"
-          class="p-0"
+          class="p-0 text-base gap-2"
         />
         <div
           v-else
@@ -154,13 +154,14 @@
     >
       <div
         v-for="[property, value] in Object.entries({
-          'SSID': wifiStore.wifi?.ssid,
-          'IP Method': wifiStore.wifi?.ip_config?.ip_method === 'dhcp' ? 'DHCP' : 'Static',
-          'Security': wifiStore.wifi?.security || 'Open',
-          'IP Type': wifiStore.wifi?.ip_config?.ip_type === 'ipv4' ? 'IPv4' : 'IPv6'
+          'Name': wifiStore.wifi?.ssid,
+          'Signal strength': wifiStore.wifi?.rssi ? `${wifiStore.wifi.rssi} dBm` : 'Unknown',
+          'Channel': wifiStore.wifi?.channel || 'Unknown',
+          'BSSID': wifiStore.wifi?.bssid || 'Unknown',
+          'Security': wifiStore.wifi?.security || 'Open'
         })"
         :key="property"
-        class="flex"
+        class="flex gap-1"
       >
         <div class="w-[120px] text-muted">{{ property }}</div>
         <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
@@ -402,6 +403,26 @@
       </UCollapsible>
     </template>
   </ModalGeneric>
+
+  <ModalGeneric
+    v-model:open="forgetNetworkModal"
+    data-id="modal-forget-wifi"
+    title="Forget current Wi-Fi network?"
+    description="The device will be disconnected, and Virtual LAN will no longer be accessible via wireless connection."
+    :primary-action-props="{
+      label: 'Forget network',
+      variant: 'soft',
+      color: 'error',
+      loading: loading.forget,
+      onClick: forgetNetwork
+    }"
+    :secondary-action-props="{
+      label: 'Cancel',
+      variant: 'ghost',
+      disabled: loading.forget,
+      onClick: () => { forgetNetworkModal = false; }
+    }"
+  />
 </template>
 
 <script setup lang="ts">
@@ -504,8 +525,12 @@ async function forgetNetwork () {
   if (!wifiStore.wifi || !wifiStore.wifi.ssid) {
     return;
   }
+  const wasConnectedViaWifi = useDeviceStore().connectionType === 'wifi';
   loading.value.forget = true;
   await wifiStore.disconnectFromWifiNetwork();
+  if (wasConnectedViaWifi) {
+    window.location.reload();
+  }
   await refreshWifiState();
   loading.value.forget = false;
 }
@@ -549,6 +574,8 @@ const sectionIcon = computed(() => {
   }
   return 'i-bi-wifi-1';
 });
+
+const forgetNetworkModal = ref(false);
 
 async function init () {
   await refreshWifiState();

@@ -54,14 +54,14 @@
           :data-id="`${props.dataId}-secondary-action`"
           variant="ghost"
           size="lg"
-          color="neutral"
+          :color="props.secondaryActionProps.color || 'neutral'"
           class="min-w-20 justify-center"
         />
         <UButton
           v-if="props.primaryActionProps"
           v-bind="props.primaryActionProps"
           :data-id="`${props.dataId}-primary-action`"
-          color="neutral"
+          :color="props.primaryActionProps.color || 'neutral'"
           size="lg"
           class="min-w-20 justify-center"
         />

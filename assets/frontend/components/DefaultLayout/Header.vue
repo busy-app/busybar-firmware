@@ -34,7 +34,7 @@
       >
         <div
           data-id="layout-default-header-connection-state"
-          class="flex items-center gap-3"
+          class="flex items-center gap-2"
         >
           <template v-if="deviceStore.isConnected">
             <UIcon
@@ -51,7 +51,7 @@
             Disconnected
           </template>
 
-          <div class="opacity-0 transition-opacity group-hover:opacity-100">{{ urlHost }}</div>
+          <div class="ml-1 opacity-0 transition-opacity group-hover:opacity-100">{{ urlHost }}</div>
         </div>
       </CopyButton>
     </div>
@@ -68,11 +68,6 @@
               showRenameModal = true;
             }
           }
-          /* {
-            label: 'Restart',
-            icon: 'i-ri-restart-line',
-            onSelect: () => { showRestartModal = true; }
-          } */
         ]"
         :content="{
           align: 'start',
