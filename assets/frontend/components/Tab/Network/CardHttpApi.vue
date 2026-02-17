@@ -24,7 +24,7 @@
       <div class="flex justify-between items-center gap-y-4 gap-x-6">
         <div>Over Wi-Fi</div>
         <UButton
-          v-if="connected"
+          v-if="connected && deviceStore.httpAPIAccess.mode !== 'disabled'"
           variant="link"
           class="p-0 gap-0.5"
           :href="`http://${wifiStore.wifi?.ip_config?.address}/docs`"
@@ -64,11 +64,11 @@
         >
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
-              <div>Security</div>
+              <div>Password protection</div>
               <UBadge
                 v-if="deviceStore.httpAPIAccess.mode === 'key'"
                 data-id="network-section-http-api-status-secure"
-                icon="i-ri-lock-fill"
+                icon="i-bi-lock-simple-fill"
                 label="Secure"
                 color="success"
                 size="sm"
@@ -77,8 +77,8 @@
               <UBadge
                 v-else-if="deviceStore.httpAPIAccess.mode === 'enabled'"
                 data-id="network-section-http-api-status-insecure"
-                icon="i-ri-alert-fill"
-                label="Insecure"
+                icon="i-bi-alert-fill"
+                label="Not set"
                 color="warning"
                 size="sm"
                 class="rounded-full"
@@ -88,13 +88,13 @@
               v-if="deviceStore.httpAPIAccess.mode === 'key'"
               class="text-sm text-muted"
             >
-              A password will be asked each time this page is opened with a BUSY Bar connected via Wi-Fi
+              A password will be asked to access the BUSY Bar web interface via Wi-Fi
             </div>
             <div
               v-else-if="deviceStore.httpAPIAccess.mode === 'enabled'"
               class="text-sm text-muted"
             >
-              Anyone on the same Wi-Fi network will be able to access the device via this page. We recommend setting a password that will be asked each time this page is opened with a BUSY Bar connected via Wi-Fi.
+              Without a password anyone on your Wi-Fi can access your BUSY Bar
             </div>
           </div>
 
