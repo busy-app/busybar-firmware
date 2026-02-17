@@ -5,6 +5,8 @@
 #include "../widgets/timer_indicator.h"
 #include "../widgets/timer_label.h"
 
+#include <inttypes.h>
+
 #define COUNTDOWN_THRESHOLD_S (3)
 
 #define TIMER_HIDDEN_TIME_S (15)
@@ -114,7 +116,17 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     with_gui(instance->gui, {
         timer_indicator_set_progress(data->timer_indicator, progress);
         timer_label_set_time(data->timer_label, time_remain_s);
-        timer_card_set_time(instance->timer_card, time_remain_s);
+
+        uint32_t h = S_TO_H(time_remain_s);
+        uint32_t m = S_TO_M(time_remain_s - H_TO_S(h));
+        uint32_t s = time_remain_s - H_TO_S(h) - M_TO_S(m);
+
+        FuriString* mirror_card_footer_text =
+            (h > 0) ? furi_string_alloc_printf("%" PRIu32 ":%02" PRIu32 ":%02" PRIu32, h, m, s) :
+                      furi_string_alloc_printf("%02" PRIu32 ":%02" PRIu32, m, s);
+        mirror_card_set_footer_primary_text(
+            instance->timer_card, furi_string_get_cstr(mirror_card_footer_text));
+        furi_string_free(mirror_card_footer_text);
 
         if(busy_scene_timer_has_label_tweaks(data)) {
             const uint32_t dt_s = time_elapsed_s - data->prev_label_show_time;
@@ -168,15 +180,15 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
     with_gui(instance->gui, {
         if(data->timer_mode == BusyTimerModeInfinite) {
             widget_set_visible(timer_label_get_base(data->timer_label), false);
-            timer_card_show_time(instance->timer_card, false);
+            mirror_card_set_show_footer(instance->timer_card, false);
 
         } else if(data->timer_mode == BusyTimerModeSimple) {
             widget_set_visible(timer_label_get_base(data->timer_label), true);
-            timer_card_show_time(instance->timer_card, true);
+            mirror_card_set_show_footer(instance->timer_card, true);
 
         } else if(data->timer_mode == BusyTimerModeInterval) {
             widget_set_visible(timer_label_get_base(data->timer_label), true);
-            timer_card_show_time(instance->timer_card, true);
+            mirror_card_set_show_footer(instance->timer_card, true);
         }
     });
 }
@@ -282,7 +294,7 @@ static void busy_scene_timer_handle_pause(BusyApp* instance) {
 
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, data->is_paused);
-        timer_card_show_header(instance->timer_card, !data->is_paused);
+        mirror_card_set_show_header(instance->timer_card, !data->is_paused);
         timer_indicator_enable_animations(data->timer_indicator, !data->is_paused);
     });
 
@@ -423,8 +435,8 @@ static void busy_scene_timer_on_enter(void* context) {
 
         widget_set_align(timer_label_get_base(data->timer_label), AlignRightMid);
 
-        widget_set_visible(timer_card_get_base(instance->timer_card), true);
-        timer_card_show_header(instance->timer_card, true);
+        widget_set_visible(mirror_card_get_base(instance->timer_card), true);
+        mirror_card_set_show_header(instance->timer_card, true);
     });
 
     data->timer_pubsub = busy_timer_get_pubsub(instance->busy_timer);
@@ -462,8 +474,8 @@ static void busy_scene_timer_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_timer_input_callback);
 
-        timer_card_show_header(instance->timer_card, false);
-        timer_card_show_time(instance->timer_card, false);
+        mirror_card_set_show_header(instance->timer_card, false);
+        mirror_card_set_show_footer(instance->timer_card, false);
 
         timer_indicator_free(data->timer_indicator);
         timer_label_free(data->timer_label);
