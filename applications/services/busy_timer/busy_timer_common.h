@@ -54,14 +54,14 @@ typedef struct {
 
 typedef struct {
     uint32_t total_time_ms;
-} BusyTimerSimpleSettings;
+} BusyTimerSimpleConfig;
 
 typedef struct {
     uint32_t work_time_ms;
     uint32_t rest_time_ms;
     uint32_t cycles_count;
     bool is_autostart_enabled;
-} BusyTimerIntervalSettings;
+} BusyTimerIntervalConfig;
 
 typedef struct {
     uint32_t index;

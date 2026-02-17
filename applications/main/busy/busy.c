@@ -326,7 +326,7 @@ void busy_load_busy_bar_settings(BusyApp* instance) {
 
     BusyTimerProfile profile;
     busy_get_timer_profile(instance, &profile);
-    instance->config = profile.busy_bar_settings;
+    instance->config = profile.app_config;
 }
 
 void busy_apply_busy_bar_settings(BusyApp* instance) {

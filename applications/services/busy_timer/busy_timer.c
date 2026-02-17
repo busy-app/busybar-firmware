@@ -173,7 +173,7 @@ static BusyTimerState busy_timer_calc_next_state(const BusyTimer* instance) {
 
     } else if(instance->state == BusyTimerStateWork) {
         if(timer_mode == BusyTimerModeInterval) {
-            const uint32_t cycles_count = instance->interval_settings.cycles_count;
+            const uint32_t cycles_count = instance->interval_config.cycles_count;
 
             if(instance->current_interval_index < cycles_count * 2 - 1) {
                 next_state = BusyTimerStateRest;
@@ -206,7 +206,7 @@ static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
         interval_s = 0;
 
     } else if(instance->mode == BusyTimerModeSimple) {
-        const BusyTimerSimpleSettings* simple = &instance->simple_settings;
+        const BusyTimerSimpleConfig* simple = &instance->simple_config;
 
         if(instance->state == BusyTimerStateWork) {
             interval_s = MS_TO_S(simple->total_time_ms);
@@ -215,7 +215,7 @@ static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
         }
 
     } else if(instance->mode == BusyTimerModeInterval) {
-        const BusyTimerIntervalSettings* interval = &instance->interval_settings;
+        const BusyTimerIntervalConfig* interval = &instance->interval_config;
 
         if(instance->state == BusyTimerStateWork) {
             interval_s = MS_TO_S(interval->work_time_ms);
@@ -310,7 +310,7 @@ static void busy_timer_next_state(BusyTimer* instance, bool is_forced) {
         bool is_autostart_enabled = false;
 
         if(instance->mode == BusyTimerModeInterval) {
-            is_autostart_enabled = instance->interval_settings.is_autostart_enabled;
+            is_autostart_enabled = instance->interval_config.is_autostart_enabled;
         }
 
         if(is_autostart_enabled || is_forced) {
@@ -410,7 +410,7 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
             state->time_left_ms = S_TO_MS(time->remain_s);
             state->time_total_ms = S_TO_MS(time->elapsed_s + time->remain_s);
 
-            interval->settings = instance->interval_settings;
+            interval->config = instance->interval_config;
 
         } else {
             furi_crash("Invalid BusyTimerMode value");
@@ -420,7 +420,7 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
         snapshot->type = BusyTimerSnapshotTypeNotStarted;
     }
 
-    snapshot->busy_bar_settings = instance->busy_bar_settings;
+    snapshot->app_config = instance->app_config;
 }
 
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
@@ -474,7 +474,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         instance->time.elapsed_s =
             MS_TO_S(interval_state->time_total_ms - interval_state->time_left_ms);
         instance->time.remain_s = MS_TO_S(interval_state->time_left_ms);
-        instance->interval_settings = interval->settings;
+        instance->interval_config = interval->config;
 
     } else {
         furi_crash("Invalid BusyTimerSnapshotType value");
@@ -484,7 +484,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     instance->state = new_state;
 
     strcpy(instance->card_id, snapshot->common.card_id);
-    instance->busy_bar_settings = snapshot->busy_bar_settings;
+    instance->app_config = snapshot->app_config;
 
     if(!snapshot->common.is_paused) {
         busy_timer_start_timer(instance);
@@ -492,7 +492,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
 
-    busy_timer_start_app(&snapshot->busy_bar_settings);
+    busy_timer_start_app(&snapshot->app_config);
 
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);
@@ -511,8 +511,8 @@ static void busy_timer_load_profile_from_settings(
     BusyTimerSettings settings;
     busy_timer_settings_load(&settings, profile_id);
 
-    profile->busy_bar_settings = settings.busy_bar_settings;
-    profile->timer_settings = settings.timer_settings;
+    profile->app_config = settings.app_config;
+    profile->timer_config = settings.timer_config;
     profile->metadata = settings.metadata;
     profile->timestamp_ms = settings.timestamp_ms;
 }
@@ -522,8 +522,8 @@ static void busy_timer_save_profile_to_settings(
     BusyTimerProfileId profile_id) {
     BusyTimerSettings settings;
 
-    settings.busy_bar_settings = profile->busy_bar_settings;
-    settings.timer_settings = profile->timer_settings;
+    settings.app_config = profile->app_config;
+    settings.timer_config = profile->timer_config;
     settings.metadata = profile->metadata;
     settings.timestamp_ms = profile->timestamp_ms;
 
@@ -738,21 +738,21 @@ static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerM
 
 static void
     busy_timer_get_cycles_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    data->cycles->total_count = instance->interval_settings.cycles_count;
+    data->cycles->total_count = instance->interval_config.cycles_count;
     data->cycles->current_idx = instance->current_interval_index;
 }
 
 static void busy_timer_get_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     BusyTimerInfo* timer_info = data->get_info.info;
-    BusyTimerConfig* timer_settings = &timer_info->timer_settings;
+    BusyTimerConfig* timer_config = &timer_info->config;
 
     const BusyTimerMode timer_mode = instance->mode;
-    timer_settings->mode = timer_mode;
+    timer_config->mode = timer_mode;
 
     if(timer_mode == BusyTimerModeSimple) {
-        timer_settings->simple = instance->simple_settings;
+        timer_config->simple = instance->simple_config;
     } else if(timer_mode == BusyTimerModeInterval) {
-        timer_settings->interval = instance->interval_settings;
+        timer_config->interval = instance->interval_config;
     }
 }
 
@@ -882,16 +882,16 @@ static void
 
     const BusyTimerProfile* profile = &instance->profiles[profile_id];
 
-    instance->busy_bar_settings = profile->busy_bar_settings;
+    instance->app_config = profile->app_config;
     strcpy(instance->card_id, profile->metadata.card_id);
 
-    const BusyTimerConfig* timer_settings = &profile->timer_settings;
-    instance->mode = timer_settings->mode;
+    const BusyTimerConfig* timer_config = &profile->timer_config;
+    instance->mode = timer_config->mode;
 
     if(instance->mode == BusyTimerModeSimple) {
-        instance->simple_settings = timer_settings->simple;
+        instance->simple_config = timer_config->simple;
     } else if(instance->mode == BusyTimerModeInterval) {
-        instance->interval_settings = timer_settings->interval;
+        instance->interval_config = timer_config->interval;
     }
 }
 

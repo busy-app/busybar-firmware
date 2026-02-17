@@ -62,7 +62,7 @@ static void busy_scene_finish_on_enter(void* context) {
     BusyTimerInfo timer_info;
     busy_timer_get_info(instance->busy_timer, &timer_info);
 
-    const BusyTimerConfig* timer_settings = &timer_info.timer_settings;
+    const BusyTimerConfig* timer_config = &timer_info.config;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -79,9 +79,9 @@ static void busy_scene_finish_on_enter(void* context) {
         prompt_overlay_set_animation_target(
             data->front_prompt, summary_label_get_base(data->front_summary));
 
-        if(timer_settings->mode == BusyTimerModeInterval) {
-            const BusyTimerIntervalSettings* interval_settings = &timer_settings->interval;
-            summary_label_set_cycles_count(data->front_summary, interval_settings->cycles_count);
+        if(timer_config->mode == BusyTimerModeInterval) {
+            const BusyTimerIntervalConfig* interval_config = &timer_config->interval;
+            summary_label_set_cycles_count(data->front_summary, interval_config->cycles_count);
             prompt_overlay_set_callback(
                 data->front_prompt, busy_scene_finish_prompt_overlay_callback, instance);
         }

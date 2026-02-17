@@ -51,8 +51,8 @@ static void busy_scene_overview_on_enter(void* context) {
     BusyTimerInfo timer_info;
     busy_timer_get_info(instance->busy_timer, &timer_info);
 
-    furi_check(timer_info.timer_settings.mode == BusyTimerModeInterval);
-    const BusyTimerIntervalSettings* interval_settings = &timer_info.timer_settings.interval;
+    furi_check(timer_info.config.mode == BusyTimerModeInterval);
+    const BusyTimerIntervalConfig* interval_config = &timer_info.config.interval;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -66,8 +66,8 @@ static void busy_scene_overview_on_enter(void* context) {
         data->front_overview_label = overview_label_alloc(instance->front_window);
         overview_label_set_intervals(
             data->front_overview_label,
-            MS_TO_M(interval_settings->work_time_ms),
-            MS_TO_M(interval_settings->rest_time_ms));
+            MS_TO_M(interval_config->work_time_ms),
+            MS_TO_M(interval_config->rest_time_ms));
     });
 
     data->run_later =

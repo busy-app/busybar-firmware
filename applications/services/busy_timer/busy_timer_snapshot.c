@@ -62,7 +62,7 @@ static void busy_timer_snapshot_serialize_snapshot_interval(
         json, KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT, interval->state.time_left_ms);
 
     cJSON* settings_json = cJSON_AddObjectToObject(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-    busy_timer_common_serialize_interval_settings(settings_json, &interval->settings);
+    busy_timer_common_serialize_interval_config(settings_json, &interval->config);
 }
 
 // Snapshot deserialization
@@ -168,7 +168,7 @@ static bool busy_timer_snapshot_deserialize_snapshot_interval(
         state->time_left_ms = cJSON_GetNumberValue(item);
 
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-        if(!busy_timer_common_deserialize_interval_settings(item, &interval->settings)) {
+        if(!busy_timer_common_deserialize_interval_config(item, &interval->config)) {
             break;
         }
 
@@ -233,7 +233,7 @@ static bool
         snapshot->type = snapshot_type;
 
         item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS);
-        if(!busy_timer_common_deserialize_busy_bar_settings(item, &snapshot->busy_bar_settings)) {
+        if(!busy_timer_common_deserialize_app_config(item, &snapshot->app_config)) {
             // TODO: Nothing for now, but will be an error in the future
         }
 
@@ -263,7 +263,7 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
         busy_timer_snapshot_serialize_snapshot_interval(snapshot_json, &snapshot->interval);
     }
 
-    busy_timer_common_serialize_busy_bar_settings(snapshot_json, &snapshot->busy_bar_settings);
+    busy_timer_common_serialize_app_config(snapshot_json, &snapshot->app_config);
 
     cJSON_AddNumberToObject(json, KEY_TIMESTAMP, snapshot->timestamp_ms);
 
@@ -340,7 +340,7 @@ bool busy_timer_snapshot_is_valid(const BusyTimerSnapshot* snapshot) {
                 break;
             }
 
-            if(!busy_timer_common_is_valid_interval_settings(&interval->settings)) {
+            if(!busy_timer_common_is_valid_interval_config(&interval->config)) {
                 break;
             }
 

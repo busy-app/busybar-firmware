@@ -54,16 +54,16 @@ static void busy_scene_setup_theme_save_selected_theme(BusyApp* instance, uint32
 
     const BusyTheme* selected_theme = theme_picker_model_get_item(data->picker_model, theme_index);
 
-    BusyAppConfig* busy_bar_settings = &timer_profile.busy_bar_settings;
+    BusyAppConfig* app_config = &timer_profile.app_config;
 
     strlcpy(
-        busy_bar_settings->theme_name,
+        app_config->theme_name,
         busy_theme_get_name(selected_theme),
-        sizeof(busy_bar_settings->theme_name));
+        sizeof(app_config->theme_name));
 
     busy_theme_set(instance->theme, selected_theme);
 
-    instance->config = *busy_bar_settings;
+    instance->config = *app_config;
     busy_set_timer_profile(instance, &timer_profile);
 }
 

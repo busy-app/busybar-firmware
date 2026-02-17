@@ -167,24 +167,24 @@ static void busy_scene_setup_init_var_item_values(
     const VarItemListContainer* container = &data->containers[display_id];
     VarItem* const* items = container->items;
 
-    const BusyAppConfig* busy_bar_settings = &profile->busy_bar_settings;
-    const BusyTimerConfig* timer_settings = &profile->timer_settings;
+    const BusyAppConfig* app_config = &profile->app_config;
+    const BusyTimerConfig* timer_config = &profile->timer_config;
 
-    var_item_set_value(items[VarItemListIdMode], timer_settings->mode);
+    var_item_set_value(items[VarItemListIdMode], timer_config->mode);
 
-    if(timer_settings->mode == BusyTimerModeSimple) {
-        const BusyTimerSimpleSettings* simple_settings = &timer_settings->simple;
-        var_item_set_value(items[VarItemListIdTime], MS_TO_M(simple_settings->total_time_ms));
+    if(timer_config->mode == BusyTimerModeSimple) {
+        const BusyTimerSimpleConfig* simple_config = &timer_config->simple;
+        var_item_set_value(items[VarItemListIdTime], MS_TO_M(simple_config->total_time_ms));
 
-    } else if(timer_settings->mode == BusyTimerModeInterval) {
-        const BusyTimerIntervalSettings* interval_settings = &timer_settings->interval;
-        var_item_set_value(items[VarItemListIdWork], MS_TO_M(interval_settings->work_time_ms));
-        var_item_set_value(items[VarItemListIdRest], MS_TO_M(interval_settings->rest_time_ms));
-        var_item_set_value(items[VarItemListIdCycles], interval_settings->cycles_count);
-        var_item_set_value(items[VarItemListIdAutostart], interval_settings->is_autostart_enabled);
+    } else if(timer_config->mode == BusyTimerModeInterval) {
+        const BusyTimerIntervalConfig* interval_config = &timer_config->interval;
+        var_item_set_value(items[VarItemListIdWork], MS_TO_M(interval_config->work_time_ms));
+        var_item_set_value(items[VarItemListIdRest], MS_TO_M(interval_config->rest_time_ms));
+        var_item_set_value(items[VarItemListIdCycles], interval_config->cycles_count);
+        var_item_set_value(items[VarItemListIdAutostart], interval_config->is_autostart_enabled);
     }
 
-    var_item_set_value(items[VarItemListIdShowWork], busy_bar_settings->is_show_work_only_enabled);
+    var_item_set_value(items[VarItemListIdShowWork], app_config->is_show_work_only_enabled);
     // TODO: Reinstate the demo mode
     var_item_set_value(items[VarItemListIdDemoMode], BUSY_TIMER_ENABLE_DEMO_MODE_DEFAULT);
 }
@@ -194,26 +194,24 @@ static void busy_scene_setup_get_var_item_values(
     BusyTimerProfile* timer_profile) {
     VarItem* const* items = data->containers[GuiDisplayIdFront].items;
 
-    BusyAppConfig* busy_bar_settings = &timer_profile->busy_bar_settings;
-    BusyTimerConfig* timer_settings = &timer_profile->timer_settings;
+    BusyAppConfig* app_config = &timer_profile->app_config;
+    BusyTimerConfig* timer_config = &timer_profile->timer_config;
 
-    timer_settings->mode = var_item_get_value(items[VarItemListIdMode]);
+    timer_config->mode = var_item_get_value(items[VarItemListIdMode]);
 
-    if(timer_settings->mode == BusyTimerModeSimple) {
-        BusyTimerSimpleSettings* simple_settings = &timer_settings->simple;
-        simple_settings->total_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdTime]));
+    if(timer_config->mode == BusyTimerModeSimple) {
+        BusyTimerSimpleConfig* simple_config = &timer_config->simple;
+        simple_config->total_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdTime]));
 
-    } else if(timer_settings->mode == BusyTimerModeInterval) {
-        BusyTimerIntervalSettings* interval_settings = &timer_settings->interval;
-        interval_settings->work_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdWork]));
-        interval_settings->rest_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdRest]));
-        interval_settings->cycles_count = var_item_get_value(items[VarItemListIdCycles]);
-        interval_settings->is_autostart_enabled =
-            var_item_get_value(items[VarItemListIdAutostart]);
+    } else if(timer_config->mode == BusyTimerModeInterval) {
+        BusyTimerIntervalConfig* interval_config = &timer_config->interval;
+        interval_config->work_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdWork]));
+        interval_config->rest_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdRest]));
+        interval_config->cycles_count = var_item_get_value(items[VarItemListIdCycles]);
+        interval_config->is_autostart_enabled = var_item_get_value(items[VarItemListIdAutostart]);
     }
 
-    busy_bar_settings->is_show_work_only_enabled =
-        var_item_get_value(items[VarItemListIdShowWork]);
+    app_config->is_show_work_only_enabled = var_item_get_value(items[VarItemListIdShowWork]);
 }
 
 static void busy_scene_setup_timer_on_enter(void* context) {

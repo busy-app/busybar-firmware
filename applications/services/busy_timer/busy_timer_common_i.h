@@ -22,41 +22,38 @@
 
 // Serialization
 
-void busy_timer_common_serialize_busy_bar_settings(cJSON* json, const BusyAppConfig* bsb_settings);
+void busy_timer_common_serialize_app_config(cJSON* json, const BusyAppConfig* app_config);
 
-void busy_timer_common_serialize_infinite_settings(cJSON* json);
+void busy_timer_common_serialize_infinite_config(cJSON* json);
 
 void busy_timer_common_serialize_timer_mode(cJSON* json, BusyTimerMode timer_mode);
 
-void busy_timer_common_serialize_simple_settings(
+void busy_timer_common_serialize_simple_config(
     cJSON* json,
-    const BusyTimerSimpleSettings* simple_settings);
+    const BusyTimerSimpleConfig* simple_config);
 
-void busy_timer_common_serialize_interval_settings(
+void busy_timer_common_serialize_interval_config(
     cJSON* json,
-    const BusyTimerIntervalSettings* interval_settings);
+    const BusyTimerIntervalConfig* interval_config);
 
 // Deserialization
 
-bool busy_timer_common_deserialize_busy_bar_settings(
-    const cJSON* json,
-    BusyAppConfig* bsb_settings);
+bool busy_timer_common_deserialize_app_config(const cJSON* json, BusyAppConfig* app_config);
 
 bool busy_timer_common_deserialize_timer_mode(const cJSON* json, BusyTimerMode* timer_mode);
 
-bool busy_timer_common_deserialize_simple_settings(
+bool busy_timer_common_deserialize_simple_config(
     const cJSON* json,
-    BusyTimerSimpleSettings* simple_settings);
+    BusyTimerSimpleConfig* simple_config);
 
-bool busy_timer_common_deserialize_interval_settings(
+bool busy_timer_common_deserialize_interval_config(
     const cJSON* json,
-    BusyTimerIntervalSettings* interval_settings);
+    BusyTimerIntervalConfig* interval_config);
 
 // Validation
 
 bool busy_timer_common_is_valid_card_id(const char* card_id);
 
-bool busy_timer_common_is_valid_simple_settings(const BusyTimerSimpleSettings* simple_settings);
+bool busy_timer_common_is_valid_simple_config(const BusyTimerSimpleConfig* simple_config);
 
-bool busy_timer_common_is_valid_interval_settings(
-    const BusyTimerIntervalSettings* interval_settings);
+bool busy_timer_common_is_valid_interval_config(const BusyTimerIntervalConfig* interval_config);

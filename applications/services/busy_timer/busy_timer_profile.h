@@ -14,14 +14,14 @@ extern "C" {
 typedef struct {
     BusyTimerMode mode;
     union {
-        BusyTimerSimpleSettings simple;
-        BusyTimerIntervalSettings interval;
+        BusyTimerSimpleConfig simple;
+        BusyTimerIntervalConfig interval;
     };
 } BusyTimerConfig;
 
 typedef struct {
-    BusyAppConfig busy_bar_settings;
-    BusyTimerConfig timer_settings;
+    BusyAppConfig app_config;
+    BusyTimerConfig timer_config;
     BusyTimerMetadata metadata;
     time_t timestamp_ms;
 } BusyTimerProfile;

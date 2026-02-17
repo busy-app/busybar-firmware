@@ -30,9 +30,9 @@ static void busy_timer_profile_serialize_timer_settings(
     busy_timer_common_serialize_timer_mode(timer_settings_json, timer_mode);
 
     if(timer_mode == BusyTimerModeSimple) {
-        busy_timer_common_serialize_simple_settings(timer_settings_json, &timer_settings->simple);
+        busy_timer_common_serialize_simple_config(timer_settings_json, &timer_settings->simple);
     } else if(timer_mode == BusyTimerModeInterval) {
-        busy_timer_common_serialize_interval_settings(
+        busy_timer_common_serialize_interval_config(
             timer_settings_json, &timer_settings->interval);
     }
 }
@@ -88,12 +88,12 @@ static bool busy_timer_profile_deserialize_timer_settings(
         }
 
         if(timer_settings->mode == BusyTimerModeSimple) {
-            if(!busy_timer_common_deserialize_simple_settings(json, &timer_settings->simple)) {
+            if(!busy_timer_common_deserialize_simple_config(json, &timer_settings->simple)) {
                 break;
             }
 
         } else if(timer_settings->mode == BusyTimerModeInterval) {
-            if(!busy_timer_common_deserialize_interval_settings(json, &timer_settings->interval)) {
+            if(!busy_timer_common_deserialize_interval_config(json, &timer_settings->interval)) {
                 break;
             }
         }
@@ -111,9 +111,9 @@ char* busy_timer_profile_serialize(const BusyTimerProfile* profile) {
 
     busy_timer_profile_serialize_metadata(json, &profile->metadata);
 
-    busy_timer_profile_serialize_timer_settings(json, &profile->timer_settings);
+    busy_timer_profile_serialize_timer_settings(json, &profile->timer_config);
 
-    busy_timer_common_serialize_busy_bar_settings(json, &profile->busy_bar_settings);
+    busy_timer_common_serialize_app_config(json, &profile->app_config);
 
     cJSON_AddNumberToObject(json, KEY_PROFILE_TIMESTAMP, profile->timestamp_ms);
 
@@ -143,12 +143,12 @@ bool busy_timer_profile_deserialize(
         const cJSON* item;
 
         item = cJSON_GetObjectItem(json, KEY_PROFILE_TIMER_SETTINGS);
-        if(!busy_timer_profile_deserialize_timer_settings(item, &profile->timer_settings)) {
+        if(!busy_timer_profile_deserialize_timer_settings(item, &profile->timer_config)) {
             break;
         }
 
         item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS);
-        if(!busy_timer_common_deserialize_busy_bar_settings(item, &profile->busy_bar_settings)) {
+        if(!busy_timer_common_deserialize_app_config(item, &profile->app_config)) {
             break;
         }
 
@@ -175,17 +175,17 @@ bool busy_timer_profile_is_valid(const BusyTimerProfile* profile) {
             break;
         }
 
-        const BusyTimerConfig* timer_settings = &profile->timer_settings;
+        const BusyTimerConfig* timer_settings = &profile->timer_config;
         const BusyTimerMode timer_mode = timer_settings->mode;
 
         if(timer_mode == BusyTimerModeInfinite) {
             // Nothing to validate
         } else if(timer_mode == BusyTimerModeSimple) {
-            if(!busy_timer_common_is_valid_simple_settings(&timer_settings->simple)) {
+            if(!busy_timer_common_is_valid_simple_config(&timer_settings->simple)) {
                 break;
             }
         } else if(timer_mode == BusyTimerModeInterval) {
-            if(!busy_timer_common_is_valid_interval_settings(&timer_settings->interval)) {
+            if(!busy_timer_common_is_valid_interval_config(&timer_settings->interval)) {
                 break;
             }
         } else {

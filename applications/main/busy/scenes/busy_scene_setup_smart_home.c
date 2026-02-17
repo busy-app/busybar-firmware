@@ -20,7 +20,7 @@ static void busy_scene_setup_smart_home_on_enter(void* context) {
     BusyTimerProfile timer_profile;
     busy_get_timer_profile(instance, &timer_profile);
 
-    const bool is_smart_home_enabled = timer_profile.busy_bar_settings.is_smart_home_enabled;
+    const bool is_smart_home_enabled = timer_profile.app_config.is_smart_home_enabled;
 
     with_gui(instance->gui, {
         data->front_list = var_item_list_alloc(instance->front_window);
@@ -48,10 +48,10 @@ static void busy_scene_setup_smart_home_on_exit(void* context) {
     BusyTimerProfile timer_profile;
     busy_get_timer_profile(instance, &timer_profile);
 
-    BusyAppConfig* busy_bar_settings = &timer_profile.busy_bar_settings;
-    busy_bar_settings->is_smart_home_enabled = var_item_get_value(data->saved_item);
+    BusyAppConfig* app_config = &timer_profile.app_config;
+    app_config->is_smart_home_enabled = var_item_get_value(data->saved_item);
 
-    instance->config = *busy_bar_settings;
+    instance->config = *app_config;
     busy_set_timer_profile(instance, &timer_profile);
 
     with_gui(instance->gui, {

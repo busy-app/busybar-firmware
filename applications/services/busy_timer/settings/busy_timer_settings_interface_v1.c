@@ -47,13 +47,13 @@ typedef enum {
 static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfileIdMax] = {
     [BusyTimerProfileIdBusy] =
         {
-            .busy_bar_settings =
+            .app_config =
                 {
-                    .theme_name = "default",
+                    .theme_name = "busy",
                     .is_show_work_only_enabled = false,
                     .is_smart_home_enabled = true,
                 },
-            .timer_settings =
+            .timer_config =
                 {
                     .mode = BusyTimerModeInterval,
                     .interval =
@@ -74,13 +74,13 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
         },
     [BusyTimerProfileIdCustom] =
         {
-            .busy_bar_settings =
+            .app_config =
                 {
                     .theme_name = "keep_out",
                     .is_show_work_only_enabled = true,
                     .is_smart_home_enabled = true,
                 },
-            .timer_settings =
+            .timer_config =
                 {
                     .mode = BusyTimerModeInfinite,
                 },
@@ -94,14 +94,14 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
         },
 };
 
-static const BusyTimerConfig busy_timer_settings_v1_timer_settings_default = {
+static const BusyTimerConfig busy_timer_settings_v1_timer_config_default = {
     .mode = BusyTimerModeMax,
     .interval = {0},
 };
 
 static const time_t busy_timer_settings_v1_timestamp_default = 0;
 
-static bool busy_timer_settings_v1_timer_settings_serialize_cb(
+static bool busy_timer_settings_v1_timer_config_serialize_cb(
     const SettingProviderSetting* setting,
     FuriString* string,
     const void* value) {
@@ -112,11 +112,11 @@ static bool busy_timer_settings_v1_timer_settings_serialize_cb(
     cJSON* json = cJSON_CreateObject();
 
     if(timer_settings->mode == BusyTimerModeInfinite) {
-        busy_timer_common_serialize_infinite_settings(json);
+        busy_timer_common_serialize_infinite_config(json);
     } else if(timer_settings->mode == BusyTimerModeSimple) {
-        busy_timer_common_serialize_simple_settings(json, &timer_settings->simple);
+        busy_timer_common_serialize_simple_config(json, &timer_settings->simple);
     } else if(timer_settings->mode == BusyTimerModeInterval) {
-        busy_timer_common_serialize_interval_settings(json, &timer_settings->interval);
+        busy_timer_common_serialize_interval_config(json, &timer_settings->interval);
     }
 
     char* json_text = cJSON_PrintUnformatted(json);
@@ -130,7 +130,7 @@ static bool busy_timer_settings_v1_timer_settings_serialize_cb(
     return true;
 }
 
-static bool busy_timer_settings_v1_timer_settings_deserialize_cb(
+static bool busy_timer_settings_v1_timer_config_deserialize_cb(
     const SettingProviderSetting* setting,
     void* value,
     const FuriString* string) {
@@ -152,12 +152,12 @@ static bool busy_timer_settings_v1_timer_settings_deserialize_cb(
         }
 
         if(timer_settings->mode == BusyTimerModeSimple) {
-            if(!busy_timer_common_deserialize_simple_settings(json, &timer_settings->simple)) {
+            if(!busy_timer_common_deserialize_simple_config(json, &timer_settings->simple)) {
                 break;
             }
 
         } else if(timer_settings->mode == BusyTimerModeInterval) {
-            if(!busy_timer_common_deserialize_interval_settings(json, &timer_settings->interval)) {
+            if(!busy_timer_common_deserialize_interval_config(json, &timer_settings->interval)) {
                 break;
             }
         }
@@ -191,7 +191,7 @@ static bool busy_timer_settings_v1_timestamp_deserialize_cb(
     return strint_to_int64(furi_string_get_cstr(string), NULL, value, 10) == StrintParseNoError;
 }
 
-static const SettingProviderSetting busy_timer_settings_v1_busy_bar_settings[] = {
+static const SettingProviderSetting busy_timer_settings_v1_app_config[] = {
     [BusyTimerSettingsV1AppConfigIdxThemeName] =
         {
             .name = "theme_name",
@@ -266,26 +266,26 @@ static const SettingProviderSetting busy_timer_settings_v1_metadata[] = {
 static const SettingProviderSetting busy_timer_settings_v1[] = {
     [BusyTimerSettingsV1IdxAppConfig] =
         {
-            .name = "busy_bar_settings",
+            .name = "app_config",
             .interface =
                 &(const SettingProviderStructureInterface){
-                    .inner_settings = busy_timer_settings_v1_busy_bar_settings,
-                    .inner_settings_count = COUNT_OF(busy_timer_settings_v1_busy_bar_settings),
+                    .inner_settings = busy_timer_settings_v1_app_config,
+                    .inner_settings_count = COUNT_OF(busy_timer_settings_v1_app_config),
                 },
-            .field_offset = offsetof(BusyTimerSettingsV1, busy_bar_settings),
+            .field_offset = offsetof(BusyTimerSettingsV1, app_config),
             .type = SettingProviderSettingTypeStructure,
         },
     [BusyTimerSettingsV1IdxTimerConfig] =
         {
-            .name = "timer_settings",
+            .name = "timer_config",
             .interface =
                 &(const SettingProviderCustomInterface){
-                    .default_value = &busy_timer_settings_v1_timer_settings_default,
-                    .serialize_callback = busy_timer_settings_v1_timer_settings_serialize_cb,
-                    .deserialize_callback = busy_timer_settings_v1_timer_settings_deserialize_cb,
-                    .default_value_size = sizeof(busy_timer_settings_v1_timer_settings_default),
+                    .default_value = &busy_timer_settings_v1_timer_config_default,
+                    .serialize_callback = busy_timer_settings_v1_timer_config_serialize_cb,
+                    .deserialize_callback = busy_timer_settings_v1_timer_config_deserialize_cb,
+                    .default_value_size = sizeof(busy_timer_settings_v1_timer_config_default),
                 },
-            .field_offset = offsetof(BusyTimerSettingsV1, timer_settings),
+            .field_offset = offsetof(BusyTimerSettingsV1, timer_config),
             .type = SettingProviderSettingTypeCustom,
         },
     [BusyTimerSettingsV1IdxProfileInfo] =
@@ -330,8 +330,8 @@ bool busy_timer_settings_v1_apply_defaults(
     furi_assert(profile_id < BusyTimerProfileIdMax);
 
     const bool are_values_missing =
-        (settings_v1->timer_settings.mode == BusyTimerModeMax) ||
-        (strcmp(settings_v1->busy_bar_settings.theme_name, STRING_VALUE_DEFAULT) == 0) ||
+        (settings_v1->timer_config.mode == BusyTimerModeMax) ||
+        (strcmp(settings_v1->app_config.theme_name, STRING_VALUE_DEFAULT) == 0) ||
         (strcmp(settings_v1->metadata.card_id, STRING_VALUE_DEFAULT) == 0);
 
     if(are_values_missing) {

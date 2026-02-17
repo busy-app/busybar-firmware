@@ -36,7 +36,7 @@ typedef struct {
 typedef struct {
     BusyTimerSnapshotCommon common;
     BusyTimerIntervalState state;
-    BusyTimerIntervalSettings settings;
+    BusyTimerIntervalConfig config;
 } BusyTimerSnapshotInterval;
 
 typedef struct {
@@ -47,7 +47,7 @@ typedef struct {
         BusyTimerSnapshotSimple simple;
         BusyTimerSnapshotInterval interval;
     };
-    BusyAppConfig busy_bar_settings;
+    BusyAppConfig app_config;
     time_t timestamp_ms;
 } BusyTimerSnapshot;
 

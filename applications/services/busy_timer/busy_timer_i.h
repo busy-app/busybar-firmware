@@ -89,11 +89,11 @@ struct BusyTimer {
     BusyTimerMode mode;
     BusyTimerState state;
     union {
-        BusyTimerSimpleSettings simple_settings;
-        BusyTimerIntervalSettings interval_settings;
+        BusyTimerSimpleConfig simple_config;
+        BusyTimerIntervalConfig interval_config;
     };
     BusyTimerSnapshot user_snapshot;
-    BusyAppConfig busy_bar_settings;
+    BusyAppConfig app_config;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     bool timer_running;
 };
