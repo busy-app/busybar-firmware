@@ -161,7 +161,7 @@
           'Security': wifiStore.wifi?.security || 'Open'
         })"
         :key="property"
-        class="flex gap-1"
+        class="flex gap-2"
       >
         <div class="w-[120px] text-muted">{{ property }}</div>
         <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>

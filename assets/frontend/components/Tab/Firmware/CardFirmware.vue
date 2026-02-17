@@ -39,10 +39,10 @@
           'Branch': system?.branch,
           'API version': deviceStore.apiVersion?.api_semver || 'Unknown',
           'Commit hash': system?.commit_hash,
-          'Uptime': system?.uptime ? system.uptime.slice(0, system.uptime.lastIndexOf(' ')) :'Unknown'
+          'Uptime': system?.uptime ? system.uptime.slice(0, system.uptime.lastIndexOf(' ')) : 'Unknown'
         })"
         :key="property"
-        class="flex"
+        class="flex gap-2"
       >
         <div class="w-[120px] text-muted">{{ property }}</div>
         <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
