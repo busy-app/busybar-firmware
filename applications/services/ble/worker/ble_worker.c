@@ -113,8 +113,8 @@ typedef enum {
 
 typedef struct {
     FuriThread* thread;
-    FuriSemaphore* notification_sem;
     FuriSemaphore* receive_sem;
+    FuriSemaphore* indication_sem;
     uint8_t pairing_info_available;
     ///TODO: this can be removed
     bool connected;
@@ -631,6 +631,7 @@ static int32_t ble_worker_thread_callback(void* context) {
 
         if(events & BLEWorkerEvtIndicateConfirm) {
             BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
+            furi_semaphore_release(ble_worker_instance->indication_sem);
         }
 
         if(events & BLEWorkerEvtWrite) {
@@ -823,7 +824,6 @@ static int32_t ble_worker_thread_callback(void* context) {
 
         if(events & BLEWorkerEvtMoreDataReq) {
             BLE_LOG_D("BLEWorkerEvtMoreDataReq");
-            furi_semaphore_release(ble_worker_instance->notification_sem);
         }
 
         if(events & BLEWorkerEvtExit) {
@@ -1050,7 +1050,7 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
 
     ble_worker_instance->on_connection_changed_cb = connect_callback;
     ble_worker_instance->on_connection_changed_ctx = ctx;
-    ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
+    ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
     ble_worker_instance->receive_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
     ble_worker_instance->security_data = ble_security_alloc();
@@ -1168,20 +1168,14 @@ static void ble_worker_send_chunk(
     BLE_LOG_D("Data_size: %d", data_size);
 
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
-        status = rsi_ble_indicate_value_sync(
+        status = rsi_ble_indicate_value(
             ble_worker_instance->remote_dev_address, handle, data_size, data);
-    } else if(ble_worker_instance->connected && BLE_CCCD_NOTIFICATION_ENABLED(cccd_value)) {
-        if(furi_semaphore_acquire(ble_worker_instance->notification_sem, 2000) != FuriStatusOk) {
-            //furi_crash("Notification failed");
-            BLE_LOG_W("Notification failed for %04X", handle);
-        }
-        status =
-            rsi_ble_notify_value(ble_worker_instance->remote_dev_address, handle, data_size, data);
+        if(status != 0) BLE_LOG_W("Indicate fail %08lX", status);
+        furi_semaphore_acquire(ble_worker_instance->indication_sem, FuriWaitForever);
     } else {
         status = rsi_ble_set_local_att_value(handle, data_size, data);
+        if(status != 0) BLE_LOG_W("Send fail %08lX", status);
     }
-
-    if(status != 0) BLE_LOG_W("Send fail %08lX", status);
 }
 
 void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
