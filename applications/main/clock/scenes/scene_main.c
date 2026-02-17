@@ -1,112 +1,91 @@
 #include "../clock_i.h"
+#include "../widgets/clock_view.h"
 
-#include <gui/modules/label.h>
+#include <gui/modules/menu.h>
+#include <gui/modules/anim_menu.h>
+#include <gui/modules/overlap_fader.h>
 
-#define TAG "ClockSceneMain"
-
-#define CLOCK_INTERVAL_UPDATE_MS 500
+typedef enum {
+    ThisSceneEventStart = ThisEventSceneEventsStart,
+    ThisSceneEventSetup,
+} ThisSceneEventIdx;
 
 typedef struct {
-    Label* front_label;
-    Label* back_label;
+    Widget* front_container;
+    ClockView* front_clock;
+
+    Menu* back_menu;
 } ThisScene;
 
 static inline ThisScene* this_get_scene(ThisInstance* instance) {
     return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxMain);
 }
 
-const char* clock_get_time_string(ThisInstance* instance) {
-    furi_assert(instance);
+static void clock_scene_start_menu_callback(uint32_t index, void* context) {
+    furi_assert(context);
 
-    LocalTime lt = sntp_get_local_time(instance->sntp);
+    ThisInstance* instance = context;
 
-    SntpSettings sntp_settings;
-    sntp_get_settings(instance->sntp, &sntp_settings);
-
-    switch(sntp_settings.time_format) {
-    case SntpSettingTimeFormat24h:
-        furi_string_printf(
-            instance->time_string,
-            "   %02hhu:%02hhu:%02hhu\n%02hhu-%02hhu-%04hu",
-            lt.dt.hour,
-            lt.dt.minute,
-            lt.dt.second,
-            lt.dt.dayofmonth,
-            lt.dt.month,
-            lt.dt.year);
-        break;
-    case SntpSettingTimeFormat12h: {
-        uint8_t h = lt.dt.hour % 12;
-        if(h == 0) {
-            h = 12;
-        }
-
-        bool pm = lt.dt.hour / 12;
-
-        furi_string_printf(
-            instance->time_string,
-            " %02hhu:%02hhu:%02hhu%s\n%02hhu-%02hhu-%04hu",
-            h,
-            lt.dt.minute,
-            lt.dt.second,
-            pm ? "pm" : "am",
-            lt.dt.dayofmonth,
-            lt.dt.month,
-            lt.dt.year);
-        break;
-    }
-    default:
-        furi_string_set(instance->time_string, "ERROR");
-        break;
-    }
-
-    return furi_string_get_cstr(instance->time_string);
+    clock_app_fire_event(instance, index);
 }
 
 static void this_scene_on_enter(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    ThisScene* data = this_get_scene(instance);
+
+    LocalTime local_time = sntp_get_local_time(instance->sntp);
 
     with_gui(instance->gui, {
-        scene->front_label = label_alloc(instance->front_scene_window);
-        label_set_text(scene->front_label, clock_get_time_string(instance));
-        widget_set_align(label_get_base(scene->front_label), AlignCenter);
+        /* front layout setup */
+        data->front_container = widget_alloc(instance->front_scene_window);
 
-        scene->back_label = label_alloc(instance->back_scene_window);
-        label_set_text(scene->back_label, clock_get_time_string(instance));
-        widget_set_align(label_get_base(scene->back_label), AlignCenter);
+        data->front_clock = clock_view_alloc(data->front_container);
+        widget_set_align(clock_view_get_base(data->front_clock), AlignLeftMid);
+        widget_set_padding(clock_view_get_base(data->front_clock), 1, 0, 0, 0);
 
-        nav_bar_push_location(instance->back_nav_bar, "CLOCK");
+        clock_view_set_date_time(data->front_clock, &local_time.dt);
 
-        label_set_text(scene->front_label, clock_get_time_string(instance));
-        label_set_text(scene->back_label, clock_get_time_string(instance));
+        AnimMenu* front_menu = anim_menu_alloc(data->front_container);
+        anim_menu_set_source(front_menu, SHARED_ANIM_PATH("start_menu_31x16.anim"), 2);
+        widget_set_align(anim_menu_get_base(front_menu), AlignRightMid);
+
+        OverlapFader* front_fader = overlap_fader_alloc(data->front_container);
+        widget_set_width(overlap_fader_get_base(front_fader), 10);
+        overlap_fader_align_to(front_fader, anim_menu_get_base(front_menu), OverlapFaderSideLeft);
+
+        /* back layout setup */
+        data->back_menu = menu_alloc(instance->back_scene_window);
+        menu_add_item(
+            data->back_menu,
+            "Start",
+            NULL,
+            SHARED_IMG_PATH("start_11x11.bin"),
+            ThisSceneEventStart,
+            clock_scene_start_menu_callback,
+            instance);
+        menu_add_item(
+            data->back_menu,
+            "Setup",
+            NULL,
+            SHARED_IMG_PATH("setup_11x11.bin"),
+            ThisSceneEventSetup,
+            clock_scene_start_menu_callback,
+            instance);
     });
-
-    furi_event_loop_timer_start(instance->timer, CLOCK_INTERVAL_UPDATE_MS);
 }
 
 static void this_scene_on_exit(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
-
-    furi_event_loop_timer_stop(instance->timer);
+    ThisScene* data = this_get_scene(instance);
 
     with_gui(instance->gui, {
-        if(scene->front_label) {
-            label_free(scene->front_label);
-            scene->front_label = NULL;
-        }
+        widget_free(data->front_container);
 
-        if(scene->back_label) {
-            label_free(scene->back_label);
-            scene->back_label = NULL;
-        }
-
-        nav_bar_pop_location(instance->back_nav_bar);
+        menu_free(data->back_menu);
     });
 }
 
@@ -119,10 +98,22 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case ThisEventTimerUpdate:
+            LocalTime local_time = sntp_get_local_time(instance->sntp);
             with_gui(instance->gui, {
-                label_set_text(scene->front_label, clock_get_time_string(instance));
-                label_set_text(scene->back_label, clock_get_time_string(instance));
+                clock_view_set_date_time(scene->front_clock, &local_time.dt);
             });
+            return true;
+
+        case ThisSceneEventStart:
+            with_gui(instance->gui, {
+                widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
+            });
+            scene_manager_next_scene(instance->scene_manager, ThisSceneIdxClock);
+            return true;
+
+        case ThisSceneEventSetup:
+            with_gui(instance->gui, { nav_bar_push_location(instance->back_nav_bar, "SETUP"); });
+            scene_manager_next_scene(instance->scene_manager, ThisSceneIdxSetup);
             return true;
 
         default:

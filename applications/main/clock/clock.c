@@ -7,6 +7,8 @@
 #define INPUT_QUEUE_CAPACITY 8
 #define EVENT_QUEUE_CAPACITY 8
 
+#define TIMER_INTERVAL_MS 100
+
 static bool thread_signal_callback(uint32_t signal, void* argument, void* context) {
     UNUSED(argument);
 
@@ -60,18 +62,17 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
 
     ThisInstance* instance = context;
 
-    bool is_consumed = false;
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
-        is_consumed = true;
+        furi_message_queue_put(instance->input_queue, event, FuriWaitForever);
+        return true;
     }
 
-    if(is_consumed) furi_message_queue_put(instance->input_queue, event, FuriWaitForever);
-
-    return is_consumed;
+    return false;
 }
 
-static void clock_timer_callback_wrapper(void* context) {
+static void clock_timer_callback(void* context) {
     ThisInstance* instance = context;
+
     clock_app_fire_event(instance, ThisEventTimerUpdate);
 }
 
@@ -89,11 +90,7 @@ static ThisInstance* this_alloc(void) {
     instance->updater = furi_record_open(RECORD_UPDATER);
 
     instance->timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        clock_timer_callback_wrapper,
-        FuriEventLoopTimerTypePeriodic,
-        instance);
-    instance->time_string = furi_string_alloc();
+        instance->event_loop, clock_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
 
     updater_pause_autoupdates(instance->updater);
 
@@ -108,10 +105,11 @@ static ThisInstance* this_alloc(void) {
         instance->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
 
         instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
-        nav_bar_set_header_image(instance->back_nav_bar, NULL);
+        nav_bar_set_header_image(
+            instance->back_nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.bin"));
         nav_bar_push_location(instance->back_nav_bar, "CLOCK");
-        widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
+        widget_set_height(nav_bar_get_base(instance->back_nav_bar), 14);
+        widget_set_margin(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 2);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -132,6 +130,8 @@ static ThisInstance* this_alloc(void) {
         event_queue_callback,
         instance);
 
+    furi_event_loop_timer_start(instance->timer, furi_ms_to_ticks(TIMER_INTERVAL_MS));
+
     scene_manager_next_scene(instance->scene_manager, ThisSceneIdxMain);
 
     return instance;
@@ -148,7 +148,7 @@ static void this_free(ThisInstance* instance) {
         flex_layout_free(instance->back_container);
     });
 
-    furi_string_free(instance->time_string);
+    updater_resume_autoupdates(instance->updater);
 
     furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_DESKTOP);

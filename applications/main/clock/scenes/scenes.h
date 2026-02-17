@@ -8,6 +8,8 @@ extern "C" {
 
 typedef enum {
     ThisSceneIdxMain,
+    ThisSceneIdxClock,
+    ThisSceneIdxSetup,
 
     ThisSceneIdxsCount,
 } ThisSceneIdx;

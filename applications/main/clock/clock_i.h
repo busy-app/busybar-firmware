@@ -20,6 +20,7 @@ extern "C" {
 
 #define THIS_ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_APP_NAME) "/" path
 #define THIS_IMG_PATH(path)    THIS_ASSETS_PATH("images") "/" path
+#define THIS_ANIM_PATH(path)   THIS_ASSETS_PATH("animations") "/" path
 
 typedef enum {
     ThisEventTimerUpdate,
@@ -31,15 +32,13 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
+    FuriEventLoopTimer* timer;
     SceneManager* scene_manager;
 
     Gui* gui;
     Sntp* sntp;
     Desktop* desktop;
     Updater* updater;
-
-    FuriEventLoopTimer* timer;
-    FuriString* time_string;
 
     /* Front layout */
     Widget* front_scene_window;

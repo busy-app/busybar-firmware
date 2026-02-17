@@ -4,7 +4,6 @@
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/anim_player.h>
 #include <gui/modules/label.h>
-#include <gui/storage_macros.h>
 
 #define SUCCESS_SCENE_DELAY_MS 1500
 
