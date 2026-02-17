@@ -130,9 +130,9 @@ void busy_load_busy_bar_settings(BusyApp* instance);
 
 void busy_apply_busy_bar_settings(BusyApp* instance);
 
-void busy_get_timer_profile(BusyApp* instance, BusyTimerProfile* timer_profile);
+void busy_get_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config);
 
-void busy_set_timer_profile(BusyApp* instance, BusyTimerProfile* timer_profile);
+void busy_set_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config);
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);
 

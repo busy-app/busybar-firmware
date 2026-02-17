@@ -28,6 +28,8 @@ typedef enum {
     BusyTimerMessageTypeGetProfile,
     BusyTimerMessageTypeSetProfile,
     BusyTimerMessageTypeLoadProfile,
+    BusyTimerMessageTypeGetConfig,
+    BusyTimerMessageTypeSetConfig,
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
@@ -46,6 +48,16 @@ typedef struct {
     const BusyTimerProfile* profile;
 } BusyTimerMessageSetProfile;
 
+typedef struct {
+    BusyTimerProfileId profile_id;
+    BusyTimerGeneralConfig* config;
+} BusyTimerMessageGetConfig;
+
+typedef struct {
+    BusyTimerProfileId profile_id;
+    const BusyTimerGeneralConfig* config;
+} BusyTimerMessageSetConfig;
+
 typedef union {
     BusyTimerState* state;
     BusyTimerCycles* cycles;
@@ -56,6 +68,8 @@ typedef union {
     BusyTimerMessageGetProfile get_profile;
     BusyTimerMessageSetProfile set_profile;
     BusyTimerProfileId profile_id;
+    BusyTimerMessageGetConfig get_config;
+    BusyTimerMessageSetConfig set_config;
 } BusyTimerMessageData;
 
 typedef struct {
@@ -81,8 +95,8 @@ struct BusyTimer {
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
-    BusyTimerProfile profiles[BusyTimerProfileIdMax];
     // TODO: Refactor the mess below
+    BusyTimerSettings settings[BusyTimerProfileIdMax];
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
     BusyTimerTime time;
@@ -96,4 +110,5 @@ struct BusyTimer {
     BusyAppConfig app_config;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     bool timer_running;
+    bool is_demo_mode_enabled;
 };

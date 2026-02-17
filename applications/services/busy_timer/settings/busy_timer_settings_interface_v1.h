@@ -9,6 +9,7 @@ typedef struct {
     BusyAppConfig app_config;
     BusyTimerConfig timer_config;
     BusyTimerMetadata metadata;
+    bool is_demo_mode_enabled;
     time_t timestamp_ms;
 } BusyTimerSettingsV1;
 

@@ -1,9 +1,9 @@
 #include "busy_timer_i.h"
 
+#include <furi_hal_rtc.h>
+
 #include <busy/busy.h>
 #include <desktop/desktop.h>
-
-#include <furi_hal_rtc.h>
 
 #ifdef BUSY_TIMER_TICK_DEBUG
 #define TIME_MAX_LEN (14)
@@ -246,10 +246,7 @@ static uint32_t busy_timer_calc_interval_index(const BusyTimer* instance) {
 }
 
 static uint32_t busy_timer_calc_increment(const BusyTimer* instance) {
-    UNUSED(instance);
-    // TODO: Figure out demo mode?
-    /*
-    if(instance->settings.timer_config.enable_demo_mode) {
+    if(instance->is_demo_mode_enabled) {
         if(instance->time.remain_s > 60) {
             return 60;
         } else if(instance->time.remain_s > 30) {
@@ -264,7 +261,7 @@ static uint32_t busy_timer_calc_increment(const BusyTimer* instance) {
     } else {
         return 1;
     }
-    */
+
     return 1;
 }
 
@@ -505,31 +502,6 @@ static void busy_timer_schedule_send_snapshot(BusyTimer* instance) {
     furi_event_loop_timer_start(instance->debounce_timer, DEBOUNCE_TIMER_DELAY_MS);
 }
 
-static void busy_timer_load_profile_from_settings(
-    BusyTimerProfile* profile,
-    BusyTimerProfileId profile_id) {
-    BusyTimerSettings settings;
-    busy_timer_settings_load(&settings, profile_id);
-
-    profile->app_config = settings.app_config;
-    profile->timer_config = settings.timer_config;
-    profile->metadata = settings.metadata;
-    profile->timestamp_ms = settings.timestamp_ms;
-}
-
-static void busy_timer_save_profile_to_settings(
-    const BusyTimerProfile* profile,
-    BusyTimerProfileId profile_id) {
-    BusyTimerSettings settings;
-
-    settings.app_config = profile->app_config;
-    settings.timer_config = profile->timer_config;
-    settings.metadata = profile->metadata;
-    settings.timestamp_ms = profile->timestamp_ms;
-
-    busy_timer_settings_save(&settings, profile_id);
-}
-
 static BusyTimerSetProfileResult busy_timer_set_profile_internal(
     BusyTimer* instance,
     const BusyTimerProfile* profile,
@@ -554,22 +526,24 @@ static BusyTimerSetProfileResult busy_timer_set_profile_internal(
             break;
         }
 
-        BusyTimerProfile* current_profile = &instance->profiles[profile_id];
-        const time_t current_profile_timestamp_ms = current_profile->timestamp_ms;
+        BusyTimerSettings* settings = &instance->settings[profile_id];
+        const time_t current_timestamp_ms = settings->timestamp_ms;
 
-        if(profile_timestamp_ms < current_profile_timestamp_ms) {
+        if(profile_timestamp_ms < current_timestamp_ms) {
             FURI_LOG_D(TAG, "Ignoring stale profile with timestamp %llu", profile_timestamp_ms);
             result = BusyTimerSetProfileResultRejectedOutdated;
             break;
 
-        } else if(profile_timestamp_ms == current_profile_timestamp_ms) {
+        } else if(profile_timestamp_ms == current_timestamp_ms) {
             FURI_LOG_D(TAG, "Ignoring own profile with timestamp %llu", profile_timestamp_ms);
             result = BusyTimerSetProfileResultRejectedOwn;
             break;
         }
 
-        *current_profile = *profile;
-        busy_timer_save_profile_to_settings(current_profile, profile_id);
+        settings->app_config = profile->app_config;
+        settings->timer_config = profile->timer_config;
+        settings->metadata = profile->metadata;
+        settings->timestamp_ms = profile_timestamp_ms;
 
         result = BusyTimerSetProfileResultAccepted;
     } while(false);
@@ -578,9 +552,16 @@ static BusyTimerSetProfileResult busy_timer_set_profile_internal(
 }
 
 static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    const BusyTimerProfile* profile = &instance->profiles[profile_id];
+    const BusyTimerSettings* settings = &instance->settings[profile_id];
 
-    char* profile_str = busy_timer_profile_serialize(profile);
+    const BusyTimerProfile profile = {
+        .app_config = settings->app_config,
+        .timer_config = settings->timer_config,
+        .metadata = settings->metadata,
+        .timestamp_ms = settings->timestamp_ms,
+    };
+
+    char* profile_str = busy_timer_profile_serialize(&profile);
     furi_check(profile_str);
 
     const char* mqtt_topic;
@@ -852,7 +833,12 @@ static void
     BusyTimerProfile* const profile = get_profile->profile;
     const BusyTimerProfileId profile_id = get_profile->profile_id;
 
-    *profile = instance->profiles[profile_id];
+    const BusyTimerSettings* settings = &instance->settings[profile_id];
+
+    profile->app_config = settings->app_config;
+    profile->timer_config = settings->timer_config;
+    profile->metadata = settings->metadata;
+    profile->timestamp_ms = settings->timestamp_ms;
 }
 
 static void
@@ -867,6 +853,7 @@ static void
     furi_check(result < BusyTimerSetProfileResultMax);
 
     if(result == BusyTimerSetProfileResultAccepted) {
+        busy_timer_settings_save(&instance->settings[profile_id], profile_id);
         busy_timer_notify_profile_changed(instance, profile_id);
     }
     // Do not re-publish own profiles to avoid infinite loops
@@ -880,12 +867,12 @@ static void
     const BusyTimerProfileId profile_id = data->profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
 
-    const BusyTimerProfile* profile = &instance->profiles[profile_id];
+    const BusyTimerSettings* settings = &instance->settings[profile_id];
 
-    instance->app_config = profile->app_config;
-    strcpy(instance->card_id, profile->metadata.card_id);
+    instance->app_config = settings->app_config;
+    strcpy(instance->card_id, settings->metadata.card_id);
 
-    const BusyTimerConfig* timer_config = &profile->timer_config;
+    const BusyTimerConfig* timer_config = &settings->timer_config;
     instance->mode = timer_config->mode;
 
     if(instance->mode == BusyTimerModeSimple) {
@@ -893,6 +880,41 @@ static void
     } else if(instance->mode == BusyTimerModeInterval) {
         instance->interval_config = timer_config->interval;
     }
+
+    instance->is_demo_mode_enabled = settings->is_demo_mode_enabled;
+}
+
+static void
+    busy_timer_get_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    const BusyTimerMessageGetConfig* get_config = &data->get_config;
+
+    const BusyTimerProfileId profile_id = get_config->profile_id;
+    furi_assert(profile_id < BusyTimerProfileIdMax);
+
+    BusyTimerGeneralConfig* config = get_config->config;
+    const BusyTimerSettings* settings = &instance->settings[profile_id];
+
+    config->app_config = settings->app_config;
+    config->timer_config = settings->timer_config;
+    config->is_demo_mode_enabled = settings->is_demo_mode_enabled;
+}
+
+static void
+    busy_timer_set_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    const BusyTimerMessageSetConfig* set_config = &data->set_config;
+
+    const BusyTimerProfileId profile_id = set_config->profile_id;
+    furi_assert(profile_id < BusyTimerProfileIdMax);
+
+    const BusyTimerGeneralConfig* config = set_config->config;
+    BusyTimerSettings* settings = &instance->settings[profile_id];
+
+    settings->app_config = config->app_config;
+    settings->timer_config = config->timer_config;
+    settings->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
+    settings->is_demo_mode_enabled = config->is_demo_mode_enabled;
+
+    busy_timer_settings_save(&instance->settings[profile_id], profile_id);
 }
 
 // Service
@@ -916,7 +938,7 @@ static BusyTimer* busy_timer_alloc(void) {
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
     for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
-        busy_timer_load_profile_from_settings(&instance->profiles[id], id);
+        busy_timer_settings_load(&instance->settings[id], id);
     }
 
     furi_event_loop_subscribe_message_queue(
@@ -975,4 +997,6 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeGetProfile] = busy_timer_get_profile_message_handler,
     [BusyTimerMessageTypeSetProfile] = busy_timer_set_profile_message_handler,
     [BusyTimerMessageTypeLoadProfile] = busy_timer_load_profile_message_handler,
+    [BusyTimerMessageTypeGetConfig] = busy_timer_get_config_message_handler,
+    [BusyTimerMessageTypeSetConfig] = busy_timer_set_config_message_handler,
 };

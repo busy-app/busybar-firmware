@@ -54,6 +54,12 @@ typedef struct {
 } BusyTimerInfo;
 
 typedef struct {
+    BusyAppConfig app_config;
+    BusyTimerConfig timer_config;
+    bool is_demo_mode_enabled;
+} BusyTimerGeneralConfig;
+
+typedef struct {
     bool is_paused;
 } BusyTimerEventPaused;
 
@@ -106,6 +112,16 @@ void busy_timer_set_profile(
     const BusyTimerProfile* profile);
 
 void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id);
+
+void busy_timer_get_general_config(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerGeneralConfig* config);
+
+void busy_timer_set_general_config(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerGeneralConfig* config);
 
 const char** busy_timer_get_mode_names(void);
 

@@ -12,14 +12,6 @@ extern "C" {
 #endif
 
 typedef struct {
-    BusyTimerMode mode;
-    union {
-        BusyTimerSimpleConfig simple;
-        BusyTimerIntervalConfig interval;
-    };
-} BusyTimerConfig;
-
-typedef struct {
     BusyAppConfig app_config;
     BusyTimerConfig timer_config;
     BusyTimerMetadata metadata;

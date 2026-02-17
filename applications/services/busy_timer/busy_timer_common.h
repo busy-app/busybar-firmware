@@ -69,6 +69,14 @@ typedef struct {
     uint32_t time_left_ms;
 } BusyTimerIntervalState;
 
+typedef struct {
+    BusyTimerMode mode;
+    union {
+        BusyTimerSimpleConfig simple;
+        BusyTimerIntervalConfig interval;
+    };
+} BusyTimerConfig;
+
 #ifdef __cplusplus
 }
 #endif

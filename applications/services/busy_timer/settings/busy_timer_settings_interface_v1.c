@@ -12,6 +12,7 @@ typedef enum {
     BusyTimerSettingsV1IdxAppConfig,
     BusyTimerSettingsV1IdxTimerConfig,
     BusyTimerSettingsV1IdxProfileInfo,
+    BusyTimerSettingsV1IdxDemoMode,
     BusyTimerSettingsV1IdxTimestamp,
     BusyTimerSettingsV1IdxMax,
 } BusyTimerSettingsV1Idx;
@@ -41,9 +42,7 @@ typedef enum {
     BusyTimerSettingsV1ProfileInfoIdxMax,
 } BusyTimerSettingsV1ProfileInfoIdx;
 
-// NOTE: Wastes ~64 bytes of flash space for convenience
-// NOTE: Wastes ~200 bytes of flash space for convenience
-
+// NOTE: Wastes ~264 bytes of flash space for convenience
 static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfileIdMax] = {
     [BusyTimerProfileIdBusy] =
         {
@@ -70,6 +69,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                     .title = "busy",
                     .card_id = "00000000-0000-0000-0000-000000000000",
                 },
+            .is_demo_mode_enabled = BUSY_TIMER_ENABLE_DEMO_MODE_DEFAULT,
             .timestamp_ms = 0,
         },
     [BusyTimerProfileIdCustom] =
@@ -90,6 +90,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                     .title = "custom",
                     .card_id = "00000000-0000-0000-0000-000000000001",
                 },
+            .is_demo_mode_enabled = BUSY_TIMER_ENABLE_DEMO_MODE_DEFAULT,
             .timestamp_ms = 0,
         },
 };
@@ -298,6 +299,16 @@ static const SettingProviderSetting busy_timer_settings_v1[] = {
                 },
             .field_offset = offsetof(BusyTimerSettingsV1, metadata),
             .type = SettingProviderSettingTypeStructure,
+        },
+    [BusyTimerSettingsV1IdxDemoMode] =
+        {
+            .name = "is_demo_mode_enabled",
+            .interface =
+                &(const SettingProviderBoolInterface){
+                    .default_value = BUSY_TIMER_ENABLE_DEMO_MODE_DEFAULT,
+                },
+            .field_offset = offsetof(BusyTimerSettingsV1, is_demo_mode_enabled),
+            .type = SettingProviderSettingTypeBool,
         },
     [BusyTimerSettingsV1IdxTimestamp] =
         {

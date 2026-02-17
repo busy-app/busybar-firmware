@@ -40,11 +40,11 @@ static void busy_scene_setup_on_enter(void* context) {
     BusySceneSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetup);
 
-    BusyTimerProfile timer_profile;
-    busy_get_timer_profile(instance, &timer_profile);
+    BusyTimerGeneralConfig timer_config;
+    busy_get_timer_config(instance, &timer_config);
 
-    const BusyTimerMode timer_mode = timer_profile.timer_config.mode;
-    const bool is_smart_home_enabled = timer_profile.app_config.is_smart_home_enabled;
+    const BusyTimerMode timer_mode = timer_config.timer_config.mode;
+    const bool is_smart_home_enabled = timer_config.app_config.is_smart_home_enabled;
 
     const char* mode_name = busy_timer_get_mode_names()[timer_mode];
     const char* smart_home_sublabel = is_smart_home_enabled ? ITEM_SUBLABEL_ON : ITEM_SUBLABEL_OFF;

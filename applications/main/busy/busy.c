@@ -1,8 +1,6 @@
 #include "busy_i.h"
 #include "busy_presets.h"
 
-#include <furi_hal_rtc.h>
-
 #define BUSY_NAV_BAR_HEIGHT 20
 
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -324,9 +322,9 @@ void busy_exit(BusyApp* instance) {
 void busy_load_busy_bar_settings(BusyApp* instance) {
     furi_assert(instance);
 
-    BusyTimerProfile profile;
-    busy_get_timer_profile(instance, &profile);
-    instance->config = profile.app_config;
+    BusyTimerGeneralConfig timer_config;
+    busy_get_timer_config(instance, &timer_config);
+    instance->config = timer_config.app_config;
 }
 
 void busy_apply_busy_bar_settings(BusyApp* instance) {
@@ -338,16 +336,16 @@ void busy_apply_busy_bar_settings(BusyApp* instance) {
     }
 }
 
-void busy_get_timer_profile(BusyApp* instance, BusyTimerProfile* timer_profile) {
+void busy_get_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config) {
     furi_assert(instance);
-    busy_timer_get_profile(instance->busy_timer, busy_get_profile_id(instance), timer_profile);
+    busy_timer_get_general_config(
+        instance->busy_timer, busy_get_profile_id(instance), timer_config);
 }
 
-void busy_set_timer_profile(BusyApp* instance, BusyTimerProfile* timer_profile) {
+void busy_set_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config) {
     furi_assert(instance);
-
-    timer_profile->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
-    busy_timer_set_profile(instance->busy_timer, busy_get_profile_id(instance), timer_profile);
+    busy_timer_set_general_config(
+        instance->busy_timer, busy_get_profile_id(instance), timer_config);
 }
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance) {

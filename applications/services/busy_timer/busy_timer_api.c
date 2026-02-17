@@ -175,3 +175,43 @@ void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id)
 
     busy_timer_send_message(instance, &message);
 }
+
+void busy_timer_get_general_config(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerGeneralConfig* config) {
+    furi_check(instance);
+    furi_check(profile_id < BusyTimerProfileIdMax);
+    furi_check(config);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeGetConfig,
+        .data.get_config =
+            {
+                .profile_id = profile_id,
+                .config = config,
+            },
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
+void busy_timer_set_general_config(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerGeneralConfig* config) {
+    furi_check(instance);
+    furi_check(profile_id < BusyTimerProfileIdMax);
+    furi_check(config);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeSetConfig,
+        .data.set_config =
+            {
+                .profile_id = profile_id,
+                .config = config,
+            },
+    };
+
+    busy_timer_send_message(instance, &message);
+}
