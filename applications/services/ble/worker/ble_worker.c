@@ -640,8 +640,6 @@ static int32_t ble_worker_thread_callback(void* context) {
                 const void* data = instance->app_ble_write_event.att_value;
                 const size_t data_size = instance->app_ble_write_event.length;
 
-                if(handle == 0x001D) BLE_LOG_W("Subscribed!");
-
                 BleServiceEntry* entry =
                     BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
 
@@ -656,6 +654,10 @@ static int32_t ble_worker_thread_callback(void* context) {
                         if(ble_characteristic_is_cccd_handle(ch, handle)) {
                             uint8_t ccd_val = *((uint8_t*)data);
                             ble_characteristic_set_cccd_value(ch, ccd_val);
+                            status = rsi_ble_gatt_write_response(
+                                ble_worker_instance->remote_dev_address, 0);
+                            if(handle == 0x001D) BLE_LOG_W("Subscribed!");
+
                             furi_semaphore_release(ble_worker_instance->receive_sem);
                         } else {
                             furi_check(data_size > 0);
