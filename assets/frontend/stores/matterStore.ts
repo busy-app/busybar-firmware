@@ -39,7 +39,7 @@ export const useMatterStore = defineStore('matter', () => {
         }
         matterLink.value.expiresInMs = matterLink.value.availableUntil.getTime() - Date.now();
 
-        const svgElement = encodeQR(matterLink.value.qrCode, 'svg');
+        const svgElement = encodeQR(response.qr_code!, 'svg');
         matterLink.value.qrCode = svgElement;
 
         matterLink.value.timeout = setTimeout(() => {
