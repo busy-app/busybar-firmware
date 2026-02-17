@@ -305,7 +305,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
         toast.add({
           title: 'Update initiated',
           description: 'The device will reboot to apply the update. Pay attention to the front screen.',
-          icon: 'i-ri-check-line',
+          icon: 'i-bi-checkmark-circle-fill',
           color: 'success',
           duration: 10000
         });

@@ -62,7 +62,7 @@
         :items="[
           {
             label: 'Rename',
-            icon: 'i-ri-pencil-line',
+            icon: 'i-bi-edit',
             onSelect: () => {
               nameModel = '';
               showRenameModal = true;
@@ -161,7 +161,7 @@
       >
         <UButton
           data-id="layout-default-header-user-menu-trigger"
-          icon="i-busy-user-fill"
+          icon="i-bi-user-fill"
           size="lg"
           square
           color="neutral"
@@ -226,7 +226,7 @@ const passwordSetItems = [
 const passwordUnsetItems = [
   {
     label: 'Set password',
-    icon: 'i-ri-lock-password-line',
+    icon: 'i-bi-password',
     onSelect: () => {
       pms.passwordModel.current = '';
       pms.passwordModel.currentWrong = false;
@@ -251,7 +251,7 @@ const userDropdownItems = computed(() => {
     [
       {
         label: `${colorMode.value === 'dark' ? 'Switch to light' : 'Switch to dark'} theme`,
-        icon: colorMode.value === 'dark' ? 'i-ri-sun-line' : 'i-ri-moon-line',
+        icon: colorMode.value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon',
         onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
       }
     ]

@@ -1,26 +1,26 @@
 export default defineAppConfig({
   ui: {
     icons: {
-      arrowLeft: 'i-ri-arrow-left-line',
+      arrowLeft: 'i-bi-arrow-back',
       arrowRight: 'i-ri-arrow-right-line',
-      check: 'i-ri-check-line',
+      check: 'i-bi-checkmark-circle-fill',
       chevronDoubleLeft: 'i-ri-arrow-left-double-fill',
       chevronDoubleRight: 'i-ri-arrow-right-double-fill',
-      chevronDown: 'i-ri-arrow-down-s-fill',
+      chevronDown: 'i-bi-chevron-down',
       chevronLeft: 'i-ri-arrow-left-s-fill',
       chevronRight: 'i-ri-arrow-right-s-fill',
       chevronUp: 'i-ri-arrow-up-s-fill',
-      close: 'i-ri-close-line',
-      ellipsis: 'i-ri-more-fill',
-      external: 'i-ri-external-link-line',
-      file: 'i-ri-file-2-line',
-      folder: 'i-ri-folder-2-line',
+      close: 'i-bi-cross',
+      ellipsis: 'i-bi-more',
+      external: 'i-bi-open-in-new',
+      file: 'i-bi-file',
+      folder: 'i-bi-folder',
       folderOpen: 'i-ri-folder-open-line',
       loading: 'i-busy-loader',
       minus: 'i-ri-subtract-fill',
-      plus: 'i-ri-add-fill',
-      search: 'i-ri-search-line',
-      upload: 'i-ri-upload-2-line'
+      plus: 'i-bi-plus',
+      search: 'i-bi-search',
+      upload: 'i-bi-upload'
     },
     colors: {
       primary: 'brand',

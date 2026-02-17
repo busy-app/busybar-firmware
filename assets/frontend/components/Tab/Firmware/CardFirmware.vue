@@ -9,7 +9,7 @@
       <UButton
         data-id="firmware-section-primary-update-from-file-button"
         label="Update from file"
-        icon="i-ri-upload-2-line"
+        icon="i-bi-upload"
         variant="link"
         :ui="{
           base: 'px-2.5 py-2 rounded-full'

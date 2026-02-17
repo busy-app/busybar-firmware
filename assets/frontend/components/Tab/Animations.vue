@@ -36,7 +36,7 @@
             <p class="font-bold">Files ({{ files?.length }})</p>
 
             <UButton
-              icon="i-ri-close-line"
+              icon="i-bi-cross"
               label="Clear"
               color="error"
               variant="ghost"

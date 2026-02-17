@@ -12,7 +12,7 @@
           <span>{{ useColorMode().value === 'dark' ? 'Dark theme' : 'Light theme' }} - toggle manually</span>
 
           <UButton
-            :icon="useColorMode().value === 'dark' ? 'i-ri-sun-line' : 'i-ri-moon-line'"
+            :icon="useColorMode().value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon'"
             color="neutral"
             variant="ghost"
             size="xs"

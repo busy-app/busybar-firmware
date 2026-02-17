@@ -11,7 +11,7 @@
     >
       <UButton
         data-id="network-section-wifi-back-button"
-        icon="i-ri-arrow-left-line"
+        icon="i-bi-arrow-back"
         variant="ghost"
         color="neutral"
         square
@@ -80,7 +80,7 @@
       >
         <UButton
           data-id="network-section-wifi-add-button"
-          icon="i-ri-add-line"
+          icon="i-bi-plus"
           variant="ghost"
           color="neutral"
           square
@@ -315,7 +315,7 @@
         >
           <template #trailing>
             <UButton
-              :icon="showPassword ? 'i-ri-eye-line' : 'i-ri-eye-close-line'"
+              :icon="showPassword ? 'i-bi-eye' : 'i-bi-eye-shut'"
               variant="ghost"
               color="neutral"
               square
@@ -339,7 +339,7 @@
           label="Advanced options"
           color="neutral"
           variant="link"
-          trailing-icon="i-ri-arrow-down-s-fill"
+          trailing-icon="i-bi-chevron-down"
           :ui="{
             base: 'px-0',
             trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200'

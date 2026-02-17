@@ -16,7 +16,7 @@
           text="To parent directory"
         >
           <UButton
-            icon="i-ri-arrow-left-line"
+            icon="i-bi-arrow-back"
             variant="ghost"
             color="neutral"
             square
@@ -278,7 +278,7 @@
                 <p class="font-bold">Files ({{ files?.length }})</p>
 
                 <UButton
-                  icon="i-ri-close-line"
+                  icon="i-bi-cross"
                   label="Clear all"
                   color="neutral"
                   variant="ghost"
@@ -338,7 +338,7 @@
 
                     <UButton
                       v-if="!loading.write"
-                      icon="i-ri-close-line"
+                      icon="i-bi-cross"
                       variant="ghost"
                       color="neutral"
                       square

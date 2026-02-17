@@ -3,7 +3,7 @@
     v-if="deviceStore.httpAPIAccess"
     data-id="network-section-http-api"
     title="HTTP API"
-    icon="i-ri-exchange-2-line"
+    icon="i-bi-http-api"
   >
     <div class="flex justify-between items-center">
       <div>Over USB</div>
@@ -104,7 +104,7 @@
             :items="[
               {
                 label: 'Change',
-                icon: 'i-ri-pencil-line',
+                icon: 'i-bi-edit',
                 onSelect: () => {
                   pms.passwordModel.current = '';
                   pms.passwordModel.currentWrong = false;
@@ -114,7 +114,7 @@
               },
               {
                 label: 'Remove',
-                icon: 'i-ri-lock-unlock-line',
+                icon: 'i-bi-unlock',
                 onSelect: () => {
                   pms.passwordModel.current = '';
                   pms.passwordModel.currentWrong = false;
@@ -131,7 +131,7 @@
             }"
           >
             <UButton
-              icon="i-ri-more-fill"
+              icon="i-bi-more"
               variant="ghost"
               color="neutral"
               square

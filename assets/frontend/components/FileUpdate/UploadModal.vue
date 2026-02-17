@@ -52,14 +52,14 @@
         <div class="flex justify-between items-center p-3 ring-1 ring-muted rounded-xl">
           <div class="flex items-center gap-4">
             <UIcon
-              name="i-ri-file-zip-line"
+              name="i-bi-archive"
               class="size-6"
             />
             <div data-id="modal-update-firmware-file-uploaded-name">{{ firmwareStore.fileUpdate.firmwareFile?.name || 'File name unknown' }}</div>
           </div>
           <UButton
             data-id="modal-update-firmware-file-uploaded-remove-button"
-            icon="i-ri-delete-bin-7-line"
+            icon="i-bi-trash"
             variant="soft"
             color="neutral"
             square

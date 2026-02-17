@@ -67,7 +67,7 @@
           <UButton
             data-id="brightness-auto-button"
             label="Auto"
-            icon="i-ri-input-method-line"
+            icon="i-bi-brightness-auto-control"
             size="sm"
             :variant="isBrightnessAuto ? 'solid' : 'subtle'"
             color="neutral"
