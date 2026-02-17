@@ -1175,11 +1175,15 @@ static void ble_worker_send_chunk(
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
         status = rsi_ble_indicate_value(
             ble_worker_instance->remote_dev_address, handle, data_size, data);
-        if(status != 0) BLE_LOG_W("Indicate fail %08lX", status);
-        furi_semaphore_acquire(ble_worker_instance->indication_sem, FuriWaitForever);
+        if(status == RSI_SUCCESS)
+            furi_semaphore_acquire(ble_worker_instance->indication_sem, FuriWaitForever);
+        else {
+            BLE_LOG_W("Indicate fail %08lX", status);
+            rsi_ble_disconnect((int8_t*)ble_worker_instance->remote_dev_address);
+        }
     } else {
         status = rsi_ble_set_local_att_value(handle, data_size, data);
-        if(status != 0) BLE_LOG_W("Send fail %08lX", status);
+        if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
     }
 }
 
