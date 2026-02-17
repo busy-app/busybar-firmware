@@ -64,7 +64,7 @@ static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, 
     BleIntercomFrameGeneric* name_frame = malloc(new_msg_size);
     memcpy(&name_frame->header, &frame->header, sizeof(BleIntercomFrameHeader));
     name_frame->header.command = BleCommandSetDeviceName;
-    name_frame->header.data_size = name_size;
+    name_frame->header.data_size = name_size + 1;
     memcpy(name_frame->data, furi_string_get_cstr(name), name_size);
 
     bool result = ble_command_request_process(name_frame, context);

@@ -3,6 +3,11 @@
 
 #define TAG "BleServiceBase"
 
+/**
+ * @brief This must be less than @ref INTERCOM_SYNC_CHAR_TIMEOUT_MS.
+ */
+#define BLE_SERVICE_INPUT_FRAME_LOCK_TIMEOUT (500)
+
 bool ble_service_lock(BleServiceObject* instance) {
     if(furi_mutex_acquire(instance->service_lock, FuriWaitForever) != FuriStatusOk) {
         BLE_LOG_W("%s - service lock failed", instance->config->name);
@@ -18,7 +23,8 @@ void ble_service_unlock(BleServiceObject* instance) {
 }
 
 static bool ble_service_lock_input_frame(BleServiceObject* instance) {
-    if(furi_semaphore_acquire(instance->frame_lock, FuriWaitForever) != FuriStatusOk) {
+    if(furi_semaphore_acquire(instance->frame_lock, BLE_SERVICE_INPUT_FRAME_LOCK_TIMEOUT) !=
+       FuriStatusOk) {
         BLE_LOG_W("%s - frame lock failed", instance->config->name);
         return false;
     }
