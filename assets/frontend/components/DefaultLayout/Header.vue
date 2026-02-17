@@ -113,6 +113,12 @@
           onClick: () => { showRenameModal = false; }
         }"
       >
+        <template #icon>
+          <UIcon
+            name="i-bi-edit"
+            class="size-8 text-muted"
+          />
+        </template>
         <template #body>
           <UInput
             v-model="nameModel"

@@ -168,6 +168,11 @@ export const useDeviceStore = defineStore('device', () => {
     return await busyBar.value.SettingsNameSet({ name })
       .then(() => {
         deviceName.value = name;
+        toast.add({
+          title: 'Changes saved',
+          icon: 'i-bi-checkmark-circle-fill',
+          color: 'success'
+        });
         return true;
       })
       .catch(async error => {
