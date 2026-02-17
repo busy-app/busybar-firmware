@@ -49,7 +49,7 @@
 
       <div class="w-full flex items-end justify-between gap-6">
         <div class="flex gap-4">
-          <UFormField label="Frames per second">
+          <UFormField label="FPS">
             <UInput
               v-model="fpsModel"
               type="number"
@@ -61,9 +61,7 @@
           <UFormField label="Color Mode">
             <USelect
               v-model="colorModeModel"
-              :options="colorModeOptions"
-              option-attribute="label"
-              value-attribute="value"
+              :items="colorModeOptions"
               @update:model-value="saveColorMode"
             />
           </UFormField>
@@ -73,13 +71,13 @@
           <UButton
             icon="i-bi-download"
             label="Save animation file"
-            color="primary"
+            color="neutral"
             variant="ghost"
             @click="composeAndDownload"
           />
           <UButton
-            icon="i-bi-upload"
-            label="Upload to device"
+            icon="i-bi-control-play"
+            label="Play on device"
             color="neutral"
             variant="solid"
             @click="composeAndUpload"
@@ -93,6 +91,7 @@
 <script setup lang="ts">
 import { composeAnimation } from '@/util/seq2anim';
 import type { ColorMode } from '@/util/seq2anim';
+import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 const deviceStore = useDeviceStore();
 
@@ -153,34 +152,72 @@ async function composeAndDownload () {
 async function composeAndUpload () {
   await handleComposeAnimation();
   if (animationOutput.value) {
-    await deviceStore.busyBar.StorageWrite({
-      file: animationOutput.value,
-      path: '/ext/animations/temp.anim'
-    })
-      .then(() => {
-        toast.add({
-          title: 'Animation uploaded',
-          description: 'Open Settings > Debug Apps > Animation Player to view it',
-          icon: 'i-bi-checkmark-circle',
-          color: 'success',
-          duration: 0,
-          close: true,
-          closeIcon: 'i-bi-cross'
-        });
-      })
-      .catch(error => {
-        console.error('Error uploading animation file:', error);
-        toast.add({
-          title: 'Upload Failed',
-          description: `Failed to upload animation file: ${error}`,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 0,
-          close: true,
-          closeIcon: 'i-bi-cross'
-        });
+    try {
+      await deleteAssets();
+
+      await uploadAnimation(animationOutput.value);
+
+      await drawAnimation();
+
+      toast.add({
+        title: 'Animation uploaded',
+        description: 'Check the front display to view it',
+        icon: 'i-bi-checkmark-circle',
+        color: 'success',
+        duration: 10000,
+        close: true,
+        closeIcon: 'i-bi-cross'
       });
+    } catch {
+      //
+    }
   }
+}
+
+async function deleteAssets () {
+  return deviceStore.busyBar.AssetsDelete({
+    appId: 'virtual-lan-animation-test'
+  })
+    .catch(async error => {
+      await handleHTTPError(error, 'Couldn\'t delete existing animation assets', true);
+      throw error;
+    });
+}
+
+async function uploadAnimation (animation: Blob) {
+  return deviceStore.busyBar.AssetsUpload({
+    appId: 'virtual-lan-animation-test',
+    file: animation,
+    fileName: 'test.anim'
+  })
+    .catch(async error => {
+      await handleHTTPError(error, 'Couldn\'t upload animation file', true);
+      throw error;
+    });
+}
+
+async function drawAnimation () {
+  return deviceStore.busyBar.DisplayDraw({
+    appId: 'virtual-lan-animation-test',
+    elements: [
+      {
+        id: '0',
+        timeout: 0,
+        align: 'top_left',
+        display: 'front',
+        x: 0,
+        y: 0,
+        type: 'anim',
+        path: 'test.anim',
+        section_name: 'loop',
+        loop: true
+      }
+    ]
+  } as unknown as DisplayDrawParams)
+    .catch(async error => {
+      await handleHTTPError(error, 'Display draw command failed', true);
+      throw error;
+    });
 }
 
 function createObjectUrl (file: File | Blob): string {
