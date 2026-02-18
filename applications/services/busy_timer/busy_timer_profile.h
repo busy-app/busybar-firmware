@@ -11,6 +11,12 @@
 extern "C" {
 #endif
 
+typedef enum {
+    BusyTimerProfileIdBusy,
+    BusyTimerProfileIdCustom,
+    BusyTimerProfileIdMax,
+} BusyTimerProfileId;
+
 typedef struct {
     BusyAppConfig app_config;
     BusyTimerConfig timer_config;

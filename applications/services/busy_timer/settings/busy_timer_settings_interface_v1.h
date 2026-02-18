@@ -2,15 +2,11 @@
 
 #include <setting_provider.h>
 
-#include <busy/busy.h>
-#include <busy_timer/busy_timer.h>
+#include "../busy_timer_profile.h"
 
 typedef struct {
-    BusyAppConfig app_config;
-    BusyTimerConfig timer_config;
-    BusyTimerMetadata metadata;
+    BusyTimerProfile profile;
     bool is_demo_mode_enabled;
-    time_t timestamp_ms;
 } BusyTimerSettingsV1;
 
 extern const SettingProviderSetting busy_timer_settings_v1_root;

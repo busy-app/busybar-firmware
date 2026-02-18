@@ -33,12 +33,6 @@ typedef enum {
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
-typedef enum {
-    BusyTimerProfileIdBusy,
-    BusyTimerProfileIdCustom,
-    BusyTimerProfileIdMax,
-} BusyTimerProfileId;
-
 typedef struct {
     uint32_t elapsed_s;
     uint32_t remain_s;
