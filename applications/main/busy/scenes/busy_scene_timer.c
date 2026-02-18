@@ -21,9 +21,10 @@ typedef struct {
     TimerIndicatorPreset custom_preset;
     BusyTimerMode timer_mode;
     BusyTimerMode prev_timer_mode;
-    BusyTimerTime timer_time;
     BusyTimerState timer_state;
-    uint32_t prev_label_show_time;
+    uint32_t time_elapsed_s;
+    uint32_t time_remaining_s;
+    uint32_t prev_label_show_time_s;
     bool is_custom_theme;
     bool is_paused;
     bool is_force_ended;
@@ -75,20 +76,21 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(event->type == BusyTimerEventTypeTick) {
-        data->timer_time = event->time;
+        data->time_elapsed_s = event->tick.time_elapsed_s;
+        data->time_remaining_s = event->tick.time_remaining_s;
         busy_send_custom_event(instance, BusyCustomEventTimerTick);
 
     } else if(event->type == BusyTimerEventTypeModeChanged) {
         data->prev_timer_mode = data->timer_mode;
-        data->timer_mode = event->mode;
+        data->timer_mode = event->mode_changed.mode;
         busy_send_custom_event(instance, BusyCustomEventTimerModeChanged);
 
     } else if(event->type == BusyTimerEventTypeStateChanged) {
-        data->timer_state = event->state;
+        data->timer_state = event->state_changed.state;
         busy_send_custom_event(instance, BusyCustomEventTimerStateChanged);
 
     } else if(event->type == BusyTimerEventTypeIntervalEnded) {
-        data->is_force_ended = event->is_force_ended;
+        data->is_force_ended = event->interval_ended.is_forced;
         busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
 
     } else if(event->type == BusyTimerEventTypePaused) {
@@ -104,10 +106,9 @@ static bool busy_scene_timer_has_label_tweaks(const BusySceneTimer* data) {
 static void busy_scene_timer_update_tick(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-    const BusyTimerTime* time = &data->timer_time;
 
-    const uint32_t time_remain_s = time->remain_s;
-    const uint32_t time_elapsed_s = time->elapsed_s;
+    const uint32_t time_remain_s = data->time_remaining_s;
+    const uint32_t time_elapsed_s = data->time_elapsed_s;
 
     const float progress = (float)time_elapsed_s / (time_elapsed_s + time_remain_s);
 
@@ -117,13 +118,13 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
         timer_card_set_time(instance->timer_card, time_remain_s);
 
         if(busy_scene_timer_has_label_tweaks(data)) {
-            const uint32_t dt_s = time_elapsed_s - data->prev_label_show_time;
+            const uint32_t dt_s = time_elapsed_s - data->prev_label_show_time_s;
 
             if(dt_s == TIMER_HIDDEN_TIME_S || time_remain_s <= COUNTDOWN_THRESHOLD_S) {
                 timer_label_show(data->timer_label, true);
             } else if(dt_s == TIMER_HIDDEN_TIME_S + TIMER_SHOWN_TIME_S || dt_s == 0) {
                 timer_label_hide(data->timer_label, true);
-                data->prev_label_show_time = time_elapsed_s;
+                data->prev_label_show_time_s = time_elapsed_s;
             }
         }
     });
@@ -244,7 +245,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
-    data->prev_label_show_time = 0;
+    data->prev_label_show_time_s = 0;
 
     const TimerIndicatorPreset* timer_indicator_preset =
         busy_scene_timer_get_indicator_preset(data);
@@ -312,8 +313,8 @@ static void busy_scene_timer_handle_increment_decrement(BusyApp* instance, int32
 
     busy_timer_add_time(instance->busy_timer, value);
 
-    const uint32_t time_elapsed_s = data->timer_time.elapsed_s;
-    data->prev_label_show_time = time_elapsed_s + TIMER_SHOWN_OFFSET_S;
+    const uint32_t time_elapsed_s = data->time_elapsed_s;
+    data->prev_label_show_time_s = time_elapsed_s + TIMER_SHOWN_OFFSET_S;
 }
 
 static void busy_scene_timer_handle_back(BusyApp* instance) {

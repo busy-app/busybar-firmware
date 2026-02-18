@@ -92,16 +92,17 @@ struct BusyTimer {
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
     // TODO: Refactor the mess below
-    BusyTimerSettings settings[BusyTimerProfileIdMax];
-    time_t prev_tick_timestamp_ms;
-    uint32_t current_interval_index;
-    BusyTimerTime time;
     BusyTimerMode mode;
     BusyTimerState state;
+    time_t prev_tick_timestamp_ms;
+    uint32_t current_interval_index;
+    uint32_t time_elapsed_s;
+    uint32_t time_remaining_s;
     union {
         BusyTimerSimpleConfig simple_config;
         BusyTimerIntervalConfig interval_config;
     };
+    BusyTimerSettings settings[BusyTimerProfileIdMax];
     BusyTimerSnapshot user_snapshot;
     BusyAppConfig app_config;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];

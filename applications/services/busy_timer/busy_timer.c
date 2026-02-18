@@ -101,7 +101,11 @@ static void busy_timer_notify_tick(const BusyTimer* instance) {
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeTick,
-        .time = instance->time,
+        .tick =
+            {
+                .time_elapsed_s = instance->time_elapsed_s,
+                .time_remaining_s = instance->time_remaining_s,
+            },
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -112,7 +116,7 @@ static void busy_timer_notify_mode_changed(const BusyTimer* instance) {
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeModeChanged,
-        .mode = instance->mode,
+        .mode_changed.mode = instance->mode,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -123,7 +127,7 @@ static void busy_timer_notify_state_changed(const BusyTimer* instance) {
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeStateChanged,
-        .state = instance->state,
+        .state_changed.state = instance->state,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -134,7 +138,7 @@ static void busy_timer_notify_interval_ended(const BusyTimer* instance, bool for
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeIntervalEnded,
-        .is_force_ended = force,
+        .interval_ended.is_forced = force,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -247,13 +251,13 @@ static uint32_t busy_timer_calc_interval_index(const BusyTimer* instance) {
 
 static uint32_t busy_timer_calc_increment(const BusyTimer* instance) {
     if(instance->is_demo_mode_enabled) {
-        if(instance->time.remain_s > 60) {
+        if(instance->time_remaining_s > 60) {
             return 60;
-        } else if(instance->time.remain_s > 30) {
+        } else if(instance->time_remaining_s > 30) {
             return 30;
-        } else if(instance->time.remain_s > 15) {
+        } else if(instance->time_remaining_s > 15) {
             return 15;
-        } else if(instance->time.remain_s > 5) {
+        } else if(instance->time_remaining_s > 5) {
             return 5;
         } else {
             return 1;
@@ -285,8 +289,8 @@ static void busy_timer_stop_timer(BusyTimer* instance) {
 
 static void busy_timer_infinite_to_simple(BusyTimer* instance) {
     instance->mode = BusyTimerModeSimple;
-    instance->time.remain_s = M_TO_S(BUSY_TIMER_TIME_INCREMENT_MN);
-    instance->time.elapsed_s = 0;
+    instance->time_remaining_s = M_TO_S(BUSY_TIMER_TIME_INCREMENT_MN);
+    instance->time_elapsed_s = 0;
 
     busy_timer_start_timer(instance);
     busy_timer_notify_mode_changed(instance);
@@ -301,8 +305,8 @@ static void busy_timer_next_state(BusyTimer* instance, bool is_forced) {
     instance->state = busy_timer_calc_next_state(instance);
 
     if(instance->state != BusyTimerStateIdle) {
-        instance->time.elapsed_s = 0;
-        instance->time.remain_s = busy_timer_calc_remaining_time(instance);
+        instance->time_elapsed_s = 0;
+        instance->time_remaining_s = busy_timer_calc_remaining_time(instance);
 
         bool is_autostart_enabled = false;
 
@@ -347,9 +351,9 @@ static void busy_timer_update(BusyTimer* instance, time_t timestamp_ms) {
             const uint32_t inc_s = busy_timer_calc_increment(instance);
             const bool is_last = (i == (dt_s - 1));
 
-            if(instance->time.remain_s >= inc_s) {
-                instance->time.remain_s -= inc_s;
-                instance->time.elapsed_s += inc_s;
+            if(instance->time_remaining_s >= inc_s) {
+                instance->time_remaining_s -= inc_s;
+                instance->time_elapsed_s += inc_s;
 
                 if(is_last) {
                     busy_timer_notify_tick(instance);
@@ -392,8 +396,7 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
             BusyTimerSnapshotSimple* simple = &snapshot->simple;
             busy_timer_fill_snapshot_common(instance, &simple->common);
 
-            const BusyTimerTime* time = &instance->time;
-            simple->time_left_ms = S_TO_MS(time->remain_s);
+            simple->time_left_ms = S_TO_MS(instance->time_remaining_s);
 
         } else if(timer_mode == BusyTimerModeInterval) {
             snapshot->type = BusyTimerSnapshotTypeInterval;
@@ -401,11 +404,10 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
             BusyTimerSnapshotInterval* interval = &snapshot->interval;
             busy_timer_fill_snapshot_common(instance, &interval->common);
 
-            const BusyTimerTime* time = &instance->time;
             BusyTimerIntervalState* state = &interval->state;
             state->index = instance->current_interval_index;
-            state->time_left_ms = S_TO_MS(time->remain_s);
-            state->time_total_ms = S_TO_MS(time->elapsed_s + time->remain_s);
+            state->time_left_ms = S_TO_MS(instance->time_remaining_s);
+            state->time_total_ms = S_TO_MS(instance->time_elapsed_s + instance->time_remaining_s);
 
             interval->config = instance->interval_config;
 
@@ -457,8 +459,8 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         new_mode = BusyTimerModeSimple;
         new_state = BusyTimerStateWork;
 
-        instance->time.elapsed_s = 0;
-        instance->time.remain_s = MS_TO_S(simple->time_left_ms);
+        instance->time_elapsed_s = 0;
+        instance->time_remaining_s = MS_TO_S(simple->time_left_ms);
 
     } else if(type == BusyTimerSnapshotTypeInterval) {
         const BusyTimerSnapshotInterval* interval = &snapshot->interval;
@@ -468,9 +470,9 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         new_state = interval_state->index % 2 ? BusyTimerStateRest : BusyTimerStateWork;
 
         instance->current_interval_index = interval_state->index;
-        instance->time.elapsed_s =
+        instance->time_elapsed_s =
             MS_TO_S(interval_state->time_total_ms - interval_state->time_left_ms);
-        instance->time.remain_s = MS_TO_S(interval_state->time_left_ms);
+        instance->time_remaining_s = MS_TO_S(interval_state->time_left_ms);
         instance->interval_config = interval->config;
 
     } else {
@@ -719,7 +721,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
         return;
     }
 
-    int32_t time_remaining_s = instance->time.remain_s;
+    int32_t time_remaining_s = instance->time_remaining_s;
     int32_t increment_s = M_TO_S(data->add_time_mn);
 
     // Ignore if the remaining time is below minimum
@@ -749,7 +751,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
 
     time_remaining_s += increment_s;
 
-    instance->time.remain_s =
+    instance->time_remaining_s =
         CLAMP(time_remaining_s, BUSY_TIMER_TIME_MAX_S, BUSY_TIMER_TIME_MIN_S);
 
     busy_timer_start_timer(instance);

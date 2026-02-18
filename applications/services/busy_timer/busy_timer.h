@@ -34,11 +34,6 @@ typedef enum {
 } BusyTimerEventType;
 
 typedef struct {
-    uint32_t elapsed_s;
-    uint32_t remain_s;
-} BusyTimerTime;
-
-typedef struct {
     BusyTimerState state;
     BusyTimerConfig config;
     uint32_t current_interval_idx;
@@ -51,6 +46,23 @@ typedef struct {
 } BusyTimerGeneralConfig;
 
 typedef struct {
+    uint32_t time_elapsed_s;
+    uint32_t time_remaining_s;
+} BusyTimerEventTick;
+
+typedef struct {
+    BusyTimerMode mode;
+} BusyTimerEventModeChanged;
+
+typedef struct {
+    BusyTimerState state;
+} BusyTimerEventStateChanged;
+
+typedef struct {
+    bool is_forced;
+} BusyTimerEventIntervalEnded;
+
+typedef struct {
     bool is_paused;
 } BusyTimerEventPaused;
 
@@ -61,10 +73,10 @@ typedef struct {
 typedef struct {
     BusyTimerEventType type;
     union {
-        BusyTimerTime time;
-        BusyTimerMode mode;
-        BusyTimerState state;
-        bool is_force_ended;
+        BusyTimerEventTick tick;
+        BusyTimerEventModeChanged mode_changed;
+        BusyTimerEventStateChanged state_changed;
+        BusyTimerEventIntervalEnded interval_ended;
         BusyTimerEventPaused paused;
         BusyTimerEventProfileChanged profile_changed;
     };
