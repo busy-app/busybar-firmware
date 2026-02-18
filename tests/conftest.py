@@ -1,7 +1,10 @@
+import json
 import logging
 import os
+import tempfile
 import telnetlib  # TODO: Replace with alternative before Python 3.13 (deprecated)
 import time
+from datetime import datetime
 from typing import Optional
 
 import allure
@@ -23,6 +26,31 @@ from clients.api import (
 from config.config import Config
 
 load_dotenv()
+
+
+def _write_test_context(test_name: str, **extra) -> None:
+    """Atomically write test_context.json to $SESSION_LOG_DIR.
+
+    Silent no-op if SESSION_LOG_DIR is not set.
+    """
+    log_dir = os.environ.get("SESSION_LOG_DIR")
+    if not log_dir:
+        return
+
+    ctx = {
+        "test_name": test_name,
+        "updated_at": datetime.now().isoformat(),
+        **extra,
+    }
+
+    dest = os.path.join(log_dir, "test_context.json")
+    try:
+        fd, tmp = tempfile.mkstemp(dir=log_dir, suffix=".tmp")
+        with os.fdopen(fd, "w") as f:
+            json.dump(ctx, f)
+        os.rename(tmp, dest)
+    except Exception:
+        pass
 
 
 # Validate critical environment variables
@@ -435,6 +463,7 @@ def pytest_unconfigure(config):
 def pytest_runtest_setup(item):
     """Test setup"""
     logger.info(f"Setting up: {item.name}")
+    _write_test_context(item.name, test_nodeid=item.nodeid, phase="setup")
 
     for marker in item.iter_markers():
         if marker.name.startswith("story_"):
@@ -459,6 +488,7 @@ def device_flasher():
 def pytest_runtest_teardown(item, nextitem):
     """Test teardown"""
     logger.info(f"Test completed: {item.name}")
+    _write_test_context(item.name, test_nodeid=item.nodeid, phase="teardown")
 
 
 @pytest.fixture(autouse=True)
