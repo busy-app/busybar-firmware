@@ -129,10 +129,12 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
         }
     });
 
-    if(time_remain_s == 0) {
-        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
-    } else if(time_remain_s <= COUNTDOWN_THRESHOLD_S) {
-        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
+    if(data->timer_mode != BusyTimerModeInfinite) {
+        if(time_remain_s == 0) {
+            audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
+        } else if(time_remain_s <= COUNTDOWN_THRESHOLD_S) {
+            audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
+        }
     }
 }
 
