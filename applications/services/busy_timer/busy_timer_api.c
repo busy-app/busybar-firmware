@@ -7,33 +7,6 @@ static void busy_timer_send_message(const BusyTimer* instance, BusyTimerMessage*
     api_lock_wait_unlock_and_free(message->lock);
 }
 
-BusyTimerState busy_timer_get_state(const BusyTimer* instance) {
-    furi_assert(instance);
-
-    BusyTimerState state;
-
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeGetState,
-        .data.state = &state,
-    };
-
-    busy_timer_send_message(instance, &message);
-
-    return state;
-}
-
-void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles) {
-    furi_assert(instance);
-    furi_assert(cycles);
-
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeGetCycles,
-        .data.cycles = cycles,
-    };
-
-    busy_timer_send_message(instance, &message);
-}
-
 void busy_timer_get_info(const BusyTimer* instance, BusyTimerInfo* info) {
     furi_assert(instance);
     furi_assert(info);

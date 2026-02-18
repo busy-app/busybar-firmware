@@ -695,35 +695,13 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
 static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     UNUSED(data);
 
-    busy_timer_stop_timer(instance);
-    instance->state = BusyTimerStateIdle;
+    if(instance->state != BusyTimerStateIdle) {
+        instance->state = BusyTimerStateIdle;
+        busy_timer_stop_timer(instance);
 
-    FURI_LOG_I(TAG, "Stopped");
+        FURI_LOG_I(TAG, "Stopped");
 
-    busy_timer_schedule_send_snapshot(instance);
-}
-
-static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    *data->state = instance->state;
-}
-
-static void
-    busy_timer_get_cycles_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    data->cycles->total_count = instance->interval_config.cycles_count;
-    data->cycles->current_idx = instance->current_interval_index;
-}
-
-static void busy_timer_get_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    BusyTimerInfo* timer_info = data->get_info.info;
-    BusyTimerConfig* timer_config = &timer_info->config;
-
-    const BusyTimerMode timer_mode = instance->mode;
-    timer_config->mode = timer_mode;
-
-    if(timer_mode == BusyTimerModeSimple) {
-        timer_config->simple = instance->simple_config;
-    } else if(timer_mode == BusyTimerModeInterval) {
-        timer_config->interval = instance->interval_config;
+        busy_timer_schedule_send_snapshot(instance);
     }
 }
 
@@ -803,6 +781,23 @@ static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessag
     if(busy_timer_is_running(instance)) {
         busy_timer_next_state(instance, true);
         busy_timer_schedule_send_snapshot(instance);
+    }
+}
+
+static void busy_timer_get_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    BusyTimerInfo* timer_info = data->get_info.info;
+    timer_info->state = instance->state;
+    timer_info->current_interval_idx = instance->current_interval_index;
+
+    const BusyTimerMode timer_mode = instance->mode;
+
+    BusyTimerConfig* timer_config = &timer_info->config;
+    timer_config->mode = timer_mode;
+
+    if(timer_mode == BusyTimerModeSimple) {
+        timer_config->simple = instance->simple_config;
+    } else if(timer_mode == BusyTimerModeInterval) {
+        timer_config->interval = instance->interval_config;
     }
 }
 
@@ -976,12 +971,10 @@ int busy_timer_srv(void* arg) {
 static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessageTypeMax] = {
     [BusyTimerMessageTypeStart] = busy_timer_start_message_handler,
     [BusyTimerMessageTypeStop] = busy_timer_stop_message_handler,
-    [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
-    [BusyTimerMessageTypeGetCycles] = busy_timer_get_cycles_message_handler,
-    [BusyTimerMessageTypeGetInfo] = busy_timer_get_info_message_handler,
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
     [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
+    [BusyTimerMessageTypeGetInfo] = busy_timer_get_info_message_handler,
     [BusyTimerMessageTypeGetSnapshot] = busy_timer_get_snapshot_message_handler,
     [BusyTimerMessageTypeSetSnapshot] = busy_timer_set_snapshot_message_handler,
     [BusyTimerMessageTypeGetProfile] = busy_timer_get_profile_message_handler,

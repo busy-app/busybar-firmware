@@ -17,12 +17,10 @@
 typedef enum {
     BusyTimerMessageTypeStart,
     BusyTimerMessageTypeStop,
-    BusyTimerMessageTypeGetState,
-    BusyTimerMessageTypeGetCycles,
-    BusyTimerMessageTypeGetInfo,
     BusyTimerMessageTypeAddTime,
     BusyTimerMessageTypeToggle,
     BusyTimerMessageTypeSkip,
+    BusyTimerMessageTypeGetInfo,
     BusyTimerMessageTypeGetSnapshot,
     BusyTimerMessageTypeSetSnapshot,
     BusyTimerMessageTypeGetProfile,
@@ -59,8 +57,6 @@ typedef struct {
 } BusyTimerMessageSetConfig;
 
 typedef union {
-    BusyTimerState* state;
-    BusyTimerCycles* cycles;
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
     const BusyTimerSnapshot* snapshot_c;
