@@ -31,7 +31,7 @@
           name="current-password"
           size="xl"
           variant="soft"
-          :ui="{ base: 'ring-1 ring-glass' }"
+          :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Enter password"
           @update:model-value="pms.passwordModel.currentWrong = false"
@@ -39,7 +39,7 @@
         >
           <template #trailing>
             <UButton
-              :icon="pms.passwordModel.showCurrent ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
+              :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
               variant="ghost"
               color="neutral"
               square
@@ -63,14 +63,14 @@
           name="new-password"
           size="xl"
           variant="soft"
-          :ui="{ base: 'ring-1 ring-glass' }"
+          :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
           :type="pms.passwordModel.showNew ? 'text' : 'password'"
           placeholder="From 4 to 10 digits"
           @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
         >
           <template #trailing>
             <UButton
-              :icon="pms.passwordModel.showNew ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
+              :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
               variant="ghost"
               color="neutral"
               square

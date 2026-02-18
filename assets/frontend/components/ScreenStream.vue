@@ -24,12 +24,12 @@
 <script lang="ts" setup>
 import { DeviceScreen } from '@busy-app/busy-lib';
 
-const deviceScreenStreamStore = useDeviceScreenStreamStore();
+const screenStreamStore = useScreenStreamStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const canvasCtx = ref<CanvasRenderingContext2D | null>(null);
 
 const originalDimensions = computed(() => {
-  return deviceScreenStreamStore.currentScreen === DeviceScreen.FRONT
+  return screenStreamStore.currentScreen === DeviceScreen.FRONT
     ? { width: 72, height: 16 } // front screen
     : { width: 160, height: 80 }; // back screen
 });
@@ -66,14 +66,13 @@ function dataCallback (data: Uint8Array) {
   }
 
   const ctx = canvasCtx.value;
-  const currentScreen = deviceScreenStreamStore.currentScreen;
   const { width, height } = originalDimensions.value;
 
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
 
   const imageData = ctx.createImageData(width, height);
 
-  if (currentScreen === DeviceScreen.FRONT) {
+  if (screenStreamStore.currentScreen === DeviceScreen.FRONT) {
     for (let i = 0; i < data.length; i += 3) {
       const offset = i / 3 * 4;
       imageData.data[offset] = data[i + 2]; // r
@@ -166,8 +165,8 @@ function stopCallback () {
 }
 
 async function init () {
-  if (deviceScreenStreamStore.isConnected) {
-    await deviceScreenStreamStore.stopScreenStream();
+  if (screenStreamStore.isWebSocketConnected) {
+    await screenStreamStore.stopScreenStream();
   }
 
   if (canvasRef.value) {
@@ -178,7 +177,7 @@ async function init () {
     }
   }
 
-  deviceScreenStreamStore.startScreenStream(dataCallback, stopCallback)
+  screenStreamStore.startScreenStream(dataCallback, stopCallback)
     .catch(error => {
       console.error('Error starting screen stream:', error);
       toast.add({
@@ -196,11 +195,13 @@ onMounted(async () => {
 
   await init();
   window.addEventListener('device-reconnected', init);
+  window.addEventListener('screen-stream-restart', init);
 });
 onBeforeUnmount(async () => {
   window.removeEventListener('resize', handleResize);
-  await deviceScreenStreamStore.stopScreenStream();
+  await screenStreamStore.stopScreenStream();
   window.removeEventListener('device-reconnected', init);
+  window.removeEventListener('screen-stream-restart', init);
 });
 </script>
 

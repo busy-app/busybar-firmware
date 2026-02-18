@@ -15,36 +15,58 @@
   --color-brand-900: #091933;
   --color-brand-950: #050F20;
 
-  --font-sans: 'Inter', sans-serif;
+  --color-error-50: #FDE6E9;
+  --color-error-100: #FACCD3;
+  --color-error-200: #F599A7;
+  --color-error-300: #F0667A;
+  --color-error-400: #EB334E;
+  --color-error-500: #E60022;
+  --color-error-600: #B8001B;
+  --color-error-700: #8A0014;
+  --color-error-800: #5C000E;
+  --color-error-900: #2E0007;
+  --color-error-950: #1D0004;
+
+  --color-info-50: var(--color-gray-50);
+  --color-info-100: var(--color-gray-100);
+  --color-info-200: var(--color-gray-200);
+  --color-info-300: var(--color-gray-300);
+  --color-info-400: var(--color-gray-400);
+  --color-info-500: var(--color-gray-500);
+  --color-info-600: var(--color-gray-600);
+  --color-info-700: var(--color-gray-700);
+  --color-info-800: var(--color-gray-800);
+  --color-info-900: var(--color-gray-900);
+  --color-info-950: var(--color-gray-950);
 }
 
 :root {
-  --ui-text: var(--color-black);
+  --font-sans: 'Inter', sans-serif;
   --ui-container: 1440px;
+
+  --ui-text: var(--color-neutral-700);
+  --ui-bg: var(--color-neutral-50);
+  --ui-bg-accented: var(--color-neutral-300);
+  --ui-info: var(--color-info-500);
+  --ui-success: var(--color-success-500);
+  --ui-error: var(--color-error-500);
+  --ui-modal-bg: --alpha(var(--color-neutral-100) / 90%);
+  --ui-modal-overlay-bg: --alpha(var(--color-neutral-900) / 20%);
 
   --glass-ring-inner: --alpha(var(--color-white) / 10%);
   --glass-ring-outer: --alpha(var(--color-black) / 4%);
 }
 
 .dark {
-  --ui-text: var(--color-white);
-
+  --ui-text: var(--color-neutral-200);
+  --ui-bg: var(--color-old-neutral-950);
+  --ui-bg-accented: var(--color-neutral-700);
+  --ui-success: var(--color-success-400);
+  --ui-error: var(--color-error-400);
+  --ui-modal-bg: --alpha(var(--color-neutral-800) / 75%);
+  --ui-modal-overlay-bg: --alpha(var(--color-neutral-900) / 80%);
   --glass-ring-inner: --alpha(var(--color-white) / 10%);
   --glass-ring-outer: --alpha(var(--color-white) / 4%);
-}
-
-body {
-  overscroll-behavior: none;
-
-  @apply bg-white dark:bg-[#0A0A0A]
-}
-
-input[aria-invalid="true"] {
-  background-color: rgb(239, 68, 68, 0.1);
-}
-
-button {
-  @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
 }
 
 @theme {
@@ -88,6 +110,14 @@ button {
     var(--tw-shadow) !important;
 }
 
+@utility bg-modal {
+  background-color: var(--ui-modal-bg);
+  backdrop-filter: blur(5px);
+}
+@utility bg-modal-overlay {
+  background-color: var(--ui-modal-overlay-bg);
+}
+
 @layer utilities {
   @keyframes -spin {
     from {
@@ -111,4 +141,32 @@ button {
     border-bottom-left-radius: var(--radius-xl);
     border-bottom-right-radius: var(--radius-xl);
   }
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+button {
+  @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
+}
+
+input[aria-invalid="true"] {
+  --glass-ring-inner: var(--ui-error);
+  --glass-ring-outer: var(--ui-error);
+}
+
+article > ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 1rem;
+}
+article > p {
+  margin-bottom: 1rem;
+}
+article a {
+  @apply text-primary underline;
+}
+article > *:last-child {
+  margin-bottom: 0;
 }
