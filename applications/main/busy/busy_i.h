@@ -126,13 +126,13 @@ bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);
 
-void busy_load_busy_bar_settings(BusyApp* instance);
+void busy_load_app_config(BusyApp* instance);
 
-void busy_apply_busy_bar_settings(BusyApp* instance);
+void busy_apply_app_config(BusyApp* instance);
 
-void busy_get_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config);
+void busy_get_timer_preset(BusyApp* instance, BusyTimerPreset* timer_preset);
 
-void busy_set_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config);
+void busy_set_timer_preset(BusyApp* instance, BusyTimerPreset* timer_preset);
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);
 

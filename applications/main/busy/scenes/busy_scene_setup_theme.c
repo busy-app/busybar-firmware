@@ -49,12 +49,12 @@ static void busy_scene_setup_theme_save_selected_theme(BusyApp* instance, uint32
     BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
-    BusyTimerGeneralConfig timer_config;
-    busy_get_timer_config(instance, &timer_config);
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
 
     const BusyTheme* selected_theme = theme_picker_model_get_item(data->picker_model, theme_index);
 
-    BusyAppConfig* app_config = &timer_config.app_config;
+    BusyAppConfig* app_config = &timer_preset.app_config;
 
     strlcpy(
         app_config->theme_name,
@@ -64,7 +64,7 @@ static void busy_scene_setup_theme_save_selected_theme(BusyApp* instance, uint32
     busy_theme_set(instance->theme, selected_theme);
 
     instance->config = *app_config;
-    busy_set_timer_config(instance, &timer_config);
+    busy_set_timer_preset(instance, &timer_preset);
 }
 
 static void busy_scene_setup_theme_handle_theme_accepted(BusyApp* instance, uint32_t theme_index) {

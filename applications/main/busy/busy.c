@@ -43,7 +43,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
 
         if(type == BusyApiMessageTypeSetConfig) {
             instance->config = *message.data.set_config.config;
-            busy_apply_busy_bar_settings(instance);
+            busy_apply_app_config(instance);
 
         } else if(type == BusyApiMessageTypeShowTimer) {
             const BusyAppSceneId scene_id =
@@ -182,8 +182,8 @@ static BusyApp* busy_alloc(const char* arg) {
         instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
-        busy_load_busy_bar_settings(instance);
-        busy_apply_busy_bar_settings(instance);
+        busy_load_app_config(instance);
+        busy_apply_app_config(instance);
 
         busy_set_status_lights(instance, BusyStatusLightsTypeOff);
         busy_set_matter(instance, false);
@@ -317,15 +317,15 @@ void busy_exit(BusyApp* instance) {
     furi_event_loop_stop(instance->event_loop);
 }
 
-void busy_load_busy_bar_settings(BusyApp* instance) {
+void busy_load_app_config(BusyApp* instance) {
     furi_assert(instance);
 
-    BusyTimerGeneralConfig timer_config;
-    busy_get_timer_config(instance, &timer_config);
-    instance->config = timer_config.app_config;
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
+    instance->config = timer_preset.app_config;
 }
 
-void busy_apply_busy_bar_settings(BusyApp* instance) {
+void busy_apply_app_config(BusyApp* instance) {
     furi_assert(instance);
 
     if(!busy_theme_read(instance->theme, instance->config.theme_name)) {
@@ -334,16 +334,14 @@ void busy_apply_busy_bar_settings(BusyApp* instance) {
     }
 }
 
-void busy_get_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config) {
+void busy_get_timer_preset(BusyApp* instance, BusyTimerPreset* timer_config) {
     furi_assert(instance);
-    busy_timer_get_general_config(
-        instance->busy_timer, busy_get_profile_id(instance), timer_config);
+    busy_timer_get_preset(instance->busy_timer, busy_get_profile_id(instance), timer_config);
 }
 
-void busy_set_timer_config(BusyApp* instance, BusyTimerGeneralConfig* timer_config) {
+void busy_set_timer_preset(BusyApp* instance, BusyTimerPreset* timer_config) {
     furi_assert(instance);
-    busy_timer_set_general_config(
-        instance->busy_timer, busy_get_profile_id(instance), timer_config);
+    busy_timer_set_preset(instance->busy_timer, busy_get_profile_id(instance), timer_config);
 }
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance) {

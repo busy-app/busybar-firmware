@@ -34,18 +34,6 @@ typedef enum {
 } BusyTimerEventType;
 
 typedef struct {
-    BusyTimerState state;
-    BusyTimerConfig config;
-    uint32_t current_interval_idx;
-} BusyTimerInfo;
-
-typedef struct {
-    BusyAppConfig app_config;
-    BusyTimerConfig timer_config;
-    bool is_demo_mode_enabled;
-} BusyTimerGeneralConfig;
-
-typedef struct {
     uint32_t time_elapsed_s;
     uint32_t time_remaining_s;
 } BusyTimerEventTick;
@@ -82,6 +70,18 @@ typedef struct {
     };
 } BusyTimerEvent;
 
+typedef struct {
+    BusyTimerState state;
+    BusyTimerConfig config;
+    uint32_t current_interval_idx;
+} BusyTimerInfo;
+
+typedef struct {
+    BusyAppConfig app_config;
+    BusyTimerConfig timer_config;
+    bool is_demo_mode_enabled;
+} BusyTimerPreset;
+
 FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
 void busy_timer_start(BusyTimer* instance);
@@ -112,15 +112,15 @@ void busy_timer_set_profile(
 
 void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id);
 
-void busy_timer_get_general_config(
+void busy_timer_get_preset(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
-    BusyTimerGeneralConfig* config);
+    BusyTimerPreset* preset);
 
-void busy_timer_set_general_config(
+void busy_timer_set_preset(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
-    const BusyTimerGeneralConfig* config);
+    const BusyTimerPreset* preset);
 
 const char** busy_timer_get_mode_names(void);
 

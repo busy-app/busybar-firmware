@@ -869,36 +869,36 @@ static void
 }
 
 static void
-    busy_timer_get_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    const BusyTimerMessageGetConfig* get_config = &data->get_config;
+    busy_timer_get_preset_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    const BusyTimerMessageGetPreset* get_preset = &data->get_preset;
 
-    const BusyTimerProfileId profile_id = get_config->profile_id;
+    const BusyTimerProfileId profile_id = get_preset->profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
 
-    BusyTimerGeneralConfig* config = get_config->config;
+    BusyTimerPreset* preset = get_preset->preset;
     const BusyTimerSettings* settings = &instance->settings[profile_id];
     const BusyTimerProfile* profile = &settings->profile;
 
-    config->app_config = profile->app_config;
-    config->timer_config = profile->timer_config;
-    config->is_demo_mode_enabled = settings->is_demo_mode_enabled;
+    preset->app_config = profile->app_config;
+    preset->timer_config = profile->timer_config;
+    preset->is_demo_mode_enabled = settings->is_demo_mode_enabled;
 }
 
 static void
-    busy_timer_set_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    const BusyTimerMessageSetConfig* set_config = &data->set_config;
+    busy_timer_set_preset_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    const BusyTimerMessageSetPreset* set_preset = &data->set_preset;
 
-    const BusyTimerProfileId profile_id = set_config->profile_id;
+    const BusyTimerProfileId profile_id = set_preset->profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
 
-    const BusyTimerGeneralConfig* config = set_config->config;
+    const BusyTimerPreset* preset = set_preset->preset;
 
     BusyTimerSettings* settings = &instance->settings[profile_id];
-    settings->is_demo_mode_enabled = config->is_demo_mode_enabled;
+    settings->is_demo_mode_enabled = preset->is_demo_mode_enabled;
 
     BusyTimerProfile* profile = &settings->profile;
-    profile->app_config = config->app_config;
-    profile->timer_config = config->timer_config;
+    profile->app_config = preset->app_config;
+    profile->timer_config = preset->timer_config;
     profile->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
 
     busy_timer_settings_save(&instance->settings[profile_id], profile_id);
@@ -982,6 +982,6 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeGetProfile] = busy_timer_get_profile_message_handler,
     [BusyTimerMessageTypeSetProfile] = busy_timer_set_profile_message_handler,
     [BusyTimerMessageTypeLoadProfile] = busy_timer_load_profile_message_handler,
-    [BusyTimerMessageTypeGetConfig] = busy_timer_get_config_message_handler,
-    [BusyTimerMessageTypeSetConfig] = busy_timer_set_config_message_handler,
+    [BusyTimerMessageTypeGetPreset] = busy_timer_get_preset_message_handler,
+    [BusyTimerMessageTypeSetPreset] = busy_timer_set_preset_message_handler,
 };

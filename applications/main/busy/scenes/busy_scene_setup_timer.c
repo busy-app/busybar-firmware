@@ -169,12 +169,12 @@ static void
 static void busy_scene_setup_init_var_item_values(
     const BusySceneSetupTimer* data,
     GuiDisplayId display_id,
-    const BusyTimerGeneralConfig* config) {
+    const BusyTimerPreset* timer_preset) {
     const VarItemListContainer* container = &data->containers[display_id];
     VarItem* const* items = container->items;
 
-    const BusyAppConfig* app_config = &config->app_config;
-    const BusyTimerConfig* timer_config = &config->timer_config;
+    const BusyAppConfig* app_config = &timer_preset->app_config;
+    const BusyTimerConfig* timer_config = &timer_preset->timer_config;
 
     var_item_set_value(items[VarItemListIdMode], timer_config->mode);
 
@@ -191,16 +191,15 @@ static void busy_scene_setup_init_var_item_values(
     }
 
     var_item_set_value(items[VarItemListIdShowWork], app_config->is_show_work_only_enabled);
-    var_item_set_value(items[VarItemListIdDemoMode], config->is_demo_mode_enabled);
+    var_item_set_value(items[VarItemListIdDemoMode], timer_preset->is_demo_mode_enabled);
 }
 
-static void busy_scene_setup_get_var_item_values(
-    BusySceneSetupTimer* data,
-    BusyTimerGeneralConfig* config) {
+static void
+    busy_scene_setup_get_var_item_values(BusySceneSetupTimer* data, BusyTimerPreset* timer_preset) {
     VarItem* const* items = data->containers[GuiDisplayIdFront].items;
 
-    BusyAppConfig* app_config = &config->app_config;
-    BusyTimerConfig* timer_config = &config->timer_config;
+    BusyAppConfig* app_config = &timer_preset->app_config;
+    BusyTimerConfig* timer_config = &timer_preset->timer_config;
 
     timer_config->mode = var_item_get_value(items[VarItemListIdMode]);
 
@@ -217,7 +216,7 @@ static void busy_scene_setup_get_var_item_values(
     }
 
     app_config->is_show_work_only_enabled = var_item_get_value(items[VarItemListIdShowWork]);
-    config->is_demo_mode_enabled = var_item_get_value(items[VarItemListIdDemoMode]);
+    timer_preset->is_demo_mode_enabled = var_item_get_value(items[VarItemListIdDemoMode]);
 }
 
 static void busy_scene_setup_timer_on_enter(void* context) {
@@ -227,8 +226,8 @@ static void busy_scene_setup_timer_on_enter(void* context) {
     BusySceneSetupTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
-    BusyTimerGeneralConfig timer_config;
-    busy_get_timer_config(instance, &timer_config);
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
 
     with_gui(instance->gui, {
         data->containers[GuiDisplayIdFront].list = var_item_list_alloc(instance->front_window);
@@ -236,7 +235,7 @@ static void busy_scene_setup_timer_on_enter(void* context) {
 
         for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
             busy_scene_setup_fill_var_item_list(data, id);
-            busy_scene_setup_init_var_item_values(data, id, &timer_config);
+            busy_scene_setup_init_var_item_values(data, id, &timer_preset);
         }
 
         busy_scene_setup_timer_filter_items(data);
@@ -251,11 +250,11 @@ static void busy_scene_setup_timer_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
     if(!instance->show_timer_requested) {
-        // NOTE: Not saving profile if timer was launched via snapshot to avoid deadlocks
-        BusyTimerGeneralConfig timer_config;
-        busy_get_timer_config(instance, &timer_config);
-        busy_scene_setup_get_var_item_values(data, &timer_config);
-        busy_set_timer_config(instance, &timer_config);
+        // NOTE: Not saving timer preset if launched via snapshot to avoid deadlocks
+        BusyTimerPreset timer_preset;
+        busy_get_timer_preset(instance, &timer_preset);
+        busy_scene_setup_get_var_item_values(data, &timer_preset);
+        busy_set_timer_preset(instance, &timer_preset);
     }
 
     with_gui(instance->gui, {

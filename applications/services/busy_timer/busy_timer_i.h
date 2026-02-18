@@ -26,8 +26,8 @@ typedef enum {
     BusyTimerMessageTypeGetProfile,
     BusyTimerMessageTypeSetProfile,
     BusyTimerMessageTypeLoadProfile,
-    BusyTimerMessageTypeGetConfig,
-    BusyTimerMessageTypeSetConfig,
+    BusyTimerMessageTypeGetPreset,
+    BusyTimerMessageTypeSetPreset,
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
@@ -48,13 +48,13 @@ typedef struct {
 
 typedef struct {
     BusyTimerProfileId profile_id;
-    BusyTimerGeneralConfig* config;
-} BusyTimerMessageGetConfig;
+    BusyTimerPreset* preset;
+} BusyTimerMessageGetPreset;
 
 typedef struct {
     BusyTimerProfileId profile_id;
-    const BusyTimerGeneralConfig* config;
-} BusyTimerMessageSetConfig;
+    const BusyTimerPreset* preset;
+} BusyTimerMessageSetPreset;
 
 typedef union {
     int32_t add_time_mn;
@@ -64,8 +64,8 @@ typedef union {
     BusyTimerMessageGetProfile get_profile;
     BusyTimerMessageSetProfile set_profile;
     BusyTimerProfileId profile_id;
-    BusyTimerMessageGetConfig get_config;
-    BusyTimerMessageSetConfig set_config;
+    BusyTimerMessageGetPreset get_preset;
+    BusyTimerMessageSetPreset set_preset;
 } BusyTimerMessageData;
 
 typedef struct {
