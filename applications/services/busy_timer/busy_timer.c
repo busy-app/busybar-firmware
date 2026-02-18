@@ -19,9 +19,11 @@
 #define TIMER_PROFILE_BUSY_MQTT_TOPIC   "busy/profiles/busy"
 #define TIMER_PROFILE_CUSTOM_MQTT_TOPIC "busy/profiles/custom"
 
-typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
+typedef void (*const BusyTimerApiMessageHandler)(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data);
 
-static const BusyTimerMessageHandler busy_timer_message_handlers[];
+static const BusyTimerApiMessageHandler busy_timer_api_message_handlers[];
 
 static const char* busy_timer_mode_names[BusyTimerModeMax] = {
     [BusyTimerModeInfinite] = "Off",
@@ -606,11 +608,11 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
     BusyTimer* instance = context;
     furi_assert(instance->message_queue == object);
 
-    BusyTimerMessage message;
+    BusyTimerApiMessage message;
     while(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk) {
-        furi_assert(message.type < BusyTimerMessageTypeMax);
+        furi_assert(message.type < BusyTimerApiMessageTypeMax);
 
-        busy_timer_message_handlers[message.type](instance, &message.data);
+        busy_timer_api_message_handlers[message.type](instance, &message.data);
         api_lock_unlock(message.lock);
     }
 }
@@ -676,7 +678,8 @@ FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance) {
 
 // Message handlers
 
-static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void
+    busy_timer_start_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     UNUSED(data);
 
     FURI_LOG_I(TAG, "Starting");
@@ -699,7 +702,8 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
     busy_timer_schedule_send_snapshot(instance);
 }
 
-static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void
+    busy_timer_stop_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     UNUSED(data);
 
     if(instance->state != BusyTimerStateIdle) {
@@ -712,7 +716,8 @@ static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessag
     }
 }
 
-static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void
+    busy_timer_add_time_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     if(!busy_timer_is_running(instance)) {
         // Ignore if the timer is not running (paused)
         return;
@@ -768,7 +773,8 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
     FURI_LOG_I(TAG, "Interval override");
 }
 
-static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void
+    busy_timer_toggle_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     UNUSED(data);
 
     if(busy_timer_is_running(instance)) {
@@ -784,7 +790,8 @@ static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMess
     busy_timer_schedule_send_snapshot(instance);
 }
 
-static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void
+    busy_timer_skip_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     UNUSED(data);
 
     if(busy_timer_is_running(instance)) {
@@ -793,27 +800,30 @@ static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessag
     }
 }
 
-static void
-    busy_timer_get_run_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void busy_timer_get_run_info_api_message_handler(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data) {
     BusyTimerRunInfo* timer_info = data->get_run_info.run_info;
     timer_info->state = instance->state;
     timer_info->config = instance->timer_config;
     timer_info->current_interval_idx = instance->current_interval_index;
 }
 
-static void
-    busy_timer_get_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void busy_timer_get_snapshot_api_message_handler(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data) {
     busy_timer_make_snapshot(instance, data->get_snapshot.snapshot);
 }
 
-static void
-    busy_timer_set_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void busy_timer_set_snapshot_api_message_handler(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data) {
     busy_timer_apply_snapshot(instance, data->set_snapshot.snapshot);
 }
 
 static void
-    busy_timer_get_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    const BusyTimerMessageGetProfile* get_profile = &data->get_profile;
+    busy_timer_get_profile_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
+    const BusyTimerApiMessageGetProfile* get_profile = &data->get_profile;
 
     BusyTimerProfile* const profile = get_profile->profile;
     const BusyTimerProfileId profile_id = get_profile->profile_id;
@@ -823,8 +833,8 @@ static void
 }
 
 static void
-    busy_timer_set_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    const BusyTimerMessageSetProfile* set_profile = &data->set_profile;
+    busy_timer_set_profile_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
+    const BusyTimerApiMessageSetProfile* set_profile = &data->set_profile;
 
     const BusyTimerProfile* profile = set_profile->profile;
     const BusyTimerProfileId profile_id = set_profile->profile_id;
@@ -843,8 +853,9 @@ static void
     }
 }
 
-static void
-    busy_timer_load_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void busy_timer_load_profile_api_message_handler(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data) {
     const BusyTimerProfileId profile_id = data->load_profile.profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
 
@@ -858,8 +869,8 @@ static void
 }
 
 static void
-    busy_timer_get_preset_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    const BusyTimerMessageGetPreset* get_preset = &data->get_preset;
+    busy_timer_get_preset_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
+    const BusyTimerApiMessageGetPreset* get_preset = &data->get_preset;
 
     const BusyTimerProfileId profile_id = get_preset->profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
@@ -874,8 +885,8 @@ static void
 }
 
 static void
-    busy_timer_set_preset_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    const BusyTimerMessageSetPreset* set_preset = &data->set_preset;
+    busy_timer_set_preset_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
+    const BusyTimerApiMessageSetPreset* set_preset = &data->set_preset;
 
     const BusyTimerProfileId profile_id = set_preset->profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
@@ -909,7 +920,7 @@ static BusyTimer* busy_timer_alloc(void) {
         busy_timer_debounce_timer_callback,
         FuriEventLoopTimerTypeOnce,
         instance);
-    instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
+    instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerApiMessage));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
@@ -959,18 +970,19 @@ int busy_timer_srv(void* arg) {
     return 0;
 }
 
-static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessageTypeMax] = {
-    [BusyTimerMessageTypeStart] = busy_timer_start_message_handler,
-    [BusyTimerMessageTypeStop] = busy_timer_stop_message_handler,
-    [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
-    [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,
-    [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
-    [BusyTimerMessageTypeGetRunInfo] = busy_timer_get_run_info_message_handler,
-    [BusyTimerMessageTypeGetSnapshot] = busy_timer_get_snapshot_message_handler,
-    [BusyTimerMessageTypeSetSnapshot] = busy_timer_set_snapshot_message_handler,
-    [BusyTimerMessageTypeGetProfile] = busy_timer_get_profile_message_handler,
-    [BusyTimerMessageTypeSetProfile] = busy_timer_set_profile_message_handler,
-    [BusyTimerMessageTypeLoadProfile] = busy_timer_load_profile_message_handler,
-    [BusyTimerMessageTypeGetPreset] = busy_timer_get_preset_message_handler,
-    [BusyTimerMessageTypeSetPreset] = busy_timer_set_preset_message_handler,
+static const BusyTimerApiMessageHandler
+    busy_timer_api_message_handlers[BusyTimerApiMessageTypeMax] = {
+        [BusyTimerApiMessageTypeStart] = busy_timer_start_api_message_handler,
+        [BusyTimerApiMessageTypeStop] = busy_timer_stop_api_message_handler,
+        [BusyTimerApiMessageTypeAddTime] = busy_timer_add_time_api_message_handler,
+        [BusyTimerApiMessageTypeToggle] = busy_timer_toggle_api_message_handler,
+        [BusyTimerApiMessageTypeSkip] = busy_timer_skip_api_message_handler,
+        [BusyTimerApiMessageTypeGetRunInfo] = busy_timer_get_run_info_api_message_handler,
+        [BusyTimerApiMessageTypeGetSnapshot] = busy_timer_get_snapshot_api_message_handler,
+        [BusyTimerApiMessageTypeSetSnapshot] = busy_timer_set_snapshot_api_message_handler,
+        [BusyTimerApiMessageTypeGetProfile] = busy_timer_get_profile_api_message_handler,
+        [BusyTimerApiMessageTypeSetProfile] = busy_timer_set_profile_api_message_handler,
+        [BusyTimerApiMessageTypeLoadProfile] = busy_timer_load_profile_api_message_handler,
+        [BusyTimerApiMessageTypeGetPreset] = busy_timer_get_preset_api_message_handler,
+        [BusyTimerApiMessageTypeSetPreset] = busy_timer_set_preset_api_message_handler,
 };

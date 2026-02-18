@@ -15,80 +15,80 @@
 #define BUSY_TIMER_TIME_MAX_S M_TO_S(BUSY_TIMER_TIME_MAX_MN)
 
 typedef enum {
-    BusyTimerMessageTypeStart,
-    BusyTimerMessageTypeStop,
-    BusyTimerMessageTypeAddTime,
-    BusyTimerMessageTypeToggle,
-    BusyTimerMessageTypeSkip,
-    BusyTimerMessageTypeGetRunInfo,
-    BusyTimerMessageTypeGetSnapshot,
-    BusyTimerMessageTypeSetSnapshot,
-    BusyTimerMessageTypeGetProfile,
-    BusyTimerMessageTypeSetProfile,
-    BusyTimerMessageTypeLoadProfile,
-    BusyTimerMessageTypeGetPreset,
-    BusyTimerMessageTypeSetPreset,
+    BusyTimerApiMessageTypeStart,
+    BusyTimerApiMessageTypeStop,
+    BusyTimerApiMessageTypeAddTime,
+    BusyTimerApiMessageTypeToggle,
+    BusyTimerApiMessageTypeSkip,
+    BusyTimerApiMessageTypeGetRunInfo,
+    BusyTimerApiMessageTypeGetSnapshot,
+    BusyTimerApiMessageTypeSetSnapshot,
+    BusyTimerApiMessageTypeGetProfile,
+    BusyTimerApiMessageTypeSetProfile,
+    BusyTimerApiMessageTypeLoadProfile,
+    BusyTimerApiMessageTypeGetPreset,
+    BusyTimerApiMessageTypeSetPreset,
 
-    BusyTimerMessageTypeMax,
-} BusyTimerMessageType;
+    BusyTimerApiMessageTypeMax,
+} BusyTimerApiMessageType;
 
 typedef struct {
     int32_t time_minutes;
-} BusyTimerMessageAddTime;
+} BusyTimerApiMessageAddTime;
 
 typedef struct {
     BusyTimerSnapshot* snapshot;
-} BusyTimerMessageGetSnapshot;
+} BusyTimerApiMessageGetSnapshot;
 
 typedef struct {
     const BusyTimerSnapshot* snapshot;
-} BusyTimerMessageSetSnapshot;
+} BusyTimerApiMessageSetSnapshot;
 
 typedef struct {
     BusyTimerRunInfo* run_info;
-} BusyTimerMessageGetRunInfo;
+} BusyTimerApiMessageGetRunInfo;
 
 typedef struct {
     BusyTimerProfileId profile_id;
     BusyTimerProfile* profile;
-} BusyTimerMessageGetProfile;
+} BusyTimerApiMessageGetProfile;
 
 typedef struct {
     BusyTimerProfileId profile_id;
     const BusyTimerProfile* profile;
-} BusyTimerMessageSetProfile;
+} BusyTimerApiMessageSetProfile;
 
 typedef struct {
     BusyTimerProfileId profile_id;
-} BusyTimerMessageLoadProfile;
+} BusyTimerApiMessageLoadProfile;
 
 typedef struct {
     BusyTimerProfileId profile_id;
     BusyTimerPreset* preset;
-} BusyTimerMessageGetPreset;
+} BusyTimerApiMessageGetPreset;
 
 typedef struct {
     BusyTimerProfileId profile_id;
     const BusyTimerPreset* preset;
-} BusyTimerMessageSetPreset;
+} BusyTimerApiMessageSetPreset;
 
 typedef union {
-    BusyTimerMessageAddTime add_time;
-    BusyTimerMessageGetSnapshot get_snapshot;
-    BusyTimerMessageSetSnapshot set_snapshot;
-    BusyTimerMessageGetRunInfo get_run_info;
-    BusyTimerMessageGetProfile get_profile;
-    BusyTimerMessageSetProfile set_profile;
-    BusyTimerMessageLoadProfile load_profile;
-    BusyTimerMessageGetPreset get_preset;
-    BusyTimerMessageSetPreset set_preset;
-} BusyTimerMessageData;
+    BusyTimerApiMessageAddTime add_time;
+    BusyTimerApiMessageGetSnapshot get_snapshot;
+    BusyTimerApiMessageSetSnapshot set_snapshot;
+    BusyTimerApiMessageGetRunInfo get_run_info;
+    BusyTimerApiMessageGetProfile get_profile;
+    BusyTimerApiMessageSetProfile set_profile;
+    BusyTimerApiMessageLoadProfile load_profile;
+    BusyTimerApiMessageGetPreset get_preset;
+    BusyTimerApiMessageSetPreset set_preset;
+} BusyTimerApiMessageData;
 
 typedef struct {
-    BusyTimerMessageType type;
-    BusyTimerMessageData data;
+    BusyTimerApiMessageType type;
+    BusyTimerApiMessageData data;
     FuriApiLock lock;
-} BusyTimerMessage;
+} BusyTimerApiMessage;
 
 typedef enum {
     BusyTimerSetProfileResultRejectedInvalid,
@@ -111,12 +111,12 @@ struct BusyTimer {
     BusyTimerSettings settings[BusyTimerProfileIdMax];
     // TODO FW-635: Refactor & simplify internals ---->
     BusyTimerState state;
+    BusyAppConfig app_config;
+    BusyTimerConfig timer_config;
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
     uint32_t time_elapsed_s;
     uint32_t time_remaining_s;
-    BusyAppConfig app_config;
-    BusyTimerConfig timer_config;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     // <----- Refactor section ends
     bool is_timer_running;

@@ -1,6 +1,6 @@
 #include "busy_timer_i.h"
 
-static void busy_timer_send_message(const BusyTimer* instance, BusyTimerMessage* message) {
+static void busy_timer_send_message(const BusyTimer* instance, BusyTimerApiMessage* message) {
     message->lock = api_lock_alloc_locked();
     furi_check(
         furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
@@ -11,8 +11,8 @@ void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) 
     furi_assert(instance);
     furi_assert(info);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeGetRunInfo,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeGetRunInfo,
         .data.get_run_info =
             {
                 .run_info = info,
@@ -25,8 +25,8 @@ void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) 
 void busy_timer_start(BusyTimer* instance) {
     furi_assert(instance);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeStart,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeStart,
     };
 
     busy_timer_send_message(instance, &message);
@@ -35,8 +35,8 @@ void busy_timer_start(BusyTimer* instance) {
 void busy_timer_stop(BusyTimer* instance) {
     furi_assert(instance);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeStop,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeStop,
     };
 
     busy_timer_send_message(instance, &message);
@@ -45,8 +45,8 @@ void busy_timer_stop(BusyTimer* instance) {
 void busy_timer_toggle(BusyTimer* instance) {
     furi_assert(instance);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeToggle,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeToggle,
     };
 
     busy_timer_send_message(instance, &message);
@@ -55,8 +55,8 @@ void busy_timer_toggle(BusyTimer* instance) {
 void busy_timer_skip(BusyTimer* instance) {
     furi_assert(instance);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeSkip,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeSkip,
     };
 
     busy_timer_send_message(instance, &message);
@@ -65,8 +65,8 @@ void busy_timer_skip(BusyTimer* instance) {
 void busy_timer_add_time(BusyTimer* instance, int32_t time_minutes) {
     furi_assert(instance);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeAddTime,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeAddTime,
         .data.add_time =
             {
                 .time_minutes = time_minutes,
@@ -80,8 +80,8 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
     furi_check(instance);
     furi_check(snapshot);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeGetSnapshot,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeGetSnapshot,
         .data.set_snapshot =
             {
                 .snapshot = snapshot,
@@ -95,8 +95,8 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
     furi_check(instance);
     furi_check(snapshot);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeSetSnapshot,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeSetSnapshot,
         .data.set_snapshot =
             {
                 .snapshot = snapshot,
@@ -114,8 +114,8 @@ void busy_timer_get_profile(
     furi_check(profile_id < BusyTimerProfileIdMax);
     furi_check(profile);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeGetProfile,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeGetProfile,
         .data.get_profile =
             {
                 .profile_id = profile_id,
@@ -134,8 +134,8 @@ void busy_timer_set_profile(
     furi_check(profile_id < BusyTimerProfileIdMax);
     furi_check(profile);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeSetProfile,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeSetProfile,
         .data.set_profile =
             {
                 .profile_id = profile_id,
@@ -150,8 +150,8 @@ void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id)
     furi_check(instance);
     furi_check(profile_id < BusyTimerProfileIdMax);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeLoadProfile,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeLoadProfile,
         .data.load_profile =
             {
                 .profile_id = profile_id,
@@ -169,8 +169,8 @@ void busy_timer_get_preset(
     furi_check(profile_id < BusyTimerProfileIdMax);
     furi_check(preset);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeGetPreset,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeGetPreset,
         .data.get_preset =
             {
                 .profile_id = profile_id,
@@ -189,8 +189,8 @@ void busy_timer_set_preset(
     furi_check(profile_id < BusyTimerProfileIdMax);
     furi_check(preset);
 
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeSetPreset,
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeSetPreset,
         .data.set_preset =
             {
                 .profile_id = profile_id,
