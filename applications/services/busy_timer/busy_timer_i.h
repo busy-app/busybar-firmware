@@ -91,7 +91,9 @@ struct BusyTimer {
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
-    // TODO: Refactor the mess below
+    BusyTimerSnapshot user_snapshot;
+    BusyTimerSettings settings[BusyTimerProfileIdMax];
+    // TODO: Refactor this section  ---->
     BusyTimerMode mode;
     BusyTimerState state;
     time_t prev_tick_timestamp_ms;
@@ -102,10 +104,9 @@ struct BusyTimer {
         BusyTimerSimpleConfig simple_config;
         BusyTimerIntervalConfig interval_config;
     };
-    BusyTimerSettings settings[BusyTimerProfileIdMax];
-    BusyTimerSnapshot user_snapshot;
     BusyAppConfig app_config;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
-    bool timer_running;
+    // <----- Refactor section ends
+    bool is_timer_running;
     bool is_demo_mode_enabled;
 };

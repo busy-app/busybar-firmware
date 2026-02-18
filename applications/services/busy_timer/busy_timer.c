@@ -149,7 +149,7 @@ static void busy_timer_notify_paused(const BusyTimer* instance) {
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypePaused,
-        .paused.is_paused = !instance->timer_running,
+        .paused.is_paused = !instance->is_timer_running,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -270,7 +270,7 @@ static uint32_t busy_timer_calc_increment(const BusyTimer* instance) {
 }
 
 static bool busy_timer_is_running(const BusyTimer* instance) {
-    return instance->timer_running;
+    return instance->is_timer_running;
 }
 
 static void busy_timer_start_timer(BusyTimer* instance) {
@@ -279,12 +279,12 @@ static void busy_timer_start_timer(BusyTimer* instance) {
     }
 
     instance->prev_tick_timestamp_ms = furi_hal_rtc_get_timestamp_ms();
-    instance->timer_running = true;
+    instance->is_timer_running = true;
 }
 
 static void busy_timer_stop_timer(BusyTimer* instance) {
     furi_event_loop_timer_stop(instance->poll_timer);
-    instance->timer_running = false;
+    instance->is_timer_running = false;
 }
 
 static void busy_timer_infinite_to_simple(BusyTimer* instance) {
