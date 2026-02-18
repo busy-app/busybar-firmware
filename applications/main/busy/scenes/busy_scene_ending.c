@@ -87,8 +87,8 @@ static void busy_scene_ending_on_enter(void* context) {
     BusySceneEndig* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdEnding);
 
-    BusyTimerInfo timer_info;
-    busy_timer_get_info(instance->busy_timer, &timer_info);
+    BusyTimerRunInfo timer_info;
+    busy_timer_get_run_info(instance->busy_timer, &timer_info);
 
     furi_check(timer_info.config.mode == BusyTimerModeInterval);
     const BusyTimerIntervalConfig* interval_config = &timer_info.config.interval;

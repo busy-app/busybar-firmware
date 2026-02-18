@@ -74,7 +74,7 @@ typedef struct {
     BusyTimerState state;
     BusyTimerConfig config;
     uint32_t current_interval_idx;
-} BusyTimerInfo;
+} BusyTimerRunInfo;
 
 typedef struct {
     BusyAppConfig app_config;
@@ -92,9 +92,9 @@ void busy_timer_toggle(BusyTimer* instance);
 
 void busy_timer_skip(BusyTimer* instance);
 
-void busy_timer_add_time(BusyTimer* instance, int32_t time_mn);
+void busy_timer_add_time(BusyTimer* instance, int32_t time_minutes);
 
-void busy_timer_get_info(const BusyTimer* instance, BusyTimerInfo* info);
+void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* run_info);
 
 void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot);
 

@@ -7,15 +7,15 @@ static void busy_timer_send_message(const BusyTimer* instance, BusyTimerMessage*
     api_lock_wait_unlock_and_free(message->lock);
 }
 
-void busy_timer_get_info(const BusyTimer* instance, BusyTimerInfo* info) {
+void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) {
     furi_assert(instance);
     furi_assert(info);
 
     BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeGetInfo,
-        .data.get_info =
+        .type = BusyTimerMessageTypeGetRunInfo,
+        .data.get_run_info =
             {
-                .info = info,
+                .run_info = info,
             },
     };
 
@@ -62,12 +62,15 @@ void busy_timer_skip(BusyTimer* instance) {
     busy_timer_send_message(instance, &message);
 }
 
-void busy_timer_add_time(BusyTimer* instance, int32_t time_mn) {
+void busy_timer_add_time(BusyTimer* instance, int32_t time_minutes) {
     furi_assert(instance);
 
     BusyTimerMessage message = {
         .type = BusyTimerMessageTypeAddTime,
-        .data.add_time_mn = time_mn,
+        .data.add_time =
+            {
+                .time_minutes = time_minutes,
+            },
     };
 
     busy_timer_send_message(instance, &message);
@@ -79,7 +82,10 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
 
     BusyTimerMessage message = {
         .type = BusyTimerMessageTypeGetSnapshot,
-        .data.snapshot = snapshot,
+        .data.set_snapshot =
+            {
+                .snapshot = snapshot,
+            },
     };
 
     busy_timer_send_message(instance, &message);
@@ -91,7 +97,10 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
 
     BusyTimerMessage message = {
         .type = BusyTimerMessageTypeSetSnapshot,
-        .data.snapshot_c = snapshot,
+        .data.set_snapshot =
+            {
+                .snapshot = snapshot,
+            },
     };
 
     busy_timer_send_message(instance, &message);
@@ -143,7 +152,10 @@ void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id)
 
     BusyTimerMessage message = {
         .type = BusyTimerMessageTypeLoadProfile,
-        .data.profile_id = profile_id,
+        .data.load_profile =
+            {
+                .profile_id = profile_id,
+            },
     };
 
     busy_timer_send_message(instance, &message);

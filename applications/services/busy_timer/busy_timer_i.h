@@ -20,7 +20,7 @@ typedef enum {
     BusyTimerMessageTypeAddTime,
     BusyTimerMessageTypeToggle,
     BusyTimerMessageTypeSkip,
-    BusyTimerMessageTypeGetInfo,
+    BusyTimerMessageTypeGetRunInfo,
     BusyTimerMessageTypeGetSnapshot,
     BusyTimerMessageTypeSetSnapshot,
     BusyTimerMessageTypeGetProfile,
@@ -33,8 +33,20 @@ typedef enum {
 } BusyTimerMessageType;
 
 typedef struct {
-    BusyTimerInfo* info;
-} BusyTimerMessageGetInfo;
+    int32_t time_minutes;
+} BusyTimerMessageAddTime;
+
+typedef struct {
+    BusyTimerSnapshot* snapshot;
+} BusyTimerMessageGetSnapshot;
+
+typedef struct {
+    const BusyTimerSnapshot* snapshot;
+} BusyTimerMessageSetSnapshot;
+
+typedef struct {
+    BusyTimerRunInfo* run_info;
+} BusyTimerMessageGetRunInfo;
 
 typedef struct {
     BusyTimerProfileId profile_id;
@@ -48,6 +60,10 @@ typedef struct {
 
 typedef struct {
     BusyTimerProfileId profile_id;
+} BusyTimerMessageLoadProfile;
+
+typedef struct {
+    BusyTimerProfileId profile_id;
     BusyTimerPreset* preset;
 } BusyTimerMessageGetPreset;
 
@@ -57,13 +73,13 @@ typedef struct {
 } BusyTimerMessageSetPreset;
 
 typedef union {
-    int32_t add_time_mn;
-    BusyTimerSnapshot* snapshot;
-    const BusyTimerSnapshot* snapshot_c;
-    BusyTimerMessageGetInfo get_info;
+    BusyTimerMessageAddTime add_time;
+    BusyTimerMessageGetSnapshot get_snapshot;
+    BusyTimerMessageSetSnapshot set_snapshot;
+    BusyTimerMessageGetRunInfo get_run_info;
     BusyTimerMessageGetProfile get_profile;
     BusyTimerMessageSetProfile set_profile;
-    BusyTimerProfileId profile_id;
+    BusyTimerMessageLoadProfile load_profile;
     BusyTimerMessageGetPreset get_preset;
     BusyTimerMessageSetPreset set_preset;
 } BusyTimerMessageData;
@@ -93,7 +109,7 @@ struct BusyTimer {
     Mqtt* mqtt;
     BusyTimerSnapshot user_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
-    // TODO: Refactor this section  ---->
+    // TODO FW-635: Refactor & simplify internals ---->
     BusyTimerState state;
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;

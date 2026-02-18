@@ -59,8 +59,8 @@ static void busy_scene_finish_on_enter(void* context) {
     BusySceneFinish* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdFinish);
 
-    BusyTimerInfo timer_info;
-    busy_timer_get_info(instance->busy_timer, &timer_info);
+    BusyTimerRunInfo timer_info;
+    busy_timer_get_run_info(instance->busy_timer, &timer_info);
 
     const BusyTimerConfig* timer_config = &timer_info.config;
 

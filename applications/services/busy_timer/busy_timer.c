@@ -718,8 +718,10 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
         return;
     }
 
+    const int32_t add_time_minutes = data->add_time.time_minutes;
+
     if(instance->timer_config.mode == BusyTimerModeInfinite) {
-        if(data->add_time_mn > 0) {
+        if(add_time_minutes > 0) {
             // Special case: start a Simple timer
             busy_timer_infinite_to_simple(instance);
         }
@@ -727,7 +729,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
     }
 
     int32_t time_remaining_s = instance->time_remaining_s;
-    int32_t increment_s = M_TO_S(data->add_time_mn);
+    int32_t increment_s = M_TO_S(add_time_minutes);
 
     // Ignore if the remaining time is below minimum
     if((increment_s < 0) && (time_remaining_s < BUSY_TIMER_TIME_MIN_S)) {
@@ -791,8 +793,9 @@ static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessag
     }
 }
 
-static void busy_timer_get_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    BusyTimerInfo* timer_info = data->get_info.info;
+static void
+    busy_timer_get_run_info_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    BusyTimerRunInfo* timer_info = data->get_run_info.run_info;
     timer_info->state = instance->state;
     timer_info->config = instance->timer_config;
     timer_info->current_interval_idx = instance->current_interval_index;
@@ -800,12 +803,12 @@ static void busy_timer_get_info_message_handler(BusyTimer* instance, BusyTimerMe
 
 static void
     busy_timer_get_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    busy_timer_make_snapshot(instance, data->snapshot);
+    busy_timer_make_snapshot(instance, data->get_snapshot.snapshot);
 }
 
 static void
     busy_timer_set_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    busy_timer_apply_snapshot(instance, data->snapshot_c);
+    busy_timer_apply_snapshot(instance, data->set_snapshot.snapshot);
 }
 
 static void
@@ -842,7 +845,7 @@ static void
 
 static void
     busy_timer_load_profile_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    const BusyTimerProfileId profile_id = data->profile_id;
+    const BusyTimerProfileId profile_id = data->load_profile.profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
 
     const BusyTimerSettings* settings = &instance->settings[profile_id];
@@ -962,7 +965,7 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
     [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
-    [BusyTimerMessageTypeGetInfo] = busy_timer_get_info_message_handler,
+    [BusyTimerMessageTypeGetRunInfo] = busy_timer_get_run_info_message_handler,
     [BusyTimerMessageTypeGetSnapshot] = busy_timer_get_snapshot_message_handler,
     [BusyTimerMessageTypeSetSnapshot] = busy_timer_set_snapshot_message_handler,
     [BusyTimerMessageTypeGetProfile] = busy_timer_get_profile_message_handler,

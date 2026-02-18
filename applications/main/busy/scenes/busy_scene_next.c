@@ -100,8 +100,8 @@ static void busy_scene_next_on_enter(void* context) {
     BusySceneNext* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
-    BusyTimerInfo timer_info;
-    busy_timer_get_info(instance->busy_timer, &timer_info);
+    BusyTimerRunInfo timer_info;
+    busy_timer_get_run_info(instance->busy_timer, &timer_info);
 
     BusyTimerConfig* timer_config = &timer_info.config;
     furi_check(timer_config->mode == BusyTimerModeInterval);
