@@ -52,7 +52,9 @@ typedef enum {
 } ApiStreamingMode;
 
 typedef struct {
+    FuriMutex* clients_lock;
     StreamClientsList_t clients;
+    uint8_t idle_clients_count;
     uint8_t front_clients_count;
     uint8_t back_clients_count;
     ApiStreamingMode mode;
@@ -115,14 +117,17 @@ static inline void api_streaming_update_mode(ApiStreamingCtx* instance) {
 
 static inline void
     api_streaming_client_counter_increment(ApiStreamingCtx* instance, GuiDisplayId display_id) {
+    furi_mutex_acquire(instance->clients_lock, FuriWaitForever);
+    instance->idle_clients_count -= 1;
     if(display_id == GuiDisplayIdFront)
         instance->front_clients_count++;
     else if(display_id == GuiDisplayIdBack)
         instance->back_clients_count++;
 
     furi_assert(
-        instance->front_clients_count + instance->back_clients_count ==
-        StreamClientsList_size(instance->clients));
+        (size_t)(instance->front_clients_count + instance->back_clients_count +
+                 instance->idle_clients_count) == StreamClientsList_size(instance->clients));
+    furi_mutex_release(instance->clients_lock);
 }
 
 static inline void
@@ -133,12 +138,13 @@ static inline void
         instance->back_clients_count--;
 
     furi_assert(
-        instance->front_clients_count + instance->back_clients_count ==
-        StreamClientsList_size(instance->clients));
+        (size_t)(instance->front_clients_count + instance->back_clients_count +
+                 instance->idle_clients_count) == StreamClientsList_size(instance->clients));
 }
 
 static inline void
     api_streaming_client_counter_move(ApiStreamingCtx* instance, GuiDisplayId display_id) {
+    furi_mutex_acquire(instance->clients_lock, FuriWaitForever);
     if(display_id == GuiDisplayIdFront) {
         instance->front_clients_count++;
         instance->back_clients_count--;
@@ -150,6 +156,7 @@ static inline void
     furi_assert(
         instance->front_clients_count + instance->back_clients_count ==
         StreamClientsList_size(instance->clients));
+    furi_mutex_release(instance->clients_lock);
 }
 
 static inline void
@@ -210,7 +217,10 @@ static void api_streaming_client_connection_open(struct mg_connection* conn) {
     }
 
     // Add connection to WebSocket clients list
+    furi_mutex_acquire(instance->clients_lock, FuriWaitForever);
     StreamClientsList_push_back(instance->clients, client);
+    instance->idle_clients_count += 1;
+    furi_mutex_release(instance->clients_lock);
 
     STREAM_LOG_D("Add client %ld", conn->id);
 }
@@ -226,9 +236,11 @@ static void api_streaming_client_connection_close(struct mg_connection* conn) {
     StreamClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, it);
     if(client) {
         STREAM_LOG_D("Remove client: %ld", client->conn->id);
+        furi_mutex_acquire(instance->clients_lock, FuriWaitForever);
         StreamClientsList_remove(instance->clients, it);
         api_streaming_client_counter_decrement(instance, client->display_id);
         api_streaming_update_mode(instance);
+        furi_mutex_release(instance->clients_lock);
         api_streaming_client_free(client);
     }
 
@@ -423,6 +435,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
         if(compress_result) {
             struct mg_mgr* mgr = web_srv_get_mgr();
             StreamClientsList_it_t it;
+            furi_mutex_acquire(instance->clients_lock, FuriWaitForever);
             for(StreamClientsList_it(it, instance->clients); !StreamClientsList_end_p(it);
                 StreamClientsList_next(it)) {
                 StreamClientCtx* const* it_ptr = StreamClientsList_cref(it);
@@ -430,6 +443,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
                 if(client->display_id == instance->display_id)
                     mg_wakeup(mgr, client->conn->id, NULL, 0);
             }
+            furi_mutex_release(instance->clients_lock);
         } else {
             STREAM_LOG_W("Compression failed");
         }
@@ -447,6 +461,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
 
 void* http_api_streaming_ws_alloc(void) {
     ApiStreamingCtx* instance = malloc(sizeof(ApiStreamingCtx));
+    instance->clients_lock = furi_mutex_alloc(FuriMutexTypeNormal);
     StreamClientsList_init(instance->clients);
 
     instance->thread =
@@ -460,6 +475,7 @@ void http_api_streaming_ws_free(void* ctx) {
     furi_assert(ctx);
     ApiStreamingCtx* instance = ctx;
     StreamClientsList_clear(instance->clients);
+    furi_mutex_free(instance->clients_lock);
     furi_thread_free(instance->thread);
     furi_mutex_free(instance->mutex);
     free(instance);
