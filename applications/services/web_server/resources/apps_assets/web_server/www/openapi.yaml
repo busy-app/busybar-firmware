@@ -607,6 +607,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/storage/rename:
+    post:
+      tags:
+        - Storage
+      summary: Rename/move a file
+      description: Moves a file to a new location
+      operationId: RenameStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Old location path
+          example: "/ext/old_name.txt"
+        - name: new_path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: New location path
+          example: "/ext/new_name.txt"
+      responses:
+        "200":
+          description: Renamed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or operation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/storage/status:
     get:
       tags:
