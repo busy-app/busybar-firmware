@@ -8,15 +8,16 @@
     "
     :title="props.title"
     :ui="{
-      content: `${props.wide ? 'max-w-[640px]' : 'max-w-[360px]'} divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass`,
+      content: `${props.wide ? 'max-w-[640px]' : ''}`,
       description: 'hidden',
       header: 'min-h-20',
-      body: 'pt-0 sm:pt-0 overflow-y-auto',
-      close: showCloseButton ? 'flex top-6 end-5' :'hidden',
-      overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
+      title: 'text-xl flex items-center gap-2',
+      body: 'pt-0 sm:pt-0 sm:px-5 sm:pb-5 overflow-y-auto',
+      close: showCloseButton ? 'flex top-6 end-5' :'hidden'
     }"
   >
     <template #title>
+      <slot name="icon" />
       <div
         :data-id="`${props.dataId}-title`"
         class="text-xl"
@@ -48,14 +49,21 @@
         class="flex justify-end gap-2 mt-8"
       >
         <UButton
+          v-if="props.secondaryActionProps"
           v-bind="props.secondaryActionProps"
           :data-id="`${props.dataId}-secondary-action`"
           variant="ghost"
-          color="neutral"
+          size="lg"
+          :color="props.secondaryActionProps.color || 'neutral'"
+          class="min-w-20 justify-center"
         />
         <UButton
+          v-if="props.primaryActionProps"
           v-bind="props.primaryActionProps"
           :data-id="`${props.dataId}-primary-action`"
+          :color="props.primaryActionProps.color || 'neutral'"
+          size="lg"
+          class="min-w-20 justify-center"
         />
       </div>
     </template>

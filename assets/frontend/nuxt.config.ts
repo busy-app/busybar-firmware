@@ -6,12 +6,7 @@ const BUILD_ID = process.env.BUILD_ID || 'bsb-frontend';
 export default defineNuxtConfig({
   // use provided build id (e.g. commit hash) or default to a static one
   buildId: BUILD_ID,
-  modules: [
-    '@nuxt/ui',
-    '@nuxt/eslint',
-    '@pinia/nuxt',
-    'pinia-plugin-persistedstate/nuxt'
-  ],
+  modules: ['@nuxt/ui', '@nuxt/eslint', '@pinia/nuxt', 'pinia-plugin-persistedstate/nuxt', '@nuxtjs/mdc'],
   ssr: false,
   imports: {
     dirs: ['./util']
@@ -32,7 +27,6 @@ export default defineNuxtConfig({
     }
   },
   css: [
-    '@/assets/css/typography.css',
     '@/assets/css/global.css',
     '@/assets/css/fonts.css'
   ],
@@ -74,7 +68,22 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           entryFileNames: `_nuxt/[name]-${BUILD_ID}.js`,
-          chunkFileNames: `_nuxt/[name]-${BUILD_ID}.js`,
+          chunkFileNames: chunkInfo => {
+            if (chunkInfo.name.includes('virtual_nuxt')) {
+              // find last occurence of "nuxt_" and extract the name after it
+              const lastNuxtIndex = chunkInfo.name.lastIndexOf('nuxt_');
+              const lastDotIndex = chunkInfo.name.lastIndexOf('.');
+              if (lastNuxtIndex !== -1) {
+                const name = chunkInfo.name.slice(lastNuxtIndex + 5);
+                return `_nuxt/${name}-${BUILD_ID}.js`;
+              } else if (lastDotIndex !== -1) {
+                // if dot found in file name, extract the name after the dot
+                const name = chunkInfo.name.slice(lastDotIndex + 1);
+                return `_nuxt/${name}-${BUILD_ID}.js`;
+              }
+            }
+            return `_nuxt/[name]-${BUILD_ID}.js`;
+          },
           assetFileNames: ({ names, originalFileNames }) => {
             const name = names[0] || originalFileNames[0];
             const ext = name.split('.').pop();
@@ -87,17 +96,6 @@ export default defineNuxtConfig({
   eslint: {
     checker: {
       configType: 'flat'
-    },
-    config: {
-      stylistic: {
-        semi: true,
-        quotes: 'single',
-        indent: 2,
-        jsx: true,
-        arrowParens: false,
-        braceStyle: '1tbs',
-        commaDangle: 'never'
-      }
     }
   },
   icon: {
