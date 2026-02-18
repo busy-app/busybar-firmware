@@ -94,17 +94,13 @@ struct BusyTimer {
     BusyTimerSnapshot user_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
     // TODO: Refactor this section  ---->
-    BusyTimerMode mode;
     BusyTimerState state;
     time_t prev_tick_timestamp_ms;
     uint32_t current_interval_index;
     uint32_t time_elapsed_s;
     uint32_t time_remaining_s;
-    union {
-        BusyTimerSimpleConfig simple_config;
-        BusyTimerIntervalConfig interval_config;
-    };
     BusyAppConfig app_config;
+    BusyTimerConfig timer_config;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     // <----- Refactor section ends
     bool is_timer_running;
