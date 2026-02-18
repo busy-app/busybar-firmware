@@ -1,5 +1,6 @@
 #include "state_publisher.h"
 #include <furi/furi.h>
+#include <brightness_control/brightness_control.h>
 
 #define TAG "StPubSrv"
 
@@ -24,6 +25,10 @@ typedef bool (*MessageHandler)(StatePublisher* instance, const Message* message)
 
 static const MessageHandler message_handlers[];
 
+static void publish_brightness(StatePublisher* instance, const BrightnessControlState* brightness_state);
+
+static void brightness_state_callback(const void* item, void* context);
+
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
@@ -40,7 +45,18 @@ static void send_message(StatePublisher* instance, const Message* message) {
         furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
 }
 
-static StatePublisher* state_publisher_alloc() {
+static void subscribe(StatePublisher* instance) {
+    {
+        const BrightnessControl* brightness_control = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
+        FuriState* brightness_state = brightness_control_get_state(brightness_control);
+        furi_state_subscribe(brightness_state, brightness_state_callback, instance);
+        BrightnessControlState* brightness;
+        furi_state_get(brightness_state, &brightness);
+        furi_record_close(RECORD_BRIGHTNESS_CONTROL);
+    }
+}
+
+static StatePublisher* state_publisher_alloc(void) {
     StatePublisher* instance = malloc(sizeof(StatePublisher));
 
     instance->event_loop = furi_event_loop_alloc();
@@ -52,6 +68,8 @@ static StatePublisher* state_publisher_alloc() {
         FuriEventLoopEventIn,
         message_queue_callback,
         instance);
+
+    subscribe(instance);
 
     furi_record_create(RECORD_STATE_PUBLISHER, instance);
 
@@ -87,4 +105,15 @@ void state_publisher_publish(StatePublisher* app) {
         .type = MessageTypePublish,
     };
     send_message(app, &msg);
+}
+
+static void publish_brightness(StatePublisher* instance, const BrightnessControlState* brightness_state) {
+    UNUSED(instance);
+    UNUSED(brightness_state);
+}
+
+static void brightness_state_callback(const void* item, void* context) {
+    StatePublisher* instance = context;
+    const BrightnessControlState* state = item;
+    publish_brightness(instance, state);
 }
