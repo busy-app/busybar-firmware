@@ -290,9 +290,11 @@ void busy_set_matter(BusyApp* instance, bool switch_state) {
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {
     furi_assert(instance);
-    if(instance->config.is_show_work_only_enabled) {
-        front_display_set_blanked(instance->front_display, is_blanked);
-    }
+
+    const bool is_show_work_only_enabled = instance->config.is_show_work_only_enabled;
+    const bool is_actually_blanked = is_show_work_only_enabled && is_blanked;
+
+    front_display_set_blanked(instance->front_display, is_actually_blanked);
 }
 
 void busy_push_location(BusyApp* instance, const char* location_name) {

@@ -340,6 +340,8 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
 
         busy_prepare_transition(instance, BusyTransitionTypeDefault);
 
+        busy_set_front_display_blanking(instance, false);
+
         if(!busy_return_to_start_scene(instance)) {
             busy_exit(instance);
         }
