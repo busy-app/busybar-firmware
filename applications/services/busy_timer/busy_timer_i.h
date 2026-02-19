@@ -103,8 +103,9 @@ struct BusyTimer {
     FuriThread* thread;
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* poll_timer;
-    FuriEventLoopTimer* debounce_timer;
-    FuriMessageQueue* message_queue;
+    FuriEventLoopTimer* snapshot_timer;
+    FuriEventLoopTimer* profile_timer;
+    FuriMessageQueue* api_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
     BusyTimerSnapshot user_snapshot;
@@ -121,4 +122,5 @@ struct BusyTimer {
     // <----- Refactor section ends
     bool is_timer_running;
     bool is_demo_mode_enabled;
+    bool is_profile_updated[BusyTimerProfileIdMax];
 };

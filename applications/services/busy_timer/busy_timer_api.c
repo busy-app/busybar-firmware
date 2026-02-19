@@ -3,7 +3,7 @@
 static void busy_timer_send_message(const BusyTimer* instance, BusyTimerApiMessage* message) {
     message->lock = api_lock_alloc_locked();
     furi_check(
-        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+        furi_message_queue_put(instance->api_queue, message, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(message->lock);
 }
 
