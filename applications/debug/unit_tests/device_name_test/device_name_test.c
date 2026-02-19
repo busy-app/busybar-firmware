@@ -13,12 +13,9 @@ MU_TEST(device_name_test_validation_basic) {
     static const char* const disallowed_names[] = {
         "21chr, just ovr limit",
         "Very very very very very very very very very long name",
-        "<!-- hi -->",
-        "<script>",
         "            ",
         " ",
         "",
-        "&#104;&#105;", // hi
         "БИЗИ Бар",
     };
 

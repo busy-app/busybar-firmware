@@ -5,6 +5,7 @@ Handles flashing firmware and waiting for device recovery.
 """
 
 import logging
+import os
 import socket
 import subprocess
 import time
@@ -84,19 +85,31 @@ class DeviceFlasher:
         )
         return False
 
-    def reset_device(self) -> bool:
+    def reset_device(self, flock_timeout: int = 130) -> bool:
         """
         Reset the device without flashing firmware.
         Uses OpenOCD to send a reset command via the debug probe.
+        Acquires a shared flock to avoid conflicts with crash trace collection.
+
+        Args:
+            flock_timeout: Max seconds to wait for the OpenOCD lock (default 130,
+                slightly above the 120s trace timeout in serial_logger).
 
         Returns:
             True if reset succeeded, False otherwise.
         """
         logger.info("Resetting device via debug probe...")
 
+        flock_prefix = ""
+        lock_path = config.OPENOCD_LOCK_PATH
+        if lock_path and os.path.isdir(os.path.dirname(lock_path)):
+            flock_prefix = f"flock --timeout {flock_timeout} {lock_path} "
+            logger.debug(f"Using OpenOCD lock: {lock_path}")
+
         reset_cmd = (
             f"cd {self.firmware_dir} && "
             f"source {config.TOOLCHAIN_ENV} && "
+            f"{flock_prefix}"
             f"openocd "
             f"-f {config.OPENOCD_INTERFACE} "
             f'-c "transport select swd" '
@@ -107,6 +120,8 @@ class DeviceFlasher:
         logger.debug(f"Reset command: {reset_cmd}")
 
         try:
+            cmd_timeout = 30 + flock_timeout if flock_prefix else 30
+            reset_start = time.time()
             with allure.step(f"Executing device reset command: {reset_cmd}"):
                 result = subprocess.run(
                     reset_cmd,
@@ -114,9 +129,15 @@ class DeviceFlasher:
                     executable="/bin/bash",
                     capture_output=True,
                     text=True,
-                    timeout=30,
+                    timeout=cmd_timeout,
                     cwd=self.firmware_dir,
                 )
+                reset_elapsed = time.time() - reset_start
+                if reset_elapsed > 5.0:
+                    logger.info(
+                        f"reset_device() took {reset_elapsed:.1f}s "
+                        f"(likely waited for crash trace to finish)"
+                    )
                 logger.debug(f"Reset command result: {result}")
                 if "reset run" in result.stderr or result.returncode == 0:
                     logger.info("Device reset completed successfully")

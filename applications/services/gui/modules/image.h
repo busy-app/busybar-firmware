@@ -48,6 +48,15 @@ Widget* image_get_base(Image* instance);
  */
 bool image_set_source(Image* instance, const char* file_path);
 
+/**
+ * @brief Load and show an image from a file with invalidating previously cached one
+ *
+ * @param[in,out] instance pointer to the Image instance to be modified
+ * @param[in] file_path zero-terminated string containing the full path to image file
+ * @returns true if the source was successfully set, false otherwise
+ */
+bool image_set_source_no_cache(Image* instance, const char* file_path);
+
 #ifdef __cplusplus
 }
 #endif

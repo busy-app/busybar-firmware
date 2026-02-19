@@ -13,23 +13,26 @@ typedef struct {
     void* file;
 } WriteClientCtx;
 
-static bool api_storage_parse_parameters(struct mg_str* params_str, FuriString* file_path) {
+static bool api_storage_parse_path_parameter(
+    struct mg_str* params_str,
+    const char* name,
+    FuriString* path) {
     if(params_str->len == 0) {
         return false;
     }
 
     char temp_str[FILE_PATH_LEN_MAX];
 
-    int var_len = mg_http_get_var(params_str, "path", temp_str, sizeof(temp_str));
+    int var_len = mg_http_get_var(params_str, name, temp_str, sizeof(temp_str));
     if(var_len <= 0) {
         return false;
     }
-    furi_string_printf(file_path, "%.*s", var_len, temp_str);
-    if(furi_string_end_with(file_path, "/")) {
-        furi_string_left(file_path, furi_string_size(file_path) - 1);
+    furi_string_printf(path, "%.*s", var_len, temp_str);
+    if(furi_string_end_with(path, "/")) {
+        furi_string_left(path, furi_string_size(path) - 1);
     }
 
-    return furi_string_start_with(file_path, STORAGE_EXT_PATH_PREFIX);
+    return furi_string_start_with(path, STORAGE_EXT_PATH_PREFIX);
 }
 
 static void api_storage_write_data_callback(struct mg_connection* conn, struct mg_iobuf* data) {
@@ -98,7 +101,7 @@ static bool api_storage_write_headers_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* file_path = furi_string_alloc();
-    if(api_storage_parse_parameters(&msg->query, file_path)) {
+    if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
         FURI_LOG_I(
             TAG, "Write len = %u path = %s", msg->body.len, furi_string_get_cstr(file_path));
         // Create write context
@@ -151,7 +154,7 @@ static bool api_storage_read_callback(
 
     FuriString* file_path = furi_string_alloc();
     bool success = false;
-    if(api_storage_parse_parameters(&msg->query, file_path)) {
+    if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         success = storage_file_exists(fs_api, furi_string_get_cstr(file_path));
         furi_record_close(RECORD_STORAGE);
@@ -194,7 +197,7 @@ static bool api_storage_delete_callback(
 
     FuriString* file_path = furi_string_alloc();
     bool success = false;
-    if(api_storage_parse_parameters(&msg->query, file_path)) {
+    if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         success = storage_simply_remove_recursive(fs_api, furi_string_get_cstr(file_path));
         furi_record_close(RECORD_STORAGE);
@@ -221,10 +224,41 @@ static bool api_storage_mkdir_callback(
 
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
-    if(api_storage_parse_parameters(&msg->query, dir_path)) {
+    if(api_storage_parse_path_parameter(&msg->query, "path", dir_path)) {
         success = http_fs_get()->mkd(furi_string_get_cstr(dir_path));
     }
     furi_string_free(dir_path);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
+static bool api_storage_rename_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    FuriString* old_path = furi_string_alloc();
+    FuriString* new_path = furi_string_alloc();
+    bool success = api_storage_parse_path_parameter(&msg->query, "path", old_path) &&
+                   api_storage_parse_path_parameter(&msg->query, "new_path", new_path);
+
+    if(success) {
+        success =
+            http_fs_get()->mv(furi_string_get_cstr(old_path), furi_string_get_cstr(new_path));
+    }
+
+    furi_string_free(old_path);
+    furi_string_free(new_path);
 
     if(success) {
         MG_REPLY_OK(conn);
@@ -249,7 +283,7 @@ static bool api_storage_list_callback(
 
     FuriString* json_list = furi_string_alloc();
 
-    if(api_storage_parse_parameters(&msg->query, dir_path)) {
+    if(api_storage_parse_path_parameter(&msg->query, "path", dir_path)) {
         Storage* api = furi_record_open(RECORD_STORAGE);
         File* file = storage_file_alloc(api);
         if(storage_dir_open(file, furi_string_get_cstr(dir_path))) {
@@ -348,6 +382,12 @@ static const HttpHandler handlers_storage[] = {
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_storage_mkdir_callback,
+    },
+    {
+        .uri = "rename",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_request = api_storage_rename_callback,
     },
     {
         .uri = "list",

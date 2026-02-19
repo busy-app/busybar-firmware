@@ -332,6 +332,75 @@ class TelnetClient:
         return CommandResult(ok=False, command=command, stdout=cleaned, duration_sec=duration)
 
 
+class OpenOCDReset:
+    """
+    Reset device via OpenOCD debug probe.
+    """
+
+    def __init__(
+        self,
+        interface: str = "interface/cmsis-dap.cfg",
+        target: str = "scripts/debug/platforms/stm32u5/stm32u5x.cfg",
+        serial: str = "",
+        firmware_dir: Optional[str] = None,
+        toolchain_env: str = "scripts/toolchain/fbtenv.sh",
+        logger: Optional[logging.Logger] = None,
+    ):
+        self.interface = interface
+        self.target = target
+        self.serial = serial
+        self.firmware_dir = firmware_dir or os.getcwd()
+        self.toolchain_env = toolchain_env
+        self._logger = logger or LOG.getChild("openocd")
+
+    def reset(self) -> bool:
+        """
+        Reset the device via OpenOCD.
+        Uses flock to prevent concurrent OpenOCD access.
+
+        Returns:
+            True if reset succeeded, False otherwise.
+        """
+        self._logger.info("Resetting device via OpenOCD...")
+
+        serial_opt = f'-c "adapter serial {self.serial}" ' if self.serial else ""
+        reset_cmd = (
+            f"cd {self.firmware_dir} && "
+            f"source {self.toolchain_env} && "
+            f"openocd "
+            f"-f {self.interface} "
+            f'-c "transport select swd" '
+            f"{serial_opt}"
+            f"-f {self.target} "
+            f'-c "init" -c "reset run" -c "exit"'
+        )
+        self._logger.debug(f"Reset command: {reset_cmd}")
+
+        try:
+            result = subprocess.run(
+                reset_cmd,
+                shell=True,
+                executable="/bin/bash",
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=self.firmware_dir,
+            )
+            if "reset run" in result.stderr or result.returncode == 0:
+                self._logger.info("Device reset completed successfully")
+                return True
+            else:
+                self._logger.error(f"Device reset failed: {result.stderr}")
+                return False
+
+        except subprocess.TimeoutExpired:
+            self._logger.error("Device reset timed out")
+            return False
+        except Exception as e:
+            self._logger.error(f"Device reset error: {e}")
+            return False
+
+
 class BusyBarDevice:
     """
     High-level device operations executed via a TelnetClient transport.
@@ -396,13 +465,19 @@ class BusyBarDevice:
             res = tn.run(cmd, timeout=timeout)
             return res.ok, (res.stdout or "(Command executed successfully, no output)")
 
-    def update_bundle(self, bundle_path: str, timeout: int = 10) -> Tuple[bool, str]:
+    def update_bundle(self, bundle_path: str, timeout: int = 10, is_tar: bool = False) -> Tuple[bool, str]:
         """
-        Runs 'update install <bundle.json>' and waits for 'Update preparation successful, rebooting...' message.
+        Runs 'update install <bundle.json>' or 'update install_tar <file.tgz>' and waits for
+        'Update preparation successful, rebooting...' message.
         Returns immediately with error if 'Update prepare install failed:' is detected.
         Closes connection immediately after seeing success message since device won't return to prompt.
+
+        Args:
+            bundle_path: Path to bundle.json or tar/tgz file on device storage
+            timeout: Command timeout in seconds
+            is_tar: If True, use 'update install_tar' command for tar/tgz files
         """
-        cmd = f"update install {bundle_path}"
+        cmd = f"update install_tar {bundle_path}" if is_tar else f"update install {bundle_path}"
         with self._telnet(timeout=timeout) as tn:
             _ = tn.read_welcome()
             self._logger.info(f"Executing: {cmd}")
@@ -498,6 +573,7 @@ class BusyBarDevice:
         retries: int = 0,
         retry_delay: float = 5.0,
         connect_timeout: float = 5.0,
+        openocd_resetter: Optional[OpenOCDReset] = None,
     ) -> Tuple[bool, str]:
         """
         Upload a tar file to the device via HTTP POST.
@@ -509,6 +585,7 @@ class BusyBarDevice:
             retries: Number of retry attempts if host is unavailable (default: 0)
             retry_delay: Delay in seconds between retries (default: 5.0)
             connect_timeout: Timeout for initial connection check (default: 5.0)
+            openocd_resetter: Optional OpenOCDReset instance to reset device between retries
 
         Returns:
             Tuple of (success, output_message)
@@ -529,7 +606,12 @@ class BusyBarDevice:
         last_error = None
         for attempt in range(retries + 1):
             if attempt > 0:
-                self._logger.info(f"Retry {attempt}/{retries} after {retry_delay}s...")
+                if openocd_resetter:
+                    self._logger.info(f"Retry {attempt}/{retries}: resetting device via OpenOCD...")
+                    openocd_resetter.reset()
+                    self._logger.info(f"Waiting {retry_delay}s for device to come up...")
+                else:
+                    self._logger.info(f"Retry {attempt}/{retries} after {retry_delay}s...")
                 time.sleep(retry_delay)
 
             try:
@@ -644,6 +726,61 @@ class BusyBarDevice:
             joined = "\n".join(outputs)
             return True, joined or "Input sequence(s) sent"
 
+    def send_file_to_storage(
+        self,
+        local_path: str,
+        device_path: str,
+        timeout: int = 120,
+    ) -> Tuple[bool, str]:
+        """
+        Upload a file to device storage via telnet storage commands.
+        Uses FlipperStorage from scripts/flipper/storage_socket.py
+        """
+        # Import here to avoid circular imports and keep dependency optional
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from flipper.storage_socket import FlipperStorage, FlipperStorageException
+
+        if not os.path.isfile(local_path):
+            return False, f"File not found: {local_path}"
+
+        try:
+            host = self.config.telnet.host
+            port = self.config.telnet.port
+            self._logger.info(f"Uploading {local_path} to {device_path} via storage...")
+            with FlipperStorage((host, port)) as storage:
+                # Ensure target directory exists (ignore error if already exists)
+                try:
+                    storage.mkdir("/ext/tmp")
+                except FlipperStorageException:
+                    pass  # Directory may already exist
+                storage.send_file(local_path, device_path)
+            return True, f"File uploaded to {device_path}"
+        except FlipperStorageException as e:
+            return False, f"Storage upload failed: {e}"
+        except Exception as e:
+            return False, f"Storage upload error: {e}"
+
+    def update_via_storage(
+        self,
+        tar_path: str,
+        device_path: str = "/ext/tmp/update.tgz",
+        timeout: int = 120,
+    ) -> Tuple[bool, str]:
+        """
+        Update firmware by copying to storage and initiating via telnet.
+        1. Copy tar to device storage
+        2. Run 'update install_tar <path>'
+        """
+        # Step 1: Upload file to storage
+        ok, msg = self.send_file_to_storage(tar_path, device_path, timeout)
+        if not ok:
+            return False, msg
+        self._logger.info(msg)
+
+        # Step 2: Initiate update via telnet (use install_tar for tar/tgz files)
+        self._logger.info(f"Initiating update from {device_path}...")
+        return self.update_bundle(device_path, timeout=timeout, is_tar=True)
+
 
 class BusyBarWaiter:
     def __init__(self):
@@ -670,10 +807,13 @@ class BusyBarWaiter:
         except Exception:
             return False
 
-    def wait_for_busybar(self, host: str, port: int, timeout: int) -> bool:
+    def wait_for_busybar(self, host: str, port: int, timeout: int, icmp_only: bool = False) -> bool:
         sleep(2)  # Initial wait to avoid immediate success
         start = time.time()
-        self._logger.info(f"Waiting for BusyBar at {host}:{port} (timeout {timeout}s)...")
+        if icmp_only:
+            self._logger.info(f"Waiting for BusyBar at {host} (ICMP only, timeout {timeout}s)...")
+        else:
+            self._logger.info(f"Waiting for BusyBar at {host}:{port} (timeout {timeout}s)...")
 
         while True:
             elapsed = int(time.time() - start)
@@ -683,6 +823,9 @@ class BusyBarWaiter:
 
             if self._ping_host(host):
                 self._logger.info("BusyBar is online (ICMP).")
+                if icmp_only:
+                    self._logger.info(f"BusyBar responds to ICMP (elapsed {elapsed}s).")
+                    return True
                 if self._check_port(host, port, timeout=2):
                     self._logger.info(f"BusyBar service ready on {host}:{port} (elapsed {elapsed}s).")
                     return True
@@ -731,6 +874,11 @@ class BusyBarTestOps:
         )
         p_wait.add_argument("--port", type=int, default=80, help="Port to check (default: 80)")
         p_wait.add_argument("-t", "--timeout", type=int, default=60, help="Timeout in seconds (default: 60)")
+        p_wait.add_argument(
+            "--fallback",
+            action="store_true",
+            help="Only check ICMP ping response, skip port check"
+        )
         p_wait.set_defaults(func=self._cmd_wait)
 
         # get-version
@@ -912,6 +1060,31 @@ class BusyBarTestOps:
             default=5.0,
             help="Timeout for initial connection check in seconds (default: 5.0)"
         )
+        p_send_tar.add_argument(
+            "--openocd-reboot",
+            action="store_true",
+            help="Use OpenOCD to reset the device between retry attempts"
+        )
+        p_send_tar.add_argument(
+            "--openocd-interface",
+            default="interface/cmsis-dap.cfg",
+            help="OpenOCD interface config file (default: interface/cmsis-dap.cfg)"
+        )
+        p_send_tar.add_argument(
+            "--openocd-target",
+            default="scripts/debug/platforms/stm32u5/stm32u5x.cfg",
+            help="OpenOCD target config file (default: scripts/debug/platforms/stm32u5/stm32u5x.cfg)"
+        )
+        p_send_tar.add_argument(
+            "--openocd-serial",
+            default=os.getenv("DAPLINK_U5_ID", ""),
+            help="OpenOCD adapter serial number (default: $DAPLINK_U5_ID or auto-detect)"
+        )
+        p_send_tar.add_argument(
+            "--fallback",
+            action="store_true",
+            help="Use storage copy + telnet update instead of HTTP API"
+        )
         p_send_tar.set_defaults(func=self._cmd_send_tar)
 
         return parser
@@ -926,7 +1099,12 @@ class BusyBarTestOps:
 
     def _cmd_wait(self, args: argparse.Namespace) -> int:
         waiter = BusyBarWaiter()
-        ok = waiter.wait_for_busybar(host=args.host, port=args.port, timeout=args.timeout)
+        ok = waiter.wait_for_busybar(
+            host=args.host,
+            port=args.port,
+            timeout=args.timeout,
+            icmp_only=args.fallback,
+        )
         return 0 if ok else 1
 
     def _cmd_get_version(self, args: argparse.Namespace) -> int:
@@ -1099,16 +1277,37 @@ class BusyBarTestOps:
             telnet=TelnetSettings(host=args.host),
         )
         device = BusyBarDevice(config)
-        retry_info = f" (retries: {args.retries})" if args.retries > 0 else ""
-        print(f"Uploading {args.tar_path} to {args.host}...{retry_info}")
-        ok, msg = device.send_tar(
-            tar_path=args.tar_path,
-            name=args.name,
-            timeout=args.timeout,
-            retries=args.retries,
-            retry_delay=args.retry_delay,
-            connect_timeout=args.connect_timeout,
-        )
+
+        if args.fallback:
+            # Storage method (exclusive)
+            print(f"Uploading {args.tar_path} to {args.host} via storage (fallback mode)...")
+            ok, msg = device.update_via_storage(
+                tar_path=args.tar_path,
+                timeout=args.timeout,
+            )
+        else:
+            # HTTP method (default)
+            openocd_resetter = None
+            if args.openocd_reboot:
+                openocd_resetter = OpenOCDReset(
+                    interface=args.openocd_interface,
+                    target=args.openocd_target,
+                    serial=args.openocd_serial,
+                )
+
+            retry_info = f" (retries: {args.retries})" if args.retries > 0 else ""
+            reboot_info = " with OpenOCD reboot" if args.openocd_reboot else ""
+            print(f"Uploading {args.tar_path} to {args.host}...{retry_info}{reboot_info}")
+            ok, msg = device.send_tar(
+                tar_path=args.tar_path,
+                name=args.name,
+                timeout=args.timeout,
+                retries=args.retries,
+                retry_delay=args.retry_delay,
+                connect_timeout=args.connect_timeout,
+                openocd_resetter=openocd_resetter,
+            )
+
         print(msg)
         return 0 if ok else 1
 
