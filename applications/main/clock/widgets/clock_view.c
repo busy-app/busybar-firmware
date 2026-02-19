@@ -146,7 +146,7 @@ void clock_view_set_show_date(ClockView* instance, bool show_date) {
     instance->show_seconds = show_date;
 }
 
-void clock_view_set_date_time(ClockView* instance, DateTime* date_time) {
+void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     furi_check(instance);
     furi_check(date_time);
 

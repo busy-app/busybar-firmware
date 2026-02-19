@@ -20,7 +20,7 @@ void clock_view_set_show_seconds(ClockView* instance, bool show_seconds);
 
 void clock_view_set_show_date(ClockView* instance, bool show_date);
 
-void clock_view_set_date_time(ClockView* instance, DateTime* date_time);
+void clock_view_set_date_time(ClockView* instance, const DateTime* date_time);
 
 #ifdef __cplusplus
 }
