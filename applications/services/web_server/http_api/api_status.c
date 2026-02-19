@@ -4,6 +4,9 @@
 #include <furi_hal_version.h>
 #include <furi_hal_rtc.h>
 #include <toolbox/hex.h>
+#include <containers/pipe_util.h>
+#include <cli_u5/cli_command_sl_cli.h>
+#include <cli_intercom/cli_intercom.h>
 
 #define TAG "HttpStatus"
 
@@ -11,22 +14,132 @@ typedef struct {
     time_t boot_timestamp;
 } ApiStatusCtx;
 
-bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
+static void format_mac(FuriString* str, const uint8_t* mac) {
+    furi_string_printf(
+        str, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
+static int32_t status_get_917_info_thread(void* context) {
+    PipeSide* tx_pipe = context;
+
+#ifdef SRV_INTERCOM
+    bool success = cli_command_sl_cli_send_command_get_response(tx_pipe, "device_info");
+#else // SRV_INTERCOM
+    bool success = false;
+#endif // SRV_INTERCOM
+
+    pipe_free(tx_pipe);
+    return success ? 0 : -1;
+}
+
+static bool status_get_917_info_value(FuriString* json_str, PipeSide* pipe, const char* name) {
+    UNUSED(json_str);
+    char receive_buffer[18];
+    size_t name_len = strlen(name);
+
+    while(pipe_copy_until(pipe, NULL, "sl_")) {
+        size_t bytes_read = pipe_receive(pipe, receive_buffer, name_len);
+        if((bytes_read != name_len) || (strncmp(receive_buffer, name, name_len) != 0)) {
+            continue;
+        }
+
+        if(!pipe_copy_until(pipe, NULL, ": ")) {
+            break;
+        }
+
+        bytes_read = pipe_receive(pipe, receive_buffer, sizeof(receive_buffer));
+        size_t idx;
+        for(idx = 0; idx < bytes_read; idx++) {
+            if(receive_buffer[idx] == '\r' || receive_buffer[idx] == '\n') {
+                receive_buffer[idx] = '\0';
+                break;
+            }
+        }
+
+        if(idx < bytes_read) {
+            furi_string_cat_printf(json_str, ",\"%s\":\"%s\"", name, receive_buffer);
+            return true;
+        }
+        break;
+    }
+    return false;
+}
+
+static bool status_get_917_info(FuriString* json_str) {
+    if(!furi_record_exists(RECORD_CLI_INTERCOM)) {
+        return false;
+    }
+
+    PipeSideBundle pipe_bundle = pipe_alloc(128, 1);
+    PipeSide* rx_pipe = pipe_bundle.alices_side;
+    PipeSide* tx_pipe = pipe_bundle.bobs_side;
+
+    FuriThread* get_info_thread =
+        furi_thread_alloc_ex("api_917_info", 512, status_get_917_info_thread, tx_pipe);
+    furi_thread_start(get_info_thread);
+
+    status_get_917_info_value(json_str, rx_pipe, "wifi_mac");
+    status_get_917_info_value(json_str, rx_pipe, "ble_mac");
+
+    char receive_buffer[32];
+    while(pipe_state(rx_pipe) != PipeStateBroken) {
+        pipe_receive(rx_pipe, receive_buffer, sizeof(receive_buffer));
+    }
+
+    pipe_free(rx_pipe);
+
+    furi_thread_join(get_info_thread);
+    furi_thread_free(get_info_thread);
+
+    UNUSED(json_str);
+
+    return true;
+}
+
+static bool status_get_device(FuriString* json_str, ApiStatusCtx* context) {
+    UNUSED(context);
+
+    furi_string_cat_printf(json_str, "{");
+
+    FuriString* temp_str = furi_string_alloc();
+    hex_bytes_to_string(furi_hal_version_uid(), furi_hal_version_uid_size(), temp_str);
+    furi_string_cat_printf(json_str, "\"serial_number\":\"%s\"", furi_string_get_cstr(temp_str));
+
+    const uint8_t* mac = furi_hal_version_get_usb_mac();
+    format_mac(temp_str, mac);
+    furi_string_cat_printf(json_str, ",\"usb_mac\":\"%s\"", furi_string_get_cstr(temp_str));
+
+    status_get_917_info(json_str);
+
+    bool otp_valid = furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp1) &&
+                     furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp2) &&
+                     furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp3) &&
+                     furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp4);
+    furi_string_cat_printf(json_str, ",\"otp_valid\":%s", otp_valid ? "true" : "false");
+
+    if(otp_valid) {
+        furi_string_cat_printf(json_str, ",\"otp_model\":\"%s\"", furi_hal_version_get_name_ptr());
+        furi_string_cat_printf(
+            json_str, ",\"otp_timestamp\":%lu", furi_hal_version_get_hw_timestamp());
+    }
+
+    furi_string_cat_printf(json_str, "}");
+    furi_string_free(temp_str);
+    return true;
+}
+
+static bool status_get_firmware(FuriString* json_str, ApiStatusCtx* context) {
+    UNUSED(context);
+
     const Version* firmware_version = version_get();
 
     furi_string_cat_printf(json_str, "{");
 
-    FuriString* serial_str = furi_string_alloc();
-    hex_bytes_to_string(furi_hal_version_uid(), furi_hal_version_uid_size(), serial_str);
     furi_string_cat_printf(
-        json_str, "\"serial_number\":\"%s\",", furi_string_get_cstr(serial_str));
-    furi_string_free(serial_str);
-
-    const uint8_t api_ver[] = API_VERSION;
-    furi_string_cat_printf(
-        json_str, "\"api_semver\":\"%u.%u.%u\",", api_ver[0], api_ver[1], api_ver[2]);
-
-    furi_string_cat_printf(json_str, "\"version\":\"%s\",", version_get_version(firmware_version));
+        json_str,
+        "\"version\":\"%s\",\"target\":%u,",
+        version_get_version(firmware_version),
+        version_get_target(firmware_version));
     furi_string_cat_printf(
         json_str,
         "\"branch\":\"%s\",\"build_date\":\"%s\",",
@@ -34,9 +147,21 @@ bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
         version_get_builddate(firmware_version));
     furi_string_cat_printf(
         json_str,
-        "\"commit_hash\":\"%s%s\",",
+        "\"commit_hash\":\"%s%s\"",
         version_get_githash(firmware_version),
         version_get_dirty_flag(firmware_version) ? "-dirty" : "");
+
+    furi_string_cat_printf(json_str, "}");
+
+    return true;
+}
+
+static bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
+    furi_string_cat_printf(json_str, "{");
+
+    const uint8_t api_ver[] = API_VERSION;
+    furi_string_cat_printf(
+        json_str, "\"api_semver\":\"%u.%u.%u\",", api_ver[0], api_ver[1], api_ver[2]);
 
     uint32_t uptime = furi_get_tick() / furi_kernel_get_tick_frequency();
     furi_string_cat_printf(
@@ -55,7 +180,7 @@ bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
     return true;
 }
 
-bool status_get_power(FuriString* json_str, ApiStatusCtx* context) {
+static bool status_get_power(FuriString* json_str, ApiStatusCtx* context) {
     UNUSED(context);
 
     Power* power = furi_record_open(RECORD_POWER);
@@ -87,6 +212,8 @@ static const struct {
     char* name;
     bool (*callback)(FuriString* json_str, ApiStatusCtx* context);
 } status_handlers[] = {
+    {"device", status_get_device},
+    {"firmware", status_get_firmware},
     {"system", status_get_system},
     {"power", status_get_power},
 };
