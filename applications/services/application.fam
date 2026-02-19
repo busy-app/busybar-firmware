@@ -20,6 +20,7 @@ App(
         "back_display",
         "power_srv",
         "status_bar",
+        "brightness_control",
     ],
     targets=["f20", "f21", "f22"],
 )
