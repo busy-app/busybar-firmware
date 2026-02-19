@@ -4,8 +4,13 @@
 
 #include <furi.h>
 
-#define INPUT_QUEUE_CAPACITY 8
-#define EVENT_QUEUE_CAPACITY 8
+#define TAG "clock"
+
+#define INPUT_QUEUE_CAPACITY   8
+#define INPUT_QUEUE_TIMEOUT_MS 3000
+
+#define EVENT_QUEUE_CAPACITY   8
+#define EVENT_QUEUE_TIMEOUT_MS 3000
 
 #define TIMER_INTERVAL_MS 100
 
@@ -63,7 +68,11 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
     ThisInstance* instance = context;
 
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
-        furi_message_queue_put(instance->input_queue, event, FuriWaitForever);
+        FuriStatus queue_status =
+            furi_message_queue_put(instance->input_queue, event, INPUT_QUEUE_TIMEOUT_MS);
+
+        if(queue_status != FuriStatusOk) FURI_LOG_E(TAG, "Input queue failure");
+
         return true;
     }
 
@@ -186,5 +195,8 @@ int32_t clock_app_entry(void* argument) {
 void clock_app_fire_event(ThisInstance* instance, uint32_t event) {
     furi_assert(instance);
 
-    furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
+    FuriStatus queue_status =
+        furi_message_queue_put(instance->event_queue, &event, EVENT_QUEUE_TIMEOUT_MS);
+
+    if(queue_status != FuriStatusOk) FURI_LOG_E(TAG, "Event queue failure");
 }
