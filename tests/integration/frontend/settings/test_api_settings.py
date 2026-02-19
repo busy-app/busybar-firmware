@@ -33,6 +33,7 @@ class TestNameAPI:
         "Another Name 123",
         "T",
         "Nah - ure_ad-en",
+        "20 symbols busy name",
         "Name(Paren",
         "N!",
         "Name!",
@@ -74,7 +75,7 @@ class TestNameAPI:
         " ",
         "  ",
         # Special character combinations (device rejects these)
-        "20 symmbbols length!",
+        "22 symbols length name",
         "8u7Y 8a&",
         "Bu$Y 8aR",
         "wa^%$#@!()_+{}|>?",

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 6.2.0
+  version: 6.3.0
   contact:
     name: tbd
 
@@ -602,6 +602,44 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid path or creation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/rename:
+    post:
+      tags:
+        - Storage
+      summary: Rename/move a file
+      description: Moves a file to a new location
+      operationId: RenameStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Old location path
+          example: "/ext/old_name.txt"
+        - name: new_path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: New location path
+          example: "/ext/new_name.txt"
+      responses:
+        "200":
+          description: Renamed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or operation failed
           content:
             application/json:
               schema:
@@ -1831,7 +1869,11 @@ components:
         elements:
           type: array
           items:
-            $ref: "#/components/schemas/DisplayElement"
+            oneOf:
+              - $ref: "#/components/schemas/TextElement"
+              - $ref: "#/components/schemas/ImageElement"
+              - $ref: "#/components/schemas/AnimElement"
+              - $ref: "#/components/schemas/CountdownElement"
           description: Array of elements to display
       required:
         - app_id

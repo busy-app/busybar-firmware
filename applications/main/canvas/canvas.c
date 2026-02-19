@@ -12,6 +12,7 @@
 #include <furi_hal_rtc.h>
 #include "canvas.h"
 #include <gui/modules/front_display_mirror.h>
+#include <lvgl.h>
 
 typedef struct {
     enum {
@@ -194,7 +195,7 @@ static Widget* canvas_element_update_specific(
         if(!widget->image) {
             widget->image = image_alloc(root);
         }
-        image_set_source(widget->image, furi_string_get_cstr(element->image.file_path));
+        image_set_source_no_cache(widget->image, furi_string_get_cstr(element->image.file_path));
         return image_get_base(widget->image);
 
     } else if(widget->type == CanvasElementTypeAnimPlayer) {

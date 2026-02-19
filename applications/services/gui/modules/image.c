@@ -60,6 +60,15 @@ bool image_set_source(Image* instance, const char* file_path) {
     return loaded_src != NULL;
 }
 
+bool image_set_source_no_cache(Image* instance, const char* file_path) {
+    furi_check(instance);
+    furi_check(file_path);
+
+    lv_image_cache_drop(file_path);
+
+    return image_set_source(instance, file_path);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t image_lvgl_class = {

@@ -137,10 +137,10 @@ class CrashDetector:
             )
             self._attach_crash_info(crash_info)
 
-            self._attach_trace_file(crash_info.trace_file)
-
             if flasher:
                 flasher.reset_and_wait()
+
+            self._attach_trace_file(crash_info.trace_file)
 
             return crash_info
 
