@@ -902,6 +902,8 @@ static void
     profile->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
 
     busy_timer_settings_save(&instance->settings[profile_id], profile_id);
+    busy_timer_notify_profile_changed(instance, profile_id);
+    busy_timer_publish_profile(instance, profile_id);
 }
 
 // Service
