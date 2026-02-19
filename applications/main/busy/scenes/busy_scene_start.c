@@ -30,6 +30,37 @@ static void busy_scene_start_menu_callback(uint32_t index, void* context) {
     busy_send_custom_event(instance, index);
 }
 
+static void busy_scene_start_handle_start(BusyApp* instance) {
+    with_gui(instance->gui, {
+        widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
+        widget_set_visible(mirror_card_get_base(instance->timer_card), true);
+
+        mirror_card_set_show_header(instance->timer_card, false);
+        mirror_card_set_show_footer(instance->timer_card, false);
+    });
+
+    busy_prepare_transition(instance, BusyTransitionTypeSelect);
+
+    // TODO: Better way of loading the appropriate default settings in all cases
+    busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
+    busy_load_app_config(instance);
+    busy_apply_app_config(instance);
+
+    BusyTimerRunInfo timer_info;
+    busy_timer_get_run_info(instance->busy_timer, &timer_info);
+
+    if(timer_info.config.mode == BusyTimerModeInterval) {
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
+    } else {
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+    }
+}
+
+static void busy_scene_start_handle_setup(BusyApp* instance) {
+    busy_push_location(instance, "SETUP");
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
+}
+
 static void busy_scene_start_on_enter(void* context) {
     furi_assert(context);
 
@@ -88,30 +119,10 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneStartMenuIndexStart) {
-            with_gui(instance->gui, {
-                widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
-                widget_set_visible(mirror_card_get_base(instance->timer_card), true);
-
-                mirror_card_set_show_header(instance->timer_card, false);
-                mirror_card_set_show_footer(instance->timer_card, false);
-            });
-
-            busy_prepare_transition(instance, BusyTransitionTypeSelect);
-
-            busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
-
-            BusyTimerRunInfo timer_info;
-            busy_timer_get_run_info(instance->busy_timer, &timer_info);
-
-            if(timer_info.config.mode == BusyTimerModeInterval) {
-                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
-            } else {
-                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
-            }
+            busy_scene_start_handle_start(instance);
 
         } else if(event->event == BusySceneStartMenuIndexSetup) {
-            busy_push_location(instance, "SETUP");
-            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
+            busy_scene_start_handle_setup(instance);
         }
 
         consumed = true;

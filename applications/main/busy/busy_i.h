@@ -53,6 +53,7 @@ typedef enum {
     BusyCustomEventOkShortPressed,
     BusyCustomEventReturnToStart,
     BusyCustomEventAnimationCompleted,
+    BusyCustomEventAppConfigChanged,
     BusyCustomEventMax,
 } BusyCustomEvent;
 

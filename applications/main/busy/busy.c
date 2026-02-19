@@ -334,6 +334,8 @@ void busy_apply_app_config(BusyApp* instance) {
         FURI_LOG_W(TAG, "Setting default theme");
         busy_theme_set_default(instance->theme);
     }
+
+    busy_send_custom_event(instance, BusyCustomEventAppConfigChanged);
 }
 
 void busy_get_timer_preset(BusyApp* instance, BusyTimerPreset* timer_config) {

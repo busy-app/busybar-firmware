@@ -415,6 +415,10 @@ static void busy_scene_timer_apply_theme(BusyApp* instance) {
     data->is_custom_theme = is_custom_theme;
 }
 
+static void busy_scene_timer_handle_app_config_changed(BusyApp* instance) {
+    busy_scene_timer_apply_theme(instance);
+}
+
 // Standard SceneManager event handlers
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -524,6 +528,9 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
 
         } else if(event->event == BusyCustomEventReturnToStart) {
             busy_scene_timer_handle_return_to_start(instance);
+
+        } else if(event->event == BusyCustomEventAppConfigChanged) {
+            busy_scene_timer_handle_app_config_changed(instance);
         }
 
         consumed = true;
