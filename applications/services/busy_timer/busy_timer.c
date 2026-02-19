@@ -41,6 +41,11 @@ static const char* busy_timer_state_names[BusyTimerStateMax] = {
     [BusyTimerStateRest] = "Rest",
 };
 
+static const char* busy_timer_profile_names[BusyTimerProfileIdMax] = {
+    [BusyTimerProfileIdBusy] = "busy",
+    [BusyTimerProfileIdCustom] = "custom",
+};
+
 static const char* busy_timer_mqtt_topics[BusyTimerProfileIdMax] = {
     [BusyTimerProfileIdBusy] = TIMER_PROFILE_BUSY_MQTT_TOPIC,
     [BusyTimerProfileIdCustom] = TIMER_PROFILE_CUSTOM_MQTT_TOPIC,
@@ -54,6 +59,11 @@ static const char* busy_timer_get_state_name(BusyTimerState state) {
 static const char* busy_timer_get_mode_name(BusyTimerMode mode) {
     furi_assert(mode < BusyTimerModeMax);
     return busy_timer_mode_names[mode];
+}
+
+static const char* busy_timer_get_profile_name(BusyTimerProfileId profile_id) {
+    furi_assert(profile_id < BusyTimerProfileIdMax);
+    return busy_timer_profile_names[profile_id];
 }
 
 #ifdef BUSY_TIMER_TICK_DEBUG
@@ -169,7 +179,18 @@ static void busy_timer_notify_paused(const BusyTimer* instance) {
 
 static void
     busy_timer_notify_profile_changed(const BusyTimer* instance, BusyTimerProfileId profile_id) {
-    FURI_LOG_D(TAG, "Profile changed: %d", profile_id);
+    const BusyTimerProfile* profile = &instance->settings[profile_id].profile;
+
+    FURI_LOG_D(
+        TAG,
+        "Profile changed: \"%s\"\r\n"
+        "\ttitle:     %s\r\n"
+        "\tcard id:   %s\r\n"
+        "\ttimestamp: %llu",
+        busy_timer_get_profile_name(profile_id),
+        profile->metadata.title,
+        profile->metadata.card_id,
+        profile->timestamp_ms);
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeProfileChanged,
