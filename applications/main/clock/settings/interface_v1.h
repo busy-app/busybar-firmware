@@ -3,7 +3,7 @@
 #include <toolbox/setting_provider.h>
 
 typedef enum {
-    ClockSettingV1IdxTimeFormat,
+    ClockSettingV1IdxShowDate,
     ClockSettingV1IdxShowSeconds,
 
     ClockSettingV1IdxsCount,

@@ -6,7 +6,7 @@
 #define SHOW_SECONDS_DEFAULT true
 
 const SettingProviderSetting clock_v1_settings[] = {
-    [ClockSettingV1IdxTimeFormat] =
+    [ClockSettingV1IdxShowDate] =
         {
             .name = "show_date",
             .interface =
