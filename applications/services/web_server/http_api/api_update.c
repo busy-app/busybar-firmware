@@ -319,6 +319,8 @@ static bool api_update_raw_hdr_callback(
     }
 
     update_ctx = alloc_raw_update_context();
+    conn_ctx->raw.on_data = api_update_on_data_cb;
+    conn_ctx->on_close = api_update_on_close_cb;
     conn_ctx->context = update_ctx;
 
     update_ctx->total_file_size = msg->body.len;
@@ -350,10 +352,6 @@ static bool api_update_raw_hdr_callback(
     }
 
     FURI_LOG_I(TAG, "on_headers: Initialized file saver for: %s", UPDATER_DEFAULT_DOWNLOAD_PATH);
-
-    // Set up raw data handlers
-    conn_ctx->raw.on_data = api_update_on_data_cb;
-    conn_ctx->on_close = api_update_on_close_cb;
 
     mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
     conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
