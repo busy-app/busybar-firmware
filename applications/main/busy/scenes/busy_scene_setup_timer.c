@@ -32,7 +32,7 @@ static void busy_scene_setup_timer_set_item_defaults(const BusySceneSetupTimer* 
         [VarItemListIdRest] = BUSY_TIMER_REST_TIME_DEFAULT_MN,
         [VarItemListIdCycles] = BUSY_TIMER_CYCLE_COUNT_DEFAULT,
         [VarItemListIdAutostart] = BUSY_TIMER_ENABLE_AUTOSTART_DEFAULT,
-        [VarItemListIdShowWork] = BUSY_BAR_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+        [VarItemListIdShowWork] = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
     };
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {

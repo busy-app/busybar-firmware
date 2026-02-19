@@ -55,7 +55,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                 {
                     .app_config =
                         {
-                            .theme_name = "busy",
+                            .theme_name = BUSY_APP_THEME_NAME_DEFAULT,
                             .is_show_work_only_enabled = false,
                             .is_smart_home_enabled = true,
                         },
@@ -86,7 +86,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                 {
                     .app_config =
                         {
-                            .theme_name = "keep_out",
+                            .theme_name = BUSY_APP_THEME_NAME_CUSTOM_DEFAULT,
                             .is_show_work_only_enabled = true,
                             .is_smart_home_enabled = true,
                         },
@@ -221,7 +221,7 @@ static const SettingProviderSetting busy_timer_settings_v1_app_config[] = {
             .name = "is_smart_home_enabled",
             .interface =
                 &(const SettingProviderBoolInterface){
-                    .default_value = BUSY_BAR_IS_SMART_HOME_ENABLED_DEFAULT,
+                    .default_value = BUSY_APP_IS_SMART_HOME_ENABLED_DEFAULT,
                 },
             .field_offset = offsetof(BusyAppConfig, is_smart_home_enabled),
             .type = SettingProviderSettingTypeBool,
@@ -231,7 +231,7 @@ static const SettingProviderSetting busy_timer_settings_v1_app_config[] = {
             .name = "is_show_work_only_enabled",
             .interface =
                 &(const SettingProviderBoolInterface){
-                    .default_value = BUSY_BAR_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+                    .default_value = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
                 },
             .field_offset = offsetof(BusyAppConfig, is_show_work_only_enabled),
             .type = SettingProviderSettingTypeBool,

@@ -2,8 +2,10 @@
 
 #include <stdbool.h>
 
-#define BUSY_BAR_IS_SMART_HOME_ENABLED_DEFAULT     (true)
-#define BUSY_BAR_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT (false)
+#define BUSY_APP_THEME_NAME_DEFAULT                "busy"
+#define BUSY_APP_THEME_NAME_CUSTOM_DEFAULT         "keep_out"
+#define BUSY_APP_IS_SMART_HOME_ENABLED_DEFAULT     (true)
+#define BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT (false)
 
 /**
  * @brief Maximum length of a theme name.

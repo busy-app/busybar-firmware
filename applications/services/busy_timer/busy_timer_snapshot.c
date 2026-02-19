@@ -234,7 +234,12 @@ static bool
 
         item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS);
         if(!busy_timer_common_deserialize_app_config(item, &snapshot->app_config)) {
-            // TODO: Nothing for now, but will be an error in the future
+            // TODO: Remove the default value and make it an error in the future
+            snapshot->app_config = (const BusyAppConfig){
+                .theme_name = BUSY_APP_THEME_NAME_DEFAULT,
+                .is_smart_home_enabled = BUSY_APP_IS_SMART_HOME_ENABLED_DEFAULT,
+                .is_show_work_only_enabled = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+            };
         }
 
         success = true;
