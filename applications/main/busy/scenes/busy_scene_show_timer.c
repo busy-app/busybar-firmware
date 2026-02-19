@@ -11,10 +11,10 @@ static void busy_scene_show_timer_on_enter(void* context) {
            instance->scene_manager, BusyAppSceneIdTimer)) {
         with_gui(instance->gui, {
             widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
-            widget_set_visible(timer_card_get_base(instance->timer_card), true);
+            widget_set_visible(mirror_card_get_base(instance->timer_card), true);
 
-            timer_card_show_header(instance->timer_card, false);
-            timer_card_show_time(instance->timer_card, false);
+            mirror_card_set_show_header(instance->timer_card, false);
+            mirror_card_set_show_footer(instance->timer_card, false);
         });
 
         scene_manager_replace_current_scene(instance->scene_manager, BusyAppSceneIdTimer);

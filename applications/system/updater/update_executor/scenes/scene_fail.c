@@ -1,10 +1,11 @@
 #include "../update_executor_i.h"
-#include "../../storage_macros.h"
 #include "scenes.h"
 
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/image.h>
 #include <gui/modules/label.h>
+
+#include <assets_images.h>
 
 #define BACK_EXTRAS_LABEL_COLOR 0x777777
 
@@ -41,7 +42,7 @@ static void fail_scene_on_enter(void* context) {
         widget_set_height_content(flex_layout_get_base(back_status_line_flex));
 
         Image* back_status_image = image_alloc(flex_layout_get_base(back_status_line_flex));
-        image_set_source(back_status_image, UPDATER_IMG_PATH("fail_back_12x12.bin"));
+        image_set_source(back_status_image, (void*)&I_fail_back_12x12);
         widget_set_size_content(image_get_base(back_status_image));
 
         Label* back_status_label = label_alloc(flex_layout_get_base(back_status_line_flex));
@@ -66,7 +67,7 @@ static void fail_scene_on_enter(void* context) {
         widget_set_align(flex_layout_get_base(data->front_flex), AlignLeftMid);
 
         Image* front_status_image = image_alloc(flex_layout_get_base(data->front_flex));
-        image_set_source(front_status_image, UPDATER_IMG_PATH("fail_front_8x8.bin"));
+        image_set_source(front_status_image, (void*)&I_fail_front_8x8);
         widget_set_size_content(image_get_base(front_status_image));
 
         Label* front_status_label = label_alloc(flex_layout_get_base(data->front_flex));
