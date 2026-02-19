@@ -41,7 +41,7 @@ typedef struct {
 } BusyTimerApiMessageGetSnapshot;
 
 typedef struct {
-    const BusyTimerSnapshot* snapshot;
+    BusyTimerSnapshot snapshot;
 } BusyTimerApiMessageSetSnapshot;
 
 typedef struct {
@@ -55,7 +55,7 @@ typedef struct {
 
 typedef struct {
     BusyTimerProfileId profile_id;
-    const BusyTimerProfile* profile;
+    BusyTimerProfile profile;
 } BusyTimerApiMessageSetProfile;
 
 typedef struct {
@@ -69,7 +69,7 @@ typedef struct {
 
 typedef struct {
     BusyTimerProfileId profile_id;
-    const BusyTimerPreset* preset;
+    BusyTimerPreset preset;
 } BusyTimerApiMessageSetPreset;
 
 typedef union {

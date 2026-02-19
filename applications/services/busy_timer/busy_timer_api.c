@@ -1,10 +1,18 @@
 #include "busy_timer_i.h"
 
-static void busy_timer_send_message(const BusyTimer* instance, BusyTimerApiMessage* message) {
+static void
+    busy_timer_api_blocking_request(const BusyTimer* instance, BusyTimerApiMessage* message) {
     message->lock = api_lock_alloc_locked();
     furi_check(
         furi_message_queue_put(instance->api_queue, message, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(message->lock);
+}
+
+static void
+    busy_timer_api_asynchronous_request(const BusyTimer* instance, BusyTimerApiMessage* message) {
+    message->lock = NULL;
+    furi_check(
+        furi_message_queue_put(instance->api_queue, message, FuriWaitForever) == FuriStatusOk);
 }
 
 void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) {
@@ -19,7 +27,7 @@ void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) 
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_blocking_request(instance, &message);
 }
 
 void busy_timer_start(BusyTimer* instance) {
@@ -29,7 +37,7 @@ void busy_timer_start(BusyTimer* instance) {
         .type = BusyTimerApiMessageTypeStart,
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_stop(BusyTimer* instance) {
@@ -39,7 +47,7 @@ void busy_timer_stop(BusyTimer* instance) {
         .type = BusyTimerApiMessageTypeStop,
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_toggle(BusyTimer* instance) {
@@ -49,7 +57,7 @@ void busy_timer_toggle(BusyTimer* instance) {
         .type = BusyTimerApiMessageTypeToggle,
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_skip(BusyTimer* instance) {
@@ -59,7 +67,7 @@ void busy_timer_skip(BusyTimer* instance) {
         .type = BusyTimerApiMessageTypeSkip,
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_add_time(BusyTimer* instance, int32_t time_minutes) {
@@ -73,7 +81,7 @@ void busy_timer_add_time(BusyTimer* instance, int32_t time_minutes) {
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
@@ -84,11 +92,11 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
         .type = BusyTimerApiMessageTypeGetSnapshot,
         .data.set_snapshot =
             {
-                .snapshot = snapshot,
+                .snapshot = *snapshot,
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_blocking_request(instance, &message);
 }
 
 void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
@@ -99,11 +107,11 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
         .type = BusyTimerApiMessageTypeSetSnapshot,
         .data.set_snapshot =
             {
-                .snapshot = snapshot,
+                .snapshot = *snapshot,
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_get_profile(
@@ -123,7 +131,7 @@ void busy_timer_get_profile(
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_blocking_request(instance, &message);
 }
 
 void busy_timer_set_profile(
@@ -139,11 +147,11 @@ void busy_timer_set_profile(
         .data.set_profile =
             {
                 .profile_id = profile_id,
-                .profile = profile,
+                .profile = *profile,
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
@@ -158,7 +166,7 @@ void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id)
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }
 
 void busy_timer_get_preset(
@@ -178,7 +186,7 @@ void busy_timer_get_preset(
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_blocking_request(instance, &message);
 }
 
 void busy_timer_set_preset(
@@ -194,9 +202,9 @@ void busy_timer_set_preset(
         .data.set_preset =
             {
                 .profile_id = profile_id,
-                .preset = preset,
+                .preset = *preset,
             },
     };
 
-    busy_timer_send_message(instance, &message);
+    busy_timer_api_asynchronous_request(instance, &message);
 }

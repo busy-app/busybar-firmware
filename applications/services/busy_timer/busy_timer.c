@@ -9,6 +9,8 @@
 #define TIME_MAX_LEN (14)
 #endif
 
+#define API_QUEUE_SIZE (4)
+
 #define POLL_TIMER_PERIOD_MS    (S_TO_MS(1) / 30)
 #define DEBOUNCE_TIMER_DELAY_MS (250)
 
@@ -632,7 +634,10 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
         furi_assert(message.type < BusyTimerApiMessageTypeMax);
 
         busy_timer_api_message_handlers[message.type](instance, &message.data);
-        api_lock_unlock(message.lock);
+
+        if(message.lock) {
+            api_lock_unlock(message.lock);
+        }
     }
 }
 
@@ -831,13 +836,15 @@ static void busy_timer_get_run_info_api_message_handler(
 static void busy_timer_get_snapshot_api_message_handler(
     BusyTimer* instance,
     BusyTimerApiMessageData* data) {
-    busy_timer_make_snapshot(instance, data->get_snapshot.snapshot);
+    const BusyTimerApiMessageGetSnapshot* get_snapshot = &data->get_snapshot;
+    busy_timer_make_snapshot(instance, get_snapshot->snapshot);
 }
 
 static void busy_timer_set_snapshot_api_message_handler(
     BusyTimer* instance,
     BusyTimerApiMessageData* data) {
-    busy_timer_apply_snapshot(instance, data->set_snapshot.snapshot);
+    const BusyTimerApiMessageSetSnapshot* set_snapshot = &data->set_snapshot;
+    busy_timer_apply_snapshot(instance, &set_snapshot->snapshot);
 }
 
 static void
@@ -855,7 +862,7 @@ static void
     busy_timer_set_profile_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     const BusyTimerApiMessageSetProfile* set_profile = &data->set_profile;
 
-    const BusyTimerProfile* profile = set_profile->profile;
+    const BusyTimerProfile* profile = &set_profile->profile;
     const BusyTimerProfileId profile_id = set_profile->profile_id;
 
     const BusyTimerSetProfileResult result =
@@ -910,7 +917,7 @@ static void
     const BusyTimerProfileId profile_id = set_preset->profile_id;
     furi_assert(profile_id < BusyTimerProfileIdMax);
 
-    const BusyTimerPreset* preset = set_preset->preset;
+    const BusyTimerPreset* preset = &set_preset->preset;
 
     BusyTimerSettings* settings = &instance->settings[profile_id];
     settings->is_demo_mode_enabled = preset->is_demo_mode_enabled;
@@ -946,7 +953,7 @@ static BusyTimer* busy_timer_alloc(void) {
         busy_timer_profile_timer_callback,
         FuriEventLoopTimerTypeOnce,
         instance);
-    instance->api_queue = furi_message_queue_alloc(1, sizeof(BusyTimerApiMessage));
+    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(BusyTimerApiMessage));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
