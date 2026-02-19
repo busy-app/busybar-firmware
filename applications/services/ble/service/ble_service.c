@@ -322,7 +322,7 @@ BleIntercomServiceData* ble_service_create_intercom_service_data_pack(
 
     BleIntercomServiceData* config = malloc(total_config_size);
     config->char_count = chars_count;
-    uint8_t offset = 0;
+    size_t offset = 0;
     for(size_t i = 0; i < chars_count_max; i++) {
         BleCharacteristicObject* ch_obj = instance->chars[i];
 
