@@ -41,11 +41,9 @@ export const usePasswordModalStore = defineStore('passwordModal', () => {
 
   async function setPassword () {
     const deviceStore = useDeviceStore();
-    const httpApiAccess = ref(await deviceStore.getHttpAPIAccess());
     loading.value = true;
     await deviceStore.setHttpAPIAccess('key', passwordModel.value.new);
-    deviceStore.httpAPIAccess = await deviceStore.fetchHttpAPIAccess();
-    httpApiAccess.value = deviceStore.httpAPIAccess;
+    await deviceStore.fetchHttpAPIAccess();
     loading.value = false;
     showSetPasswordModal.value = false;
     showUpdatePasswordModal.value = false;
@@ -53,11 +51,9 @@ export const usePasswordModalStore = defineStore('passwordModal', () => {
 
   async function removePassword () {
     const deviceStore = useDeviceStore();
-    const httpApiAccess = ref(await deviceStore.getHttpAPIAccess());
     loading.value = true;
     await deviceStore.setHttpAPIAccess('enabled');
-    deviceStore.httpAPIAccess = await deviceStore.fetchHttpAPIAccess();
-    httpApiAccess.value = deviceStore.httpAPIAccess;
+    await deviceStore.fetchHttpAPIAccess();
     loading.value = false;
     showRemovePasswordModal.value = false;
   }

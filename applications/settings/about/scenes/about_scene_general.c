@@ -19,6 +19,7 @@ typedef struct {
 static void about_scene_general_fill_name(FuriString* info) {
     DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
     device_name_get(device_name, info);
+    furi_string_replace_all_str(info, "#", "##"); // Escape all # chracters
     furi_record_close(RECORD_DEVICE_NAME);
 }
 

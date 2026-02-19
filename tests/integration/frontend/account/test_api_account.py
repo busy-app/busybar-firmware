@@ -89,7 +89,7 @@ class TestAccountProfileAPI:
             with allure.step(f"Restore original profile: {original.state}"):
                 account_api.set_profile(original.state, original.custom_url)
 
-    @allure.id("3487")
+    @allure.id("3835")
     @allure.title("POST /api/account/profile (custom)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -112,7 +112,7 @@ class TestAccountProfileAPI:
             with allure.step(f"Restore original profile: {original.state}"):
                 account_api.set_profile(original.state, original.custom_url)
 
-    @allure.id("3486")
+    @allure.id("3836")
     @allure.title("POST /api/account/profile (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend

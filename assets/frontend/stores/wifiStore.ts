@@ -10,7 +10,7 @@ export const useWifiStore = defineStore('wifi', () => {
   const wifi = ref<WifiState | undefined>(undefined);
 
   async function fetchWifiState (): Promise<WifiState | undefined> {
-    const state = await deviceStore.busyBar.statusWifi()
+    const state = await deviceStore.busyBar.WifiStatusGet()
       .then(response => {
         wifi.value = response;
         return response;
@@ -23,16 +23,9 @@ export const useWifiStore = defineStore('wifi', () => {
     return state;
   }
 
-  async function getWifiState (): Promise<WifiState | undefined> {
-    if (wifi.value === undefined) {
-      wifi.value = await fetchWifiState();
-    }
-    return wifi.value;
-  }
-
   async function listWifiNetworks () {
     deviceStore.clearRefreshInterval();
-    return await deviceStore.busyBar.networksWifi()
+    return await deviceStore.busyBar.WifiNetworksGet({ timeout: 45000 })
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
@@ -61,7 +54,7 @@ export const useWifiStore = defineStore('wifi', () => {
 
   async function connectToWifiNetwork (params: WifiConnectParams) {
     deviceStore.clearRefreshInterval();
-    return await deviceStore.busyBar.connectWifi(params)
+    return await deviceStore.busyBar.WifiConnect({ ...params, timeout: 45000 })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t connect to WiFi network', false, 0);
         return false;
@@ -73,7 +66,7 @@ export const useWifiStore = defineStore('wifi', () => {
 
   async function disconnectFromWifiNetwork () {
     deviceStore.clearRefreshInterval();
-    return await deviceStore.busyBar.disconnectWifi()
+    return await deviceStore.busyBar.WifiDisconnect()
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network', false, 0);
         return false;
@@ -86,7 +79,6 @@ export const useWifiStore = defineStore('wifi', () => {
   return {
     wifi,
     fetchWifiState,
-    getWifiState,
     listWifiNetworks,
     connectToWifiNetwork,
     disconnectFromWifiNetwork

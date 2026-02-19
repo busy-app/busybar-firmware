@@ -1,25 +1,28 @@
 <template>
-  <UButton
-    class="px-0"
-    @click="copyToClipboard"
+  <UTooltip
+    :delay-duration="0"
+    :text="copyState === 'idle' ? 'Copy to clipboard' : copyState === 'copied' ? 'Copied!' : undefined"
   >
-    {{ props.text }}
-    <UTooltip
-      :delay-duration="0"
-      :text="copyState === 'idle' ? 'Copy to clipboard' : copyState === 'copied' ? 'Copied!' : undefined"
+    <UButton
+      v-bind="$attrs"
+      class="justify-between"
+      @click="copyToClipboard"
     >
-      <UIcon
-        :name="currentIcon"
-        class="size-4"
-        :class="iconClassName"
-      />
-    </UTooltip>
-  </UButton>
+        <template v-if="!$slots.default">{{ props.text }}</template>
+        <slot />
+
+        <UIcon
+          :name="currentIcon"
+          :class="iconClassName"
+        />
+    </UButton>
+  </UTooltip>
 </template>
 
 <script setup lang="ts">
 const props = defineProps<{
   text: string;
+  iconClass?: string;
 }>();
 
 const copyState = ref<'idle' | 'copying' | 'copied' | 'error'>('idle');
@@ -40,11 +43,11 @@ const currentIcon = computed(() => {
 const iconClassName = computed(() => {
   switch (copyState.value) {
     case 'copied':
-      return 'text-green-500';
+      return `${props.iconClass ?? ''} text-green-500`;
     case 'error':
-      return 'text-red-500';
+      return `${props.iconClass ?? ''} text-red-500`;
     default:
-      return '';
+      return props.iconClass ?? '';
   }
 });
 
@@ -85,7 +88,7 @@ async function copyToClipboard () {
     });
     setTimeout(() => {
       copyState.value = 'idle';
-    }, 1500);
+    }, 2000);
   }
 }
 </script>
