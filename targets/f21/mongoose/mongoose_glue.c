@@ -174,8 +174,10 @@ static size_t fs_seek(void* fd, size_t offset) {
 static bool fs_rename(const char* from, const char* to) {
     FURI_LOG_D(TAG, "fs_rename: %s -> %s", from, to);
     (void)from, (void)to;
-    FURI_LOG_W(TAG, "TODO: %s", __func__);
-    return false;
+    Storage* fs_api = furi_record_open(RECORD_STORAGE);
+    FS_Error error = storage_common_rename(fs_api, from, to);
+    furi_record_close(RECORD_STORAGE);
+    return (error == FSE_OK);
 }
 
 static bool fs_remove(const char* path) {

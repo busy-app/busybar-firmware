@@ -29,7 +29,7 @@ class TestBleAPI:
 
         assert response.status_code == 200
 
-    @allure.id("3564")
+    @allure.id("3597")
     @allure.title("#3564 BLE. Preserve status over reboot")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -58,7 +58,7 @@ class TestBleAPI:
 class TestBleStatusAPI:
     """Test cases for BLE Status API endpoints"""
 
-    @allure.id("2688")
+    @allure.id("3870")
     @allure.title("GET /api/ble/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -78,7 +78,7 @@ class TestBleStatusAPI:
         if response.state in ["enabled", "connected"]:
             assert response.address is not None
 
-    @allure.id("2689")
+    @allure.id("3871")
     @allure.title("DELETE /api/ble/pairing")
     @pytest.mark.api
     @pytest.mark.frontend

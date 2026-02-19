@@ -5,8 +5,7 @@ import allure
 import pytest
 import requests
 
-from clients.api import AssetsAPI
-
+from clients.api import AssetsAPI, SettingsAPI
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 
@@ -117,11 +116,14 @@ class TestAssetsAPI:
     @allure.title("POST /api/audio/play")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_audio_play(self, assets_api: AssetsAPI):
+    def test_api_audio_play(self, assets_api: AssetsAPI, settings_api: SettingsAPI):
         """Test POST /api/audio/play endpoint"""
         test_app_id = "test_audio_play"
         test_audio_file = "ping.snd"
         audio_path = ASSETS_DIR / test_audio_file
+        # Set volume to a low level for testing to avoid loud audio during test runs
+        settings_api.set_volume(1)
+
 
         assert audio_path.exists(), f"Test audio file not found: {audio_path}"
 
