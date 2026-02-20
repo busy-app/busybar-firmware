@@ -184,12 +184,6 @@ static BusyApp* busy_alloc(const char* arg) {
         instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
-        busy_load_app_config(instance);
-        busy_apply_app_config(instance);
-
-        busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-        busy_set_matter(instance, false);
-
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
     }
 

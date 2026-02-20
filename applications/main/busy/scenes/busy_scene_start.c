@@ -41,11 +41,6 @@ static void busy_scene_start_handle_start(BusyApp* instance) {
 
     busy_prepare_transition(instance, BusyTransitionTypeSelect);
 
-    // TODO: Better way of loading the appropriate default settings in all cases
-    busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
-    busy_load_app_config(instance);
-    busy_apply_app_config(instance);
-
     BusyTimerRunInfo timer_info;
     busy_timer_get_run_info(instance->busy_timer, &timer_info);
 
@@ -61,6 +56,17 @@ static void busy_scene_start_handle_setup(BusyApp* instance) {
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
 }
 
+static void busy_scene_start_apply_initial_params(BusyApp* instance) {
+    busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
+
+    busy_load_app_config(instance);
+    busy_apply_app_config(instance);
+
+    busy_set_front_display_blanking(instance, false);
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    busy_set_matter(instance, false);
+}
+
 static void busy_scene_start_on_enter(void* context) {
     furi_assert(context);
 
@@ -68,7 +74,7 @@ static void busy_scene_start_on_enter(void* context) {
     BusySceneStart* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdStart);
 
-    busy_set_front_display_blanking(instance, false);
+    busy_scene_start_apply_initial_params(instance);
 
     with_gui(instance->gui, {
         nav_bar_reset_location(instance->nav_bar);
