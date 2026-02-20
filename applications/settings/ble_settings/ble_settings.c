@@ -63,6 +63,7 @@ static BleSettings* ble_settings_alloc() {
         scene_manager_alloc(ble_settings_scenes, COUNT_OF(ble_settings_scenes), instance);
 
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+    instance->brightness_control = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
     instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
@@ -127,6 +128,7 @@ static void ble_settings_free(BleSettings* instance) {
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_STATUS_LIGHTS);
+    furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

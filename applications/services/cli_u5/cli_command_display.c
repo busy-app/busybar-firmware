@@ -13,6 +13,7 @@
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <light_sensor/light_sensor.h>
+#include <brightness_control/brightness_control.h>
 
 #define TAG "CliDisplay"
 
@@ -25,9 +26,9 @@ typedef enum {
 } CliDisplayAction;
 
 static void cli_command_display_print_usage(void) {
-    printf("Incorect arguments\r\nUsage: display <front|back> <action> <action_args>\r\n\n");
+    printf("Incorect arguments\r\nUsage: display <action> <action_args>\r\n\n");
     printf("Actions:\r\n");
-    printf("\tshow <path_file> - show image from path_file\r\n");
+    printf("\tshow <front|back> <path_file> - show image from path_file\r\n");
     printf("\tbrightness <0-100|auto> - set display brightness value or 'auto'\r\n");
 }
 
@@ -66,7 +67,7 @@ static void cli_action_show(PipeSide* pipe, FuriString* args, GuiDisplayId id) {
     furi_record_close(RECORD_GUI);
 }
 
-static void cli_action_brightness(PipeSide* pipe, FuriString* args, GuiDisplayId id) {
+static void cli_action_brightness(PipeSide* pipe, FuriString* args) {
     UNUSED(pipe);
     do {
         int brightness = 0;
@@ -79,19 +80,13 @@ static void cli_action_brightness(PipeSide* pipe, FuriString* args, GuiDisplayId
 
         if(brightness > CLI_DISPLAY_BRIGHTNESS_MAX) brightness = CLI_DISPLAY_BRIGHTNESS_MAX;
 
-        if(id == GuiDisplayIdBack) {
-            BackDisplaySrv* srv = furi_record_open(RECORD_BACK_DISPLAY);
-            uint8_t back_display_brightness = auto_brightness ? BACK_DISPLAY_BRIGHTNESS_AUTO :
-                                                                brightness;
-            back_display_set_brightness(srv, back_display_brightness);
-            furi_record_close(RECORD_BACK_DISPLAY);
-        } else if(id == GuiDisplayIdFront) {
-            FrontDisplaySrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
-            uint8_t matrix_brightness = auto_brightness ? FRONT_DISPLAY_BRIGHTNESS_AUTO :
-                                                          brightness;
-            front_display_set_brightness(srv, matrix_brightness);
-            furi_record_close(RECORD_FRONT_DISPLAY);
+        BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
+        if(auto_brightness) {
+            brightness_control_set_auto_brightness(srv);
+        } else {
+            brightness_control_set_manual_brightness(srv, brightness_conv_int_to_user(brightness));
         }
+        furi_record_close(RECORD_BRIGHTNESS_CONTROL);
     } while(false);
 }
 
@@ -133,12 +128,6 @@ void cli_command_display(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
 
     do {
-        GuiDisplayId display_id = GuiDisplayIdMax;
-        if(!cli_command_display_get_id(args, &display_id)) {
-            cli_command_display_print_usage();
-            break;
-        }
-
         CliDisplayAction action = CliDisplayActionNum;
         if(!cli_cpmmand_display_get_action(args, &action)) {
             cli_command_display_print_usage();
@@ -146,9 +135,14 @@ void cli_command_display(PipeSide* pipe, FuriString* args, void* context) {
         }
 
         if(action == CliDisplayActionShow) {
+            GuiDisplayId display_id = GuiDisplayIdMax;
+            if(!cli_command_display_get_id(args, &display_id)) {
+                cli_command_display_print_usage();
+                break;
+            }
             cli_action_show(pipe, args, display_id);
         } else if(action == CliDisplayActionBrightness) {
-            cli_action_brightness(pipe, args, display_id);
+            cli_action_brightness(pipe, args);
         }
 
     } while(false);

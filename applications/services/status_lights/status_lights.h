@@ -17,9 +17,9 @@ extern "C" {
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
 
-#define STATUS_LIGHTS_BRIGHTNESS_MIN  (0)
-#define STATUS_LIGHTS_BRIGHTNESS_MAX  (100)
-#define STATUS_LIGHTS_BRIGHTNESS_AUTO (255)
+typedef struct StatusLightsBrightness {
+    uint8_t val;
+} StatusLightsBrightness;
 
 /**
  * @brief Run a preset animation with the specified color.
@@ -37,7 +37,7 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
  * @param brightness Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX),
  * or STATUS_LIGHTS_BRIGHTNESS_AUTO to enable automatic brightness
  */
-void status_lights_set_brightness(StatusLights* instance, uint8_t brightness);
+void status_lights_set_brightness(StatusLights* instance, StatusLightsBrightness brightness);
 
 /**
  * @brief Get the status lights brightness
@@ -46,7 +46,7 @@ void status_lights_set_brightness(StatusLights* instance, uint8_t brightness);
  * @return Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX),
  * or STATUS_LIGHTS_BRIGHTNESS_AUTO if automatic brightness is enabled
  */
-uint8_t status_lights_get_brightness(StatusLights* instance);
+StatusLightsBrightness status_lights_get_brightness(StatusLights* instance);
 
 #ifdef __cplusplus
 }
