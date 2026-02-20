@@ -37,9 +37,22 @@ jobs:
     timeout-minutes: 30
     steps:
 
-      - name: "Wait for Build workflow"
-        id: wait
-        run: sleep 120 # Wait for 2 minutes to allow the build workflow to complete and upload artifacts
+      - name: "Wait for normal firmware to be available"
+        run: |
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.normal_update_url }}"
+          MAX_ATTEMPTS=30
+          INTERVAL=30
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L --head "$URL" || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Normal firmware available after $((i * INTERVAL))s"
+              exit 0
+            fi
+            echo "Attempt $i/$MAX_ATTEMPTS: HTTP $HTTP_CODE, waiting ${INTERVAL}s..."
+            sleep $INTERVAL
+          done
+          echo "ERROR: Firmware not available after $((MAX_ATTEMPTS * INTERVAL))s"
+          exit 1
 
       - name: 'Checkout code at the build commit'
         uses: actions/checkout@v4
