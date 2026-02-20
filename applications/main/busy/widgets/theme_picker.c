@@ -109,7 +109,9 @@ static bool theme_picker_input_callback(Widget* widget, const InputEvent* event)
     bool consumed = false;
 
     if(event->type == InputTypeShort) {
-        if(event->key == InputKeyUp) {
+        const InputKey key = event->key;
+
+        if(key == InputKeyUp) {
             if(instance->current_idx == theme_picker_model_get_item_count(instance->model) - 1) {
                 instance->current_idx = 0;
             } else {
@@ -119,7 +121,7 @@ static bool theme_picker_input_callback(Widget* widget, const InputEvent* event)
             theme_picker_update_image(instance);
             consumed = true;
 
-        } else if(event->key == InputKeyDown) {
+        } else if(key == InputKeyDown) {
             if(instance->current_idx == 0) {
                 instance->current_idx = theme_picker_model_get_item_count(instance->model) - 1;
             } else {
@@ -129,7 +131,7 @@ static bool theme_picker_input_callback(Widget* widget, const InputEvent* event)
             theme_picker_update_image(instance);
             consumed = true;
 
-        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
+        } else if(key == InputKeyOk || key == InputKeyStart || key == InputKeyBack) {
             if(instance->callback) {
                 instance->callback(instance->current_idx, instance->callback_context);
             }

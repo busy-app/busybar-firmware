@@ -139,9 +139,6 @@ static bool busy_scene_setup_theme_on_event(const SceneManagerEvent* event, void
         }
 
         consumed = true;
-
-    } else if(event->type == SceneManagerEventTypeBack) {
-        busy_pop_location(instance);
     }
 
     return consumed;
