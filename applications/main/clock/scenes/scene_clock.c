@@ -33,9 +33,9 @@ static void this_scene_on_enter(void* context) {
         scene->front_clock = clock_view_alloc(instance->front_scene_window);
         widget_set_align(clock_view_get_base(scene->front_clock), AlignCenter);
 
-        clock_view_set_date_time(scene->front_clock, &local_time.dt);
         clock_view_set_show_date(scene->front_clock, settings.show_date);
         clock_view_set_show_seconds(scene->front_clock, settings.show_seconds);
+        clock_view_set_date_time(scene->front_clock, &local_time.dt);
 
         /* back layout setup */
         scene->back_card = mirror_card_alloc(instance->back_scene_window);
