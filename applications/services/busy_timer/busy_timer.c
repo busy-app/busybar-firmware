@@ -573,15 +573,6 @@ static BusyTimerSetProfileResult busy_timer_set_profile_internal(
             break;
         }
 
-        const time_t max_future_timestamp_ms = furi_hal_rtc_get_timestamp_ms() + M_TO_MS(10);
-
-        if(profile_timestamp_ms > max_future_timestamp_ms) {
-            FURI_LOG_W(
-                TAG, "Ignoring profile from future with timestamp %llu", profile_timestamp_ms);
-            result = BusyTimerSetProfileResultRejectedFuture;
-            break;
-        }
-
         BusyTimerProfile* current_profile = &instance->settings[profile_id].profile;
         const time_t current_timestamp_ms = current_profile->timestamp_ms;
 
@@ -597,6 +588,14 @@ static BusyTimerSetProfileResult busy_timer_set_profile_internal(
         }
 
         *current_profile = *profile;
+
+        const time_t now_timestamp_ms = furi_hal_rtc_get_timestamp_ms();
+
+        if(profile_timestamp_ms > now_timestamp_ms) {
+            FURI_LOG_W(TAG, "Profile from the future with timestamp %llu", profile_timestamp_ms);
+            current_profile->timestamp_ms = now_timestamp_ms;
+        }
+
         result = BusyTimerSetProfileResultAccepted;
 
     } while(false);

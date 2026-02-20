@@ -94,7 +94,6 @@ typedef struct {
 typedef enum {
     BusyTimerSetProfileResultRejectedInvalid,
     BusyTimerSetProfileResultRejectedOutdated,
-    BusyTimerSetProfileResultRejectedFuture,
     BusyTimerSetProfileResultRejectedOwn,
     BusyTimerSetProfileResultAccepted,
     BusyTimerSetProfileResultMax,
