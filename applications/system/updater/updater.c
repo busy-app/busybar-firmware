@@ -58,8 +58,10 @@ struct Updater {
     FuriString* install_sha256;
     bool install_is_autoupdate;
 
+#ifdef SRV_SNTP
     FuriEventLoopTimer* autoupdate_timer;
     FuriSemaphore* autoupdate_semaphore;
+#endif // SRV_SNTP
 };
 
 typedef struct {
@@ -215,6 +217,7 @@ static void check_timer_callback(void* context) {
 static void autoupdate_timer_callback(void* context) {
     furi_assert(context);
 
+#ifdef SRV_SNTP
     Updater* instance = context;
 
     FURI_LOG_D(TAG, "Autoupdate: starting check...");
@@ -276,6 +279,7 @@ static void autoupdate_timer_callback(void* context) {
         FURI_LOG_W(
             TAG, "Autoupdate: failed to start (%s)", updater_get_status_string(session_status));
     }
+#endif // SRV_SNTP
 }
 
 static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* message) {
@@ -330,12 +334,14 @@ static UpdaterStatus do_set_settings(Updater* instance, UpdaterMessage* message)
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
 
+#ifdef SRV_SNTP
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
             instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
     } else {
         furi_event_loop_timer_stop(instance->autoupdate_timer);
     }
+#endif // SRV_SNTP
 
     return UpdaterStatusOk;
 }
@@ -679,12 +685,14 @@ static int32_t install_from_url_thread_callback(void* context) {
             break;
         }
 
+#ifdef SRV_SNTP
         if(instance->install_is_autoupdate) {
             if(furi_semaphore_get_space(instance->autoupdate_semaphore) > 0) {
                 FURI_LOG_I(TAG, "Autoupdate: installation aborted, paused by user");
                 break;
             }
         }
+#endif // SRV_SNTP
 
         updater_installation_apply(instance, true);
     } while(false);
@@ -941,13 +949,17 @@ UpdaterStatus updater_check_for_update(Updater* instance) {
 void updater_pause_autoupdates(Updater* instance) {
     furi_check(instance);
 
+#ifdef SRV_SNTP
     furi_check(furi_semaphore_acquire(instance->autoupdate_semaphore, 0) == FuriStatusOk);
+#endif // SRV_SNTP
 }
 
 void updater_resume_autoupdates(Updater* instance) {
     furi_check(instance);
 
+#ifdef SRV_SNTP
     furi_semaphore_release(instance->autoupdate_semaphore);
+#endif // SRV_SNTP
 }
 
 const char* updater_get_active_version(void) {
@@ -1021,10 +1033,11 @@ static Updater* updater_alloc(void) {
 #ifdef SRV_SNTP
     instance->autoupdate_timer = furi_event_loop_timer_alloc(
         instance->event_loop, autoupdate_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+
+    instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);
 #else // SRV_SNTP
     UNUSED(autoupdate_timer_callback);
 #endif // SRV_SNTP
-    instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -1055,10 +1068,12 @@ static Updater* updater_alloc(void) {
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
 
+#ifdef SRV_SNTP
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
             instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
     }
+#endif // SRV_SNTP
 
     furi_record_create(RECORD_UPDATER, instance);
 

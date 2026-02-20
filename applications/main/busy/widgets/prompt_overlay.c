@@ -1,7 +1,6 @@
 #include "prompt_overlay.h"
 
 #include <gui/modules/anim_player_i.h>
-#include <gui/storage_macros.h>
 
 #define MY_CLASS (&prompt_overlay_lvgl_class)
 
@@ -78,7 +77,7 @@ static void prompt_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
     widget_set_input_feed_callback((Widget*)obj, prompt_overlay_input_callback);
 
     AnimPlayer* anim_player = (AnimPlayer*)obj;
-    anim_player_set_source(anim_player, GUI_ANIM_PATH("wave_invitation_72x16.anim"));
+    anim_player_set_source(anim_player, SHARED_ANIM_PATH("wave_invitation_72x16.anim"));
     furi_assert(
         anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION));
 

@@ -35,16 +35,13 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_obj_set_style_pad_column(obj, 3, LV_PART_MAIN);
 
     instance->header_image = lv_image_create(obj);
-    lv_obj_set_style_img_recolor_opa(instance->header_image, 255, 0);
-    lv_obj_set_style_img_recolor(
-        instance->header_image, lv_color_hex(COLOR_ACTIVE_HEX), LV_PART_MAIN);
     lv_obj_add_flag(instance->header_image, LV_OBJ_FLAG_HIDDEN);
 
     instance->header_label = lv_label_create(obj);
     lv_obj_set_style_text_font(instance->header_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
     lv_obj_set_style_text_align(instance->header_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_color(
-        instance->header_label, lv_color_hex(COLOR_ACTIVE_HEX), LV_PART_MAIN);
+        instance->header_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
 
     instance->breadcrumbs_label = lv_label_create(obj);
     lv_obj_set_style_text_font(
@@ -81,15 +78,11 @@ static void nav_bar_update_breadcrumbs(NavBar* instance) {
         lv_label_set_text(instance->breadcrumbs_label, furi_string_get_cstr(text));
         lv_obj_remove_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_style_img_recolor(
-            instance->header_image, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
 
         furi_string_free(text);
     } else {
         lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_style_img_recolor(
-            instance->header_image, lv_color_hex(COLOR_ACTIVE_HEX), LV_PART_MAIN);
     }
 }
 

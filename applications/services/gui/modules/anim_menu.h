@@ -6,8 +6,9 @@
  */
 #pragma once
 
+#include "anim_player.h"
+
 #include <furi.h>
-#include <gui/modules/anim_player.h>
 
 #ifdef __cplusplus
 extern "C" {
