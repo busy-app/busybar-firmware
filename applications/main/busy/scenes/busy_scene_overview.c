@@ -28,7 +28,11 @@ static bool busy_scene_overview_input_callback(const InputEvent* event, void* co
     BusyCustomEvent custom_event;
 
     if(event->type == InputTypeShort) {
-        if(event->key == InputKeyStart) {
+        if(event->key == InputKeyOk) {
+            custom_event = BusyCustomEventOkShortPressed;
+            consumed = true;
+
+        } else if(event->key == InputKeyStart) {
             custom_event = BusyCustomEventStartShortPressed;
             consumed = true;
         }
@@ -101,7 +105,8 @@ static bool busy_scene_overview_on_event(const SceneManagerEvent* event, void* c
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == BusyCustomEventStartShortPressed) {
+        if(event->event == BusyCustomEventOkShortPressed ||
+           event->event == BusyCustomEventStartShortPressed) {
             busy_prepare_transition(instance, BusyTransitionTypeSkip);
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
 
