@@ -44,8 +44,6 @@ typedef struct {
 
 typedef struct BrightnessControl BrightnessControl;
 
-// uint8_t brightness_control_get_brightness(BrightnessControl* instance);
-
 void brightness_control_set_auto_brightness(BrightnessControl* instance);
 
 void brightness_control_set_manual_brightness(

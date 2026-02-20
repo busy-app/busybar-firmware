@@ -73,8 +73,6 @@ static const MessageHandler message_handlers[];
 
 static void light_sensor_event(const void* message, void* context);
 
-// uint8_t brightness_control_get_brightness(BrightnessControl* inst);
-
 void brightness_control_set_auto_brightness(BrightnessControl* inst) {
     Message msg = {
         .type = MessageTypeSetAutoBrightness,
