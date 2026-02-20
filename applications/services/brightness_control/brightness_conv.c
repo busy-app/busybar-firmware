@@ -9,11 +9,13 @@ static const uint8_t brightness_conv_front_table[] = {25, 25, 28, 31, 37, 43, 52
 // TODO limit max: 60% is new 100%
 static const uint8_t brightness_conv_back_table[] = {7, 9, 12, 16, 21, 29, 38, 51, 67, 89, 118};
 
-static const uint8_t brightness_conv_status_table[] = {5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 90};
-
 static_assert(COUNT_OF(brightness_conv_front_table) == INTERNAL_BRIGHTNESS_MAX + 1);
 static_assert(COUNT_OF(brightness_conv_back_table) == INTERNAL_BRIGHTNESS_MAX + 1);
+
+#if defined(SRV_STATUS_LIGHTS)
+static const uint8_t brightness_conv_status_table[] = {5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 90};
 static_assert(COUNT_OF(brightness_conv_status_table) == INTERNAL_BRIGHTNESS_MAX + 1);
+#endif
 
 static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MIN == 0);
 static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MAX == INTERNAL_BRIGHTNESS_MAX);
@@ -48,6 +50,8 @@ BackDisplayContrast brightness_conv_internal_to_back(InternalBrightness v) {
     return (BackDisplayContrast){brightness_conv_back_table[v.val]};
 }
 
+#if defined(SRV_STATUS_LIGHTS)
 StatusLightsBrightness brightness_conv_internal_to_status(InternalBrightness v) {
     return (StatusLightsBrightness){brightness_conv_status_table[v.val]};
 }
+#endif

@@ -3,6 +3,9 @@
 #include <light_sensor/light_sensor.h>
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
+#if defined(SRV_STATUS_LIGHTS)
+#include <status_lights/status_lights.h>
+#endif
 #include <storage/storage.h>
 #include <json_helper.h>
 
@@ -24,7 +27,9 @@ struct BrightnessControl {
 
     FrontDisplaySrv* front_display;
     BackDisplaySrv* back_display;
+#if defined(SRV_STATUS_LIGHTS)
     StatusLights* status_lights;
+#endif
 
     FuriPubSub* light_sensor_events;
 
@@ -136,7 +141,9 @@ static BrightnessControl* brightness_control_alloc(void) {
 
     inst->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     inst->back_display = furi_record_open(RECORD_BACK_DISPLAY);
+#if defined(SRV_STATUS_LIGHTS)
     inst->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+#endif
 
 #if defined(SRV_LIGHT_SENSOR)
     inst->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
@@ -270,10 +277,12 @@ static void apply_brightness(const BrightnessControl* inst) {
         inst->back_display,
         brightness_conv_internal_to_back(
             apply_override(inst, br, BrightnessControlModuleBackDisplay)));
+#if defined(SRV_STATUS_LIGHTS)
     status_lights_set_brightness(
         inst->status_lights,
         brightness_conv_internal_to_status(
             apply_override(inst, br, BrightnessControlModuleStatusLights)));
+#endif
 }
 
 static void update_state(const BrightnessControl* inst) {
