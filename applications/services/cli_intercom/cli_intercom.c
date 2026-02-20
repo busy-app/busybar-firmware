@@ -43,7 +43,7 @@ typedef enum {
     CliIntercomInternalEventTypeApiSpawn,
     CliIntercomInternalEventTypeApiJoin,
     // Internal events:
-    CliIntercomInternalEventTypeIntercomDeath,
+    CliIntercomInternalEventTypeIntercomDesync,
 } CliIntercomInternalEventType;
 
 typedef struct {
@@ -285,7 +285,7 @@ static void cli_intercom_msg_handler(FuriEventLoopObject* object, void* context)
     case CliIntercomInternalEventTypeApiJoin:
         cli_intercom_do_api_join(cli_intercom, &event);
         break;
-    case CliIntercomInternalEventTypeIntercomDeath:
+    case CliIntercomInternalEventTypeIntercomDesync:
         cli_intercom_handle_disconnect(cli_intercom);
         break;
     }
@@ -317,7 +317,7 @@ static void cli_intercom_intercom_event_callback(const void* message, void* cont
 
     if(event->type == IntercomEventTypeSyncStateChanged && !event->is_in_sync) {
         FURI_LOG_W(TAG, "Intercom lost sync, signaling death");
-        cli_intercom_send_simple_event(cli_intercom, CliIntercomInternalEventTypeIntercomDeath);
+        cli_intercom_send_simple_event(cli_intercom, CliIntercomInternalEventTypeIntercomDesync);
     }
 }
 
