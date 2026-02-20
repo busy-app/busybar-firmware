@@ -72,6 +72,7 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_text_color(
         instance->icon_label_date, lv_color_make(0x32, 0x32, 0x32), LV_PART_MAIN);
     lv_obj_set_style_translate_y(instance->icon_label_date, -1, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(instance->icon_label_date, 1, LV_PART_MAIN);
     lv_obj_set_align(instance->icon_label_date, LV_ALIGN_BOTTOM_MID);
 
     instance->text_container = lv_obj_create(instance->primary_container);
