@@ -47,6 +47,8 @@ static void busy_scene_finish_prompt_overlay_callback(void* context) {
 static void busy_scene_finish_handle_back(BusyApp* instance) {
     busy_prepare_transition(instance, BusyTransitionTypeDefault);
 
+    busy_timer_finalize(instance->busy_timer);
+
     if(!busy_return_to_start_scene(instance)) {
         busy_exit(instance);
     }
@@ -116,10 +118,8 @@ static bool busy_scene_finish_on_event(const SceneManagerEvent* event, void* con
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == BusyCustomEventStartShortPressed) {
-            busy_scene_finish_handle_back(instance);
-
-        } else if(event->event == BusyCustomEventReturnToStart) {
+        if(event->event == BusyCustomEventStartShortPressed ||
+           event->event == BusyCustomEventReturnToStart) {
             busy_scene_finish_handle_back(instance);
         }
 

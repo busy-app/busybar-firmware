@@ -853,6 +853,18 @@ static void
     if(busy_timer_is_running(instance)) {
         busy_timer_next_state(instance, true);
         busy_timer_schedule_publish_snapshot(instance);
+
+        FURI_LOG_I(TAG, "Skipped");
+    }
+}
+
+static void
+    busy_timer_finalize_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
+    UNUSED(data);
+
+    if(instance->state == BusyTimerStateIdle) {
+        busy_timer_schedule_publish_snapshot(instance);
+        FURI_LOG_I(TAG, "Finalized");
     }
 }
 
@@ -1042,6 +1054,7 @@ static const BusyTimerApiMessageHandler
         [BusyTimerApiMessageTypeAddTime] = busy_timer_add_time_api_message_handler,
         [BusyTimerApiMessageTypeToggle] = busy_timer_toggle_api_message_handler,
         [BusyTimerApiMessageTypeSkip] = busy_timer_skip_api_message_handler,
+        [BusyTimerApiMessageTypeFinalize] = busy_timer_finalize_api_message_handler,
         [BusyTimerApiMessageTypeGetRunInfo] = busy_timer_get_run_info_api_message_handler,
         [BusyTimerApiMessageTypeGetSnapshot] = busy_timer_get_snapshot_api_message_handler,
         [BusyTimerApiMessageTypeSetSnapshot] = busy_timer_set_snapshot_api_message_handler,

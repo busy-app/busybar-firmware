@@ -20,6 +20,7 @@ typedef enum {
     BusyTimerApiMessageTypeAddTime,
     BusyTimerApiMessageTypeToggle,
     BusyTimerApiMessageTypeSkip,
+    BusyTimerApiMessageTypeFinalize,
     BusyTimerApiMessageTypeGetRunInfo,
     BusyTimerApiMessageTypeGetSnapshot,
     BusyTimerApiMessageTypeSetSnapshot,

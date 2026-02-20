@@ -92,6 +92,8 @@ void busy_timer_toggle(BusyTimer* instance);
 
 void busy_timer_skip(BusyTimer* instance);
 
+void busy_timer_finalize(BusyTimer* instance);
+
 void busy_timer_add_time(BusyTimer* instance, int32_t time_minutes);
 
 void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* run_info);

@@ -70,6 +70,16 @@ void busy_timer_skip(BusyTimer* instance) {
     busy_timer_api_asynchronous_request(instance, &message);
 }
 
+void busy_timer_finalize(BusyTimer* instance) {
+    furi_assert(instance);
+
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeFinalize,
+    };
+
+    busy_timer_api_asynchronous_request(instance, &message);
+}
+
 void busy_timer_add_time(BusyTimer* instance, int32_t time_minutes) {
     furi_assert(instance);
 
