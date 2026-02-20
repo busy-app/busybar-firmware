@@ -398,10 +398,18 @@ static void busy_timer_update(BusyTimer* instance, time_t timestamp_ms) {
                 }
 
             } else {
-                // Force every but last transition
-                busy_timer_next_state(instance, !is_last);
-                // Break out of the loop if already finished
+                busy_timer_next_state(instance, false);
+
                 if(instance->state == BusyTimerStateIdle) {
+                    break;
+                }
+
+                const BusyTimerConfig* config = &instance->timer_config;
+
+                const bool is_interval_timer = config->mode == BusyTimerModeInterval;
+                const bool is_autostart_enabled = config->interval.is_autostart_enabled;
+
+                if(is_interval_timer && !is_autostart_enabled) {
                     break;
                 }
             }
