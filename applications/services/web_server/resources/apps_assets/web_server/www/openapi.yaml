@@ -1196,7 +1196,7 @@ paths:
     get:
       tags:
         - BLE
-      description: Returns current BLE status
+      description: Returns current BLE status111
       responses:
         "200":
           description: OK
@@ -1355,7 +1355,7 @@ paths:
             type: string
             pattern: "^[0-9]{4}(-?)[0-9]{2}\\1[0-9]{2}T[0-9]{2}(:?)[0-9]{2}\\2[0-9]{2}(Z|([+-][0-9]{2}(:?[0-9]{2})?))$"
           description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45+02:00 for local time or 2025-10-02T14:30:45Z for UTC)
-          example: "2025-10-02T14:30:45+0100"
+          example: "2023-10-02T14:30:45+0100"
       responses:
         "200":
           description: Timestamp set successfully
