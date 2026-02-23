@@ -41,7 +41,7 @@ jobs:
               run: |
                   set -o pipefail
 
-                  SUMMARY="$(oasdiff summary "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  SUMMARY="$(oasdiff summary --exclude-elements description,summary "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
                   echo 'summary<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$SUMMARY" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
@@ -57,11 +57,7 @@ jobs:
                   echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
 
-                  echo 'breaking<<EOF' >> "$GITHUB_OUTPUT"
-                  cat breaking.md >> "$GITHUB_OUTPUT"
-                  echo 'EOF' >> "$GITHUB_OUTPUT"
-
-                  REPORT_MD="$(oasdiff diff --format markdown "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
                   echo 'report_md<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$REPORT_MD" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
@@ -134,30 +130,33 @@ jobs:
               uses: thollander/actions-comment-pull-request@v3
               with:
                   message: |
-                      **OpenAPI diff:** ${{ steps.oasdiff.outputs.exit_code == '0' && '✅ No breaking changes' || '❌ Breaking changes detected' }}
-                      **Version:** ${{ steps.version_check.outputs.base_version }} → ${{ steps.version_check.outputs.current_version }} ${{ steps.version_check.outputs.version_ok == 'true' && '✅' || format('❌ {0}', steps.version_check.outputs.version_msg) }}
+                      ## OpenAPI Diff Report
 
-                      **Summary**
-                      ```
-                      ${{ steps.oasdiff.outputs.summary }}
-                      ```
+                      | Check | Status |
+                      |-------|--------|
+                      | Breaking changes | ${{ steps.oasdiff.outputs.exit_code == '0' && '✅ None' || '❌ Detected' }} |
+                      | Version | ${{ steps.version_check.outputs.base_version }} → ${{ steps.version_check.outputs.current_version }} ${{ steps.version_check.outputs.version_ok == 'true' && '✅' || format('❌ {0}', steps.version_check.outputs.version_msg) }} |
+
+                      > **Note:** Description and summary text changes are excluded from this report.
 
                       <details>
-                      <summary>Changelog</summary>
+                      <summary>📋 Changelog (items with ⚠️ are breaking)</summary>
 
                       ${{ steps.oasdiff.outputs.changelog }}
 
                       </details>
 
                       <details>
-                      <summary>Breaking changes report</summary>
+                      <summary>📊 Summary</summary>
 
-                      ${{ steps.oasdiff.outputs.breaking }}
+                      ```yaml
+                      ${{ steps.oasdiff.outputs.summary }}
+                      ```
 
                       </details>
 
                       <details>
-                      <summary>Full diff</summary>
+                      <summary>📝 Full diff</summary>
 
                       ${{ steps.oasdiff.outputs.report_md }}
 
@@ -174,15 +173,9 @@ jobs:
                     exit 0
                   fi
 
-                  if [ "${{ github.event_name }}" = "pull_request" ]; then
-                    EVENT_TITLE="${{ github.event.pull_request.title }}"
-                    EVENT_URL="${{ github.event.pull_request.html_url }}"
-                    EVENT_AUTHOR="${{ github.event.pull_request.user.login }}"
-                  else
-                    EVENT_TITLE="Merged to ${{ github.ref_name }}: $(git log -1 --pretty=%s)"
-                    EVENT_URL="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
-                    EVENT_AUTHOR="${{ github.actor }}"
-                  fi
+                  EVENT_TITLE="Merged to ${{ github.ref_name }}: $(git log -1 --pretty=%s)"
+                  EVENT_URL="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+                  EVENT_AUTHOR="${{ github.actor }}"
                   STATUS=${{ steps.oasdiff.outputs.exit_code == '0' && '"✅ No breaking changes"' || '"❌ Breaking changes detected"' }}
 
                   SUMMARY=$(echo '${{ steps.oasdiff.outputs.summary }}' | head -30)
