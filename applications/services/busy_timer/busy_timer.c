@@ -910,14 +910,14 @@ static void
 
     const BusyTimerSetProfileResult result =
         busy_timer_set_profile_internal(instance, profile, profile_id);
-    furi_check(result < BusyTimerSetProfileResultMax);
 
     if(result == BusyTimerSetProfileResultAccepted) {
         busy_timer_settings_save(&instance->settings[profile_id], profile_id);
         busy_timer_notify_profile_changed(instance, profile_id);
     }
-    // Do not re-publish own profiles to avoid infinite loops
-    if(result != BusyTimerSetProfileResultRejectedOwn) {
+    // Do not re-publish upon receiving invalid or own (same) profile
+    if(result != BusyTimerSetProfileResultRejectedInvalid &&
+       result != BusyTimerSetProfileResultRejectedOwn) {
         busy_timer_schedule_publish_profile(instance, profile_id);
     }
 }
