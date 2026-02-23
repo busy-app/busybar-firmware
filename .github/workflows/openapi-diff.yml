@@ -59,6 +59,11 @@ jobs:
                   cat breaking.md >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
 
+                  REPORT_MD="$(oasdiff diff --format markdown "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  echo 'report_md<<EOF' >> "$GITHUB_OUTPUT"
+                  echo "$REPORT_MD" >> "$GITHUB_OUTPUT"
+                  echo 'EOF' >> "$GITHUB_OUTPUT"
+
             - name: Comment on PR
               if: ${{ github.event_name == 'pull_request' }}
               uses: thollander/actions-comment-pull-request@v3
@@ -82,6 +87,13 @@ jobs:
                       <summary>Breaking changes report</summary>
 
                       ${{ steps.oasdiff.outputs.breaking }}
+
+                      </details>
+
+                      <details>
+                      <summary>Full diff</summary>
+
+                      ${{ steps.oasdiff.outputs.report_md }}
 
                       </details>
                   comment-tag: oasdiff-report
@@ -108,12 +120,14 @@ jobs:
                   STATUS=${{ steps.oasdiff.outputs.exit_code == '0' && '"✅ No breaking changes"' || '"❌ Breaking changes detected"' }}
 
                   SUMMARY=$(echo '${{ steps.oasdiff.outputs.summary }}' | head -30)
+                  REPORT=$(echo '${{ steps.oasdiff.outputs.report_md }}' | head -80)
 
                   curl -fsSL -X POST "$SLACK_WEBHOOK_URL" \
                     -H 'Content-Type: application/json' \
                     -d "$(jq -n \
                       --arg status "$STATUS" \
                       --arg summary "$SUMMARY" \
+                      --arg report "$REPORT" \
                       --arg pr_title "$EVENT_TITLE" \
                       --arg pr_url "$EVENT_URL" \
                       --arg pr_author "$EVENT_AUTHOR" \
@@ -130,6 +144,10 @@ jobs:
                           {
                             type: "section",
                             text: { type: "mrkdwn", text: ("```" + $summary + "```") }
+                          },
+                          {
+                            type: "section",
+                            text: { type: "mrkdwn", text: ("```" + $report + "```") }
                           }
                         ]
                       }'
