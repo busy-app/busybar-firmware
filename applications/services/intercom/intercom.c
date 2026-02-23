@@ -236,11 +236,17 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
         intercom_error_handler(IntercomErrorFraming, instance);
     }
 
+#ifdef SRV_INTERCOM_WATCHDOG
+    if(furi_hal_serial_rx_available(instance->serial)) {
+        // Some more data is already in FIFO, re-arm watchdog
+        intercom_watchdog_arm(instance->watchdog);
+    } else {
+        // No data in FIFO yet, disarm watchdog for now
+        intercom_watchdog_disarm(instance->watchdog);
+    }
+#endif
     furi_hal_serial_dma_rx_start(
         instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
-#ifdef SRV_INTERCOM_WATCHDOG
-    intercom_watchdog_disarm(instance->watchdog);
-#endif
 }
 
 static FURI_ALWAYS_INLINE void intercom_process_tx_frame_event(Intercom* instance) {
