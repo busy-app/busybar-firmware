@@ -3,7 +3,7 @@
 #include <furi/core/core_defines.h>
 
 #define SHOW_DATE_DEFAULT    true
-#define SHOW_SECONDS_DEFAULT true
+#define SHOW_SECONDS_DEFAULT false
 
 const SettingProviderSetting clock_v1_settings[] = {
     [ClockSettingV1IdxShowDate] =

@@ -42,6 +42,8 @@ typedef enum {
     // Public API events:
     CliIntercomInternalEventTypeApiSpawn,
     CliIntercomInternalEventTypeApiJoin,
+    // Internal events:
+    CliIntercomInternalEventTypeIntercomDesync,
 } CliIntercomInternalEventType;
 
 typedef struct {
@@ -161,12 +163,9 @@ static void cli_intercom_attach_own_pipe(CliIntercom* cli_intercom, PipeSide* pi
 
 static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
     furi_check(cli_intercom->own_pipe);
+
     pipe_detach_from_event_loop(cli_intercom->own_pipe);
-#ifdef CLI_INTERCOM_SLAVE
-    // on f20, own_pipe is provided and managed externally
-    // on f64, own_pipe is created by us
     pipe_free(cli_intercom->own_pipe);
-#endif
     cli_intercom->own_pipe = NULL;
 }
 
@@ -286,6 +285,9 @@ static void cli_intercom_msg_handler(FuriEventLoopObject* object, void* context)
     case CliIntercomInternalEventTypeApiJoin:
         cli_intercom_do_api_join(cli_intercom, &event);
         break;
+    case CliIntercomInternalEventTypeIntercomDesync:
+        cli_intercom_handle_disconnect(cli_intercom);
+        break;
     }
 }
 
@@ -309,17 +311,30 @@ static void cli_intercom_pipe_broken(PipeSide* pipe, void* context) {
     cli_intercom_handle_disconnect(cli_intercom);
 }
 
+static void cli_intercom_intercom_event_callback(const void* message, void* context) {
+    CliIntercom* cli_intercom = context;
+    const IntercomEvent* event = message;
+
+    if(event->type == IntercomEventTypeSyncStateChanged && !event->is_in_sync) {
+        FURI_LOG_W(TAG, "Intercom lost sync, signaling death");
+        cli_intercom_send_simple_event(cli_intercom, CliIntercomInternalEventTypeIntercomDesync);
+    }
+}
+
 static void cli_intercom_intercom_rx_handler(FuriEventLoopObject* object, void* context) {
     FuriStreamBuffer* rx_stream = object;
     CliIntercom* cli_intercom = context;
 
-    size_t bytes_in_buffer = furi_stream_buffer_bytes_available(rx_stream);
-    size_t spaces_in_pipe = pipe_spaces_available(cli_intercom->own_pipe);
-    size_t to_transfer = MIN(MIN(bytes_in_buffer, spaces_in_pipe), DATA_BATCH_SIZE);
+    if(cli_intercom->own_pipe) {
+        size_t bytes_in_buffer = furi_stream_buffer_bytes_available(rx_stream);
+        size_t spaces_in_pipe = pipe_spaces_available(cli_intercom->own_pipe);
+        size_t to_transfer = MIN(MIN(bytes_in_buffer, spaces_in_pipe), DATA_BATCH_SIZE);
 
-    uint8_t buffer[to_transfer];
-    furi_check(furi_stream_buffer_receive(rx_stream, buffer, sizeof(buffer), 0) == sizeof(buffer));
-    pipe_send(cli_intercom->own_pipe, buffer, sizeof(buffer));
+        uint8_t buffer[to_transfer];
+        furi_check(
+            furi_stream_buffer_receive(rx_stream, buffer, sizeof(buffer), 0) == sizeof(buffer));
+        pipe_send(cli_intercom->own_pipe, buffer, sizeof(buffer));
+    }
 }
 
 // ============
@@ -334,6 +349,8 @@ static CliIntercom* cli_intercom_alloc(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     cli_intercom->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdCli, cli_intercom_intercom_rx_callback, cli_intercom);
+    furi_pubsub_subscribe(
+        intercom_get_pubsub(intercom), cli_intercom_intercom_event_callback, cli_intercom);
 
     cli_intercom->event_loop = furi_event_loop_alloc();
 
