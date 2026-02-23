@@ -159,6 +159,7 @@ static bool api_assets_delete_callback(
     bool success = false;
     do {
         if(msg->query.len == 0) {
+            MG_REPLY_BAD_REQUEST(conn);
             break;
         }
 
@@ -166,22 +167,29 @@ static bool api_assets_delete_callback(
 
         int var_len = mg_http_get_var(&msg->query, "app_id", app_id_str, sizeof(app_id_str));
         if(var_len <= 0) {
+            MG_REPLY_BAD_REQUEST(conn);
             break;
         }
         furi_string_printf(dir_path, "%s/%.*s", ASSETS_UPLOAD_DIR, var_len, app_id_str);
 
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
+        if(!storage_dir_exists(fs_api, furi_string_get_cstr(dir_path))) {
+            MG_REPLY_INTERNAL_ERROR(conn, "Assets missing");
+            furi_record_close(RECORD_STORAGE);
+            break;
+        }
+
         success = storage_simply_remove_recursive(fs_api, furi_string_get_cstr(dir_path));
         furi_record_close(RECORD_STORAGE);
+
+        if(success) {
+            MG_REPLY_OK(conn);
+        } else {
+            MG_REPLY_INTERNAL_ERROR(conn, "File delete failed");
+        }
     } while(0);
 
     furi_string_free(dir_path);
-
-    if(success) {
-        MG_REPLY_OK(conn);
-    } else {
-        MG_REPLY_BAD_REQUEST(conn);
-    }
 
     return true;
 }

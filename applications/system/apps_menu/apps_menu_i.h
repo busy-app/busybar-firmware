@@ -10,6 +10,8 @@
 #include <gui/scene_manager.h>
 
 typedef struct {
+    const char* launching_subapp;
+
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;

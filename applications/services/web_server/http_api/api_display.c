@@ -7,6 +7,7 @@
 #include <canvas/canvas.h>
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
+#include <furi_hal_rtc.h>
 
 #define TAG "HttpDisplay"
 
@@ -14,7 +15,11 @@
 #define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
 #define DISPLAY_BUILTIN_ANIM_FORMATTER   EXT_PATH("apps_assets/%s/animations/%s.anim")
 
-#define DISPLAY_BRIGHTNESS_MAX (100)
+#define DISPLAY_BRIGHTNESS_MAX  (100)
+#define DISPLAY_BRIGHTNESS_AUTO (FRONT_DISPLAY_BRIGHTNESS_AUTO)
+
+#define BUILTIN_APP_PRIORITY     5
+#define DEFAULT_ELEMENT_PRIORITY 6
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
@@ -241,7 +246,6 @@ static bool api_display_draw_parse_element(
     bool success = false;
     char* element_type = NULL;
     CanvasElement* canvas_element = CanvasElementsArray_push_new(elements_array);
-    canvas_element->display = GuiDisplayIdFront;
 
     do {
         canvas_element->id = mg_json_get_str(element, "$.id");
@@ -282,6 +286,7 @@ static bool api_display_draw_parse_element(
             canvas_element->align = AlignDefault;
         }
 
+        canvas_element->display = GuiDisplayIdFront;
         char* display_id_str = mg_json_get_str(element, "$.display");
         if(display_id_str) {
             if(strcmp(display_id_str, "front") == 0) {
@@ -318,6 +323,49 @@ static bool api_display_draw_parse_element(
     return success;
 }
 
+static bool api_display_draw_check_elements_visible(CanvasElementsArray_t elements) {
+    size_t elemets_visible = 0;
+    CanvasElementsArray_it_t it;
+    for(CanvasElementsArray_it(it, elements); !CanvasElementsArray_end_p(it);
+        CanvasElementsArray_next(it)) {
+        const CanvasElement* item = CanvasElementsArray_cref(it);
+        if(item->display_until > 0) {
+            time_t current_stamp = furi_hal_rtc_get_timestamp();
+            if(MAX(0, item->display_until - current_stamp) == 0) {
+                continue;
+            }
+        }
+        elemets_visible++;
+    }
+    return elemets_visible > 0;
+}
+
+static int api_display_active_priority(void) {
+    int priority = INT_MIN;
+
+    Loader* loader = furi_record_open(RECORD_LOADER);
+    FuriString* app_name = furi_string_alloc();
+
+    do {
+        bool canvas_running = furi_record_exists(RECORD_CANVAS);
+        if(canvas_running) {
+            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+            priority = MAX(priority, canvas_active_priority(canvas));
+            furi_record_close(RECORD_CANVAS);
+        }
+
+        if(!loader_get_application_name(loader, app_name)) break;
+        if(furi_string_search_str(app_name, "Settings") != FURI_STRING_FAILURE) break;
+        if(furi_string_cmp_str(app_name, "Software Power Off") == 0) break;
+        priority = MAX(priority, BUILTIN_APP_PRIORITY);
+    } while(0);
+
+    furi_string_free(app_name);
+    furi_record_close(RECORD_LOADER);
+
+    return priority;
+}
+
 static bool api_display_draw_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -332,9 +380,18 @@ static bool api_display_draw_callback(
 
     char* app_id = NULL;
     bool success = false;
+    double json_num = 0;
+    int priority = DEFAULT_ELEMENT_PRIORITY;
+
     do {
         app_id = mg_json_get_str(msg->body, "$.app_id");
         if(!app_id) break;
+
+        if(mg_json_get_num(msg->body, "$.priority", &json_num)) {
+            priority = json_num;
+        }
+        if(priority <= 0) break;
+        if(priority > 10) break;
 
         struct mg_str elements_obj = mg_json_get_tok(msg->body, "$.elements");
         if(!elements_obj.buf) break;
@@ -343,52 +400,47 @@ static bool api_display_draw_callback(
 
         size_t offset = 0;
         struct mg_str element;
+        success = true;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
             success = api_display_draw_parse_element(elements_array, app_id, element);
             if(!success) break;
         }
+
+        if(!success) {
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        int active_priority = api_display_active_priority();
+        if(priority < active_priority) {
+            MG_REPLY_ERROR(conn, 409, "Not drawn due to low priority");
+            break;
+        }
+
+        bool canvas_running = furi_record_exists(RECORD_CANVAS);
+        if(!canvas_running) {
+            if(!api_display_draw_check_elements_visible(elements_array)) {
+                MG_REPLY_ERROR(conn, 400, "Nothing to display");
+                break;
+            }
+            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+            if(desktop_replace_current_app(desktop, "canvas", "")) {
+                canvas_running = true;
+            } else {
+                MG_REPLY_ERROR(conn, 503, "Failed to load canvas app");
+            }
+            furi_record_close(RECORD_DESKTOP);
+            if(!canvas_running) break;
+        }
+
+        CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+        if(!canvas_show_elements(canvas, app_id, priority, elements_array)) {
+            MG_REPLY_BAD_REQUEST(conn);
+        }
+        furi_record_close(RECORD_CANVAS);
+
+        MG_REPLY_OK(conn);
     } while(0);
-
-    if(success) {
-        bool app_running = furi_record_exists(RECORD_CANVAS);
-        if(!app_running) {
-            Loader* loader = furi_record_open(RECORD_LOADER);
-            FuriString* app_name = furi_string_alloc();
-            bool loader_busy = false;
-            if(loader_get_application_name(loader, app_name)) {
-                if(furi_string_cmp(app_name, "Busy") == 0) {
-                    loader_busy = true;
-                }
-            }
-            furi_string_free(app_name);
-            furi_record_close(RECORD_LOADER);
-
-            if(loader_busy) {
-                MG_REPLY_ERROR(conn, 423, "Loader is busy with another app");
-            } else {
-                Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-                if(!desktop_replace_current_app(desktop, "canvas", "")) {
-                    MG_REPLY_ERROR(conn, 503, "Failed to load app");
-                } else {
-                    app_running = true;
-                }
-                furi_record_close(RECORD_DESKTOP);
-            }
-        }
-
-        if(app_running) {
-            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-            if(canvas_show_elements(canvas, app_id, elements_array)) {
-                MG_REPLY_OK(conn);
-            } else {
-                MG_REPLY_BAD_REQUEST(conn);
-            }
-            furi_record_close(RECORD_CANVAS);
-        }
-
-    } else {
-        MG_REPLY_BAD_REQUEST(conn);
-    }
 
     CanvasElementsArray_clear(elements_array);
     if(app_id) free(app_id);
@@ -440,23 +492,20 @@ static bool api_display_get_brightness_callback(
     FuriString* json_str = furi_string_alloc();
 
     FrontDisplaySrv* front_srv = furi_record_open(RECORD_FRONT_DISPLAY);
-    uint8_t brightness_value = front_display_get_brightness_setting(front_srv);
+    uint8_t brightness_front = front_display_get_brightness_setting(front_srv);
     furi_record_close(RECORD_FRONT_DISPLAY);
 
-    if(brightness_value == FRONT_DISPLAY_BRIGHTNESS_AUTO) {
-        furi_string_cat_printf(json_str, "\"front\":\"auto\",");
-    } else {
-        furi_string_cat_printf(json_str, "\"front\":\"%u\",", brightness_value);
-    }
-
     BackDisplaySrv* back_srv = furi_record_open(RECORD_BACK_DISPLAY);
-    brightness_value = back_display_get_brightness(back_srv);
+    uint8_t brightness_back = back_display_get_brightness(back_srv);
+    if(brightness_front != brightness_back) {
+        back_display_set_brightness(back_srv, brightness_front);
+    }
     furi_record_close(RECORD_BACK_DISPLAY);
 
-    if(brightness_value == FRONT_DISPLAY_BRIGHTNESS_AUTO) {
-        furi_string_cat_printf(json_str, "\"back\":\"auto\"");
+    if(brightness_front == DISPLAY_BRIGHTNESS_AUTO) {
+        furi_string_cat_printf(json_str, "\"value\":\"auto\"");
     } else {
-        furi_string_cat_printf(json_str, "\"back\":\"%u\"", brightness_value);
+        furi_string_cat_printf(json_str, "\"value\":\"%u\"", brightness_front);
     }
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
@@ -478,44 +527,29 @@ static bool api_display_set_brightness_callback(
     do {
         if(msg->query.len == 0) break;
 
-        char front_value_str[5];
-        char back_value_str[5];
+        char value_str[5];
+        int brightness_value = 0;
 
-        int front_value = 0;
-        int back_value = 0;
+        int value_len = mg_http_get_var(&msg->query, "value", value_str, sizeof(value_str));
 
-        int front_len =
-            mg_http_get_var(&msg->query, "front", front_value_str, sizeof(front_value_str));
-        int back_len =
-            mg_http_get_var(&msg->query, "back", back_value_str, sizeof(back_value_str));
+        if(value_len <= 0) break;
 
-        if((front_len <= 0) && (back_len <= 0)) break;
-
-        if(front_len > 0) {
-            if(strcmp(front_value_str, "auto") == 0) {
-                front_value = FRONT_DISPLAY_BRIGHTNESS_AUTO;
-            } else if(sscanf(front_value_str, "%u", &front_value) == 1) {
-                if(front_value > DISPLAY_BRIGHTNESS_MAX) break;
-            } else {
-                break;
-            }
-            FrontDisplaySrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
-            front_display_set_brightness(srv, front_value);
-            furi_record_close(RECORD_FRONT_DISPLAY);
+        if(strcmp(value_str, "auto") == 0) {
+            brightness_value = DISPLAY_BRIGHTNESS_AUTO;
+        } else if(sscanf(value_str, "%u", &brightness_value) == 1) {
+            if(brightness_value > DISPLAY_BRIGHTNESS_MAX) break;
+        } else {
+            break;
         }
+        FrontDisplaySrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
+        BackDisplaySrv* back_srv = furi_record_open(RECORD_BACK_DISPLAY);
 
-        if(back_len > 0) {
-            if(strcmp(back_value_str, "auto") == 0) {
-                back_value = BACK_DISPLAY_BRIGHTNESS_AUTO;
-            } else if(sscanf(back_value_str, "%u", &back_value) == 1) {
-                if(back_value > DISPLAY_BRIGHTNESS_MAX) break;
-            } else {
-                break;
-            }
-            BackDisplaySrv* srv = furi_record_open(RECORD_BACK_DISPLAY);
-            back_display_set_brightness(srv, back_value);
-            furi_record_close(RECORD_BACK_DISPLAY);
-        }
+        front_display_set_brightness(srv, brightness_value);
+        back_display_set_brightness(back_srv, brightness_value);
+
+        furi_record_close(RECORD_FRONT_DISPLAY);
+        furi_record_close(RECORD_BACK_DISPLAY);
+
         success = true;
     } while(0);
 

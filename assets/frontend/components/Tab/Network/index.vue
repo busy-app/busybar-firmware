@@ -1,0 +1,4 @@
+<template>
+  <TabNetworkCardWifi />
+  <TabNetworkCardHttpApi />
+</template>

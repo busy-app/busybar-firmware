@@ -163,7 +163,7 @@ class Main(App):
         self.info_parser.add_argument(
             "--product-label",
             type=str,
-            default="BUSY",
+            default="BUSY Bar",
             help="Product label (shown in app)",
         )
         self.info_parser.add_argument(

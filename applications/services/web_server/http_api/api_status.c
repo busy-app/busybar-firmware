@@ -1,13 +1,30 @@
 #include "http_api.h"
 #include <power/power_service/power.h>
 #include <version.h>
+#include <furi_hal_version.h>
+#include <furi_hal_rtc.h>
+#include <toolbox/hex.h>
 
 #define TAG "HttpStatus"
 
-bool status_get_system(FuriString* json_str) {
+typedef struct {
+    time_t boot_timestamp;
+} ApiStatusCtx;
+
+bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
     const Version* firmware_version = version_get();
 
     furi_string_cat_printf(json_str, "{");
+
+    FuriString* serial_str = furi_string_alloc();
+    hex_bytes_to_string(furi_hal_version_uid(), furi_hal_version_uid_size(), serial_str);
+    furi_string_cat_printf(
+        json_str, "\"serial_number\":\"%s\",", furi_string_get_cstr(serial_str));
+    furi_string_free(serial_str);
+
+    const uint8_t api_ver[] = API_VERSION;
+    furi_string_cat_printf(
+        json_str, "\"api_semver\":\"%u.%u.%u\",", api_ver[0], api_ver[1], api_ver[2]);
 
     furi_string_cat_printf(json_str, "\"version\":\"%s\",", version_get_version(firmware_version));
     furi_string_cat_printf(
@@ -24,18 +41,23 @@ bool status_get_system(FuriString* json_str) {
     uint32_t uptime = furi_get_tick() / furi_kernel_get_tick_frequency();
     furi_string_cat_printf(
         json_str,
-        "\"uptime\":\"%02lud %02luh %02lum %02lus\"",
+        "\"uptime\":\"%02lud %02luh %02lum %02lus\",",
         uptime / 60 / 60 / 24,
         uptime / 60 / 60,
         uptime / 60 % 60,
         uptime % 60);
+
+    time_t boot_timestamp = context->boot_timestamp;
+    furi_string_cat_printf(json_str, "\"boot_time\":%lld", boot_timestamp);
 
     furi_string_cat_printf(json_str, "}");
 
     return true;
 }
 
-bool status_get_power(FuriString* json_str) {
+bool status_get_power(FuriString* json_str, ApiStatusCtx* context) {
+    UNUSED(context);
+
     Power* power = furi_record_open(RECORD_POWER);
     PowerInfo info;
     power_get_info(power, &info);
@@ -61,30 +83,12 @@ bool status_get_power(FuriString* json_str) {
     return true;
 }
 
-bool status_get_ble(FuriString* json_str) {
-    Power* power = furi_record_open(RECORD_POWER);
-    PowerInfo info;
-    power_get_info(power, &info);
-    furi_record_close(RECORD_POWER);
-
-    furi_string_cat_printf(json_str, "{");
-
-    furi_string_cat_printf(json_str, "\"%s\":\"%s\"", "state", "not implemented");
-    // TODO: BLE is not implemented
-
-    furi_string_cat_printf(json_str, "}");
-
-    return true;
-}
-
 static const struct {
     char* name;
-    bool (*callback)(FuriString* json_str);
+    bool (*callback)(FuriString* json_str, ApiStatusCtx* context);
 } status_handlers[] = {
     {"system", status_get_system},
     {"power", status_get_power},
-    // {"wifi", status_get_wifi}, // Implemented in /api/wifi/status
-    {"ble", status_get_ble},
 };
 
 bool http_api_status_callback(
@@ -92,8 +96,10 @@ bool http_api_status_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
-    UNUSED(ctx);
     UNUSED(msg);
+
+    ApiStatusCtx* context = ctx;
+    furi_assert(context);
 
     if(IS_HTTP_ENDPOINT(path)) {
         FuriString* json_response = furi_string_alloc();
@@ -108,7 +114,7 @@ bool http_api_status_callback(
             furi_string_cat_printf(json_response, "\"%s\":", status_handlers[i].name);
 
             furi_assert(status_handlers[i].callback);
-            success = status_handlers[i].callback(json_response);
+            success = status_handlers[i].callback(json_response, context);
 
             if(!success) break;
         }
@@ -128,7 +134,7 @@ bool http_api_status_callback(
             FuriString* json_response = furi_string_alloc();
 
             furi_assert(status_handlers[i].callback);
-            bool success = status_handlers[i].callback(json_response);
+            bool success = status_handlers[i].callback(json_response, context);
 
             if(success) {
                 MG_REPLY_OK_BODY(conn, "%s\n", furi_string_get_cstr(json_response));
@@ -142,4 +148,15 @@ bool http_api_status_callback(
     }
 
     return false;
+}
+
+void* http_api_status_alloc(void) {
+    ApiStatusCtx* context = malloc(sizeof(ApiStatusCtx));
+    context->boot_timestamp = furi_hal_rtc_get_timestamp();
+    return context;
+}
+
+void http_api_status_free(void* ctx) {
+    furi_assert(ctx);
+    free(ctx);
 }

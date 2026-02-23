@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {4, 1, 0}
+#define API_VERSION {6, 3, 0}
 
 // Root API handlers
 void* http_api_root_alloc(void);
@@ -88,15 +88,8 @@ bool http_api_status_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
-
-// WebSocket test
-void* http_websocket_alloc(void);
-void http_websocket_free(void* ctx);
-bool http_websocket_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx);
+void* http_api_status_alloc(void);
+void http_api_status_free(void* ctx);
 
 // Wifi
 void* http_api_wifi_alloc(void);

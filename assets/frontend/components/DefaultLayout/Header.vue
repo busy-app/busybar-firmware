@@ -3,11 +3,11 @@
     data-id="layout-default-header"
     class="relative h-12 flex justify-between items-center"
   >
-    <div class="flex gap-6">
+    <div class="flex gap-3">
       <UIcon
         data-id="layout-default-header-logo"
         name="i-busy-bar-logo"
-        class="w-[70px] h-[28px]"
+        class="w-[70px] h-[28px] mr-5"
         @click="onLogoClick"
       />
       <div
@@ -24,27 +24,36 @@
         </div>
         <div>{{ power?.battery_charge }}%</div>
       </div>
-      <div class="hidden md:flex items-center gap-2">
+      <CopyButton
+        :text="urlHost"
+        size="md"
+        variant="ghost"
+        color="neutral"
+        class="group hidden md:flex items-center text-base gap-2 px-1 py-0.5 rounded-md"
+        icon-class="opacity-0 transition-opacity group-hover:opacity-100"
+      >
         <div
           data-id="layout-default-header-connection-state"
-          class="flex items-center gap-1"
+          class="flex items-center gap-2"
         >
           <template v-if="deviceStore.isConnected">
             <UIcon
-              :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb' : 'i-bi-wifi-4'"
-              class="w-[18px] h-[22px]"
+              :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb-alt' : 'i-bi-wifi-4'"
+              class="size-5"
             />
             Connected
           </template>
           <template v-else>
             <UIcon
               name="i-bi-alert"
-              class="w-[18px] h-[22px] text-red-500"
+              class="size-5 text-warning"
             />
             Disconnected
           </template>
+
+          <div class="ml-1 opacity-0 transition-opacity group-hover:opacity-100">{{ urlHost }}</div>
         </div>
-      </div>
+      </CopyButton>
     </div>
 
     <div class="absolute left-1/2 -translate-x-1/2">
@@ -53,17 +62,12 @@
         :items="[
           {
             label: 'Rename',
-            icon: 'i-ri-pencil-line',
+            icon: 'i-bi-edit',
             onSelect: () => {
               nameModel = '';
               showRenameModal = true;
             }
           }
-          /* {
-            label: 'Restart',
-            icon: 'i-ri-restart-line',
-            onSelect: () => { showRestartModal = true; }
-          } */
         ]"
         :content="{
           align: 'start',
@@ -104,13 +108,19 @@
           onClick: () => { showRenameModal = false; }
         }"
       >
+        <template #icon>
+          <UIcon
+            name="i-bi-edit"
+            class="size-8 text-muted"
+          />
+        </template>
         <template #body>
           <UInput
             v-model="nameModel"
             name="new-name"
             size="xl"
             variant="soft"
-            :ui="{ base: 'ring-1 ring-glass' }"
+            :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
             :disabled="loading.rename"
             @keyup.enter="updateDeviceName"
           />
@@ -151,7 +161,7 @@
       >
         <UButton
           data-id="layout-default-header-user-menu-trigger"
-          icon="i-busy-user-fill"
+          icon="i-bi-user-fill"
           size="lg"
           square
           color="neutral"
@@ -178,21 +188,21 @@ const tabStore = useTabStore();
 
 const colorMode = useColorMode();
 
-const httpApiAccess = ref();
-
 const passwordSetItems = [
   {
     label: 'Lock down',
-    icon: 'i-ri-lock-fill',
-    onSelect: () => lockDown
+    icon: 'i-bi-lock',
+    onSelect: () => {
+      lockDown();
+    }
   },
   {
-    label: 'Password',
-    icon: 'i-ri-lock-password-line',
+    label: 'Virtual LAN password',
+    icon: 'i-bi-password',
     children: [
       {
         label: 'Change',
-        icon: 'i-ri-pencil-line',
+        icon: 'i-bi-edit',
         onSelect: () => {
           pms.passwordModel.current = '';
           pms.passwordModel.currentWrong = false;
@@ -202,7 +212,7 @@ const passwordSetItems = [
       },
       {
         label: 'Remove',
-        icon: 'i-ri-lock-unlock-line',
+        icon: 'i-bi-unlock',
         onSelect: () => {
           pms.passwordModel.current = '';
           pms.passwordModel.currentWrong = false;
@@ -216,7 +226,7 @@ const passwordSetItems = [
 const passwordUnsetItems = [
   {
     label: 'Set password',
-    icon: 'i-ri-lock-password-line',
+    icon: 'i-bi-password',
     onSelect: () => {
       pms.passwordModel.current = '';
       pms.passwordModel.currentWrong = false;
@@ -230,8 +240,8 @@ const userDropdownItems = computed(() => {
   const baseItems = [
     [
       {
-        label: 'Sign in to BUSY Account',
-        icon: 'i-ri-account-circle-fill',
+        label: 'Log in to BUSY Account',
+        icon: 'i-bi-user',
         slot: 'signin' as const,
         type: 'link',
         href: 'https://cloud.busy.app',
@@ -240,14 +250,14 @@ const userDropdownItems = computed(() => {
     ],
     [
       {
-        label: `${colorMode.value === 'dark' ? 'Light' : 'Dark'} theme`,
-        icon: colorMode.value === 'dark' ? 'i-ri-sun-line' : 'i-ri-moon-line',
+        label: `${colorMode.value === 'dark' ? 'Switch to light' : 'Switch to dark'} theme`,
+        icon: colorMode.value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon',
         onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
       }
     ]
   ];
 
-  if (httpApiAccess.value === undefined) {
+  if (deviceStore.httpAPIAccess === undefined) {
     return [
       [
         {
@@ -261,7 +271,7 @@ const userDropdownItems = computed(() => {
       ],
       ...baseItems
     ];
-  } else if (httpApiAccess.value.mode === 'key') {
+  } else if (deviceStore.httpAPIAccess.mode === 'key') {
     return [passwordSetItems, ...baseItems];
   } else {
     return [passwordUnsetItems, ...baseItems];
@@ -300,7 +310,7 @@ async function restartDevice () {
 async function lockDown () {
   apiStore.apiKey = null;
   deviceStore.busyBar.setApiKey('');
-  await navigateTo('/login');
+  await navigateTo('/login', { external: true });
 }
 
 const power = computed(() => deviceStore.deviceStatus?.power);
@@ -323,15 +333,17 @@ function onLogoClick () {
 }
 
 async function init () {
-  httpApiAccess.value = await deviceStore.getHttpAPIAccess();
+  await deviceStore.fetchHttpAPIAccess();
 
   await deviceStore.detectConnectionType();
   if (deviceStore.connectionType === 'usb') {
     passwordSetItems.splice(0, 1);
   }
 
-  nameModel.value = await deviceStore.getDeviceName();
+  nameModel.value = await deviceStore.fetchDeviceName();
 }
+
+const urlHost = computed(() => window.location.host);
 
 onMounted(async () => {
   await init();

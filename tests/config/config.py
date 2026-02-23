@@ -46,6 +46,11 @@ class Config:
         os.path.join(RUNNER_LOG_DIR, "crash_detected.flag") if RUNNER_LOG_DIR else "/tmp/crash_detected.flag"
     )
 
+    OPENOCD_LOCK_PATH: str = os.getenv(
+        "OPENOCD_LOCK_PATH",
+        os.path.join(BSB_FIRMWARE_PATH, ".openocd.lock") if BSB_FIRMWARE_PATH else "/tmp/.openocd.lock"
+    )
+
     @classmethod
     def validate_paths(cls) -> None:
         """

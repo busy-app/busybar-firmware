@@ -42,6 +42,8 @@ typedef enum {
     // Public API events:
     CliIntercomInternalEventTypeApiSpawn,
     CliIntercomInternalEventTypeApiJoin,
+    // Internal events:
+    CliIntercomInternalEventTypeIntercomDesync,
 } CliIntercomInternalEventType;
 
 typedef struct {
@@ -172,12 +174,9 @@ static void cli_intercom_attach_own_pipe(CliIntercom* cli_intercom, PipeSide* pi
 
 static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
     furi_check(cli_intercom->own_pipe);
+
     pipe_detach_from_event_loop(cli_intercom->own_pipe);
-#ifdef CLI_INTERCOM_SLAVE
-    // on f20, own_pipe is provided and managed externally
-    // on f64, own_pipe is created by us
     pipe_free(cli_intercom->own_pipe);
-#endif
     cli_intercom->own_pipe = NULL;
 }
 
@@ -213,18 +212,29 @@ static void cli_intercom_do_protocol_spawn(CliIntercom* cli_intercom) {
     cli_shell_start(cli_intercom->cli_shell);
 }
 
-static void cli_intercom_do_protocol_disconnect(CliIntercom* cli_intercom) {
-    FURI_LOG_D(TAG, "ProtocolDisconnect");
+static void cli_intercom_handle_disconnect(CliIntercom* cli_intercom) {
+    if(cli_intercom->own_pipe) {
+        cli_intercom_detach_own_pipe(cli_intercom);
+    }
 
-    cli_intercom_detach_own_pipe(cli_intercom);
-    furi_stream_buffer_reset(cli_intercom->intercom_rx_stream);
+    if(cli_intercom->intercom_rx_stream) {
+        furi_stream_buffer_reset(cli_intercom->intercom_rx_stream);
+    }
 
     if(cli_intercom->join_lock) {
         api_lock_unlock(cli_intercom->join_lock);
         cli_intercom->join_lock = NULL;
     }
 
-    cli_intercom_free_shell(cli_intercom);
+    if(cli_intercom->cli_shell) {
+        cli_intercom_free_shell(cli_intercom);
+    }
+}
+
+static void cli_intercom_do_protocol_disconnect(CliIntercom* cli_intercom) {
+    FURI_LOG_D(TAG, "ProtocolDisconnect");
+
+    cli_intercom_handle_disconnect(cli_intercom);
 }
 
 static void cli_intercom_do_api_spawn(CliIntercom* cli_intercom, CliIntercomInternalEvent* event) {
@@ -290,6 +300,9 @@ static void cli_intercom_msg_handler(FuriEventLoopObject* object, void* context)
     case CliIntercomInternalEventTypeApiJoin:
         cli_intercom_do_api_join(cli_intercom, &event);
         break;
+    case CliIntercomInternalEventTypeIntercomDesync:
+        cli_intercom_handle_disconnect(cli_intercom);
+        break;
     }
 }
 
@@ -310,9 +323,18 @@ static void cli_intercom_pipe_broken(PipeSide* pipe, void* context) {
     CliIntercom* cli_intercom = context;
     cli_intercom_send_protocol_status(
         cli_intercom, CliIntercomMessageTypeDisconnect, CLI_INTERCOM_TIMEOUT);
-    cli_intercom_detach_own_pipe(cli_intercom);
-    furi_stream_buffer_reset(cli_intercom->intercom_rx_stream);
-    cli_intercom_free_shell(cli_intercom);
+
+    cli_intercom_handle_disconnect(cli_intercom);
+}
+
+static void cli_intercom_intercom_event_callback(const void* message, void* context) {
+    CliIntercom* cli_intercom = context;
+    const IntercomEvent* event = message;
+
+    if(event->type == IntercomEventTypeSyncStateChanged && !event->is_in_sync) {
+        FURI_LOG_W(TAG, "Intercom lost sync, signaling death");
+        cli_intercom_send_simple_event(cli_intercom, CliIntercomInternalEventTypeIntercomDesync);
+    }
 }
 
 static void cli_intercom_drain_rx_to_pipe(CliIntercom* cli_intercom) {
@@ -353,6 +375,8 @@ static CliIntercom* cli_intercom_alloc(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     cli_intercom->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdCli, cli_intercom_intercom_rx_callback, cli_intercom);
+    furi_pubsub_subscribe(
+        intercom_get_pubsub(intercom), cli_intercom_intercom_event_callback, cli_intercom);
 
     cli_intercom->event_loop = furi_event_loop_alloc();
 

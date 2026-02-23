@@ -1,26 +1,26 @@
 export default defineAppConfig({
   ui: {
     icons: {
-      arrowLeft: 'i-ri-arrow-left-line',
+      arrowLeft: 'i-bi-arrow-back',
       arrowRight: 'i-ri-arrow-right-line',
-      check: 'i-ri-check-line',
+      check: 'i-bi-checkmark-circle-fill',
       chevronDoubleLeft: 'i-ri-arrow-left-double-fill',
       chevronDoubleRight: 'i-ri-arrow-right-double-fill',
-      chevronDown: 'i-ri-arrow-down-s-fill',
+      chevronDown: 'i-bi-chevron-down',
       chevronLeft: 'i-ri-arrow-left-s-fill',
       chevronRight: 'i-ri-arrow-right-s-fill',
       chevronUp: 'i-ri-arrow-up-s-fill',
-      close: 'i-ri-close-line',
-      ellipsis: 'i-ri-more-fill',
-      external: 'i-ri-external-link-line',
-      file: 'i-ri-file-2-line',
-      folder: 'i-ri-folder-2-line',
+      close: 'i-bi-cross',
+      ellipsis: 'i-bi-more',
+      external: 'i-bi-open-in-new',
+      file: 'i-bi-file',
+      folder: 'i-bi-folder',
       folderOpen: 'i-ri-folder-open-line',
       loading: 'i-busy-loader',
       minus: 'i-ri-subtract-fill',
-      plus: 'i-ri-add-fill',
-      search: 'i-ri-search-line',
-      upload: 'i-ri-upload-2-line'
+      plus: 'i-bi-plus',
+      search: 'i-bi-search',
+      upload: 'i-bi-upload'
     },
     colors: {
       primary: 'brand',
@@ -29,15 +29,6 @@ export default defineAppConfig({
     container: {
       base: 'p-0 sm:p-0 lg:p-0'
     },
-    badge: {
-      compoundVariants: [
-        {
-          color: 'neutral',
-          variant: 'soft',
-          class: 'text-neutral-400 dark:text-neutral-500 bg-elevated'
-        }
-      ]
-    },
     button: {
       slots: {
         base: 'rounded-full cursor-pointer'
@@ -45,6 +36,9 @@ export default defineAppConfig({
       variants: {
         size: {
           md: {
+            base: 'px-3 py-2'
+          },
+          lg: {
             base: 'px-3 py-2.5'
           },
           xl: {
@@ -56,14 +50,18 @@ export default defineAppConfig({
         {
           color: 'primary',
           variant: 'solid',
-          class: '!text-white dark:text-white dark:bg-primary-500'
+          class: 'dark:text-white dark:bg-primary-500'
+        },
+        {
+          color: 'neutral',
+          variant: 'outline',
+          class: 'bg-transparent'
         }
       ]
     },
     formField: {
       slots: {
-        help: 'mt-1 text-label text-xs text-neutral-500 dark:text-neutral-400',
-        error: 'mt-1 text-label text-xs text-red-500 dark:text-red-400'
+        error: 'mt-1 text-xs'
       }
     },
     input: {
@@ -87,14 +85,24 @@ export default defineAppConfig({
       variants: {
         fullscreen: {
           false: {
-            content: 'rounded-3xl'
+            content: 'max-w-[480px] rounded-3xl divide-none bg-modal ring-1 ring-glass',
+            overlay: 'bg-modal-overlay'
           }
         }
       }
     },
     switch: {
       slots: {
+        base: 'dark:data-[state=checked]:bg-primary-500',
         thumb: 'bg-white dark:bg-white'
+      },
+      defaultVariants: {
+        size: 'xl'
+      }
+    },
+    tooltip: {
+      slots: {
+        content: 'bg-inverted text-inverted'
       }
     }
   }

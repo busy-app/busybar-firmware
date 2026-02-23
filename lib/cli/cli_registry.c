@@ -60,11 +60,17 @@ void cli_registry_add_command_ex(
     // command cannot contain spaces
     furi_check(furi_string_search_char(name_str, ' ') == FURI_STRING_FAILURE);
 
+    FuriSemaphore* run_semaphore = NULL;
+    if(flags & CliCommandFlagExclusive) {
+        run_semaphore = furi_semaphore_alloc(1, 1);
+    }
+
     CliRegistryCommand command = {
         .context = context,
         .execute_callback = callback,
         .flags = flags,
         .stack_depth = stack_size,
+        .run_semaphore = run_semaphore,
     };
 
     furi_check(furi_mutex_acquire(registry->mutex, FuriWaitForever) == FuriStatusOk);

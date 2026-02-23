@@ -100,7 +100,13 @@ ARRAY_DEF(
         CLEAR(API_2(canvas_element_clear)),
         INIT_SET(API_6(canvas_element_clone))))
 
-bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsArray_t elements);
+bool canvas_show_elements(
+    CanvasApp* canvas,
+    const char* app_id,
+    int priority,
+    CanvasElementsArray_t elements);
+
+int canvas_active_priority(CanvasApp* canvas);
 
 /**
  * @brief Delete elements by filter and possibly terminate Canvas

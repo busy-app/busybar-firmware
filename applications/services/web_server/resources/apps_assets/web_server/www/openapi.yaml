@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 4.1.0
+  version: 6.3.0
   contact:
     name: tbd
 
@@ -303,6 +303,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
 
+  /api/update/autoupdate:
+    get:
+      tags:
+        - Updater
+      summary: Get autoupdate settings
+      description: Returns current autoupdate configuration
+      operationId: getAutoupdateSettings
+      responses:
+        "200":
+          description: Settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoupdateSettings"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Updater
+      summary: Set autoupdate settings
+      description: Updates autoupdate configuration. All fields are optional - only provided fields are updated.
+      operationId: setAutoupdateSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AutoupdateSettings"
+      responses:
+        "200":
+          description: Settings updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid time format (expected HH:MM)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to apply settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/assets/upload:
     post:
       tags:
@@ -378,7 +430,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid app_id or deletion failed
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Delete failed
           content:
             application/json:
               schema:
@@ -549,6 +607,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/storage/rename:
+    post:
+      tags:
+        - Storage
+      summary: Rename/move a file
+      description: Moves a file to a new location
+      operationId: RenameStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Old location path
+          example: "/ext/old_name.txt"
+        - name: new_path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: New location path
+          example: "/ext/new_name.txt"
+      responses:
+        "200":
+          description: Renamed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or operation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/storage/status:
     get:
       tags:
@@ -593,6 +689,12 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid drawing data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Requested priority level is below that of currently active app
           content:
             application/json:
               schema:
@@ -653,21 +755,13 @@ paths:
         Set brightness for one or both displays
       operationId: setDisplayBrightness
       parameters:
-        - name: front
+        - name: value
           in: query
           required: false
           schema:
             type: string
             pattern: "^[a-zA-Z0-9._-]+$"
-          description: Front display brightness (0-100/auto)
-          example: "auto"
-        - name: back
-          in: query
-          required: false
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._/-]+$"
-          description: Back display brightness (0-100/auto)
+          description: Displays brightness (0-100/auto)
           example: "50"
       responses:
         "200":
@@ -1613,7 +1707,7 @@ components:
               type: string
               enum: ["start", "stop", "none"]
               description: Current check event
-            result:
+            status:
               type: string
               enum: ["available", "not_available", "failure", "none"]
               description: Check result status
@@ -1631,7 +1725,26 @@ components:
         check:
           available_version: "1.2.3"
           event: "stop"
-          result: "available"
+          status: "available"
+
+    AutoupdateSettings:
+      type: object
+      description: Autoupdate configuration settings. All fields are optional for POST requests.
+      properties:
+        is_enabled:
+          type: boolean
+          description: Whether automatic updates are enabled
+          example: true
+        interval_start:
+          type: string
+          description: Start of autoupdate window in HH:MM format (e.g., "08:00")
+          pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+          example: "00:00"
+        interval_end:
+          type: string
+          description: End of autoupdate window in HH:MM format (e.g., "23:59")
+          pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+          example: "08:00"
 
     NameInfo:
       type: object
@@ -1749,10 +1862,18 @@ components:
           pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID for organizing assets
           example: "my_app"
+        priority:
+          type: integer
+          description: Draw requests with a lower priority than the currently active draw request will be ignored. Value is 1 through 10, inclusive, higher number means higher priority. Any built-in app is treated as priority level 5.
+          default: 6
         elements:
           type: array
           items:
-            $ref: "#/components/schemas/DisplayElement"
+            oneOf:
+              - $ref: "#/components/schemas/TextElement"
+              - $ref: "#/components/schemas/ImageElement"
+              - $ref: "#/components/schemas/AnimElement"
+              - $ref: "#/components/schemas/CountdownElement"
           description: Array of elements to display
       required:
         - app_id
@@ -1949,14 +2070,10 @@ components:
     DisplayBrightnessInfo:
       type: object
       properties:
-        front:
+        value:
           type: string
-          description: Front display brightness (0-100/auto)
+          description: Displays brightness (0-100/auto)
           example: "auto"
-        back:
-          type: string
-          description: Back display brightness (0-100/auto)
-          example: "50"
 
     AudioVolumeInfo:
       type: object
@@ -1997,14 +2114,22 @@ components:
     StatusSystem:
       type: object
       properties:
-        branch:
+        serial_number:
           type: string
-          description: Git branch name
-          example: "main"
+          description: Device serial number
+          example: "203638485431500400123456"
+        api_semver:
+          type: string
+          description: API SemVer
+          example: "0.0.0"
         version:
           type: string
           description: Firmware version
           example: "1.0.0"
+        branch:
+          type: string
+          description: Git branch name
+          example: "main"
         build_date:
           type: string
           description: Build date
@@ -2017,6 +2142,10 @@ components:
           type: string
           description: System uptime
           example: "00d 00h 04m 13s"
+        boot_time:
+          type: integer
+          description: System boot timestamp
+          example: 1767225600
 
     StatusPower:
       type: object
