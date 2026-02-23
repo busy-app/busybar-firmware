@@ -8,3 +8,14 @@ App(
     targets=["f20", "f21", "f22", "f64", "f65"],
     order=30,
 )
+
+App(
+    appid="intercom_watchdog",
+    name="IntercomWatchdogSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="intercom_watchdog_srv",
+    cdefines=["SRV_INTERCOM_WATCHDOG"],
+    stack_size=512,
+    targets=["f64", "f65"],
+    order=20,
+)
