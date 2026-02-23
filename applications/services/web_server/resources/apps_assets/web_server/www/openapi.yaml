@@ -1160,7 +1160,7 @@ paths:
     post:
       tags:
         - BLE
-      summary: Disable BLE advertising
+      summary: Disable BLE
       description: Stops advertising
       parameters: []
       responses:
@@ -2117,7 +2117,7 @@ components:
         serial_number:
           type: string
           description: Device serial number
-          example: "203638685431500400123456"
+          example: "203638485431500400123456"
         api_semver:
           type: string
           description: API SemVer
