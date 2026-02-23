@@ -165,7 +165,7 @@ jobs:
                   comment-tag: oasdiff-report
 
             - name: Post to Slack
-              if: ${{ steps.version_check.outputs.version_ok == 'true' && steps.version_check.outputs.base_version != steps.version_check.outputs.current_version }}
+              if: ${{ github.event_name == 'push' && steps.version_check.outputs.version_ok == 'true' && steps.version_check.outputs.base_version != steps.version_check.outputs.current_version }}
               env:
                   SLACK_WEBHOOK_URL: ${{ secrets.OPENAPI_DIFF_SLACK_WEBHOOK_URL }}
               run: |
