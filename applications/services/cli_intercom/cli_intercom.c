@@ -192,7 +192,11 @@ static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
     furi_check(cli_intercom->own_pipe);
 
     pipe_detach_from_event_loop(cli_intercom->own_pipe);
+#ifdef CLI_INTERCOM_SLAVE
+    // on SLAVE (917), own_pipe is created by us in do_protocol_spawn
+    // on MASTER (U5), own_pipe is provided externally via cli_intercom_spawn
     pipe_free(cli_intercom->own_pipe);
+#endif
     cli_intercom->own_pipe = NULL;
 }
 
