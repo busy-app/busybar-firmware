@@ -1,21 +1,24 @@
 #include "pipe_util.h"
 
+static void kmp_build_failure(const char* pattern, size_t len, size_t* failure) {
+    failure[0] = 0;
+    for(size_t i = 1; i < len; i++) {
+        size_t j = failure[i - 1];
+        while(j > 0 && pattern[i] != pattern[j]) {
+            j = failure[j - 1];
+        }
+        failure[i] = (pattern[i] == pattern[j]) ? j + 1 : 0;
+    }
+}
+
 bool pipe_copy_until(PipeSide* source, PipeSide* dest, const char* terminator) {
     furi_check(source);
     furi_check(terminator);
     const size_t terminator_len = strlen(terminator);
     furi_check(terminator_len > 0);
 
-    // Build KMP failure function
     size_t failure[terminator_len];
-    failure[0] = 0;
-    for(size_t i = 1; i < terminator_len; i++) {
-        size_t j = failure[i - 1];
-        while(j > 0 && terminator[i] != terminator[j]) {
-            j = failure[j - 1];
-        }
-        failure[i] = (terminator[i] == terminator[j]) ? j + 1 : 0;
-    }
+    kmp_build_failure(terminator, terminator_len, failure);
 
     size_t matched_cnt = 0;
 
