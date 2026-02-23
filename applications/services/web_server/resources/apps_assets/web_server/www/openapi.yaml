@@ -1160,7 +1160,7 @@ paths:
     post:
       tags:
         - BLE
-      summary: Disable BLE
+      summary: Disable BLE advertising
       description: Stops advertising
       parameters: []
       responses:
