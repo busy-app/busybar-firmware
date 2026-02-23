@@ -41,10 +41,17 @@ jobs:
               run: |
                   set -o pipefail
 
-                  SUMMARY="$(oasdiff summary --exclude-elements description,summary "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  SUMMARY="$(oasdiff summary --exclude-elements description,summary,examples "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
                   echo 'summary<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$SUMMARY" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
+
+                  # Check if there are meaningful (non-description/summary/example) changes
+                  if echo "$SUMMARY" | grep -q 'diff: true'; then
+                    echo "has_changes=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "has_changes=false" >> "$GITHUB_OUTPUT"
+                  fi
 
                   if oasdiff breaking -o ERR --format markdown "base/$OAS_PATH" "$OAS_PATH" > breaking.md 2>&1; then
                     echo "exit_code=0" >> "$GITHUB_OUTPUT"
@@ -57,7 +64,7 @@ jobs:
                   echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
 
-                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary,examples "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
                   echo 'report_md<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$REPORT_MD" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
@@ -67,6 +74,7 @@ jobs:
               env:
                   OAS_PATH: applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml
                   HAS_BREAKING: ${{ steps.oasdiff.outputs.exit_code }}
+                  HAS_CHANGES: ${{ steps.oasdiff.outputs.has_changes }}
               run: |
                   BASE_VERSION=$(grep -m1 '^  version:' "base/$OAS_PATH" | sed 's/.*version: *//; s/["'\'']*//g')
                   CURR_VERSION=$(grep -m1 '^  version:' "$OAS_PATH" | sed 's/.*version: *//; s/["'\'']*//g')
@@ -83,17 +91,20 @@ jobs:
                   VERSION_OK=true
                   VERSION_MSG=""
 
-                  if [ "$HAS_BREAKING" != "0" ]; then
-                    # Breaking changes: major must be incremented
-                    if [ "$CURR_MAJOR" -le "$BASE_MAJOR" ]; then
-                      VERSION_OK=false
-                      VERSION_MSG="Breaking changes detected: major version must be incremented ($BASE_VERSION -> expected ${BASE_MAJOR+1}.0.0 or higher, got $CURR_VERSION)"
-                    fi
-                  else
-                    # Non-breaking changes: at least minor must be incremented
-                    if [ "$CURR_MAJOR" -eq "$BASE_MAJOR" ] && [ "$CURR_MINOR" -le "$BASE_MINOR" ]; then
-                      VERSION_OK=false
-                      VERSION_MSG="API changes detected: at least minor version must be incremented ($BASE_VERSION -> expected $BASE_MAJOR.$((BASE_MINOR+1)).0 or higher, got $CURR_VERSION)"
+                  # Only require version bumps for meaningful changes (not description/summary/example-only)
+                  if [ "$HAS_CHANGES" = "true" ]; then
+                    if [ "$HAS_BREAKING" != "0" ]; then
+                      # Breaking changes: major must be incremented
+                      if [ "$CURR_MAJOR" -le "$BASE_MAJOR" ]; then
+                        VERSION_OK=false
+                        VERSION_MSG="Breaking changes detected: major version must be incremented ($BASE_VERSION -> expected ${BASE_MAJOR+1}.0.0 or higher, got $CURR_VERSION)"
+                      fi
+                    else
+                      # Non-breaking changes: at least minor must be incremented
+                      if [ "$CURR_MAJOR" -eq "$BASE_MAJOR" ] && [ "$CURR_MINOR" -le "$BASE_MINOR" ]; then
+                        VERSION_OK=false
+                        VERSION_MSG="API changes detected: at least minor version must be incremented ($BASE_VERSION -> expected $BASE_MAJOR.$((BASE_MINOR+1)).0 or higher, got $CURR_VERSION)"
+                      fi
                     fi
                   fi
 
@@ -131,36 +142,19 @@ jobs:
               with:
                   message: |
                       ## OpenAPI Diff Report
-
-                      | Check | Status |
-                      |-------|--------|
-                      | Breaking changes | ${{ steps.oasdiff.outputs.exit_code == '0' && '✅ None' || '❌ Detected' }} |
-                      | Version | ${{ steps.version_check.outputs.base_version }} → ${{ steps.version_check.outputs.current_version }} ${{ steps.version_check.outputs.version_ok == 'true' && '✅' || format('❌ {0}', steps.version_check.outputs.version_msg) }} |
-
-                      > **Note:** Description and summary text changes are excluded from this report.
-
-                      <details>
-                      <summary>📋 Changelog (items with ⚠️ are breaking)</summary>
+                      **Version:** ${{ steps.version_check.outputs.base_version }} → ${{ steps.version_check.outputs.current_version }} ${{ steps.version_check.outputs.version_ok == 'true' && '✅' || format('❌ {0}', steps.version_check.outputs.version_msg) }}
+                      **Breaking changes:** ${{ steps.oasdiff.outputs.exit_code == '0' && '✅ None' || '❌ Detected' }}
 
                       ${{ steps.oasdiff.outputs.changelog }}
 
-                      </details>
-
                       <details>
-                      <summary>📊 Summary</summary>
-
-                      ```yaml
-                      ${{ steps.oasdiff.outputs.summary }}
-                      ```
-
-                      </details>
-
-                      <details>
-                      <summary>📝 Full diff</summary>
+                      <summary>Full diff</summary>
 
                       ${{ steps.oasdiff.outputs.report_md }}
 
                       </details>
+
+                      <sub>Description, summary, and example changes are excluded.</sub>
                   comment-tag: oasdiff-report
 
             - name: Post to Slack
