@@ -87,7 +87,7 @@ static void intercom_serial_rx_callback(
     }
 }
 
-static void intercom_dump_frame(const IntercomFrame* frame) {
+void intercom_dump_frame(const IntercomFrame* frame) {
     FuriString* tmp = furi_string_alloc();
 
     furi_string_printf(
@@ -103,7 +103,7 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
         furi_string_cat_printf(tmp, "%02X ", frame->data[i]);
     }
 
-    furi_string_cat_printf(tmp, "\r\ncheck: 0x%04X", frame->check);
+    furi_string_cat_printf(tmp, "\r\ncheck: 0x%04X\r\n", frame->check);
 
     furi_log_puts(furi_string_get_cstr(tmp));
 
@@ -222,6 +222,9 @@ static FURI_ALWAYS_INLINE void intercom_process_tx_data_event(Intercom* instance
 static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instance) {
     INTERCOM_LOG_D("Frame received");
 
+#ifdef SRV_INTERCOM_WATCHDOG
+    intercom_watchdog_arm(instance->watchdog);
+#endif
     const IntercomFrame* rx_frame = &instance->rx_frame;
 
     if(intercom_frame_is_valid(rx_frame)) {
@@ -233,6 +236,15 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
         intercom_error_handler(IntercomErrorFraming, instance);
     }
 
+#ifdef SRV_INTERCOM_WATCHDOG
+    if(furi_hal_serial_rx_available(instance->serial)) {
+        // Some more data is already in FIFO, re-arm watchdog
+        intercom_watchdog_arm(instance->watchdog);
+    } else {
+        // No data in FIFO yet, disarm watchdog for now
+        intercom_watchdog_disarm(instance->watchdog);
+    }
+#endif
     furi_hal_serial_dma_rx_start(
         instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
 }
@@ -319,6 +331,10 @@ static Intercom* intercom_alloc(void) {
         instance->event_loop, intercom_tx_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->serial = furi_hal_serial_control_acquire(INTERCOM_SERIAL);
     instance->pubsub = furi_pubsub_alloc();
+#ifdef SRV_INTERCOM_WATCHDOG
+    instance->watchdog = furi_record_open(RECORD_INTERCOM_WATCHDOG);
+#endif
+
     intercom_error_handling_enable(instance);
 
     for(IntercomChannelId i = 0; i < IntercomChannelIdMax; i++) {
