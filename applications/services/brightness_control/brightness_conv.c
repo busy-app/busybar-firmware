@@ -6,8 +6,13 @@
 
 static const uint8_t brightness_conv_front_table[] = {25, 25, 28, 31, 37, 43, 52, 61, 73, 85, 100};
 
-// TODO limit max: 60% is new 100%
-static const uint8_t brightness_conv_back_table[] = {7, 9, 12, 16, 21, 29, 38, 51, 67, 89, 118};
+// Exponential curve: y = k * b ^ x
+// b = 7.143377489
+// k = 1.324264735
+// static const uint8_t brightness_conv_back_table[] = {7, 9, 12, 16, 21, 29, 38, 51, 67, 89, 118};
+
+// k = 0.6 * 1.324264735
+static const uint8_t brightness_conv_back_table[] = {4, 5, 7, 9, 13, 17, 23, 30, 40, 53, 71};
 
 static_assert(COUNT_OF(brightness_conv_front_table) == INTERNAL_BRIGHTNESS_MAX + 1);
 static_assert(COUNT_OF(brightness_conv_back_table) == INTERNAL_BRIGHTNESS_MAX + 1);
