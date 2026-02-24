@@ -9,7 +9,7 @@
 #include <lwip/tcpip.h>
 
 #define THREAD_STACK_SIZE     (2 * 1024)
-#define PIPE_SZ_PER_DIRECTION 1024U
+#define PIPE_SZ_PER_DIRECTION (8 * 1024U)
 // #define CLI_SOCKET_TRACE_ENABLE
 
 #define TAG       "CliSocketClient"
@@ -168,12 +168,10 @@ static void
             CLI_SOCKET_TRACE(
                 TAG, DIR_CL_SH ":     batch=%zu (left=%zu)", batch_sz, available_in_chunk);
 
-            uint8_t buf[batch_sz];
-            memcpy(buf, payload, sizeof(buf));
-            size_t sent = pipe_send(client->own_pipe, buf, sizeof(buf));
+            size_t sent = pipe_send(client->own_pipe, payload, batch_sz);
             read_total += sent;
             chunk_offset += sent;
-            if(sent != sizeof(buf)) {
+            if(sent != batch_sz) {
                 pipe_full = true;
                 break;
             }
@@ -194,15 +192,12 @@ static void
     }
 
     if(pipe_full && chunk) {
-        // Store remaining data for later retry
-        // Increase refcount so we can free individual consumed pbufs
-        pbuf_ref(chain);
-
-        // Free fully consumed pbufs from the head of the chain
+        // Free fully consumed pbufs from the head of the chain.
+        // Each pbuf is detached before freeing to prevent pbuf_free from
+        // cascading into the remaining (unconsumed) tail of the chain.
         while(chain != chunk) {
             struct pbuf* consumed = chain;
             chain = chain->next;
-            // Detach and free this single pbuf
             consumed->next = NULL;
             pbuf_free(consumed);
         }
