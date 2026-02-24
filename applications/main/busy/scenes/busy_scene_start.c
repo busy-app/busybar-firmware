@@ -1,7 +1,7 @@
 #include "../busy_i.h"
-#include "../widgets/anim_menu.h"
 
 #include <gui/modules/menu.h>
+#include <gui/modules/anim_menu.h>
 #include <gui/modules/anim_player.h>
 #include <gui/modules/flex_layout.h>
 
@@ -42,7 +42,7 @@ static void busy_scene_start_on_enter(void* context) {
     with_gui(instance->gui, {
         nav_bar_reset_location(instance->nav_bar);
 
-        widget_set_visible(timer_card_get_base(instance->timer_card), false);
+        widget_set_visible(mirror_card_get_base(instance->timer_card), false);
         widget_set_visible(nav_bar_get_base(instance->nav_bar), true);
 
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
@@ -55,13 +55,13 @@ static void busy_scene_start_on_enter(void* context) {
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);
         anim_menu_set_source(
-            data->front_menu, BUSY_ANIM_PATH("start_menu_31x16.anim"), ANIM_MENU_OPTIONS);
+            data->front_menu, SHARED_ANIM_PATH("start_menu_31x16.anim"), ANIM_MENU_OPTIONS);
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
-            data->back_menu, "Start", NULL, BUSY_IMG_PATH("start_11x11.bin"), 0, NULL, NULL);
+            data->back_menu, "Start", NULL, SHARED_IMG_PATH("start_11x11.bin"), 0, NULL, NULL);
         menu_add_item(
-            data->back_menu, "Setup", NULL, BUSY_IMG_PATH("setup_11x11.bin"), 0, NULL, NULL);
+            data->back_menu, "Setup", NULL, SHARED_IMG_PATH("setup_11x11.bin"), 0, NULL, NULL);
     });
 
     busy_start_transition(instance);
@@ -90,10 +90,10 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
         if(event->event == BusySceneStartMenuIndexStart) {
             with_gui(instance->gui, {
                 widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
-                widget_set_visible(timer_card_get_base(instance->timer_card), true);
+                widget_set_visible(mirror_card_get_base(instance->timer_card), true);
 
-                timer_card_show_header(instance->timer_card, false);
-                timer_card_show_time(instance->timer_card, false);
+                mirror_card_set_show_header(instance->timer_card, false);
+                mirror_card_set_show_footer(instance->timer_card, false);
             });
 
             busy_prepare_transition(instance, BusyTransitionTypeSelect);

@@ -36,7 +36,7 @@ bool http_api_name_callback(
         device_name_get(dev_name, name);
         furi_record_close(RECORD_DEVICE_NAME);
 
-        MG_REPLY_OK_BODY(conn, "{\"name\":\"%s\"}\n", furi_string_get_cstr(name));
+        MG_REPLY_OK_BODY(conn, "{\"name\":%m}\n", mg_print_esc, 0, furi_string_get_cstr(name));
         furi_string_free(name);
     } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
         FuriString* name = furi_string_alloc();

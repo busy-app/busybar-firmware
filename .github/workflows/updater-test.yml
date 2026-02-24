@@ -41,7 +41,7 @@ jobs:
           set -euo pipefail
           URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
           echo "Using URL: $URL"
-          curl --fail -L -o busybar-f${{ inputs.target }}-update.tar "$URL"
+          curl --fail -L -o busybar-f${{ inputs.target }}-update.tgz "$URL"
 
       - name: 'Flash firmware'
         id: flashing
@@ -52,7 +52,7 @@ jobs:
           python3 scripts/testops.py wait -t 20
           python3 scripts/testops.py debug 1
           python3 scripts/testops.py format --no-confirm
-          python3 scripts/testops.py update-fw busybar-f${{ inputs.target }}-update.tar -r 3 --connect-timeout 10
+          python3 scripts/testops.py update-fw busybar-f${{ inputs.target }}-update.tgz -r 3 --connect-timeout 10
           python3 scripts/testops.py wait -t 260
 
       - name: 'Check that both cores are available (post-flash)'
@@ -69,7 +69,7 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py debug 1
-          python3 scripts/testops.py update-fw busybar-f${{ inputs.target }}-update.tar -r 3 --connect-timeout 10
+          python3 scripts/testops.py update-fw busybar-f${{ inputs.target }}-update.tgz -r 3 --connect-timeout 10
           python3 scripts/testops.py wait -t 260
 
       - name: 'Check that both cores are available (post-update)'
@@ -91,7 +91,7 @@ jobs:
         if: always()
         run: |
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
-          LOG_FILE="${RUNNER_LOG_DIR}/latest/runlog.log"
+          LOG_FILE="$RUNNER_LOG_DIR/latest/runlog.log"
           S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/updater-test/$RUN_ID/runlog.log"
           PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/updater-test/$RUN_ID/runlog.log"
 

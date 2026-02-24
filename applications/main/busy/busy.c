@@ -146,9 +146,11 @@ static BusyApp* busy_alloc(const char* arg) {
         nav_bar_set_header_image(
             instance->nav_bar, busy_get_global_preset(instance)->header_img_path);
 
-        instance->timer_card = timer_card_alloc(back_root);
-        widget_set_pos_y(timer_card_get_base(instance->timer_card), 2);
-        widget_set_visible(timer_card_get_base(instance->timer_card), false);
+        instance->timer_card = mirror_card_alloc(back_root);
+        mirror_card_set_header_text(instance->timer_card, "ACTIVE");
+        mirror_card_set_footer_secondary_text(instance->timer_card, "LEFT");
+        widget_set_pos_y(mirror_card_get_base(instance->timer_card), 2);
+        widget_set_visible(mirror_card_get_base(instance->timer_card), false);
 
         // Create application window on Back display
         instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
@@ -209,7 +211,7 @@ static void busy_free(BusyApp* instance) {
         transition_overlay_free(instance->transition_overlay);
 
         widget_free(instance->front_window);
-        timer_card_free(instance->timer_card);
+        mirror_card_free(instance->timer_card);
         flex_layout_free(instance->back_container);
     });
 

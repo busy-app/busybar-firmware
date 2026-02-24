@@ -22,8 +22,7 @@ struct DeviceName {
 };
 
 static bool device_name_validate_char(char c) {
-    // TODO: !@#$%^&*()-_=+[]{};:,.?/"'<>\| once escaping concerns are addressed
-    static const char* const allowed_special_chars = " !()-_=+;:,.?'|";
+    static const char* const allowed_special_chars = " !()-_=+;:,.?'|@#$%^&*[]{}/\\\"<>";
 
     bool allowed_ascii = isalnum(c) || strchr(allowed_special_chars, c);
     bool utf8 = c >= 128;

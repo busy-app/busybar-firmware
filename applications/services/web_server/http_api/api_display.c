@@ -7,6 +7,7 @@
 #include <canvas/canvas.h>
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
+#include <furi_hal_rtc.h>
 
 #define TAG "HttpDisplay"
 
@@ -245,7 +246,6 @@ static bool api_display_draw_parse_element(
     bool success = false;
     char* element_type = NULL;
     CanvasElement* canvas_element = CanvasElementsArray_push_new(elements_array);
-    canvas_element->display = GuiDisplayIdFront;
 
     do {
         canvas_element->id = mg_json_get_str(element, "$.id");
@@ -286,6 +286,7 @@ static bool api_display_draw_parse_element(
             canvas_element->align = AlignDefault;
         }
 
+        canvas_element->display = GuiDisplayIdFront;
         char* display_id_str = mg_json_get_str(element, "$.display");
         if(display_id_str) {
             if(strcmp(display_id_str, "front") == 0) {
@@ -320,6 +321,23 @@ static bool api_display_draw_parse_element(
     if(element_type) free(element_type);
 
     return success;
+}
+
+static bool api_display_draw_check_elements_visible(CanvasElementsArray_t elements) {
+    size_t elemets_visible = 0;
+    CanvasElementsArray_it_t it;
+    for(CanvasElementsArray_it(it, elements); !CanvasElementsArray_end_p(it);
+        CanvasElementsArray_next(it)) {
+        const CanvasElement* item = CanvasElementsArray_cref(it);
+        if(item->display_until > 0) {
+            time_t current_stamp = furi_hal_rtc_get_timestamp();
+            if(MAX(0, item->display_until - current_stamp) == 0) {
+                continue;
+            }
+        }
+        elemets_visible++;
+    }
+    return elemets_visible > 0;
 }
 
 static int api_display_active_priority(void) {
@@ -382,6 +400,7 @@ static bool api_display_draw_callback(
 
         size_t offset = 0;
         struct mg_str element;
+        success = true;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
             success = api_display_draw_parse_element(elements_array, app_id, element);
             if(!success) break;
@@ -400,6 +419,10 @@ static bool api_display_draw_callback(
 
         bool canvas_running = furi_record_exists(RECORD_CANVAS);
         if(!canvas_running) {
+            if(!api_display_draw_check_elements_visible(elements_array)) {
+                MG_REPLY_ERROR(conn, 400, "Nothing to display");
+                break;
+            }
             Desktop* desktop = furi_record_open(RECORD_DESKTOP);
             if(desktop_replace_current_app(desktop, "canvas", "")) {
                 canvas_running = true;
