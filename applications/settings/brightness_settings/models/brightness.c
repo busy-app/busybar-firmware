@@ -38,7 +38,7 @@ BrightnessMode brightness_model_get_mode(BrightnessModel* model) {
 void brightness_model_set(BrightnessModel* model, uint8_t brightness) {
     furi_assert(model);
 
-    UserBrightness ub = brightness_conv_int_to_user(brightness);
+    UserBrightness ub = brightness_conv_int_to_user_clamped(brightness);
     brightness_control_set_manual_brightness(model->ctrl, ub);
 }
 

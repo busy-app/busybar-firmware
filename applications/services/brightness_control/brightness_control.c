@@ -221,7 +221,7 @@ static void load_config(BrightnessControl* inst) {
 
         int brightness = DEFAULT_BRIGHTNESS.val;
         json_config_read_int(cfg, "brightness", &brightness, NULL);
-        inst->manual_brightness = brightness_conv_int_to_user(brightness);
+        inst->manual_brightness = brightness_conv_int_to_user_clamped(brightness);
     } while(false);
 
     json_config_free(cfg);

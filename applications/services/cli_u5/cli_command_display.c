@@ -84,7 +84,8 @@ static void cli_action_brightness(PipeSide* pipe, FuriString* args) {
         if(auto_brightness) {
             brightness_control_set_auto_brightness(srv);
         } else {
-            brightness_control_set_manual_brightness(srv, brightness_conv_int_to_user(brightness));
+            brightness_control_set_manual_brightness(
+                srv, brightness_conv_int_to_user_clamped(brightness));
         }
         furi_record_close(RECORD_BRIGHTNESS_CONTROL);
     } while(false);

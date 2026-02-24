@@ -20,7 +20,7 @@ static_assert(COUNT_OF(brightness_conv_status_table) == INTERNAL_BRIGHTNESS_MAX 
 static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MIN == 0);
 static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MAX == INTERNAL_BRIGHTNESS_MAX);
 
-UserBrightness brightness_conv_int_to_user(int brightness) {
+UserBrightness brightness_conv_int_to_user_clamped(int brightness) {
     brightness = CLAMP(brightness, USER_BRIGHTNESS_LEVEL_MAX, USER_BRIGHTNESS_LEVEL_MIN);
     return (UserBrightness){brightness};
 }
