@@ -1,5 +1,4 @@
 #include "anim_title_card.h"
-#include "../storage_macros.h"
 #include "../widget_i.h"
 #include "anim_player.h"
 
@@ -78,7 +77,7 @@ static void anim_title_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
 
     anim_player_set_frame_callback(instance->background_anim, anim_title_card_frame, instance);
     if(anim_player_set_source(
-           instance->background_anim, GUI_ANIM_PATH("wave_invitation_72x16.anim"))) {
+           instance->background_anim, SHARED_ANIM_PATH("wave_invitation_72x16.anim"))) {
         anim_player_pause(instance->background_anim);
     }
 }

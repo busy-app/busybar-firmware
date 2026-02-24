@@ -7,20 +7,29 @@
       v-for="tab in options"
       :key="tab.value"
       class="grid items-center grid-cols-[24px_auto] gap-[10px] p-3 rounded-xl cursor-pointer"
-      :class="tabStore.currentTab === tab.value ? 'bg-elevated ring-1 ring-glass' : 'text-muted hover:text-default'"
+      :class="tabStore.currentTab === tab.value ? 'bg-accented/50 dark:bg-elevated ring-1 ring-glass' : 'text-muted hover:text-default'"
       @click="tabStore.currentTab = tab.value"
     >
       <UIcon
         :name="tab.activeIcon ? tabStore.currentTab === tab.value ? tab.activeIcon : tab.icon : tab.icon"
         class="size-6"
       />
-      <div>{{ tab.label }}</div>
+      <div class="w-full flex items-center justify-between gap-4 xl:pr-1.5">
+        {{ tab.label }}
+
+        <div
+          v-if="firmwareStore.autoUpdate.status === 'available' && tab.value === 'firmware'"
+          class="size-2 rounded-full"
+          :class="firmwareStore.autoUpdate.isAllowed ? 'bg-success' : 'bg-warning'"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 const tabStore = useTabStore();
+const firmwareStore = useFirmwareStore();
 
 const options = computed(() => {
   return tabStore.tabOptions.filter(tab => {

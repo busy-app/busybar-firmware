@@ -19,20 +19,20 @@ static void
 
     instance->state = connected ? BleServiceStateConnected : BleServiceStateAdvertising;
 
-    BleStatus status = {
-        .state = instance->state,
-        .pairing = ble_worker_pairing_exists() ? BlePairingStatePaired : BlePairingStateNotPaired,
-    };
-    memcpy(
-        status.remote_device_address, remote_dev_address, BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
-    memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_STRING_SIZE);
-
     BleIntercomFrameGeneric* frame = &instance->mailbox;
     frame->header.frame_type = BleIntercomFrameTypeRequest;
     frame->header.command = BleCommandSetStatus;
     frame->header.source = BleIntercomFrameSourceSystem;
     frame->header.data_size = sizeof(BleStatus);
     frame->header.result = true;
+
+    BleStatus* status = (BleStatus*)frame->data;
+    status->state = instance->state;
+    status->pairing = ble_worker_pairing_exists() ? BlePairingStatePaired :
+                                                    BlePairingStateNotPaired;
+    memcpy(
+        status->remote_device_address, remote_dev_address, BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
+    memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_STRING_SIZE);
 
     ble_command_request_process(frame, instance);
     furi_semaphore_release(instance->mailbox_lock);

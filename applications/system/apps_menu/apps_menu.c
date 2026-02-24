@@ -8,8 +8,6 @@
 
 #define TAG "AppsMenu"
 
-#define APPS_MENU_NAV_BAR_HEIGHT 20
-
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
 
@@ -79,9 +77,11 @@ static bool apps_menu_gui_input_callback(const InputEvent* event, void* context)
     return consumed;
 }
 
-static AppsMenu* apps_menu_alloc(void) {
+static AppsMenu* apps_menu_alloc(void* launching_subapp) {
     AppsMenu* app = malloc(sizeof(AppsMenu));
     FuriThread* thread = furi_thread_get_current();
+
+    app->launching_subapp = launching_subapp;
 
     app->event_loop = furi_event_loop_alloc();
     app->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
@@ -118,16 +118,20 @@ static AppsMenu* apps_menu_alloc(void) {
         flex_layout_set_spacing(app->back_container, 2);
 
         app->back_nav_bar = nav_bar_alloc(flex_layout_get_base(app->back_container));
-        nav_bar_set_header_image(app->back_nav_bar, APPS_MENU_IMG_PATH("apps_menu_back_7x7.bin"));
+        nav_bar_set_header_image(app->back_nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.bin"));
         nav_bar_set_header_text(app->back_nav_bar, "APPS");
-        widget_set_height(nav_bar_get_base(app->back_nav_bar), APPS_MENU_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(app->back_nav_bar), 6, 6, 0, 0);
+        widget_set_height(nav_bar_get_base(app->back_nav_bar), 14);
+        widget_set_padding(nav_bar_get_base(app->back_nav_bar), 1, 0, 0, 0);
 
         app->back_scene_window = widget_alloc(flex_layout_get_base(app->back_container));
         flex_layout_set_child_widget_grow(app->back_container, app->back_scene_window, 1);
     });
 
     scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdStart);
+
+    if(app->launching_subapp) {
+        scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdMain);
+    }
 
     return app;
 }
@@ -166,7 +170,7 @@ void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
 int32_t apps_menu_app(void* arg) {
     UNUSED(arg);
 
-    AppsMenu* app = apps_menu_alloc();
+    AppsMenu* app = apps_menu_alloc(arg);
     furi_event_loop_run(app->event_loop);
     apps_menu_free(app);
 

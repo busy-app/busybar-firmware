@@ -42,7 +42,6 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_obj_set_style_text_align(instance->header_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_color(
         instance->header_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
-    lv_obj_add_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->breadcrumbs_label = lv_label_create(obj);
     lv_obj_set_style_text_font(
@@ -62,31 +61,32 @@ static void nav_bar_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     LocationStack_clear(instance->locations);
 }
 
-/* Implementation */
+/* implementation */
 
 static void nav_bar_update_breadcrumbs(NavBar* instance) {
     if(LocationStack_size(instance->locations) > 0) {
-        FuriString* text = furi_string_alloc();
+        FuriString* text = furi_string_alloc_set(">");
 
         LocationStack_it_t it;
         LocationStack_it(it, instance->locations);
         for(; !LocationStack_last_p(it); LocationStack_next(it)) {
-            furi_string_cat_printf(text, ">  %s  ", *LocationStack_cref(it));
+            furi_string_cat_printf(text, " %s >", *LocationStack_cref(it));
         }
 
-        furi_string_cat_printf(
-            text, ">  #" TOSTRING(COLOR_ACTIVE) " %s #", *LocationStack_cref(it));
+        furi_string_cat_printf(text, " #" TOSTRING(COLOR_ACTIVE) " %s #", *LocationStack_cref(it));
 
         lv_label_set_text(instance->breadcrumbs_label, furi_string_get_cstr(text));
         lv_obj_remove_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
 
         furi_string_free(text);
     } else {
         lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
-/* Public API */
+/* public API */
 
 NavBar* nav_bar_alloc(Widget* parent) {
     furi_check(parent);
@@ -126,9 +126,7 @@ void nav_bar_set_header_text(NavBar* instance, const char* text) {
 
     if(text) {
         lv_label_set_text(instance->header_label, text);
-        lv_obj_remove_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
     } else {
-        lv_obj_add_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
         lv_label_set_text_static(instance->header_label, "");
     }
 }

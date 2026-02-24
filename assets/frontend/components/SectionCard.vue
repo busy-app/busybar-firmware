@@ -17,7 +17,7 @@
 
           <div
             v-if="icon"
-            class="size-14 rounded-full bg-elevated p-[14px]"
+            class="size-14 rounded-full bg-accented/25 dark:bg-elevated p-[14px]"
           >
             <UIcon
               :name="icon"
@@ -55,7 +55,7 @@
         <div
           v-for="(child, i) in $slots.default!()"
           :key="child.key ?? i"
-          class="bg-elevated/75 p-4 rounded-xl"
+          class="bg-accented/25 dark:bg-elevated/75 p-4 rounded-xl"
         >
           <component :is="child" />
         </div>

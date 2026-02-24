@@ -35,7 +35,7 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
 
                 info->ip_config = *ip_config;
 
-            } else if(new_state == WifiStateDisconnected) {
+            } else if((new_state == WifiStateDisconnected) || (new_state == WifiStateDisconnecting)) {
                 /* Nothing */
             } else {
                 furi_crash("Invalid transition from WifiStateConnecting");
@@ -106,7 +106,8 @@ WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request
                 status = WifiStatusAlreadyConnected;
             }
         } else if(request_type == WifiRequestTypeDisconnect) {
-            if(current_state != WifiStateConnected && current_state != WifiStateReconnecting) {
+            if(current_state != WifiStateConnected && current_state != WifiStateReconnecting &&
+               current_state != WifiStateConnecting) {
                 status = WifiStatusAlreadyDisconnected;
             }
         } else if(request_type == WifiRequestTypeBackendInfo) {
