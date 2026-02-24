@@ -288,7 +288,8 @@ static void busy_timer_update(BusyTimer* instance, time_t timestamp_ms) {
             break;
         }
 
-        const uint32_t dt_s = MS_TO_S(timestamp_ms - instance->prev_tick_timestamp_ms);
+        const uint32_t dt_ms = timestamp_ms - instance->prev_tick_timestamp_ms;
+        const uint32_t dt_s = MS_TO_S(dt_ms);
 
         // Too early for a tick
         if(dt_s == 0) {
@@ -317,7 +318,9 @@ static void busy_timer_update(BusyTimer* instance, time_t timestamp_ms) {
             }
         }
 
-        instance->prev_tick_timestamp_ms = timestamp_ms;
+        const uint32_t remainder_ms = dt_ms - S_TO_MS(dt_s);
+        instance->prev_tick_timestamp_ms = timestamp_ms - remainder_ms;
+
     } while(false);
 }
 

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 6.3.0
+  version: 7.0.0
   contact:
     name: tbd
 
@@ -2475,22 +2475,25 @@ components:
           example: false
 
     TimezoneListResponse:
-      type: array
-      items:
-        type: object
-        properties:
-          name:
-            type: string
-            description: "Time zone name"
-            example: "Bangalore"
-          offset:
-            type: string
-            description: "Time zone offset from UTC"
-            example: "+05:30"
-          abbr:
-            type: string
-            description: "Time zone abbreviation"
-            example: "IST"
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: "Time zone name"
+                example: "Bangalore"
+              offset:
+                type: string
+                description: "Time zone offset from UTC"
+                example: "+05:30"
+              abbr:
+                type: string
+                description: "Time zone abbreviation"
+                example: "IST"
 
     MatterCommissionedFabrics:
       type: object
