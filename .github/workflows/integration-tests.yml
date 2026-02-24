@@ -1,19 +1,22 @@
 name: 'Local API tests'
 
 on:
-  push:
-    branches:
-      - dev
-    tags:
-      - '*-rc*'
-    pull_request:
-
-
-  workflow_run:
-    workflows:
-      - 'Build'
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+      commit_sha:
+        required: true
+        type: string
+      update_url:
+        required: true
+        type: string
+        description: 'Relative path to firmware update file'
+      target:
+        required: false
+        type: string
+        default: '21'
 
   workflow_dispatch:
     inputs:
@@ -34,11 +37,12 @@ on:
         default: '21'
 
 permissions:
-  contents: write
+  contents: read
   checks: write
+  id-token: write
 
 env:
-  U5_HW_TARGET: ${{ github.event.inputs.target || '21' }}
+  U5_HW_TARGET: ${{ inputs.target || '21' }}
 
 jobs:
   integration-tests:
@@ -47,7 +51,7 @@ jobs:
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ inputs.commit_sha || github.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -69,18 +73,18 @@ jobs:
           BASE_URL="https://update.flipperzero.one/builds/busybar-firmware"
           TARGET="f${{ env.U5_HW_TARGET }}"
 
-          if [ -n "${{ github.event.inputs.update_url }}" ]; then
-            # Explicit URL provided - use it directly
-            UPDATE_PATH="${{ github.event.inputs.update_url }}"
+          if [ -n "${{ inputs.update_url }}" ]; then
+            # Explicit URL provided via workflow_call or workflow_dispatch
+            UPDATE_PATH="${{ inputs.update_url }}"
             echo "Using explicit path: $UPDATE_PATH"
-          else
-            # Auto-detect latest build from branch/tag
-            BRANCH="${{ github.event.inputs.firmware_branch || github.ref_name }}"
+          elif [ -n "${{ github.event.inputs.firmware_branch }}" ]; then
+            # Auto-detect latest build from branch/tag (workflow_dispatch only)
+            BRANCH="${{ github.event.inputs.firmware_branch }}"
             echo "Resolving latest build for branch: $BRANCH"
 
             # Fetch directory listing and find latest update file
             LISTING=$(curl -sL "${BASE_URL}/${BRANCH}/")
-            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.tgz" | sort -V | tail -1)
+            UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.(tgz|tar)" | sort -V | tail -1)
 
             if [ -z "$UPDATE_FILE" ]; then
               echo "ERROR: Could not find update file for branch $BRANCH"
@@ -89,14 +93,20 @@ jobs:
 
             UPDATE_PATH="${BRANCH}/${UPDATE_FILE}"
             echo "Found latest: $UPDATE_PATH"
+          else
+            echo "ERROR: No update_url or firmware_branch provided"
+            exit 1
           fi
 
           # Derive ELF paths from update path (U5 and Si917)
+          # Handle both .tgz and .tar extensions
           U5_ELF_PATH="${UPDATE_PATH/-update-/-firmware-}"
-          U5_ELF_PATH="${U5_ELF_PATH%.tgz}.elf"
+          U5_ELF_PATH="${U5_ELF_PATH%.tgz}"
+          U5_ELF_PATH="${U5_ELF_PATH%.tar}.elf"
 
           SI917_ELF_PATH="${UPDATE_PATH/-update-/-sil_firmware-}"
-          SI917_ELF_PATH="${SI917_ELF_PATH%.tgz}.elf"
+          SI917_ELF_PATH="${SI917_ELF_PATH%.tgz}"
+          SI917_ELF_PATH="${SI917_ELF_PATH%.tar}.elf"
 
           echo "update_url=${BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
           echo "u5_elf_url=${BASE_URL}/${U5_ELF_PATH}" >> $GITHUB_OUTPUT
@@ -136,7 +146,7 @@ jobs:
           python3 scripts/testops.py wait -t 260
 
       - name: 'Sanity check after flashing'
-        if: ${{ github.event.inputs.update_url != '' && steps.flashing.outcome == 'success' }}
+        if: ${{ steps.flashing.outcome == 'success' }}
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
@@ -221,11 +231,11 @@ jobs:
         if: always()
         run: |
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
-          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          BRANCH_NAME="${{ inputs.branch_name || github.head_ref || github.ref_name }}"
 
           echo "# BSB Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Run:** $RUN_ID | **Branch:** $BRANCH_NAME | **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** $RUN_ID | **Branch:** $BRANCH_NAME | **Commit:** \`${{ inputs.commit_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "**Firmware:** ${{ steps.resolve_firmware.outputs.update_url }}" >> $GITHUB_STEP_SUMMARY
@@ -233,7 +243,6 @@ jobs:
 
           echo "## 📊 Test Results" >> $GITHUB_STEP_SUMMARY
           echo "- **Smoke Tests:** ${{ steps.smoke_tests.outcome }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Playwright UI Tests:** ${{ steps.playwright_tests.outcome }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "## 📋 Reports" >> $GITHUB_STEP_SUMMARY

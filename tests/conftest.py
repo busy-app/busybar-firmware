@@ -519,7 +519,7 @@ def device_health_monitor(request, device_flasher):
     yield detector
 
     # Post-test: check for crash or connection failure
-    crash_info = detector.check_for_crash(flasher=device_flasher)
+    crash_info = detector.check_for_crash()
     if crash_info:
         request.node._crash_info = crash_info
 

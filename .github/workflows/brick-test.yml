@@ -1,0 +1,173 @@
+name: '917 Brick Recovery Test'
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+      commit_sha:
+        required: true
+        type: string
+      brick_update_url:
+        required: true
+        type: string
+        description: "Path to bricked firmware zip (e.g., branch/busybar-f21-bricktest-*.zip)"
+      normal_update_url:
+        required: true
+        type: string
+        description: "Path to normal firmware tar (e.g., branch/busybar-f21-update-*.tgz)"
+      target:
+        required: false
+        type: string
+        default: '21'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  U5_HW_TARGET: ${{ inputs.target }}
+  FBT_GIT_SUBMODULE_SHALLOW: 0
+  FBT_TOOLCHAIN_PATH: /runner/_work
+
+jobs:
+  brick-recovery-test:
+    runs-on: BusyBarBrickTest
+    timeout-minutes: 30
+    steps:
+
+      - name: "Wait for normal firmware to be available"
+        run: |
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.normal_update_url }}"
+          MAX_ATTEMPTS=30
+          INTERVAL=30
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L --head "$URL" || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Normal firmware available after $((i * INTERVAL))s"
+              exit 0
+            fi
+            echo "Attempt $i/$MAX_ATTEMPTS: HTTP $HTTP_CODE, waiting ${INTERVAL}s..."
+            sleep $INTERVAL
+          done
+          echo "ERROR: Firmware not available after $((MAX_ATTEMPTS * INTERVAL))s"
+          exit 1
+
+      - name: 'Checkout code at the build commit'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 2
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
+
+      - name: 'Download brick firmware package'
+        run: |
+          set -euo pipefail
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.brick_update_url }}"
+          echo "Downloading brick firmware: $URL"
+          curl --fail -L -o brick-package.zip "$URL"
+          unzip -q brick-package.zip -d brick-firmware
+
+      - name: 'Download normal firmware'
+        run: |
+          set -euo pipefail
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.normal_update_url }}"
+          echo "Downloading normal firmware: $URL"
+          curl --fail -L -o "normal-update.tgz" "$URL"
+
+      - name: 'Flash update with bricked 917 firmware'
+        id: flash_brick
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py power reboot
+          python3 scripts/testops.py wait -t 20
+          python3 scripts/testops.py debug 1
+          python3 scripts/testops.py format --no-confirm
+
+          # Find the update tar in the extracted brick package
+          BRICK_TAR=$(find brick-firmware -name "*.tgz" | head -1)
+          if [ -z "$BRICK_TAR" ]; then
+            echo "ERROR: No tar file found in brick firmware package"
+            exit 1
+          fi
+
+          echo "Flashing bricked firmware: $BRICK_TAR"
+          python3 scripts/testops.py update-fw "$BRICK_TAR" -r 3 --connect-timeout 10 --openocd-reboot
+          # Short wait - device will boot but SI917 will crash immediately
+          python3 scripts/testops.py wait -t 240 --fallback
+
+      - name: 'Verify bricked state'
+        id: verify_brick
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          # This SHOULD fail because SI917 is crashed
+          if python3 scripts/testops.py sanity; then
+            echo "ERROR: Sanity check passed - device should be in bricked state!"
+            exit 1
+          else
+            echo "SUCCESS: Device is in expected bricked state (sanity check failed as expected)"
+          fi
+
+      - name: 'Flash normal firmware to recover'
+        id: flash_recovery
+        if: steps.flash_brick.outcome == 'success'
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py debug 1
+          echo "Flashing normal firmware to recover..."
+          python3 scripts/testops.py update-fw normal-update.tgz -r 3 --connect-timeout 10 --fallback
+          python3 scripts/testops.py wait -t 240
+
+      - name: 'Verify recovery'
+        id: verify_recovery
+        if: steps.flash_recovery.outcome == 'success'
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          echo "Verifying device recovered successfully..."
+          python3 scripts/testops.py sanity
+          echo "SUCCESS: Device recovered from bricked state!"
+
+      - name: 'Configure AWS CLI'
+        if: always()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: 'Upload runner logs to S3'
+        if: always()
+        run: |
+          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          LOG_FILE="$RUNNER_LOG_DIR/latest/runlog.log"
+          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/brick-test/$RUN_ID/runlog.log"
+          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/brick-test/$RUN_ID/runlog.log"
+
+          if [ -f "$LOG_FILE" ]; then
+            aws s3 cp "$LOG_FILE" "$S3_PATH"
+            echo "## Brick Test Runner Logs" >> $GITHUB_STEP_SUMMARY
+            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Log file not found: $LOG_FILE"
+          fi
+
+      - name: 'Create test summary'
+        if: always()
+        run: |
+          echo "## 917 Brick Recovery Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Phase | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Flash brick firmware | ${{ steps.flash_brick.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Verify bricked state | ${{ steps.verify_brick.outcome == 'failure' && 'success (expected failure)' || 'unexpected' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Flash recovery firmware | ${{ steps.flash_recovery.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Verify recovery | ${{ steps.verify_recovery.outcome }} |" >> $GITHUB_STEP_SUMMARY
