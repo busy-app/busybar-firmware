@@ -1,9 +1,13 @@
 #include "cli_command_factory_reset.h"
-#include "power/power_service/power.h"
-
 #include <furi_hal_nvm.h>
+#include <furi_hal_power.h>
+
 #include <storage/storage.h>
+#include <cli/cli_command.h>
 #include <cli/args.h>
+
+#include <toolbox/update_lib/update_config.h>
+#include <toolbox/update_lib/common_vals.h>
 
 typedef struct {
     bool shipping_mode;
@@ -40,15 +44,17 @@ static void print_command_help(void) {
     printf("  -h, --help             Show this help message\r\n");
 }
 
-static void cli_command_step_format_emmc() {
+static void cli_command_step_format_emmc(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    printf("Format EMMC...\r\n");
+
+    printf("Formatting EMMC...\r\n");
+
     FS_Error error = storage_sd_format(storage, STORAGE_EXT_PATH_PREFIX);
 
     if(error != FSE_OK) {
-        printf("Error: %s", storage_error_get_desc(error));
+        printf("EMMC formatting error: %s\r\n", storage_error_get_desc(error));
     } else {
-        printf("EMMC was successfully formatted.\r\n");
+        printf("EMMC was successfully formatted\r\n");
     }
 
     furi_record_close(RECORD_STORAGE);
@@ -75,14 +81,10 @@ void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) 
 
     printf("Warning! This will wipe all the data from the device! Are you sure? y/n\r\n");
 
-    while(true) {
-        char answer;
-        if(pipe_receive(pipe, &answer, sizeof(answer)) != sizeof(answer)) break;
-        if(answer == 'n' || answer == 'N') {
-            printf("\r\nCancelled.");
-            break;
-        } else if(answer == 'y' || answer == 'Y') {
+    for(char response; pipe_receive(pipe, &response, sizeof(response)) == sizeof(response);) {
+        if(response == 'y' || response == 'Y') {
             printf("Performing factory reset...\r\n");
+
             cli_command_step_format_emmc();
             cli_command_step_reset_pairing();
             cli_command_step_wifi_ble_restore_default_config();
@@ -92,11 +94,42 @@ void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) 
                 furi_hal_nvm_set_flag(FuriHalNvmFlagRebootIntoShippingMode);
             }
 
-            printf("Done\r\nRebooting...\r\n");
-            furi_delay_ms(100);
-            Power* pwr = furi_record_open(RECORD_POWER);
-            power_reboot(pwr, PowerRebootNormal);
-            furi_record_close(RECORD_POWER);
+            const char* recovery_manifest = BACKUP_PATH("recovery/update.json");
+            printf("Setting up recovery installation from: %s...\r\n", recovery_manifest);
+
+            UpdateConfig* state = update_config_alloc();
+            Storage* storage = furi_record_open(RECORD_STORAGE);
+
+            do {
+                UpdateConfigValidation config_state = update_config_load(state, recovery_manifest);
+                if(config_state != UpdateConfigValidationOK) {
+                    printf(
+                        "Failed to load recovery configuration: %s\r\n",
+                        update_config_validation_get_error_str(config_state));
+                    printf("Continuing with factory reset anyway...\r\n");
+                    break;
+                }
+
+                printf("Recovery configuration valid...\r\n");
+
+                if(!update_config_write_pointer_file(storage, recovery_manifest)) {
+                    printf("Failed to write manifest path to pointer file\r\n");
+                    break;
+                }
+
+                printf("Pointer file written successfully...\r\n");
+
+                furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
+                printf("Boot mode set to Update. Rebooting...\r\n");
+                furi_hal_power_reset();
+            } while(false);
+
+            furi_record_close(RECORD_STORAGE);
+            update_config_free(state);
+
+            break;
+        } else if(response == 'n' || response == 'N') {
+            printf("\r\nCancelled");
             break;
         }
     }
