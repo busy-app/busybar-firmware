@@ -100,9 +100,9 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
 
     BusyTimerApiMessage message = {
         .type = BusyTimerApiMessageTypeGetSnapshot,
-        .data.set_snapshot =
+        .data.get_snapshot =
             {
-                .snapshot = *snapshot,
+                .snapshot = snapshot,
             },
     };
 
