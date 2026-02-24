@@ -2156,7 +2156,7 @@ components:
           $ref: "#/components/schemas/StatusSystem"
         power:
           $ref: "#/components/schemas/StatusPower"
-    
+
     StatusDevice:
       type: object
       properties:
@@ -2212,6 +2212,10 @@ components:
           type: string
           description: Git commit hash (may include -dirty suffix)
           example: "abc123def456-dirty"
+        nwp_version:
+          type: string
+          description: Radio firmware version
+          example: "1711.2.14.5.2.0.7"
 
     StatusSystem:
       type: object

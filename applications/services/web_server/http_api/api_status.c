@@ -4,9 +4,7 @@
 #include <furi_hal_version.h>
 #include <furi_hal_rtc.h>
 #include <toolbox/hex.h>
-#include <containers/pipe_util.h>
-#include <cli_u5/cli_command_sl_cli.h>
-#include <cli_intercom/cli_intercom.h>
+#include <si917_info/si917_info_client.h>
 
 #define TAG "HttpStatus"
 
@@ -17,83 +15,6 @@ typedef struct {
 static void format_mac(FuriString* str, const uint8_t* mac) {
     furi_string_printf(
         str, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-}
-
-static int32_t status_get_917_info_thread(void* context) {
-    PipeSide* tx_pipe = context;
-
-#ifdef SRV_INTERCOM
-    bool success = cli_command_sl_cli_send_command_get_response(tx_pipe, "device_info");
-#else // SRV_INTERCOM
-    bool success = false;
-#endif // SRV_INTERCOM
-
-    pipe_free(tx_pipe);
-    return success ? 0 : -1;
-}
-
-static bool status_get_917_info_value(FuriString* json_str, PipeSide* pipe, const char* name) {
-    UNUSED(json_str);
-    char receive_buffer[18];
-    size_t name_len = strlen(name);
-
-    while(pipe_copy_until(pipe, NULL, "sl_")) {
-        size_t bytes_read = pipe_receive(pipe, receive_buffer, name_len);
-        if((bytes_read != name_len) || (strncmp(receive_buffer, name, name_len) != 0)) {
-            continue;
-        }
-
-        if(!pipe_copy_until(pipe, NULL, ": ")) {
-            break;
-        }
-
-        bytes_read = pipe_receive(pipe, receive_buffer, sizeof(receive_buffer));
-        size_t idx;
-        for(idx = 0; idx < bytes_read; idx++) {
-            if(receive_buffer[idx] == '\r' || receive_buffer[idx] == '\n') {
-                receive_buffer[idx] = '\0';
-                break;
-            }
-        }
-
-        if(idx < bytes_read) {
-            furi_string_cat_printf(json_str, ",\"%s\":\"%s\"", name, receive_buffer);
-            return true;
-        }
-        break;
-    }
-    return false;
-}
-
-static bool status_get_917_info(FuriString* json_str) {
-    if(!furi_record_exists(RECORD_CLI_INTERCOM)) {
-        return false;
-    }
-
-    PipeSideBundle pipe_bundle = pipe_alloc(128, 1);
-    PipeSide* rx_pipe = pipe_bundle.alices_side;
-    PipeSide* tx_pipe = pipe_bundle.bobs_side;
-
-    FuriThread* get_info_thread =
-        furi_thread_alloc_ex("api_917_info", 512, status_get_917_info_thread, tx_pipe);
-    furi_thread_start(get_info_thread);
-
-    status_get_917_info_value(json_str, rx_pipe, "wifi_mac");
-    status_get_917_info_value(json_str, rx_pipe, "ble_mac");
-
-    char receive_buffer[32];
-    while(pipe_state(rx_pipe) != PipeStateBroken) {
-        pipe_receive(rx_pipe, receive_buffer, sizeof(receive_buffer));
-    }
-
-    pipe_free(rx_pipe);
-
-    furi_thread_join(get_info_thread);
-    furi_thread_free(get_info_thread);
-
-    UNUSED(json_str);
-
-    return true;
 }
 
 static bool status_get_device(FuriString* json_str, ApiStatusCtx* context) {
@@ -109,7 +30,22 @@ static bool status_get_device(FuriString* json_str, ApiStatusCtx* context) {
     format_mac(temp_str, mac);
     furi_string_cat_printf(json_str, ",\"usb_mac\":\"%s\"", furi_string_get_cstr(temp_str));
 
-    status_get_917_info(json_str);
+    Si917InfoData info_917;
+    bool si917_data_valid = false;
+
+    if(furi_record_exists(RECORD_SI917_INFO_CLIENT)) {
+        Si917InfoClient* si917_info = furi_record_open(RECORD_SI917_INFO_CLIENT);
+        si917_data_valid = si917_info_get(si917_info, &info_917);
+        furi_record_close(RECORD_SI917_INFO_CLIENT);
+    }
+
+    if(si917_data_valid) {
+        format_mac(temp_str, info_917.wifi_mac);
+        furi_string_cat_printf(json_str, ",\"wifi_mac\":\"%s\"", furi_string_get_cstr(temp_str));
+
+        format_mac(temp_str, info_917.ble_mac);
+        furi_string_cat_printf(json_str, ",\"ble_mac\":\"%s\"", furi_string_get_cstr(temp_str));
+    }
 
     bool otp_valid = furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp1) &&
                      furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp2) &&
@@ -137,19 +73,32 @@ static bool status_get_firmware(FuriString* json_str, ApiStatusCtx* context) {
 
     furi_string_cat_printf(
         json_str,
-        "\"version\":\"%s\",\"target\":%u,",
+        "\"version\":\"%s\",\"target\":%u",
         version_get_version(firmware_version),
         version_get_target(firmware_version));
     furi_string_cat_printf(
         json_str,
-        "\"branch\":\"%s\",\"build_date\":\"%s\",",
+        ",\"branch\":\"%s\",\"build_date\":\"%s\"",
         version_get_gitbranch(firmware_version),
         version_get_builddate(firmware_version));
     furi_string_cat_printf(
         json_str,
-        "\"commit_hash\":\"%s%s\"",
+        ",\"commit_hash\":\"%s%s\"",
         version_get_githash(firmware_version),
         version_get_dirty_flag(firmware_version) ? "-dirty" : "");
+
+    Si917InfoData info_917;
+    bool si917_data_valid = false;
+
+    if(furi_record_exists(RECORD_SI917_INFO_CLIENT)) {
+        Si917InfoClient* si917_info = furi_record_open(RECORD_SI917_INFO_CLIENT);
+        si917_data_valid = si917_info_get(si917_info, &info_917);
+        furi_record_close(RECORD_SI917_INFO_CLIENT);
+    }
+
+    if(si917_data_valid) {
+        furi_string_cat_printf(json_str, ",\"nwp_version\":\"%s\"", info_917.nwp_version);
+    }
 
     furi_string_cat_printf(json_str, "}");
 

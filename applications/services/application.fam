@@ -52,6 +52,7 @@ App(
         "matter",
         "device_name",
         "busy_timer",
+        "si917_info",
     ],
     targets=["f20", "f21", "f22"],
 )
@@ -85,6 +86,7 @@ App(
         "ble",
         "tls_crypto_server",
         "intercom_watchdog",
+        "si917_info_server",
     ],
     targets=["f64", "f65"],
 )
