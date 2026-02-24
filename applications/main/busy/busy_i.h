@@ -6,6 +6,7 @@
 #include <gui/gui.h>
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
+#include <gui/modules/mirror_card.h>
 #include <audio/audio.h>
 #include <status_lights/status_lights.h>
 #include <matter/matter.h>
@@ -24,7 +25,6 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "widgets/timer_card.h"
 #include "widgets/timer_label.h"
 #include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
@@ -88,7 +88,7 @@ struct BusyApp {
     Widget* back_window;
     // Persistent widgets
     TransitionOverlay* transition_overlay;
-    TimerCard* timer_card;
+    MirrorCard* timer_card;
     NavBar* nav_bar;
     // Misc state
     BusyTheme* theme;

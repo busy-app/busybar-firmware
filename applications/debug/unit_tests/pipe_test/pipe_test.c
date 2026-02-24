@@ -19,6 +19,11 @@ static const PipeCopyTestCase test_cases[] = {
     {"abcabcabc", "cab", "ab"},
     {"aaaabc", "abc", "aaa"},
     {"aababcabcd", "abcd", "aababc"},
+    // overlapping prefix edge cases (KMP)
+    {"aaab", "aab", "a"},
+    {"aaacaab", "aab", "aaac"},
+    {"abababab", "abab", ""},
+    {"abcababab", "abab", "abc"},
 };
 
 MU_TEST(pipe_copy_until_test) {

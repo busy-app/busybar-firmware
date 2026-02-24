@@ -1,6 +1,5 @@
 #include "../firmware_i.h"
 
-#include <gui/storage_macros.h>
 #include <gui/modules/progress_bar.h>
 #include <gui/modules/flex_box.h>
 #include <gui/modules/label.h>

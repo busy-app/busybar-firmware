@@ -22,6 +22,8 @@ extern FS_Error storage_process_common_fs_info(
 Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
+    app->shutdown_gate = furi_event_flag_alloc();
+    furi_event_flag_set(app->shutdown_gate, SHUTDOWN_GATE_FLAG);
     app->pubsub = furi_pubsub_alloc();
     app->path_aliased = furi_string_alloc();
     app->path_storage = furi_string_alloc();
@@ -120,6 +122,11 @@ int32_t storage_srv(void* p) {
 
     StorageMessage message;
     while(1) {
+        furi_event_flag_wait(
+            app->shutdown_gate,
+            SHUTDOWN_GATE_FLAG,
+            FuriFlagWaitAll | FuriFlagNoClear,
+            FuriWaitForever);
         if(furi_message_queue_get(app->message_queue, &message, FuriWaitForever) == FuriStatusOk) {
             storage_process_message(app, &message);
         }

@@ -38,9 +38,8 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     data->menu_idx = index;
-    uint32_t event = SceneCustomEventMenuItemClicked;
-    furi_check(
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+    furi_message_queue_put(
+        instance->event_queue, &(uint32_t){SceneCustomEventMenuItemClicked}, FuriWaitForever);
 }
 
 static void apps_menu_scene_main_on_enter(void* context) {
@@ -60,7 +59,6 @@ static void apps_menu_scene_main_on_enter(void* context) {
             AppsSceneMainMenuIndexClock,
             apps_scene_setup_menu_callback,
             instance);
-        menu_set_selected_item_index(data->front_menu, data->menu_idx);
 
         // back:
         data->back_menu = menu_alloc(instance->back_scene_window);
@@ -73,7 +71,6 @@ static void apps_menu_scene_main_on_enter(void* context) {
             NULL,
             instance);
 
-        menu_set_selected_item_index(data->back_menu, data->menu_idx);
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
 }

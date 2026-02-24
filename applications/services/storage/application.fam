@@ -17,6 +17,7 @@ App(
         "storages/storage_ext_sdmmc.c",
     ],
     targets=["f20", "f21", "f22"],
+    cdefines=["SRV_STORAGE"],
 )
 
 App(

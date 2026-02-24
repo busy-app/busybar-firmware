@@ -15,8 +15,11 @@ extern "C" {
 #define APPS_DATA_PATH   EXT_PATH("apps_data")
 #define APPS_ASSETS_PATH EXT_PATH("apps_assets")
 
+#define SHUTDOWN_GATE_FLAG (1 << 0)
+
 struct Storage {
     FuriMessageQueue* message_queue;
+    FuriEventFlag* shutdown_gate;
     StorageData storage[STORAGE_COUNT];
     FuriPubSub* pubsub;
 

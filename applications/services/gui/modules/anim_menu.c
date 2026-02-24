@@ -1,6 +1,5 @@
 #include "anim_menu.h"
-
-#include <gui/modules/anim_player_i.h>
+#include "anim_player_i.h"
 
 #include <storage/storage.h>
 

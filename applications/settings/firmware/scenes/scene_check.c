@@ -1,6 +1,5 @@
 #include "../firmware_i.h"
 
-#include <gui/storage_macros.h>
 #include <gui/modules/flex_box.h>
 #include <gui/modules/label.h>
 #include <gui/modules/anim_player.h>
@@ -62,7 +61,7 @@ static void this_scene_on_enter(void* context) {
         widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
 
         AnimPlayer* front_anim = anim_player_alloc(flex_box_get_base(scene->front_box));
-        anim_player_set_source(front_anim, GUI_ANIM_PATH("spinner_front_8x8.anim"));
+        anim_player_set_source(front_anim, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
 
         Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
         label_set_text(front_label, "Checking...");
@@ -75,7 +74,7 @@ static void this_scene_on_enter(void* context) {
         widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
 
         AnimPlayer* back_anim = anim_player_alloc(flex_box_get_base(scene->back_box));
-        anim_player_set_source(back_anim, GUI_ANIM_PATH("spinner_back_16x16.anim"));
+        anim_player_set_source(back_anim, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
 
         Label* back_label = label_alloc(flex_box_get_base(scene->back_box));
         label_set_text(back_label, "Checking for update...");

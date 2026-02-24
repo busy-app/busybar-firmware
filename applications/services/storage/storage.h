@@ -23,6 +23,10 @@ extern "C" {
 #define APP_DATA_PATH(path)   STORAGE_APP_DATA_PATH_PREFIX "/" path
 #define APP_ASSETS_PATH(path) STORAGE_APP_ASSETS_PATH_PREFIX "/" path
 
+#define SHARED_ASSETS_PATH(path) EXT_PATH("apps_assets/shared/" path)
+#define SHARED_ANIM_PATH(path)   SHARED_ASSETS_PATH("animations/" path)
+#define SHARED_IMG_PATH(path)    SHARED_ASSETS_PATH("images/" path)
+
 #define RECORD_STORAGE "storage"
 
 typedef struct Storage Storage;
@@ -422,6 +426,24 @@ bool storage_common_equivalent_path(Storage* storage, const char* path1, const c
  *         to `parent`; false otherwise.
  */
 bool storage_common_is_subdir(Storage* storage, const char* parent, const char* child);
+
+/**
+ * @brief Sync all files with write access and put storage in shutdown mode.
+ *
+ * In shutdown mode calls to most of the storage methods are blocked until storage_common_revive is called.
+ *
+ * @param storage pointer to a storage API instance.
+ */
+void storage_common_shutdown(Storage* storage);
+
+/**
+ * @brief Exit the shutdown mode (previously enabled by storage_common_shutdown) and continue normal operation.
+ *
+ * All pending blocked storage methods will be unblocked.
+ *
+ * @param storage pointer to a storage API instance.
+ */
+void storage_common_revive(Storage* storage);
 
 /******************* Error Functions *******************/
 

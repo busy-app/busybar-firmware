@@ -166,7 +166,7 @@ static FuriString* format_zone_info_json(const TzutilTzInfo* info) {
 static FuriString* generate_zone_list_json(const TzutilTzInfoList* infos) {
     furi_check(infos);
 
-    FuriString* r = furi_string_alloc_set("[");
+    FuriString* r = furi_string_alloc_set("{\"list\":[");
     for(size_t i = 0; i != infos->count; ++i) {
         FuriString* obj = format_zone_info_json(infos->entries + i);
 
@@ -177,7 +177,7 @@ static FuriString* generate_zone_list_json(const TzutilTzInfoList* infos) {
         furi_string_cat(r, obj);
         furi_string_free(obj);
     }
-    furi_string_cat(r, "]");
+    furi_string_cat(r, "]}");
     return r;
 }
 
