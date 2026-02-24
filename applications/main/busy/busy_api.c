@@ -9,6 +9,18 @@ static void busy_api_send_message(BusyApp* instance, BusyApiMessage* message) {
     api_lock_wait_unlock_and_free(message->lock);
 }
 
+void busy_set_config(BusyApp* instance, const BusyAppConfig* config) {
+    furi_check(instance);
+    furi_check(config);
+
+    BusyApiMessage message = {
+        .type = BusyApiMessageTypeSetConfig,
+        .data.set_config.config = config,
+    };
+
+    busy_api_send_message(instance, &message);
+}
+
 void busy_show_timer(BusyApp* instance) {
     furi_check(instance);
 

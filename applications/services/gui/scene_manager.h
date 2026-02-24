@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+#define SCENE_MANAGER_INVALID_SCENE_ID (UINT32_MAX)
+
 typedef struct SceneManager SceneManager;
 
 /** Scene Manager events type */

@@ -47,6 +47,8 @@ static void busy_scene_finish_prompt_overlay_callback(void* context) {
 static void busy_scene_finish_handle_back(BusyApp* instance) {
     busy_prepare_transition(instance, BusyTransitionTypeDefault);
 
+    busy_timer_finalize(instance->busy_timer);
+
     if(!busy_return_to_start_scene(instance)) {
         busy_exit(instance);
     }
@@ -59,8 +61,10 @@ static void busy_scene_finish_on_enter(void* context) {
     BusySceneFinish* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdFinish);
 
-    BusyTimerConfig timer_config;
-    busy_timer_get_config(instance->busy_timer, &timer_config);
+    BusyTimerRunInfo timer_info;
+    busy_timer_get_run_info(instance->busy_timer, &timer_info);
+
+    const BusyTimerConfig* timer_config = &timer_info.config;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -77,8 +81,9 @@ static void busy_scene_finish_on_enter(void* context) {
         prompt_overlay_set_animation_target(
             data->front_prompt, summary_label_get_base(data->front_summary));
 
-        if(timer_config.mode == BusyTimerModeInterval) {
-            summary_label_set_cycles_count(data->front_summary, timer_config.cycle_count);
+        if(timer_config->mode == BusyTimerModeInterval) {
+            const BusyTimerIntervalConfig* interval_config = &timer_config->interval;
+            summary_label_set_cycles_count(data->front_summary, interval_config->cycles_count);
             prompt_overlay_set_callback(
                 data->front_prompt, busy_scene_finish_prompt_overlay_callback, instance);
         }
@@ -113,10 +118,8 @@ static bool busy_scene_finish_on_event(const SceneManagerEvent* event, void* con
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == BusyCustomEventStartShortPressed) {
-            busy_scene_finish_handle_back(instance);
-
-        } else if(event->event == BusyCustomEventReturnToStart) {
+        if(event->event == BusyCustomEventStartShortPressed ||
+           event->event == BusyCustomEventReturnToStart) {
             busy_scene_finish_handle_back(instance);
         }
 

@@ -18,8 +18,6 @@
 #include "busy_theme.h"
 #include "busy_presets.h"
 
-#include "settings/busy_settings.h"
-
 #include "storage_macros.h"
 
 #include "helpers/run_later.h"
@@ -55,17 +53,28 @@ typedef enum {
     BusyCustomEventOkShortPressed,
     BusyCustomEventReturnToStart,
     BusyCustomEventAnimationCompleted,
+    BusyCustomEventAppConfigChanged,
     BusyCustomEventMax,
 } BusyCustomEvent;
 
 typedef enum {
+    BusyApiMessageTypeSetConfig,
     BusyApiMessageTypeShowTimer,
     BusyApiMessageTypeRequestExit,
     BusyApiMessageTypeMax,
 } BusyApiMessageType;
 
 typedef struct {
+    const BusyAppConfig* config;
+} BusyApiMessageSetConfig;
+
+typedef union {
+    BusyApiMessageSetConfig set_config;
+} BusyApiMessageData;
+
+typedef struct {
     BusyApiMessageType type;
+    BusyApiMessageData data;
     FuriApiLock lock;
 } BusyApiMessage;
 
@@ -92,9 +101,9 @@ struct BusyApp {
     NavBar* nav_bar;
     // Misc state
     BusyTheme* theme;
-    BusySettings settings;
     BusyAppRunMode run_mode;
-    BusyAppGlobalPresetId global_preset_id;
+    BusyAppConfig config;
+    BusyAppPresetId preset_id;
     bool show_timer_requested;
 };
 
@@ -114,16 +123,18 @@ void busy_push_location(BusyApp* instance, const char* location_name);
 
 void busy_pop_location(BusyApp* instance);
 
-void busy_go_to_initial_scene(BusyApp* instance);
-
-void busy_go_to_show_timer_scene(BusyApp* instance);
-
 bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);
 
-void busy_load_settings(BusyApp* instance);
+void busy_load_app_config(BusyApp* instance);
 
-void busy_save_settings(BusyApp* instance);
+void busy_apply_app_config(BusyApp* instance);
+
+void busy_get_timer_preset(BusyApp* instance, BusyTimerPreset* timer_preset);
+
+void busy_set_timer_preset(BusyApp* instance, BusyTimerPreset* timer_preset);
 
 const BusyAppGlobalPreset* busy_get_global_preset(const BusyApp* instance);
+
+BusyTimerProfileId busy_get_profile_id(const BusyApp* instance);

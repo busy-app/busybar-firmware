@@ -137,7 +137,14 @@ void scene_manager_handle_tick_event(SceneManager* instance) {
 
 uint32_t scene_manager_get_current_scene_id(const SceneManager* instance) {
     furi_check(instance);
-    return *SceneIdStack_back(REMOVE_CONST(instance->scene_id_stack));
+
+    uint32_t scene_id = SCENE_MANAGER_INVALID_SCENE_ID;
+
+    if(SceneIdStack_size(instance->scene_id_stack) > 0) {
+        scene_id = *SceneIdStack_back(REMOVE_CONST(instance->scene_id_stack));
+    }
+
+    return scene_id;
 }
 
 SceneData* scene_manager_get_scene_data(const SceneManager* instance, uint32_t scene_id) {
