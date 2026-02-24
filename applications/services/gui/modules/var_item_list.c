@@ -336,7 +336,7 @@ static void var_item_editor_update(VarItemEditor* instance) {
 
 static void var_item_editor_increment(VarItemEditor* instance) {
     if(instance->value < instance->max) {
-        instance->value += instance->step;
+        instance->value += instance->step - (instance->value % instance->step);
 
         if(instance->callback) {
             instance->callback(var_item_editor_get_item(instance), instance->context);
@@ -348,7 +348,7 @@ static void var_item_editor_increment(VarItemEditor* instance) {
 
 static void var_item_editor_decrement(VarItemEditor* instance) {
     if(instance->value > instance->min) {
-        instance->value -= instance->step;
+        instance->value -= instance->step + (instance->value % instance->step);
 
         if(instance->callback) {
             instance->callback(var_item_editor_get_item(instance), instance->context);
@@ -592,9 +592,7 @@ void var_item_set_value(VarItem* item, int32_t value) {
     furi_check(item);
 
     VarItemEditor* editor = item->editor;
-    furi_check(value >= editor->min);
-    furi_check(value <= editor->max);
-    furi_check(value % editor->step == 0);
+    value = CLAMP(value, editor->max, editor->min);
 
     if(editor->value != value) {
         editor->value = value;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "busy_common.h"
+
 #define RECORD_BUSY_APP "busy_app"
 
 /**
@@ -33,6 +35,8 @@ extern "C" {
 #endif
 
 typedef struct BusyApp BusyApp;
+
+void busy_set_config(BusyApp* instance, const BusyAppConfig* config);
 
 void busy_show_timer(BusyApp* instance);
 

@@ -66,14 +66,17 @@ static void busy_scene_progress_on_enter(void* context) {
     BusySceneProgress* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
-    const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
+    BusyTimerRunInfo timer_info;
+    busy_timer_get_run_info(instance->busy_timer, &timer_info);
 
-    BusyTimerCycles timer_cycles;
-    busy_timer_get_cycles(instance->busy_timer, &timer_cycles);
+    BusyTimerConfig* timer_config = &timer_info.config;
+    furi_check(timer_config->mode == BusyTimerModeInterval);
 
-    const uint32_t curr_interval_idx = timer_cycles.current_idx;
+    const BusyTimerState timer_state = timer_info.state;
+
+    const uint32_t curr_interval_idx = timer_info.current_interval_idx;
     const uint32_t prev_interval_idx = curr_interval_idx - 1;
-    const uint32_t num_cycles = timer_cycles.total_count;
+    const uint32_t num_cycles = timer_config->interval.cycles_count;
 
     BusyStatusLightsType status_lights;
     uint32_t num_intervals_done;

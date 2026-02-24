@@ -50,7 +50,7 @@ static bool api_busy_set_snapshot_callback(
 
     do {
         BusyTimerSnapshot snapshot;
-        if(!busy_timer_snapshot_deserialize(&snapshot, msg->body.buf)) {
+        if(!busy_timer_snapshot_deserialize(&snapshot, msg->body.buf, msg->body.len)) {
             error_msg = "Failed to parse snapshot";
             break;
         }

@@ -4,7 +4,7 @@
 
 #define BG_FILE_NAME "bg"
 
-#define DEFAULT_NAME "default"
+#define DEFAULT_NAME "busy"
 
 struct BusyTheme {
     FuriString* name;

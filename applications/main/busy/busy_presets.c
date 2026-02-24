@@ -200,20 +200,18 @@ const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax] = {
         },
 };
 
-const BusyAppGlobalPreset busy_app_global_presets[BusyAppGlobalPresetIdMax] = {
-    [BusyAppGlobalPresetIdBusy] =
+const BusyAppGlobalPreset busy_app_global_presets[BusyAppPresetIdMax] = {
+    [BusyAppPresetIdBusy] =
         {
             .header_img_path = BUSY_IMG_PATH("header_busy_41x16.bin"),
             .start_anim_path = BUSY_ANIM_PATH("start_logo_busy_41x16.anim"),
             .timer_profile_id = BusyTimerProfileIdBusy,
-            .settings_profile_id = BusySettingsProfileIdBusy,
         },
 
-    [BusyAppGlobalPresetIdCustom] =
+    [BusyAppPresetIdCustom] =
         {
             .header_img_path = BUSY_IMG_PATH("header_custom_41x16.bin"),
             .start_anim_path = BUSY_ANIM_PATH("start_logo_custom_41x16.anim"),
             .timer_profile_id = BusyTimerProfileIdCustom,
-            .settings_profile_id = BusySettingsProfileIdCustom,
         },
 };

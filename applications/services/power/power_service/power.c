@@ -1,6 +1,9 @@
 #include "power_i.h"
 #include <toolbox/dsp.h>
 #include <drivers/bq25798/bq25798.h>
+#if defined(SRV_STORAGE)
+#include <storage/storage.h>
+#endif
 
 #include <furi_hal_nvm.h>
 
@@ -86,8 +89,17 @@ static void power_gpio_isr(void* context) {
     furi_semaphore_release(power->gpio_semaphore);
 }
 
+static void shutdown_storage(void) {
+#if defined(SRV_STORAGE)
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    storage_common_shutdown(storage);
+    furi_record_close(RECORD_STORAGE);
+#endif
+}
+
 static void power_handle_shutdown(Power* power, bool full_shutdown) {
     UNUSED(power);
+    shutdown_storage();
     furi_hal_i2c_acquire(POWER_I2C);
 
     if(full_shutdown) {
@@ -101,6 +113,7 @@ static void power_handle_shutdown(Power* power, bool full_shutdown) {
 static void power_handle_reboot(Power* power, PowerRebootMode mode) {
     UNUSED(power);
     if(mode == PowerRebootHardware) {
+        shutdown_storage();
         furi_hal_i2c_acquire(POWER_I2C);
         bq25798_power_switch(POWER_I2C, Bq25798PowerReset);
         furi_hal_i2c_release(POWER_I2C);
@@ -115,10 +128,12 @@ static void power_handle_reboot(Power* power, PowerRebootMode mode) {
     }
 
     if((mode == PowerRebootNormal) || (mode == PowerRebootNormalU5)) {
+        shutdown_storage();
         furi_hal_cortex_system_reset();
         furi_crash("Should never happen");
     } else if(mode == PowerRebootDfuU5) {
         // TODO: set RTC flag & reboot
+        shutdown_storage();
         furi_hal_deinit_early();
         furi_hal_cortex_jump(FuriHalCortexJumpDFU);
         furi_crash("Should never happen");

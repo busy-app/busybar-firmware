@@ -7,15 +7,8 @@
 typedef struct {
     VarItemList* front_list;
     VarItemList* back_list;
+    VarItem* saved_item;
 } BusySceneSetupSmartHome;
-
-static void busy_scene_setup_smart_home_enabled_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySettings* settings = context;
-    settings->is_smart_home_enabled = var_item_get_value(item);
-}
 
 static void busy_scene_setup_smart_home_on_enter(void* context) {
     furi_assert(context);
@@ -24,7 +17,10 @@ static void busy_scene_setup_smart_home_on_enter(void* context) {
     BusySceneSetupSmartHome* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupSmartHome);
 
-    BusySettings* settings = &instance->settings;
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
+
+    const bool is_smart_home_enabled = timer_preset.app_config.is_smart_home_enabled;
 
     with_gui(instance->gui, {
         data->front_list = var_item_list_alloc(instance->front_window);
@@ -32,15 +28,13 @@ static void busy_scene_setup_smart_home_on_enter(void* context) {
 
         VarItem* item;
 
-        item = var_item_list_add_switch(
-            data->front_list,
-            ITEM_LABEL_ENABLE,
-            busy_scene_setup_smart_home_enabled_changed_callback,
-            settings);
-        var_item_set_value(item, settings->is_smart_home_enabled);
+        item = var_item_list_add_switch(data->front_list, ITEM_LABEL_ENABLE, NULL, NULL);
+        var_item_set_value(item, is_smart_home_enabled);
 
         item = var_item_list_add_switch(data->back_list, ITEM_LABEL_ENABLE, NULL, NULL);
-        var_item_set_value(item, settings->is_smart_home_enabled);
+        var_item_set_value(item, is_smart_home_enabled);
+        // Saving the last item to get its value later
+        data->saved_item = item;
     });
 }
 
@@ -51,7 +45,14 @@ static void busy_scene_setup_smart_home_on_exit(void* context) {
     BusySceneSetupSmartHome* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupSmartHome);
 
-    busy_save_settings(instance);
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
+
+    BusyAppConfig* app_config = &timer_preset.app_config;
+    app_config->is_smart_home_enabled = var_item_get_value(data->saved_item);
+
+    instance->config = *app_config;
+    busy_set_timer_preset(instance, &timer_preset);
 
     with_gui(instance->gui, {
         var_item_list_free(data->front_list);

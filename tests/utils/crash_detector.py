@@ -9,12 +9,9 @@ import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 import allure
-
-if TYPE_CHECKING:
-    from .device_flasher import DeviceFlasher
 
 from config.config import Config
 
@@ -88,15 +85,11 @@ class CrashDetector:
         else:
             logger.debug("No crash flag file present at test start")
 
-    def check_for_crash(
-        self,
-        flasher: Optional["DeviceFlasher"] = None,
-    ) -> Optional[CrashInfo]:
+    def check_for_crash(self) -> Optional[CrashInfo]:
         """
         Check if a crash occurred during the test.
 
-        Args:
-            flasher: Optional DeviceFlasher to use for recovery.
+        Device recovery is handled separately by device_health_monitor.
 
         Returns:
             CrashInfo if crash detected, None otherwise.
@@ -109,20 +102,15 @@ class CrashDetector:
             logger.debug("No crash flag file present after test")
             return None
 
-        # Check if file was created or updated
         crash_detected = False
-
         with allure.step("Checking for device crash"):
             if self._initial_state is None:
-                # File was created during test
                 crash_detected = True
                 logger.error("Crash flag file was created during test!")
             elif current_mtime != self._initial_mtime:
-                # File was updated during test
                 crash_detected = True
                 logger.error("Crash flag file was updated during test!")
             elif current_state.get("timestamp") != self._initial_state.get("timestamp"):
-                # Timestamp changed (extra safety check)
                 crash_detected = True
                 logger.error("Crash timestamp changed during test!")
 
@@ -136,10 +124,6 @@ class CrashDetector:
                 f"Line: {crash_info.crash_line}"
             )
             self._attach_crash_info(crash_info)
-
-            if flasher:
-                flasher.reset_and_wait()
-
             self._attach_trace_file(crash_info.trace_file)
 
             return crash_info
