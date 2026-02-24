@@ -85,7 +85,7 @@ static void storage_path_trim_trailing_slashes(FuriString* path) {
     }
 }
 
-static bool storage_do_close(Storage* app, StorageData* storage, File* file, bool pop_file) {
+static bool storage_do_close(Storage* app, StorageData* storage, File* file) {
     bool ret = false;
     StorageEventType event_type = StorageEventTypeFileClose;
     switch(file->type) {
@@ -102,9 +102,8 @@ static bool storage_do_close(Storage* app, StorageData* storage, File* file, boo
         return false;
     }
 
-    if(pop_file) {
-        storage_pop_storage_file(file, storage);
-    }
+    storage_pop_storage_file(file, storage);
+
     StorageEvent event = {.type = event_type};
     furi_pubsub_publish(app->pubsub, &event);
 
@@ -159,7 +158,7 @@ static bool storage_process_file_close(Storage* app, File* file) {
     if(storage == NULL) {
         file->error_id = FSE_INVALID_PARAMETER;
     } else {
-        ret = storage_do_close(app, storage, file, true);
+        ret = storage_do_close(app, storage, file);
     }
 
     return ret;
@@ -338,7 +337,7 @@ bool storage_process_dir_close(Storage* app, File* file) {
     if(storage == NULL) {
         file->error_id = FSE_INVALID_PARAMETER;
     } else {
-        ret = storage_do_close(app, storage, file, true);
+        ret = storage_do_close(app, storage, file);
     }
 
     return ret;

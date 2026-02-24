@@ -744,45 +744,59 @@ typedef struct {
 
 #define SHUTDOWN_TEST_PATH UNIT_TESTS_PATH("shutdown.test")
 
+typedef enum {
+    TestErrorOk = 0,
+    TestErrorQueueGet1,
+    TestErrorOpen,
+    TestErrorWrite1,
+    TestErrorQueueGet2,
+    TestErrorWrite2,
+} TestError;
+
+typedef enum {
+    TestMessageWriteDone,
+    TestMessageThreadDone,
+} TestMessage;
+
 static int32_t shutdown_file_write_thread(void* context) {
     ShutdownThreadData* data = context;
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
     int msg = 0;
-    int32_t ret = 0;
+    int32_t ret = TestErrorOk;
 
     File* f = storage_file_alloc(storage);
     do {
-        if(furi_message_queue_get(data->rx, &msg, 10)) {
-            ret = 5;
+        if(furi_message_queue_get(data->rx, &msg, 10) != FuriStatusOk) {
+            ret = TestErrorQueueGet1;
             break;
         }
         if(!storage_file_open(f, SHUTDOWN_TEST_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
-            ret = 10;
+            ret = TestErrorOpen;
             break;
         }
 
         if(storage_file_write(f, "hello", 5) != 5) {
-            ret = 20;
+            ret = TestErrorWrite1;
             break;
         }
 
-        msg = 0;
+        msg = TestMessageWriteDone;
         furi_message_queue_put(data->tx, &msg, FuriWaitForever);
 
-        if(furi_message_queue_get(data->rx, &msg, 10)) {
-            ret = 30;
+        if(furi_message_queue_get(data->rx, &msg, 10) != FuriStatusOk) {
+            ret = TestErrorQueueGet2;
             break;
         }
         if(storage_file_write(f, "rld", 3) != 3) {
-            ret = 40;
+            ret = TestErrorWrite2;
             break;
         }
     } while(false);
     storage_file_free(f);
     furi_record_close(RECORD_STORAGE);
 
-    msg = 1;
+    msg = TestMessageThreadDone;
     furi_message_queue_put(data->tx, &msg, FuriWaitForever);
     return ret;
 }
@@ -811,7 +825,7 @@ MU_TEST(test_storage_common_shutdown) {
     furi_message_queue_put(tx, &msg, FuriWaitForever);
 
     furi_message_queue_get(rx, &msg, FuriWaitForever);
-    mu_assert_int_eq(0, msg);
+    mu_assert_int_eq(TestMessageWriteDone, msg);
 
     // First part of the file has been written
 
@@ -827,10 +841,10 @@ MU_TEST(test_storage_common_shutdown) {
 
     storage_common_revive(storage);
     mu_assert_int_eq(FuriStatusOk, furi_message_queue_get(rx, &msg, FuriWaitForever));
-    mu_assert_int_eq(1, msg);
+    mu_assert_int_eq(TestMessageThreadDone, msg);
 
     furi_thread_join(thread);
-    mu_assert_int_eq(0, furi_thread_get_return_code(thread));
+    mu_assert_int_eq(TestErrorOk, furi_thread_get_return_code(thread));
 
     // Check file contents
 

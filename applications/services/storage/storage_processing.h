@@ -9,10 +9,6 @@
 extern "C" {
 #endif
 
-/**
- * @brief Process storage API message.
- *
- */
 void storage_process_message(Storage* app, StorageMessage* message);
 
 #ifdef __cplusplus
