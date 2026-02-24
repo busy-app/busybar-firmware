@@ -55,6 +55,7 @@
 
           <div class="w-full flex justify-end">
             <UButton
+              v-if="firmwareStore.autoUpdate.progress < 100"
               color="neutral"
               size="lg"
               variant="ghost"

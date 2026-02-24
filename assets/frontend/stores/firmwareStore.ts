@@ -293,14 +293,15 @@ export const useFirmwareStore = defineStore('firmware', () => {
         autoUpdate.value.progress = fileUpdate.value.progress;
 
         if (fileUpdate.value.progress === 100) {
-          // used UNPACKING here, now deprecated
-          fileUpdate.value.stage = UpdateStage.UPDATING;
+          console.debug('Firmware file upload completed, waiting for device to unpack');
         }
       }
     };
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 400) {
+        console.debug('Upload and unpacking complete, waiting for device to reboot');
+
         fileUpdate.value.stage = UpdateStage.UPDATING;
         toast.add({
           title: 'Update initiated',
@@ -348,7 +349,6 @@ export const useFirmwareStore = defineStore('firmware', () => {
 
     fileUpdate.value.firmwareFile = null;
     if (fileUpdate.value.stage as UpdateStage !== UpdateStage.ERROR) {
-      fileUpdate.value.stage = UpdateStage.UPDATING;
       fileUpdate.value.progress = 0;
     }
   }
