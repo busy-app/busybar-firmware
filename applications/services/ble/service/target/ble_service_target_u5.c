@@ -123,16 +123,18 @@ static bool ble_service_command_handler_run(
         BleIntercomServiceData* config =
             ble_service_create_intercom_service_data_pack(instance, true, &total_size);
 
-        BLE_LOG_D("%s - config size: %d", instance->config->name, total_size);
-        result = true;
+        if(config->char_count > 0) {
+            BLE_LOG_D("%s - config size: %d", instance->config->name, total_size);
+            result = true;
 
-        ble_service_prepare_send_intercom_frame(
-            instance,
-            BleIntercomFrameTypeRequest,
-            BleServiceCommandUpdate,
-            result,
-            total_size,
-            config);
+            ble_service_prepare_send_intercom_frame(
+                instance,
+                BleIntercomFrameTypeRequest,
+                BleServiceCommandUpdate,
+                result,
+                total_size,
+                config);
+        }
 
         free(config);
 

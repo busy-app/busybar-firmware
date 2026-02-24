@@ -22,7 +22,7 @@
 #define TAG "BleWorker"
 
 ///TODO: Remove after all connection issues will be resolved
-// Uncommend macro below in order to force ble advertising with public address only
+// Uncomment macro below in order to force ble advertising with public address only
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
@@ -48,7 +48,13 @@
 #define ON_LE_LINK_ONLY          BIT(6) ///< LE link-only mode
 #define VARIABLE_ATT_CHAR_VAL    BIT(7) ///< Variable characteristic value length
 
-#define RSI_BLE_ATT_CONFIG_BITMAP (SEC_MODE_1_LEVEL_4)
+#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
+#define BLE_SCURITY_MODE SEC_MODE_1_LEVEL_1
+#else
+#define BLE_SCURITY_MODE SEC_MODE_1_LEVEL_4
+#endif
+
+#define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SCURITY_MODE)
 
 #ifdef RSI_BLE_SMP_IO_CAPABILITY
 #undef RSI_BLE_SMP_IO_CAPABILITY
@@ -107,8 +113,8 @@ typedef enum {
 
 typedef struct {
     FuriThread* thread;
+    FuriSemaphore* receive_sem;
     FuriSemaphore* indication_sem;
-    FuriSemaphore* notification_sem;
     uint8_t pairing_info_available;
     ///TODO: this can be removed
     bool connected;
@@ -470,6 +476,9 @@ static bool ble_worker_start_advertising(
 #endif
 
     ble_adv.status = RSI_BLE_START_ADV;
+    ///TODO: This is blocked because it doesn't work on IPhone. It just doesn't see
+    ///BSB in case of direct advertise.
+    // ble_adv.adv_type = advertise_to_paired_only ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
     ble_adv.adv_type = UNDIR_CONN;
 
     ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
@@ -481,6 +490,8 @@ static bool ble_worker_start_advertising(
         rsi_ble_addto_acceptlist((int8_t*)key->Identity_addr, key->Identity_addr_type);
         ble_adv.filter_type = ALLOW_SCAN_REQ_ACCEPT_LIST_CONN_REQ_ACCEPT_LIST;
         ble_adv.own_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
+        memcpy(ble_adv.direct_addr, key->Identity_addr, 6);
+        ble_adv.direct_addr_type = key->Identity_addr_type;
     } else {
         ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
         ble_adv.own_addr_type = LE_PUBLIC_ADDRESS;
@@ -620,6 +631,59 @@ static int32_t ble_worker_thread_callback(void* context) {
     while(true) {
         uint32_t events =
             furi_thread_flags_wait(BLE_USART_ECHO_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
+
+        if(events & BLEWorkerEvtIndicateConfirm) {
+            BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
+            furi_semaphore_release(ble_worker_instance->indication_sem);
+        }
+
+        if(events & BLEWorkerEvtWrite) {
+            uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
+            if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
+                const void* data = instance->app_ble_write_event.att_value;
+                const size_t data_size = instance->app_ble_write_event.length;
+
+                BleServiceEntry* entry =
+                    BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
+
+                if(entry) {
+                    furi_semaphore_acquire(ble_worker_instance->receive_sem, FuriWaitForever);
+
+                    BLE_LOG_D("Entry present");
+                    BleServiceObject* service = entry->service;
+                    if(ble_service_lock(service)) {
+                        BleCharacteristicObject* ch = service->chars[entry->char_index];
+
+                        if(ble_characteristic_is_cccd_handle(ch, handle)) {
+                            uint8_t ccd_val = *((uint8_t*)data);
+                            ble_characteristic_set_cccd_value(ch, ccd_val);
+                            status = rsi_ble_gatt_write_response(
+                                ble_worker_instance->remote_dev_address, 0);
+                            if(handle == 0x001D) BLE_LOG_W("Subscribed!");
+
+                            furi_semaphore_release(ble_worker_instance->receive_sem);
+                        } else {
+                            furi_check(data_size > 0);
+                            ble_characteristic_set_data(ch, data, data_size);
+                            ble_service_enqueue_run(service);
+                        }
+
+                        ble_service_unlock(service);
+                    } else
+                        furi_crash("FAIL!");
+                } else {
+                    BLE_LOG_W("Not found: %04X", handle);
+                    status =
+                        rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
+                }
+            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
+                BLE_LOG_W("Notification event");
+            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_INDICATION_EVENT) {
+                BLE_LOG_W("Indication event");
+            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_CMD_EVENT) {
+                BLE_LOG_W("CMD event");
+            }
+        }
 
         if(events & BLEWorkerEvtConnected) {
             //! event invokes when connection was completed
@@ -763,61 +827,14 @@ static int32_t ble_worker_thread_callback(void* context) {
             }
         }
 
-        if(events & BLEWorkerEvtWrite) {
-            uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
-            if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
-                const void* data = instance->app_ble_write_event.att_value;
-                const size_t data_size = instance->app_ble_write_event.length;
-
-                if(handle == 0x001D) BLE_LOG_W("Subscribed!");
-
-                BleServiceEntry* entry =
-                    BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
-
-                if(entry) {
-                    BLE_LOG_D("Entry present");
-                    BleServiceObject* service = entry->service;
-                    if(ble_service_lock(service)) {
-                        BleCharacteristicObject* ch = service->chars[entry->char_index];
-
-                        if(ble_characteristic_is_cccd_handle(ch, handle)) {
-                            ble_characteristic_set_cccd_value(ch, *((uint8_t*)data));
-                        } else {
-                            ble_characteristic_set_data(ch, data, data_size);
-                            ble_service_enqueue_run(service);
-                        }
-
-                        ble_service_unlock(service);
-                    } else
-                        furi_crash("FAIL!");
-                } else {
-                    BLE_LOG_W("Not found: %04X", handle);
-                    status =
-                        rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
-                }
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_NOTIFICATION_EVENT) {
-                BLE_LOG_W("Notification event");
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_INDICATION_EVENT) {
-                BLE_LOG_W("Indication event");
-            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_CMD_EVENT) {
-                BLE_LOG_W("CMD event");
-            }
-        }
-
         if(events & BLEWorkerEvtMoreDataReq) {
             BLE_LOG_D("BLEWorkerEvtMoreDataReq");
-            furi_semaphore_release(ble_worker_instance->notification_sem);
         }
 
         if(events & BLEWorkerEvtExit) {
             instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle :
                                                               BleWorkerStateError;
             break;
-        }
-
-        if(events & BLEWorkerEvtIndicateConfirm) {
-            BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
-            furi_semaphore_release(ble_worker_instance->indication_sem);
         }
 
         if(events & BLEWorkerSmpResponse) {
@@ -1039,7 +1056,7 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     ble_worker_instance->on_connection_changed_cb = connect_callback;
     ble_worker_instance->on_connection_changed_ctx = ctx;
     ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
-    ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
+    ble_worker_instance->receive_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
     ble_worker_instance->security_data = ble_security_alloc();
     ble_worker_instance->advertise = ble_advertise_alloc();
@@ -1079,7 +1096,7 @@ bool ble_worker_register_service(BleServiceObject* service) {
         service->handle = new_serv_resp.start_handle;
 
         uint16_t handle = new_serv_resp.start_handle;
-        BLE_LOG_D("Register servive: 0x%04X", new_serv_resp.start_handle);
+        BLE_LOG_D("Register service: 0x%04X", new_serv_resp.start_handle);
         for(uint8_t i = 0; i < service->config->char_count; i++) {
             BleCharacteristicObject* ch = service->chars[i];
             const BleCharacteristicDescriptor* ch_config = ble_characteristic_get_config(ch);
@@ -1147,10 +1164,6 @@ void ble_worker_stop() {
     BLE_LOG_I("BLE Stopped");
 }
 
-void ble_worker_test_after_init() {
-    ble_print_service_hierarchy(0x0023);
-}
-
 static void ble_worker_send_chunk(
     uint16_t handle,
     uint16_t data_size,
@@ -1162,22 +1175,16 @@ static void ble_worker_send_chunk(
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
         status = rsi_ble_indicate_value(
             ble_worker_instance->remote_dev_address, handle, data_size, data);
-
-        if(furi_semaphore_acquire(ble_worker_instance->indication_sem, 2000) != FuriStatusOk) {
-            furi_crash("Indication failed");
+        if(status == RSI_SUCCESS)
+            furi_semaphore_acquire(ble_worker_instance->indication_sem, FuriWaitForever);
+        else {
+            BLE_LOG_W("Indicate fail %08lX", status);
+            rsi_ble_disconnect((int8_t*)ble_worker_instance->remote_dev_address);
         }
-    } else if(ble_worker_instance->connected && BLE_CCCD_NOTIFICATION_ENABLED(cccd_value)) {
-        if(furi_semaphore_acquire(ble_worker_instance->notification_sem, 2000) != FuriStatusOk) {
-            //furi_crash("Notification failed");
-            BLE_LOG_W("Notification failed for %04X", handle);
-        }
-        status =
-            rsi_ble_notify_value(ble_worker_instance->remote_dev_address, handle, data_size, data);
     } else {
         status = rsi_ble_set_local_att_value(handle, data_size, data);
+        if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
     }
-
-    if(status != 0) BLE_LOG_W("Send fail %08lX", status);
 }
 
 void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
@@ -1203,6 +1210,7 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
         status = rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
     }
 
+    furi_semaphore_release(ble_worker_instance->receive_sem);
     if(status != 0) BLE_LOG_W("Recv fail %08lX", status);
 }
 

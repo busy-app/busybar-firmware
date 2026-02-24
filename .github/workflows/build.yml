@@ -151,3 +151,14 @@ jobs:
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
     secrets: inherit
+
+  integration-tests:
+    needs: build
+    if: ${{ needs.build.result == 'success' && needs.build.outputs.update_url != '' }}
+    uses: './.github/workflows/integration-tests.yml'
+    with:
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      update_url: ${{ needs.build.outputs.update_url }}
+      target: ${{ needs.build.outputs.bundle_target_spec }}
+    secrets: inherit
