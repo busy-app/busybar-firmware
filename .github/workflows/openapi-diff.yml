@@ -172,7 +172,11 @@ jobs:
                   EVENT_AUTHOR="${{ github.actor }}"
                   STATUS=${{ steps.oasdiff.outputs.exit_code == '0' && '"✅ No breaking changes"' || '"❌ Breaking changes detected"' }}
 
-                  SUMMARY=$(echo '${{ steps.oasdiff.outputs.summary }}' | head -30)
+                  # Build a brief changelog for Slack (strip markdown heading, limit length)
+                  CHANGELOG=$(echo '${{ steps.oasdiff.outputs.changelog }}' | grep -v '^# ' | head -20)
+                  if [ -z "$CHANGELOG" ]; then
+                    CHANGELOG="No structural API changes"
+                  fi
 
                   VERSION_BASE="${{ steps.version_check.outputs.base_version }}"
                   VERSION_CURR="${{ steps.version_check.outputs.current_version }}"
@@ -188,7 +192,7 @@ jobs:
                     -H 'Content-Type: application/json' \
                     -d "$(jq -n \
                       --arg status "$STATUS" \
-                      --arg summary "$SUMMARY" \
+                      --arg changelog "$CHANGELOG" \
                       --arg version "$VERSION_LINE" \
                       --arg pr_title "$EVENT_TITLE" \
                       --arg pr_url "$EVENT_URL" \
@@ -205,7 +209,7 @@ jobs:
                           },
                           {
                             type: "section",
-                            text: { type: "mrkdwn", text: ("```" + $summary + "```") }
+                            text: { type: "mrkdwn", text: $changelog }
                           }
                         ]
                       }'
