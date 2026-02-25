@@ -42,11 +42,20 @@ static void ble_session_reset(BleHttpRepeater* instance) {
 
 static void ble_session_callback(size_t data_size, void* data, void* context) {
     furi_assert(context);
-    furi_assert(data_size == sizeof(uint32_t));
-    const uint32_t session = *((uint32_t*)data);
-    if(session == 0) {
+    do {
+        if(data_size != sizeof(uint32_t)) {
+            FURI_LOG_W(TAG, "Wrong session data size");
+            break;
+        }
+
+        const uint32_t session = *((uint32_t*)data);
+        if(session != 0) {
+            FURI_LOG_W(TAG, "Session not 0, ignore");
+            break;
+        }
+
         ble_session_reset(context);
-    }
+    } while(false);
 }
 
 static void ble_session_update_on_open(BleHttpRepeater* instance) {
