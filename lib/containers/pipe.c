@@ -12,6 +12,7 @@ typedef struct {
         instance_count; // <! 1 = both sides, 0 = only one side. Alice uses this one to connect the pipe to her EventLoop.
     FuriSemaphore* bobs_instance_count; // <! Bob uses this one to connect the pipe to his EventLoop.
     FuriMutex* state_transition;
+    volatile bool force_broken; // <! Set by pipe_close() to signal broken state without freeing
 } PipeShared;
 
 /**
@@ -79,8 +80,14 @@ PipeRole pipe_role(PipeSide* pipe) {
 
 PipeState pipe_state(PipeSide* pipe) {
     furi_check(pipe);
+    if(pipe->shared->force_broken) return PipeStateBroken;
     uint32_t count = furi_semaphore_get_count(pipe->shared->instance_count);
     return (count == 1) ? PipeStateOpen : PipeStateBroken;
+}
+
+void pipe_close(PipeSide* pipe) {
+    furi_check(pipe);
+    pipe->shared->force_broken = true;
 }
 
 void pipe_free(PipeSide* pipe) {
