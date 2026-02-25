@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 7.0.0
+  version: 8.0.0
   contact:
     name: tbd
 
@@ -963,6 +963,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Status"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status/device:
+    get:
+      tags:
+        - System
+      summary: Get device info
+      description: Get device info
+      operationId: getStatusDevice
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusDevice"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status/firmware:
+    get:
+      tags:
+        - System
+      summary: Get firmware info
+      description: Get firmware info
+      operationId: getStatusFirmware
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusFirmware"
         "500":
           description: Internal server error
           content:
@@ -2106,26 +2148,62 @@ components:
     Status:
       type: object
       properties:
+        device:
+          $ref: "#/components/schemas/StatusDevice"
+        firmware:
+          $ref: "#/components/schemas/StatusFirmware"
         system:
           $ref: "#/components/schemas/StatusSystem"
         power:
           $ref: "#/components/schemas/StatusPower"
 
-    StatusSystem:
+    StatusDevice:
       type: object
       properties:
         serial_number:
           type: string
           description: Device serial number
           example: "203638485431500400123456"
-        api_semver:
+        usb_mac:
           type: string
-          description: API SemVer
-          example: "0.0.0"
+          description: MAC of USB ethernet device
+          example: "0c:fa:22:21:2a:31"
+        wifi_mac:
+          type: string
+          description: WIFI MAC
+          example: "0c:fa:22:21:2a:31"
+        ble_mac:
+          type: string
+          description: BLE MAC
+          example: "0c:fa:22:21:2a:31"
+        otp_valid:
+          type: boolean
+          description: Is OTP data valid
+          example: true
+        otp_model:
+          type: string
+          description: Device model code
+          example: "BB.1"
+        otp_timestamp:
+          type: integer
+          description: Production timestamp
+          example: 1767225600
+      required:
+        - serial_number
+        - usb_mac
+        - otp_valid
+
+    StatusFirmware:
+      type: object
+      properties:
         version:
           type: string
           description: Firmware version
           example: "1.0.0"
+        target:
+          type: integer
+          description: Firmware target code
+          example: 22
         branch:
           type: string
           description: Git branch name
@@ -2138,6 +2216,24 @@ components:
           type: string
           description: Git commit hash (may include -dirty suffix)
           example: "abc123def456-dirty"
+        nwp_version:
+          type: string
+          description: Radio firmware version
+          example: "1711.2.14.5.2.0.7"
+      required:
+        - version
+        - target
+        - branch
+        - build_date
+        - commit_hash
+
+    StatusSystem:
+      type: object
+      properties:
+        api_semver:
+          type: string
+          description: API SemVer
+          example: "0.0.0"
         uptime:
           type: string
           description: System uptime
@@ -2146,6 +2242,10 @@ components:
           type: integer
           description: System boot timestamp
           example: 1767225600
+      required:
+        - api_semver
+        - uptime
+        - boot_time
 
     StatusPower:
       type: object
@@ -2171,6 +2271,12 @@ components:
           type: integer
           description: USB voltage in mV
           example: 4843
+      required:
+        - state
+        - battery_charge
+        - battery_voltage
+        - battery_current
+        - usb_voltage
 
     WifiSecurityMethod:
       type: string
