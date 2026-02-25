@@ -2629,20 +2629,20 @@ components:
         title:
           type: string
           example: "study"
+        id:
+          type: string
+          format: uuid
+          example: "00000000-0000-0000-0000-000000000000"
         timer_settings:
           oneOf:
             - $ref: "#/components/schemas/BusyTimerInfiniteSettings"
             - $ref: "#/components/schemas/BusyTimerSimpleSettings"
             - $ref: "#/components/schemas/BusyTimerIntervalSettings"
+        busy_bar_settings:
+          $ref: "#/components/schemas/BusyBarSettings"
         profile_timestamp_ms:
           type: integer
           example: 1761582532251
-        id:
-          type: string
-          format: uuid
-          example: "00000000-0000-0000-0000-000000000000"
-        busy_bar_settings:
-          $ref: "#/components/schemas/BusyBarSettings"
       required:
         - sort_order
         - title
