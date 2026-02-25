@@ -137,7 +137,7 @@ class Main(App):
             "--vid", type=auto_int, default=0x158A, help="Numeric vendor ID"
         )
         self.info_parser.add_argument(
-            "--pid", type=auto_int, default=0x001, help="Numeric product ID"
+            "--pid", type=auto_int, default=0xBB01, help="Numeric product ID"
         )
         self.info_parser.add_argument(
             "--vendor-name",
