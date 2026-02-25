@@ -40,15 +40,14 @@ static void busy_scene_setup_on_enter(void* context) {
     BusySceneSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetup);
 
-    BusyTimerConfig timer_config;
-    busy_timer_get_config(instance->busy_timer, &timer_config);
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
 
-    const char* mode_name = busy_timer_get_mode_names()[timer_config.mode];
+    const BusyTimerMode timer_mode = timer_preset.timer_config.mode;
+    const bool is_smart_home_enabled = timer_preset.app_config.is_smart_home_enabled;
 
-    const BusySettings* settings = &instance->settings;
-
-    const char* smart_home_str = settings->is_smart_home_enabled ? ITEM_SUBLABEL_ON :
-                                                                   ITEM_SUBLABEL_OFF;
+    const char* mode_name = busy_timer_get_mode_names()[timer_mode];
+    const char* smart_home_sublabel = is_smart_home_enabled ? ITEM_SUBLABEL_ON : ITEM_SUBLABEL_OFF;
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_window);
@@ -72,7 +71,7 @@ static void busy_scene_setup_on_enter(void* context) {
         menu_add_item(
             data->front_menu,
             ITEM_LABEL_SMART_HOME,
-            smart_home_str,
+            smart_home_sublabel,
             BUSY_IMG_PATH("smart_home_8x8.bin"),
             BusySceneSetupMenuIndexSmartHome,
             busy_scene_setup_menu_callback,
@@ -100,7 +99,7 @@ static void busy_scene_setup_on_enter(void* context) {
         menu_add_item(
             data->back_menu,
             ITEM_LABEL_SMART_HOME,
-            smart_home_str,
+            smart_home_sublabel,
             BUSY_IMG_PATH("smart_home_11x11.bin"),
             BusySceneSetupMenuIndexSmartHome,
             NULL,

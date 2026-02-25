@@ -87,15 +87,18 @@ static void busy_scene_ending_on_enter(void* context) {
     BusySceneEndig* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdEnding);
 
-    BusyTimerConfig config;
-    busy_timer_get_config(instance->busy_timer, &config);
+    BusyTimerRunInfo timer_info;
+    busy_timer_get_run_info(instance->busy_timer, &timer_info);
+
+    furi_check(timer_info.config.mode == BusyTimerModeInterval);
+    const BusyTimerIntervalConfig* interval_config = &timer_info.config.interval;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_ending_input_callback, instance);
 
         data->front_summary = summary_view_alloc(instance->front_window);
-        summary_view_set_cycles_count(data->front_summary, config.cycle_count);
+        summary_view_set_cycles_count(data->front_summary, interval_config->cycles_count);
         summary_view_set_completed_callback(
             data->front_summary, busy_scene_ending_summary_finished_callback, instance);
         widget_set_align(summary_view_get_base(data->front_summary), AlignCenter);

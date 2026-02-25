@@ -1,4 +1,5 @@
 #include "busy_timer_snapshot.h"
+#include "busy_timer_common_i.h"
 
 #include <furi.h>
 
@@ -18,11 +19,6 @@
 #define KEY_SNAPSHOT_INTERVAL_CURRENT_TOTAL "current_interval_time_total_ms"
 #define KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT  "current_interval_time_left_ms"
 #define KEY_SNAPSHOT_INTERVAL_SETTINGS      "interval_settings"
-
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_WORK      "interval_work_ms"
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_REST      "interval_rest_ms"
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_CYCLES    "interval_work_cycles_count"
-#define KEY_SNAPSHOT_INTERVAL_SETTINGS_AUTOSTART "is_autostart_enabled"
 
 static const char* const snapshot_type_values[BusyTimerSnapshotTypeMax] = {
     [BusyTimerSnapshotTypeNotStarted] = "NOT_STARTED",
@@ -54,22 +50,6 @@ static void busy_timer_snapshot_serialize_snapshot_simple(
     cJSON_AddNumberToObject(json, KEY_SNAPSHOT_SIMPLE_TIME_LEFT, simple->time_left_ms);
 }
 
-static void busy_timer_snapshot_serialize_snapshot_interval_settings(
-    cJSON* json,
-    const BusyTimerIntervalSettings* settings) {
-    cJSON* settings_json = cJSON_AddObjectToObject(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-    cJSON_AddStringToObject(
-        settings_json, KEY_SNAPSHOT_TYPE, snapshot_type_values[BusyTimerSnapshotTypeInterval]);
-    cJSON_AddNumberToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_WORK, settings->work_time_ms);
-    cJSON_AddNumberToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_REST, settings->rest_time_ms);
-    cJSON_AddNumberToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_CYCLES, settings->cycles_count);
-    cJSON_AddBoolToObject(
-        settings_json, KEY_SNAPSHOT_INTERVAL_SETTINGS_AUTOSTART, settings->is_autostart_enabled);
-}
-
 static void busy_timer_snapshot_serialize_snapshot_interval(
     cJSON* json,
     const BusyTimerSnapshotInterval* interval) {
@@ -81,7 +61,8 @@ static void busy_timer_snapshot_serialize_snapshot_interval(
     cJSON_AddNumberToObject(
         json, KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT, interval->state.time_left_ms);
 
-    busy_timer_snapshot_serialize_snapshot_interval_settings(json, &interval->settings);
+    cJSON* settings_json = cJSON_AddObjectToObject(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
+    busy_timer_common_serialize_interval_config(settings_json, &interval->config);
 }
 
 // Snapshot deserialization
@@ -151,66 +132,6 @@ static bool busy_timer_snapshot_deserialize_snapshot_simple(
     return success;
 }
 
-static bool busy_timer_snapshot_deserialize_interval_settings(
-    const cJSON* json,
-    BusyTimerIntervalSettings* settings) {
-    bool success = false;
-
-    do {
-        if(!cJSON_IsObject(json)) {
-            break;
-        }
-
-        const cJSON* item;
-
-// TODO: Remove after the mobile apps have been fixed
-#ifdef INTERVAL_SETTINGS_TYPE_CHECK
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_TYPE);
-        if(!cJSON_IsString(item)) {
-            break;
-        }
-
-        const char* type_str = cJSON_GetStringValue(item);
-        furi_check(type_str);
-
-        if(strcmp(type_str, snapshot_type_values[BusyTimerSnapshotTypeInterval]) != 0) {
-            break;
-        }
-#endif
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_WORK);
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        settings->work_time_ms = cJSON_GetNumberValue(item);
-
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_REST);
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        settings->rest_time_ms = cJSON_GetNumberValue(item);
-
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_CYCLES);
-        if(!cJSON_IsNumber(item)) {
-            break;
-        }
-
-        settings->cycles_count = cJSON_GetNumberValue(item);
-
-        item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_AUTOSTART);
-        if(!cJSON_IsBool(item)) {
-            break;
-        }
-
-        settings->is_autostart_enabled = cJSON_IsTrue(item);
-
-        success = true;
-    } while(false);
-
-    return success;
-}
-
 static bool busy_timer_snapshot_deserialize_snapshot_interval(
     const cJSON* json,
     BusyTimerSnapshotInterval* interval) {
@@ -247,7 +168,7 @@ static bool busy_timer_snapshot_deserialize_snapshot_interval(
         state->time_left_ms = cJSON_GetNumberValue(item);
 
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-        if(!busy_timer_snapshot_deserialize_interval_settings(item, &interval->settings)) {
+        if(!busy_timer_common_deserialize_interval_config(item, &interval->config)) {
             break;
         }
 
@@ -311,36 +232,20 @@ static bool
 
         snapshot->type = snapshot_type;
 
+        item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS);
+        if(!busy_timer_common_deserialize_app_config(item, &snapshot->app_config)) {
+            // TODO: Remove the default value and make it an error in the future
+            snapshot->app_config = (const BusyAppConfig){
+                .theme_name = BUSY_APP_THEME_NAME_DEFAULT,
+                .is_smart_home_enabled = BUSY_APP_IS_SMART_HOME_ENABLED_DEFAULT,
+                .is_show_work_only_enabled = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+            };
+        }
+
         success = true;
     } while(false);
 
     return success;
-}
-
-// UUID format check
-bool busy_timer_snapshot_is_valid_card_id(const char* card_id) {
-    uint32_t i;
-
-    for(i = 0; i < BUSY_TIMER_CARD_ID_LEN; ++i) {
-        const char c = card_id[i];
-
-        if(c == '\0') {
-            break;
-        }
-
-        if(i == 8 || i == 13 || i == 18 || i == 23) {
-            if(c != '-') {
-                break;
-            }
-
-        } else {
-            if(!isxdigit(c)) {
-                break;
-            }
-        }
-    }
-
-    return i == BUSY_TIMER_CARD_ID_LEN;
 }
 
 // Public functions
@@ -363,6 +268,8 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
         busy_timer_snapshot_serialize_snapshot_interval(snapshot_json, &snapshot->interval);
     }
 
+    busy_timer_common_serialize_app_config(snapshot_json, &snapshot->app_config);
+
     cJSON_AddNumberToObject(json, KEY_TIMESTAMP, snapshot->timestamp_ms);
 
     char* json_text = cJSON_PrintUnformatted(json);
@@ -371,10 +278,13 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
     return json_text;
 }
 
-bool busy_timer_snapshot_deserialize(BusyTimerSnapshot* snapshot, const char* json_text) {
+bool busy_timer_snapshot_deserialize(
+    BusyTimerSnapshot* snapshot,
+    const char* json_text,
+    size_t json_text_len) {
     bool success = false;
 
-    cJSON* json = cJSON_Parse(json_text);
+    cJSON* json = cJSON_ParseWithLength(json_text, json_text_len);
 
     do {
         if(!cJSON_IsObject(json)) {
@@ -415,13 +325,13 @@ bool busy_timer_snapshot_is_valid(const BusyTimerSnapshot* snapshot) {
             // Nothing to check
         } else if(type == BusyTimerSnapshotTypeInfinite) {
             const BusyTimerSnapshotInfinite* infinite = &snapshot->infinite;
-            if(!busy_timer_snapshot_is_valid_card_id(infinite->common.card_id)) {
+            if(!busy_timer_common_is_valid_card_id(infinite->common.card_id)) {
                 break;
             }
 
         } else if(type == BusyTimerSnapshotTypeSimple) {
             const BusyTimerSnapshotSimple* simple = &snapshot->simple;
-            if(!busy_timer_snapshot_is_valid_card_id(simple->common.card_id)) {
+            if(!busy_timer_common_is_valid_card_id(simple->common.card_id)) {
                 break;
             }
 
@@ -431,23 +341,11 @@ bool busy_timer_snapshot_is_valid(const BusyTimerSnapshot* snapshot) {
 
         } else if(type == BusyTimerSnapshotTypeInterval) {
             const BusyTimerSnapshotInterval* interval = &snapshot->interval;
-            if(!busy_timer_snapshot_is_valid_card_id(interval->common.card_id)) {
+            if(!busy_timer_common_is_valid_card_id(interval->common.card_id)) {
                 break;
             }
 
-            const BusyTimerIntervalSettings* settings = &interval->settings;
-            if(settings->cycles_count < BUSY_TIMER_CYCLE_COUNT_MIN ||
-               settings->cycles_count > BUSY_TIMER_CYCLE_COUNT_MAX) {
-                break;
-            }
-
-            if(settings->work_time_ms < M_TO_MS(BUSY_TIMER_WORK_TIME_MIN_MN) ||
-               settings->work_time_ms > M_TO_MS(BUSY_TIMER_WORK_TIME_MAX_MN)) {
-                break;
-            }
-
-            if(settings->rest_time_ms < M_TO_MS(BUSY_TIMER_REST_TIME_MIN_MN) ||
-               settings->rest_time_ms > M_TO_MS(BUSY_TIMER_REST_TIME_MAX_MN)) {
+            if(!busy_timer_common_is_valid_interval_config(&interval->config)) {
                 break;
             }
 
