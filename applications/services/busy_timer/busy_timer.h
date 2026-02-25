@@ -30,6 +30,7 @@ typedef enum {
     BusyTimerEventTypeIntervalEnded,
     BusyTimerEventTypePaused,
     BusyTimerEventTypeProfileChanged,
+    BusyTimerEventTypeSnapshotCreated,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
@@ -56,7 +57,12 @@ typedef struct {
 
 typedef struct {
     BusyTimerProfileId profile_id;
+    BusyTimerProfile profile;
 } BusyTimerEventProfileChanged;
+
+typedef struct {
+    BusyTimerSnapshot snapshot;
+} BusyTimerEventSnapshotCreated;
 
 typedef struct {
     BusyTimerEventType type;
@@ -67,6 +73,7 @@ typedef struct {
         BusyTimerEventIntervalEnded interval_ended;
         BusyTimerEventPaused paused;
         BusyTimerEventProfileChanged profile_changed;
+        BusyTimerEventSnapshotCreated snapshot_created;
     };
 } BusyTimerEvent;
 
