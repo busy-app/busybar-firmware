@@ -204,8 +204,7 @@ static void
     furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
-static void busy_timer_notify_snapshot_created(
-    const BusyTimer* instance) {
+static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
     const BusyTimerSnapshot* snapshot = &instance->user_snapshot;
 
     FURI_LOG_D(TAG, "Snapshot created with timestamp: %llu", snapshot->timestamp_ms);
