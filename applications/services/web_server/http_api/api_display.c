@@ -497,7 +497,7 @@ static bool api_display_get_brightness_callback(
     if(state.mode == BrightnessControlBrightnessModeAuto) {
         furi_string_cat_printf(json_str, "\"value\":\"auto\"");
     } else {
-        furi_string_cat_printf(json_str, "\"value\":\"%hhu\"", state.brightness_setting.val);
+        furi_string_cat_printf(json_str, "\"value\":\"%hhu\"", state.brightness_setting);
     }
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
@@ -522,7 +522,6 @@ static bool api_display_set_brightness_callback(
         char value_str[5];
         int brightness_value = 0;
         bool is_auto = false;
-        UserBrightness ub;
 
         int value_len = mg_http_get_var(&msg->query, "value", value_str, sizeof(value_str));
 
@@ -530,25 +529,25 @@ static bool api_display_set_brightness_callback(
 
         if(strcmp(value_str, "auto") == 0) {
             is_auto = true;
-        } else if(sscanf(value_str, "%u", &brightness_value) == 1) {
-            if(!brightness_conv_int_to_user_checked(brightness_value, &ub)) {
-                break;
-            }
-        } else {
+        } else if(sscanf(value_str, "%u", &brightness_value) != 1) {
             break;
         }
 
         BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
 
-        if(is_auto) {
-            brightness_control_set_auto_brightness(srv);
-        } else {
-            brightness_control_set_manual_brightness(srv, ub);
-        }
+        do {
+            if(is_auto) {
+                brightness_control_set_auto_brightness(srv);
+            } else {
+                if(!brightness_control_set_manual_brightness_checked(srv, brightness_value)) {
+                    break;
+                }
+            }
+            success = true;
+        } while(false);
 
         furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 
-        success = true;
     } while(0);
 
     if(success) {

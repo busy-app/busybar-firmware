@@ -5,9 +5,7 @@
 #if defined(SRV_STATUS_LIGHTS)
 #include <status_lights/status_lights.h>
 #endif
-
-#define USER_BRIGHTNESS_LEVEL_MIN 0
-#define USER_BRIGHTNESS_LEVEL_MAX 100
+#include "brightness_control.h"
 
 /// Brightness value as set by user (0-100)
 typedef struct UserBrightness {
@@ -18,15 +16,6 @@ typedef struct UserBrightness {
 typedef struct InternalBrightness {
     uint8_t val;
 } InternalBrightness;
-
-#define USER_BRIGHTNESS_MIN       \
-    (UserBrightness) {            \
-        USER_BRIGHTNESS_LEVEL_MIN \
-    }
-#define USER_BRIGHTNESS_MAX       \
-    (UserBrightness) {            \
-        USER_BRIGHTNESS_LEVEL_MAX \
-    }
 
 /// Clamp and convert an integer to user brightness.
 UserBrightness brightness_conv_int_to_user_clamped(int brightness);
@@ -39,6 +28,9 @@ bool brightness_conv_int_to_user_checked(int brightness_in, UserBrightness* brig
 
 /// Convert user brightness to internal brightness.
 InternalBrightness brightness_conv_user_to_internal(UserBrightness v);
+
+/// Convert internal brightness to user brightness.
+UserBrightness brightness_conv_internal_to_user(InternalBrightness v);
 
 /// Convert light sensor level to internal brightness.
 InternalBrightness brightness_conv_light_sensor_to_internal(LightSensorLevel v);

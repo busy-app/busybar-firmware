@@ -17,8 +17,6 @@
 
 #define TAG "CliDisplay"
 
-#define CLI_DISPLAY_BRIGHTNESS_MAX (100)
-
 typedef enum {
     CliDisplayActionShow,
     CliDisplayActionBrightness,
@@ -78,14 +76,11 @@ static void cli_action_brightness(PipeSide* pipe, FuriString* args) {
             break;
         }
 
-        if(brightness > CLI_DISPLAY_BRIGHTNESS_MAX) brightness = CLI_DISPLAY_BRIGHTNESS_MAX;
-
         BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
         if(auto_brightness) {
             brightness_control_set_auto_brightness(srv);
         } else {
-            brightness_control_set_manual_brightness(
-                srv, brightness_conv_int_to_user_clamped(brightness));
+            brightness_control_set_manual_brightness_clamped(srv, brightness);
         }
         furi_record_close(RECORD_BRIGHTNESS_CONTROL);
     } while(false);

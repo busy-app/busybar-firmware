@@ -3,9 +3,11 @@
 #include <stdint.h>
 
 #include <furi/core/state.h>
-#include "brightness_conv.h"
 
 #define RECORD_BRIGHTNESS_CONTROL "brightness_control"
+
+#define BRIGHTNESS_MIN (0)
+#define BRIGHTNESS_MAX (100)
 
 typedef enum {
     BrightnessControlBrightnessModeAuto,
@@ -33,35 +35,55 @@ typedef struct {
     * In auto mode this value is controlled by the light sensor.
     * In manual mode this is the user-set value.
     */
-    InternalBrightness effective_brightness;
+    uint8_t effective_brightness;
 
     /**
     * Brightness value as previously set by user.
     * In automatic mode this value is stored, but not used to control brightness.
     */
-    UserBrightness brightness_setting;
+    uint8_t brightness_setting;
 } BrightnessControlState;
 
 typedef struct BrightnessControl BrightnessControl;
 
 void brightness_control_set_auto_brightness(BrightnessControl* instance);
 
-void brightness_control_set_manual_brightness(
+/**
+ * @brief Set manual brightness, clamping the input value into range.
+ *
+ * @param brightness brightness value (0-100).
+ */
+void brightness_control_set_manual_brightness_clamped(
     BrightnessControl* instance,
-    UserBrightness brightness);
+    uint8_t brightness);
 
 /**
- * @brief enable or disable temporary brightness override for a module.
+ * @brief Set manual brightness if the input value is in range.
+ *
+ * @param brightness brightness value (0-100).
+ * @return true if brightness was in range, false otherwise.
+ */
+bool brightness_control_set_manual_brightness_checked(
+    BrightnessControl* instance,
+    uint8_t brightness);
+
+/**
+ * @brief enable temporary brightness override for a module.
  *
  * Brightness of selected module will be set to a fixed value and unaffected by auto/manual brightness set otherwise.
  *
- * @param override The desired brightness or NULL to disable override.
+ * @param override The desired brightness.
  */
 void brightness_control_set_brightness_override(
     BrightnessControl* instance,
     BrightnessControlModule module,
-    const UserBrightness* override);
+    uint8_t override);
+
+/**
+ * @brief disable temporary brightness override for a module.
+ */
+void brightness_control_reset_brightness_override(
+    BrightnessControl* instance,
+    BrightnessControlModule module);
 
 FuriState* brightness_control_get_state(const BrightnessControl* instance);
-
-// NOTE: Brightness control manages settings for both displays and status lights in one place

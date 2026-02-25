@@ -22,16 +22,17 @@ static const uint8_t brightness_conv_status_table[] = {5, 10, 20, 30, 40, 50, 60
 static_assert(COUNT_OF(brightness_conv_status_table) == INTERNAL_BRIGHTNESS_MAX + 1);
 #endif
 
+static_assert(BRIGHTNESS_MIN == 0);
 static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MIN == 0);
 static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MAX == INTERNAL_BRIGHTNESS_MAX);
 
 UserBrightness brightness_conv_int_to_user_clamped(int brightness) {
-    brightness = CLAMP(brightness, USER_BRIGHTNESS_LEVEL_MAX, USER_BRIGHTNESS_LEVEL_MIN);
+    brightness = CLAMP(brightness, BRIGHTNESS_MIN, BRIGHTNESS_MAX);
     return (UserBrightness){brightness};
 }
 
 bool brightness_conv_int_to_user_checked(int brightness_in, UserBrightness* brightness_out) {
-    if(brightness_in < USER_BRIGHTNESS_LEVEL_MIN || brightness_in > USER_BRIGHTNESS_LEVEL_MAX) {
+    if(brightness_in < BRIGHTNESS_MIN || brightness_in > BRIGHTNESS_MAX) {
         return false;
     } else {
         *brightness_out = (UserBrightness){brightness_in};
@@ -40,7 +41,11 @@ bool brightness_conv_int_to_user_checked(int brightness_in, UserBrightness* brig
 }
 
 InternalBrightness brightness_conv_user_to_internal(UserBrightness v) {
-    return (InternalBrightness){v.val * INTERNAL_BRIGHTNESS_MAX / USER_BRIGHTNESS_LEVEL_MAX};
+    return (InternalBrightness){v.val * INTERNAL_BRIGHTNESS_MAX / BRIGHTNESS_MAX};
+}
+
+UserBrightness brightness_conv_internal_to_user(InternalBrightness v) {
+    return (UserBrightness){v.val * BRIGHTNESS_MAX / INTERNAL_BRIGHTNESS_MAX};
 }
 
 InternalBrightness brightness_conv_light_sensor_to_internal(LightSensorLevel v) {

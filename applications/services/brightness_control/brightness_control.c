@@ -1,4 +1,5 @@
 #include "brightness_control.h"
+#include "brightness_conv.h"
 #include <furi/furi.h>
 #include <light_sensor/light_sensor.h>
 #include <front_display/front_display.h>
@@ -73,21 +74,39 @@ static const MessageHandler message_handlers[];
 
 static void light_sensor_event(const void* message, void* context);
 
-void brightness_control_set_auto_brightness(BrightnessControl* inst) {
+void brightness_control_set_auto_brightness(BrightnessControl* instance) {
     Message msg = {
         .type = MessageTypeSetAutoBrightness,
     };
 
-    furi_message_queue_put(inst->message_queue, &msg, FuriWaitForever);
+    furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
 }
 
-void brightness_control_set_manual_brightness(BrightnessControl* inst, UserBrightness brightness) {
+void brightness_control_set_manual_brightness_clamped(
+    BrightnessControl* instance,
+    uint8_t brightness) {
     Message msg = {
         .type = MessageTypeSetManualBrightness,
-        .user_brightness = brightness,
+        .user_brightness = brightness_conv_int_to_user_clamped(brightness),
     };
 
-    furi_message_queue_put(inst->message_queue, &msg, FuriWaitForever);
+    furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
+}
+
+bool brightness_control_set_manual_brightness_checked(
+    BrightnessControl* instance,
+    uint8_t brightness) {
+    UserBrightness user_brightness;
+    if(!brightness_conv_int_to_user_checked(brightness, &user_brightness)) {
+        return false;
+    }
+    Message msg = {
+        .type = MessageTypeSetManualBrightness,
+        .user_brightness = user_brightness,
+    };
+
+    furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
+    return true;
 }
 
 FuriState* brightness_control_get_state(const BrightnessControl* instance) {
@@ -95,85 +114,100 @@ FuriState* brightness_control_get_state(const BrightnessControl* instance) {
 }
 
 void brightness_control_set_brightness_override(
-    BrightnessControl* inst,
+    BrightnessControl* instance,
     BrightnessControlModule module,
-    const UserBrightness* override) {
+    uint8_t override) {
+    UserBrightness user_brightness = brightness_conv_int_to_user_clamped(override);
     Message msg = {
         .type = MessageTypeSetOverride,
         .override =
             {
-                .enabled = override != NULL,
+                .enabled = true,
                 .module = module,
-                .value = override ? brightness_conv_user_to_internal(*override) :
-                                    (InternalBrightness){0},
+                .value = brightness_conv_user_to_internal(user_brightness),
             },
     };
 
-    furi_message_queue_put(inst->message_queue, &msg, FuriWaitForever);
+    furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
+}
+
+void brightness_control_reset_brightness_override(
+    BrightnessControl* instance,
+    BrightnessControlModule module) {
+    Message msg = {
+        .type = MessageTypeSetOverride,
+        .override =
+            {
+                .enabled = false,
+                .module = module,
+            },
+    };
+
+    furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
 }
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
-    BrightnessControl* inst = context;
-    UNUSED(inst);
+    BrightnessControl* instance = context;
+    UNUSED(instance);
 
     Message message;
-    furi_check(furi_message_queue_get(inst->message_queue, &message, 0) == FuriStatusOk);
+    furi_check(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk);
 
-    message_handlers[message.type](inst, &message);
+    message_handlers[message.type](instance, &message);
 }
 
-static void apply_brightness(const BrightnessControl* inst);
-static void load_config(BrightnessControl* inst);
-static void save_config(const BrightnessControl* inst);
-static InternalBrightness get_effective_brightness(const BrightnessControl* inst);
+static void apply_brightness(const BrightnessControl* instance);
+static void load_config(BrightnessControl* instance);
+static void save_config(const BrightnessControl* instance);
+static InternalBrightness get_effective_brightness(const BrightnessControl* instance);
+static void update_state(const BrightnessControl* instance);
 
 static BrightnessControl* brightness_control_alloc(void) {
-    BrightnessControl* inst = malloc(sizeof(BrightnessControl));
+    BrightnessControl* instance = malloc(sizeof(BrightnessControl));
 
-    inst->event_loop = furi_event_loop_alloc();
-    inst->message_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(Message));
+    instance->event_loop = furi_event_loop_alloc();
+    instance->message_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(Message));
     furi_event_loop_subscribe_message_queue(
-        inst->event_loop, inst->message_queue, FuriEventLoopEventIn, message_queue_callback, inst);
+        instance->event_loop,
+        instance->message_queue,
+        FuriEventLoopEventIn,
+        message_queue_callback,
+        instance);
 
-    inst->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
-    inst->back_display = furi_record_open(RECORD_BACK_DISPLAY);
+    instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+    instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
 #if defined(SRV_STATUS_LIGHTS)
-    inst->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
 #endif
 
 #if defined(SRV_LIGHT_SENSOR)
-    inst->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
-    furi_pubsub_subscribe(inst->light_sensor_events, light_sensor_event, inst);
-    inst->last_light_sensor_level = light_sensor_get_light_level();
+    instance->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
+    furi_pubsub_subscribe(instance->light_sensor_events, light_sensor_event, instance);
+    instance->last_light_sensor_level = light_sensor_get_light_level();
 #else
     UNUSED(light_sensor_event);
 #endif
-    load_config(inst);
+    load_config(instance);
 
-    bzero(inst->is_overridden, sizeof(inst->is_overridden));
+    bzero(instance->is_overridden, sizeof(instance->is_overridden));
 
-    inst->state = furi_state_alloc(sizeof(BrightnessControlState));
-    furi_state_set(
-        inst->state,
-        &(BrightnessControlState){
-            .mode = inst->is_auto ? BrightnessControlBrightnessModeAuto :
-                                    BrightnessControlBrightnessModeManual,
-            .brightness_setting = inst->manual_brightness,
-            .effective_brightness = get_effective_brightness(inst)});
+    instance->state = furi_state_alloc(sizeof(BrightnessControlState));
+    furi_state_set(instance->state, &(BrightnessControlState){0});
+    update_state(instance);
 
-    apply_brightness(inst);
+    apply_brightness(instance);
 
-    return inst;
+    return instance;
 }
 
 int brightness_control_srv(void* arg) {
     UNUSED(arg);
 
-    BrightnessControl* inst = brightness_control_alloc();
-    furi_record_create(RECORD_BRIGHTNESS_CONTROL, inst);
-    furi_event_loop_run(inst->event_loop);
+    BrightnessControl* instance = brightness_control_alloc();
+    furi_record_create(RECORD_BRIGHTNESS_CONTROL, instance);
+    furi_event_loop_run(instance->event_loop);
 
     return 0;
 }
@@ -182,7 +216,7 @@ static void light_sensor_event(const void* message, void* context) {
     UNUSED(message);
     furi_assert(context);
 
-    BrightnessControl* inst = context;
+    BrightnessControl* instance = context;
 
     const LightSensorEvent* event = message;
     if(event->type != LightSensorEventTypeLightLevelChanged) {
@@ -194,12 +228,12 @@ static void light_sensor_event(const void* message, void* context) {
         .light_sensor_level = event->light_level,
     };
 
-    furi_message_queue_put(inst->message_queue, &msg, LIGHT_SENSOR_UPDATE_TIMEOUT);
+    furi_message_queue_put(instance->message_queue, &msg, LIGHT_SENSOR_UPDATE_TIMEOUT);
 }
 
-static void load_config(BrightnessControl* inst) {
-    inst->is_auto = false;
-    inst->manual_brightness = DEFAULT_BRIGHTNESS;
+static void load_config(BrightnessControl* instance) {
+    instance->is_auto = false;
+    instance->manual_brightness = DEFAULT_BRIGHTNESS;
 
     JsonConfig* cfg = json_config_alloc();
 
@@ -214,20 +248,20 @@ static void load_config(BrightnessControl* inst) {
         FuriString* mode = furi_string_alloc();
         json_config_read_str(cfg, "mode", mode, "manual");
         if(furi_string_cmp_str(mode, "auto") == 0) {
-            inst->is_auto = true;
+            instance->is_auto = true;
         }
         furi_string_free(mode);
 #endif
 
         int brightness = DEFAULT_BRIGHTNESS.val;
         json_config_read_int(cfg, "brightness", &brightness, NULL);
-        inst->manual_brightness = brightness_conv_int_to_user_clamped(brightness);
+        instance->manual_brightness = brightness_conv_int_to_user_clamped(brightness);
     } while(false);
 
     json_config_free(cfg);
 }
 
-static void save_config(const BrightnessControl* inst) {
+static void save_config(const BrightnessControl* instance) {
     JsonConfig* cfg = json_config_alloc();
 
     do {
@@ -237,106 +271,107 @@ static void save_config(const BrightnessControl* inst) {
             break;
         }
 
-        json_config_write_str(cfg, "mode", inst->is_auto ? "auto" : "manual");
-        json_config_write_int(cfg, "brightness", inst->manual_brightness.val);
+        json_config_write_str(cfg, "mode", instance->is_auto ? "auto" : "manual");
+        json_config_write_int(cfg, "brightness", instance->manual_brightness.val);
     } while(false);
 
     json_config_free(cfg);
 }
 
-static InternalBrightness get_effective_brightness(const BrightnessControl* inst) {
-    if(inst->is_auto) {
-        return brightness_conv_light_sensor_to_internal(inst->last_light_sensor_level);
+static InternalBrightness get_effective_brightness(const BrightnessControl* instance) {
+    if(instance->is_auto) {
+        return brightness_conv_light_sensor_to_internal(instance->last_light_sensor_level);
     } else {
-        return brightness_conv_user_to_internal(inst->manual_brightness);
+        return brightness_conv_user_to_internal(instance->manual_brightness);
     }
 }
 
 static InternalBrightness apply_override(
-    const BrightnessControl* inst,
+    const BrightnessControl* instance,
     InternalBrightness br,
     BrightnessControlModule module) {
-    if(inst->is_overridden[module]) {
-        return inst->brightness_override[module];
+    if(instance->is_overridden[module]) {
+        return instance->brightness_override[module];
     } else {
         return br;
     }
 }
 
-static void apply_brightness(const BrightnessControl* inst) {
-    InternalBrightness br = get_effective_brightness(inst);
+static void apply_brightness(const BrightnessControl* instance) {
+    InternalBrightness br = get_effective_brightness(instance);
 
     FURI_LOG_D(TAG, "Set brightness %hhu", br.val);
     front_display_set_brightness(
-        inst->front_display,
+        instance->front_display,
         brightness_conv_internal_to_front(
-            apply_override(inst, br, BrightnessControlModuleFrontDisplay)));
+            apply_override(instance, br, BrightnessControlModuleFrontDisplay)));
     back_display_set_contrast(
-        inst->back_display,
+        instance->back_display,
         brightness_conv_internal_to_back(
-            apply_override(inst, br, BrightnessControlModuleBackDisplay)));
+            apply_override(instance, br, BrightnessControlModuleBackDisplay)));
 #if defined(SRV_STATUS_LIGHTS)
     status_lights_set_brightness(
-        inst->status_lights,
+        instance->status_lights,
         brightness_conv_internal_to_status(
-            apply_override(inst, br, BrightnessControlModuleStatusLights)));
+            apply_override(instance, br, BrightnessControlModuleStatusLights)));
 #endif
 }
 
-static void update_state(const BrightnessControl* inst) {
-    with_furi_state(inst->state, BrightnessControlState * state, {
-        state->mode = inst->is_auto ? BrightnessControlBrightnessModeAuto :
-                                      BrightnessControlBrightnessModeManual;
-        state->effective_brightness = get_effective_brightness(inst);
-        state->brightness_setting = inst->manual_brightness;
+static void update_state(const BrightnessControl* instance) {
+    with_furi_state(instance->state, BrightnessControlState * state, {
+        state->mode = instance->is_auto ? BrightnessControlBrightnessModeAuto :
+                                          BrightnessControlBrightnessModeManual;
+        state->effective_brightness =
+            brightness_conv_internal_to_user(get_effective_brightness(instance)).val;
+        state->brightness_setting = instance->manual_brightness.val;
     });
 }
 
-static void do_set_manual_brightness(BrightnessControl* inst, Message* message) {
+static void do_set_manual_brightness(BrightnessControl* instance, Message* message) {
     furi_assert(message->type == MessageTypeSetManualBrightness);
 
-    inst->is_auto = false;
-    inst->manual_brightness = message->user_brightness;
-    apply_brightness(inst);
-    save_config(inst);
-    update_state(inst);
+    instance->is_auto = false;
+    instance->manual_brightness = message->user_brightness;
+    apply_brightness(instance);
+    save_config(instance);
+    update_state(instance);
 }
 
-static void do_set_auto_brightness(BrightnessControl* inst, Message* message) {
+static void do_set_auto_brightness(BrightnessControl* instance, Message* message) {
     furi_assert(message->type == MessageTypeSetAutoBrightness);
 
 #if defined(SRV_LIGHT_SENSOR)
-    inst->is_auto = true;
-    apply_brightness(inst);
-    save_config(inst);
-    update_state(inst);
+    instance->is_auto = true;
+    apply_brightness(instance);
+    save_config(instance);
+    update_state(instance);
 #else
-    UNUSED(inst);
+    UNUSED(instance);
 #endif
 }
 
-static void do_process_light_sensor(BrightnessControl* inst, Message* message) {
+static void do_process_light_sensor(BrightnessControl* instance, Message* message) {
     furi_assert(message->type == MessageTypeLightSensor);
 
 #if defined(SRV_LIGHT_SENSOR)
     FURI_LOG_I(TAG, "Light sensor brightness: %hhu", message->light_sensor_level.val);
-    inst->last_light_sensor_level = message->light_sensor_level;
-    if(inst->is_auto) {
-        apply_brightness(inst);
-        update_state(inst);
+    instance->last_light_sensor_level = message->light_sensor_level;
+    if(instance->is_auto) {
+        apply_brightness(instance);
+        update_state(instance);
     }
 #else
-    UNUSED(inst);
+    UNUSED(instance);
 #endif
 }
 
-static void do_set_override(BrightnessControl* inst, Message* message) {
+static void do_set_override(BrightnessControl* instance, Message* message) {
     furi_assert(message->type == MessageTypeSetOverride);
 
-    inst->is_overridden[message->override.module] = message->override.enabled;
-    inst->brightness_override[message->override.module] = message->override.value;
+    instance->is_overridden[message->override.module] = message->override.enabled;
+    instance->brightness_override[message->override.module] = message->override.value;
 
-    apply_brightness(inst);
+    apply_brightness(instance);
 }
 
 static const MessageHandler message_handlers[] = {

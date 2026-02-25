@@ -98,7 +98,7 @@ static void scene_pairing_mode_on_enter(void* context) {
     });
 
     brightness_control_set_brightness_override(
-        instance->brightness_control, BrightnessControlModuleStatusLights, &USER_BRIGHTNESS_MAX);
+        instance->brightness_control, BrightnessControlModuleStatusLights, BRIGHTNESS_MAX);
     status_lights_run_preset(
         instance->status_lights, StatusLightsPresetBlink, STATUS_LIGHTS_COLOR);
 }
@@ -129,8 +129,8 @@ static void scene_pairing_mode_on_exit(void* context) {
 
     furi_string_free(data->name_label_text);
     status_lights_run_preset(instance->status_lights, StatusLightsPresetOff, (Color){});
-    brightness_control_set_brightness_override(
-        instance->brightness_control, BrightnessControlModuleStatusLights, NULL);
+    brightness_control_reset_brightness_override(
+        instance->brightness_control, BrightnessControlModuleStatusLights);
 }
 
 static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* context) {

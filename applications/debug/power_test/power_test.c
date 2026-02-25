@@ -103,7 +103,7 @@ static void power_test_canvas_enter(PowerTest* instance) {
 
     BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
     brightness_control_set_brightness_override(
-        srv, BrightnessControlModuleFrontDisplay, &USER_BRIGHTNESS_MAX);
+        srv, BrightnessControlModuleFrontDisplay, BRIGHTNESS_MAX);
     furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 }
 
@@ -116,7 +116,7 @@ static void power_test_canvas_exit(PowerTest* instance) {
     });
 
     BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
-    brightness_control_set_brightness_override(srv, BrightnessControlModuleFrontDisplay, NULL);
+    brightness_control_reset_brightness_override(srv, BrightnessControlModuleFrontDisplay);
     furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 }
 
