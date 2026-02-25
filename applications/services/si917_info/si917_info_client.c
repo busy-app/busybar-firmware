@@ -8,6 +8,7 @@
 #define RESPONSE_TIMEOUT 200
 
 struct Si917InfoClient {
+    FuriMutex* lock_mutex;
     Intercom* intercom;
     IntercomChannel* intercom_ch;
     Si917InfoData info_data;
@@ -30,6 +31,7 @@ static void si917_info_client_rx_callback(const void* data, size_t data_size, vo
 static Si917InfoClient* si917_info_client_alloc(void) {
     Si917InfoClient* client = malloc(sizeof(Si917InfoClient));
 
+    client->lock_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     client->response_queue = furi_message_queue_alloc(1, sizeof(Si917InfoData));
 
     client->intercom = furi_record_open(RECORD_INTERCOM);
@@ -42,12 +44,13 @@ static Si917InfoClient* si917_info_client_alloc(void) {
 bool si917_info_get(Si917InfoClient* client, Si917InfoData* info) {
     furi_assert(client);
     furi_assert(info);
+    bool success = false;
 
+    furi_mutex_acquire(client->lock_mutex, FuriWaitForever);
     if(client->data_valid) {
         memcpy(info, &client->info_data, sizeof(Si917InfoData));
-        return true;
+        success = true;
     } else {
-        bool success = false;
         Si917InfoRequestMessage request_msg = {.type = Si917InfoMessageRequest};
 
         size_t packet_len = sizeof(Si917InfoRequestMessage);
@@ -64,10 +67,10 @@ bool si917_info_get(Si917InfoClient* client, Si917InfoData* info) {
         }
 
         client->data_valid = success;
-        return success;
     }
+    furi_mutex_release(client->lock_mutex);
 
-    return false;
+    return success;
 }
 
 int32_t si917_info_client_init(void* arg) {

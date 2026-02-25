@@ -21,7 +21,6 @@ typedef struct {
 } Si917InfoServer;
 
 static void si917_info_send_response(Si917InfoServer* instance) {
-    UNUSED(instance);
     Si917InfoResponseMessage response = {.type = Si917InfoMessageResponse};
 
     furi_record_open(RECORD_WIFI);
@@ -60,6 +59,7 @@ static void si917_info_send_response(Si917InfoServer* instance) {
             FURI_LOG_E(TAG, "Failed to get local device address: 0x%08lX", status);
             break;
         } else {
+            // RSI provides BLE MAC address with reverse byte order, we need to change the order back
             for(uint8_t i = 0; i < 6; i++) {
                 response.data.ble_mac[i] = mac_addr.octet[5 - i];
             }

@@ -1,5 +1,5 @@
 /**
- * @brief TLS crypto client
+ * @brief Si917 info client
  */
 
 #pragma once

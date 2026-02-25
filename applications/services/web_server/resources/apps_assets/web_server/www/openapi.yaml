@@ -2188,6 +2188,10 @@ components:
           type: integer
           description: Production timestamp
           example: 1767225600
+      required:
+        - serial_number
+        - usb_mac
+        - otp_valid
 
     StatusFirmware:
       type: object
@@ -2216,6 +2220,12 @@ components:
           type: string
           description: Radio firmware version
           example: "1711.2.14.5.2.0.7"
+      required:
+        - version
+        - target
+        - branch
+        - build_date
+        - commit_hash
 
     StatusSystem:
       type: object
@@ -2232,6 +2242,10 @@ components:
           type: integer
           description: System boot timestamp
           example: 1767225600
+      required:
+        - api_semver
+        - uptime
+        - boot_time
 
     StatusPower:
       type: object
@@ -2257,6 +2271,12 @@ components:
           type: integer
           description: USB voltage in mV
           example: 4843
+      required:
+        - state
+        - battery_charge
+        - battery_voltage
+        - battery_current
+        - usb_voltage
 
     WifiSecurityMethod:
       type: string
