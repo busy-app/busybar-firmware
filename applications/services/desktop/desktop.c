@@ -208,6 +208,8 @@ static void desktop_start_current_app(Desktop* instance) {
     const char* app_name = desktop_start_request_get_name(instance->current_request);
     const char* app_args = desktop_start_request_get_args(instance->current_request);
 
+    furi_event_loop_timer_stop(instance->start_timer);
+
     if(app_args) {
         FURI_LOG_D(TAG, "Starting application '%s' with args '%s'", app_name, app_args);
     } else {
