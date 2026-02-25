@@ -12,7 +12,7 @@ typedef struct {
         instance_count; // <! 1 = both sides, 0 = only one side. Alice uses this one to connect the pipe to her EventLoop.
     FuriSemaphore* bobs_instance_count; // <! Bob uses this one to connect the pipe to his EventLoop.
     FuriMutex* state_transition;
-    volatile bool force_broken; // <! Set by pipe_close() to signal broken state without freeing
+    _Atomic bool force_broken; // <! Set by pipe_close() to signal broken state without freeing
 } PipeShared;
 
 /**
