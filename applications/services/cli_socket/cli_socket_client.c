@@ -106,15 +106,17 @@ static void cli_socket_client_try_copy_sh2cl(void* context) {
     CliSocketClient* client = context;
 
     do {
-        if(!client->socket || client->socket->state != ESTABLISHED) {
+        if(!client->socket) {
+            FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
+            break;
+        }
+        if(client->socket->state != ESTABLISHED) {
             FURI_LOG_E(
                 TAG,
                 "%s:%d not established: %d",
                 ipaddr_ntoa(&client->socket->remote_ip),
                 client->socket->remote_port,
                 client->socket->state);
-        } else {
-            FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
             break;
         }
 
