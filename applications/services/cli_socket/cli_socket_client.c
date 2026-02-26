@@ -10,6 +10,7 @@
 
 #define THREAD_STACK_SIZE     (2 * 1024)
 #define PIPE_SZ_PER_DIRECTION (8 * 1024U)
+#define COPY_BUF_SZ           256U
 // #define CLI_SOCKET_TRACE_ENABLE
 
 #define TAG       "CliSocketClient"
@@ -39,6 +40,9 @@ typedef struct {
     // Pending data from TCP that didn't fit in the pipe
     struct pbuf* pending_data;
     size_t pending_offset; // offset into first pbuf of pending_data
+
+    // Reusable buffer for shell->client copies
+    uint8_t copy_buf[COPY_BUF_SZ];
 } CliSocketClient;
 
 typedef enum {
@@ -67,62 +71,69 @@ static void cli_socket_client_wait_tcpip_unlock(CliSocketClient* client) {
 // Data copying
 // ============
 
+/**
+ * @brief Drain pipe into TCP socket in COPY_BUF_SZ chunks.
+ *
+ * @param client      Client context
+ * @param to_send     Number of bytes to transfer (must be <= pipe available AND tcp_sndbuf)
+ * @param pipe_avail  Total bytes available in pipe (used for TCP_WRITE_FLAG_MORE hint)
+ */
+static void
+    cli_socket_client_pipe_to_tcp(CliSocketClient* client, size_t to_send, size_t pipe_avail) {
+    size_t sent = 0;
+    while(sent < to_send) {
+        size_t chunk = MIN(to_send - sent, sizeof(client->copy_buf));
+        furi_check(pipe_receive(client->own_pipe, client->copy_buf, chunk) == chunk);
+        sent += chunk;
+
+        bool more_coming = (sent < to_send) || (to_send < pipe_avail);
+        uint8_t flags = TCP_WRITE_FLAG_COPY | (more_coming ? TCP_WRITE_FLAG_MORE : 0);
+
+        if(tcp_write(client->socket, client->copy_buf, chunk, flags) != ERR_OK) {
+            FURI_LOG_E(TAG, "tcp_write error");
+            break;
+        }
+    }
+
+    err_t err = tcp_output(client->socket);
+    if(err != ERR_OK) {
+        FURI_LOG_W(TAG, "tcp_output error: %d (data still queued)", err);
+    }
+}
+
 static void cli_socket_client_try_copy_sh2cl(void* context) {
     furi_assert(context);
     CliSocketClient* client = context;
 
-    if(!client->socket || client->socket->state != ESTABLISHED) {
-        if(client->socket) {
+    do {
+        if(!client->socket) {
+            FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
+            break;
+        }
+        if(client->socket->state != ESTABLISHED) {
             FURI_LOG_E(
                 TAG,
                 "%s:%d not established: %d",
                 ipaddr_ntoa(&client->socket->remote_ip),
                 client->socket->remote_port,
                 client->socket->state);
-        } else {
-            FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
+            break;
         }
 
-        cli_socket_client_tcpip_unlock(client);
-        return;
-    }
+        size_t tcp_space = tcp_sndbuf(client->socket);
+        size_t pipe_avail = pipe_bytes_available(client->own_pipe);
+        size_t to_send = MIN(pipe_avail, tcp_space);
+        CLI_SOCKET_TRACE(
+            TAG, DIR_SH_CL ": to_send=%zu (tcp=%zu pipe=%zu)", to_send, tcp_space, pipe_avail);
 
-    size_t available_in_tcp_buf = tcp_sndbuf(client->socket);
-    size_t available_in_pipe = pipe_bytes_available(client->own_pipe);
-    size_t batch_sz = MIN(available_in_pipe, available_in_tcp_buf);
-    CLI_SOCKET_TRACE(
-        TAG,
-        DIR_SH_CL ": batch=%zu (tcp=%zu pipe=%zu)",
-        batch_sz,
-        available_in_tcp_buf,
-        available_in_pipe);
-
-    do {
-        if(!batch_sz) break;
+        if(!to_send) break;
 
         if(furi_semaphore_release(client->tx_semaphore) != FuriStatusOk) {
             CLI_SOCKET_TRACE(TAG, DIR_SH_CL ": tx locked");
             break;
         }
 
-        uint8_t buf[batch_sz];
-        furi_check(pipe_receive(client->own_pipe, buf, sizeof(buf)) == sizeof(buf));
-
-        uint8_t lwip_flags = TCP_WRITE_FLAG_COPY;
-        if(batch_sz < available_in_pipe) lwip_flags |= TCP_WRITE_FLAG_MORE;
-
-        err_t err;
-        err = tcp_write(client->socket, buf, sizeof(buf), lwip_flags);
-        if(err != ERR_OK) {
-            FURI_LOG_E(TAG, "tcp_write error: %d", err);
-            furi_crash();
-        }
-
-        err = tcp_output(client->socket);
-        if(err != ERR_OK) {
-            FURI_LOG_E(TAG, "tcp_output error: %d", err);
-            furi_crash();
-        }
+        cli_socket_client_pipe_to_tcp(client, to_send, pipe_avail);
     } while(false);
 
     cli_socket_client_tcpip_unlock(client);
@@ -309,7 +320,10 @@ static void cli_socket_client_event(FuriEventLoopObject* object, void* context) 
     CliSocketClient* client = context;
 
     uint32_t flags = furi_event_flag_wait(flag, CliSocketClientEventAll, FuriFlagWaitAny, 0);
-    furi_check(!(flags & FuriFlagError));
+    if(flags & FuriFlagError) {
+        // flags were already consumed by a previous edge callback
+        return;
+    }
 
     if(flags & CliSocketClientEventTcpTxDone) {
         furi_semaphore_acquire(client->tx_semaphore, 0);
