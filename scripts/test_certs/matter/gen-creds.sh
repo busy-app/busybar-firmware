@@ -40,7 +40,7 @@ matter_cd_dir="$matter_cert_dir/certification-declaration"
 chip_cert_tool=$CHIP_CERT
 
 vendor_id="158A"
-product_id="0001"
+product_id="BB01"
 device_type_id="100"
 
 pai_key_file="test-PAI-${vendor_id}-key.pem"

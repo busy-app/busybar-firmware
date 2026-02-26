@@ -4,7 +4,7 @@ App(
     targets=["f20", "f21", "f22"],
     apptype=FlipperAppType.STARTUP,
     entry_point="si917_info_client_init",
-    order=20,
+    order=15,
     stack_size=1024 * 4,
     sources=["si917_info_client.c"],
 )
@@ -16,7 +16,7 @@ App(
     entry_point="si917_info_server_init",
     requires=["intercom"],
     stack_size=1 * 1024,
-    order=90,
+    order=85,
     targets=["f64", "f65"],
     sources=["si917_info_server.c"],
 )

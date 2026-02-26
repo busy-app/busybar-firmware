@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 8.0.0
+  version: 9.0.0
   contact:
     name: tbd
 
@@ -1505,7 +1505,7 @@ paths:
     put:
       tags:
         - Busy
-      summary: Set BUSY time snapshot
+      summary: Set BUSY timer snapshot
       description: Run the timer starting from the given snapshot
       operationId: setBusySnapshot
       parameters: []
@@ -1524,6 +1524,65 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Error setting snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/busy/profiles/{slot}:
+    get:
+      tags:
+        - Busy
+      summary: Get BUSY timer profile
+      description: Gets the BUSY timer profile under specified slot
+      operationId: getBusyProfile
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/BusyProfileSlot"
+      responses:
+        "200":
+          description: Got profile successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusyProfile"
+        "400":
+          description: Error getting profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+        - Busy
+      summary: Set BUSY time profile
+      description: Sets the BUSY timer profile under specified slot
+      operationId: setBusyProfile
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/BusyProfileSlot"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusyProfile"
+      responses:
+        "200":
+          description: Profile successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Error setting profile
           content:
             application/json:
               schema:
@@ -2464,17 +2523,19 @@ components:
       type: object
       properties:
         snapshot:
-          type: object
           oneOf:
             - $ref: "#/components/schemas/BusySnapshotNotStarted"
             - $ref: "#/components/schemas/BusySnapshotInfinite"
             - $ref: "#/components/schemas/BusySnapshotSimple"
             - $ref: "#/components/schemas/BusySnapshotInterval"
+        busy_bar_settings:
+          $ref: "#/components/schemas/BusyBarSettings"
         snapshot_timestamp_ms:
           type: integer
           example: 1761582532251
       required:
         - snapshot
+        - busy_bar_settings
         - snapshot_timestamp_ms
 
     BusySnapshotNotStarted:
@@ -2482,8 +2543,7 @@ components:
       properties:
         type:
           type: string
-          enum: ["NOT_STARTED"]
-          example: "NOT_STARTED"
+          const: "NOT_STARTED"
       required:
         - type
 
@@ -2492,10 +2552,10 @@ components:
       properties:
         type:
           type: string
-          enum: ["INFINITE"]
-          example: "INFINITE"
+          const: "INFINITE"
         card_id:
           type: string
+          format: uuid
           example: "00000000-0000-0000-0000-000000000000"
         is_paused:
           type: boolean
@@ -2510,10 +2570,10 @@ components:
       properties:
         type:
           type: string
-          enum: ["SIMPLE"]
-          example: "SIMPLE"
+          const: "SIMPLE"
         card_id:
           type: string
+          format: uuid
           example: "00000000-0000-0000-0000-000000000000"
         time_left_ms:
           type: integer
@@ -2532,10 +2592,10 @@ components:
       properties:
         type:
           type: string
-          enum: ["INTERVAL"]
-          example: "INTERVAL"
+          const: "INTERVAL"
         card_id:
           type: string
+          format: uuid
           example: "00000000-0000-0000-0000-000000000000"
         current_interval:
           type: integer
@@ -2550,7 +2610,7 @@ components:
           type: boolean
           example: false
         interval_settings:
-          $ref: "#/components/schemas/BusySnapshotIntervalSettings"
+          $ref: "#/components/schemas/BusyTimerIntervalSettings"
       required:
         - type
         - card_id
@@ -2560,13 +2620,72 @@ components:
         - is_paused
         - interval_settings
 
-    BusySnapshotIntervalSettings:
+    BusyProfile:
+      type: object
+      properties:
+        sort_order:
+          type: integer
+          example: -1
+        title:
+          type: string
+          example: "study"
+        id:
+          type: string
+          format: uuid
+          example: "00000000-0000-0000-0000-000000000000"
+        timer_settings:
+          oneOf:
+            - $ref: "#/components/schemas/BusyTimerInfiniteSettings"
+            - $ref: "#/components/schemas/BusyTimerSimpleSettings"
+            - $ref: "#/components/schemas/BusyTimerIntervalSettings"
+        busy_bar_settings:
+          $ref: "#/components/schemas/BusyBarSettings"
+        profile_timestamp_ms:
+          type: integer
+          example: 1761582532251
+      required:
+        - sort_order
+        - title
+        - timer_settings
+        - profile_timestamp_ms
+        - id
+        - busy_bar_settings
+
+    BusyProfileSlot:
+      type: string
+      enum:
+        - "busy"
+        - "custom"
+      example: "busy"
+
+    BusyTimerInfiniteSettings:
       type: object
       properties:
         type:
           type: string
-          enum: ["INTERVAL"]
-          example: "INTERVAL"
+          const: "INFINITE"
+      required:
+        - type
+
+    BusyTimerSimpleSettings:
+      type: object
+      properties:
+        type:
+          type: string
+          const: "SIMPLE"
+        total_time_ms:
+          type: integer
+          example: 300000
+      required:
+        - type
+        - total_time_ms
+
+    BusyTimerIntervalSettings:
+      type: object
+      properties:
+        type:
+          type: string
+          const: "INTERVAL"
         interval_work_ms:
           type: integer
           example: 120000
@@ -2579,6 +2698,29 @@ components:
         is_autostart_enabled:
           type: boolean
           example: false
+      required:
+        - type
+        - interval_work_ms
+        - interval_rest_ms
+        - interval_work_cycles_count
+        - is_autostart_enabled
+
+    BusyBarSettings:
+      type: object
+      properties:
+        theme:
+          type: string
+          example: "on_air"
+        show_work_phase_only:
+          type: boolean
+          example: false
+        trigger_smart_home:
+          type: boolean
+          example: true
+      required:
+        - theme
+        - show_work_phase_only
+        - trigger_smart_home
 
     TimezoneListResponse:
       type: object
