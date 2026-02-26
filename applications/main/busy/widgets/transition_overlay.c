@@ -83,15 +83,6 @@ static void transition_overlay_lvgl_constructor(const lv_obj_class_t* class_p, l
     widget_set_visible((Widget*)instance, false);
 }
 
-static void transition_overlay_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    TransitionOverlay* instance = (TransitionOverlay*)obj;
-    snap_image_free(instance->snap);
-    lv_obj_del(obj);
-    anim_player_free(instance->mask);
-}
-
 // Implementation
 
 static void transition_overlay_animate_color(TransitionOverlay* instance) {
@@ -274,7 +265,6 @@ void transition_overlay_start(TransitionOverlay* instance) {
 const lv_obj_class_t transition_overlay_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = transition_overlay_lvgl_constructor,
-    .destructor_cb = transition_overlay_lvgl_destructor,
     .name = "widget-transition-overlay",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
