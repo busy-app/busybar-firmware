@@ -232,7 +232,8 @@ static int32_t ble_per_cli_thread_event_loop_callback(void* context) {
     instance->shell_pipe = temp_bundle.bobs_side;
 
     CliIntercom* cli_intercom = furi_record_open(RECORD_CLI_INTERCOM);
-    furi_check(cli_intercom_spawn(cli_intercom, instance->shell_pipe) == CliIntercomSpawnStatusOk);
+    furi_check(
+        cli_intercom_spawn(cli_intercom, instance->shell_pipe, true) == CliIntercomSpawnStatusOk);
 
     pipe_attach_to_event_loop(instance->own_pipe, instance->event_loop);
     pipe_set_callback_context(instance->own_pipe, instance);
