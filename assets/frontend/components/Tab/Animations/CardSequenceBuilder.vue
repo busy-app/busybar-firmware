@@ -169,7 +169,7 @@ async function composeAndUpload () {
         closeIcon: 'i-bi-cross'
       });
     } catch {
-      //
+      // request errors are already handled
     }
   }
 }
@@ -179,6 +179,11 @@ async function deleteAssets () {
     appId: 'virtual-lan-animation-test'
   })
     .catch(async error => {
+      if (String(error).startsWith('Error: Assets missing')) {
+        // if there are no existing assets, we can ignore the error and proceed with upload
+        return;
+      }
+
       await handleHTTPError(error, 'Couldn\'t delete existing animation assets', true);
       throw error;
     });
