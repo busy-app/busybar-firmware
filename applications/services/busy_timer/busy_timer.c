@@ -194,7 +194,27 @@ static void
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeProfileChanged,
-        .profile_changed.profile_id = profile_id,
+        .profile_changed =
+            {
+                .profile_id = profile_id,
+                .profile = *profile,
+            },
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
+}
+
+static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
+    const BusyTimerSnapshot* snapshot = &instance->user_snapshot;
+
+    FURI_LOG_D(TAG, "Snapshot created with timestamp: %llu", snapshot->timestamp_ms);
+
+    BusyTimerEvent event = {
+        .type = BusyTimerEventTypeProfileChanged,
+        .snapshot_created =
+            {
+                .snapshot = *snapshot,
+            },
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -470,6 +490,61 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
     snapshot->app_config = instance->app_config;
 }
 
+static void busy_timer_publish_snapshot(const BusyTimer* instance) {
+    busy_timer_notify_snapshot_created(instance);
+
+    const BusyTimerSnapshot* snapshot = &instance->user_snapshot;
+    char* snapshot_str = busy_timer_snapshot_serialize(snapshot);
+    furi_check(snapshot_str);
+
+    mqtt_publish(
+        instance->mqtt,
+        TIMER_SNAPSHOT_MQTT_QOS,
+        TIMER_SNAPSHOT_MQTT_TOPIC,
+        snapshot_str,
+        strlen(snapshot_str));
+
+    free(snapshot_str);
+}
+
+static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
+    busy_timer_notify_profile_changed(instance, profile_id);
+
+    const BusyTimerProfile* profile = &instance->settings[profile_id].profile;
+    char* profile_str = busy_timer_profile_serialize(profile);
+    furi_check(profile_str);
+
+    mqtt_publish(
+        instance->mqtt,
+        TIMER_PROFILE_MQTT_QOS,
+        busy_timer_mqtt_topics[profile_id],
+        profile_str,
+        strlen(profile_str));
+
+    free(profile_str);
+}
+
+static void busy_timer_schedule_publish_snapshot(BusyTimer* instance) {
+    busy_timer_make_snapshot(instance, &instance->user_snapshot);
+
+    if(instance->snapshot_update_count == 0) {
+        busy_timer_publish_snapshot(instance);
+    }
+
+    ++instance->snapshot_update_count;
+    furi_event_loop_timer_start(instance->snapshot_timer, DEBOUNCE_TIMER_DELAY_MS);
+}
+
+static void
+    busy_timer_schedule_publish_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
+    if(instance->profile_update_count[profile_id] == 0) {
+        busy_timer_publish_profile(instance, profile_id);
+    }
+
+    ++instance->profile_update_count[profile_id];
+    furi_event_loop_timer_start(instance->profile_timer, DEBOUNCE_TIMER_DELAY_MS);
+}
+
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
     const time_t snapshot_timestamp_ms = snapshot->timestamp_ms;
 
@@ -545,17 +620,8 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     busy_timer_notify_state_changed(instance);
     busy_timer_notify_tick(instance);
     busy_timer_notify_paused(instance);
-}
 
-static void busy_timer_schedule_publish_snapshot(BusyTimer* instance) {
-    busy_timer_make_snapshot(instance, &instance->user_snapshot);
-    furi_event_loop_timer_start(instance->snapshot_timer, DEBOUNCE_TIMER_DELAY_MS);
-}
-
-static void
-    busy_timer_schedule_publish_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    instance->is_profile_updated[profile_id] = true;
-    furi_event_loop_timer_start(instance->profile_timer, DEBOUNCE_TIMER_DELAY_MS);
+    busy_timer_schedule_publish_snapshot(instance);
 }
 
 static BusyTimerSetProfileResult busy_timer_set_profile_internal(
@@ -603,22 +669,6 @@ static BusyTimerSetProfileResult busy_timer_set_profile_internal(
     return result;
 }
 
-static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    const BusyTimerProfile* profile = &instance->settings[profile_id].profile;
-
-    char* profile_str = busy_timer_profile_serialize(profile);
-    furi_check(profile_str);
-
-    mqtt_publish(
-        instance->mqtt,
-        TIMER_PROFILE_MQTT_QOS,
-        busy_timer_mqtt_topics[profile_id],
-        profile_str,
-        strlen(profile_str));
-
-    free(profile_str);
-}
-
 static void busy_timer_poll_timer_callback(void* context) {
     furi_assert(context);
     BusyTimer* instance = context;
@@ -627,19 +677,13 @@ static void busy_timer_poll_timer_callback(void* context) {
 
 static void busy_timer_snapshot_timer_callback(void* context) {
     furi_assert(context);
-    const BusyTimer* instance = context;
+    BusyTimer* instance = context;
 
-    char* snapshot_str = busy_timer_snapshot_serialize(&instance->user_snapshot);
-    furi_check(snapshot_str);
+    if(instance->snapshot_update_count > 1) {
+        busy_timer_publish_snapshot(instance);
+    }
 
-    mqtt_publish(
-        instance->mqtt,
-        TIMER_SNAPSHOT_MQTT_QOS,
-        TIMER_SNAPSHOT_MQTT_TOPIC,
-        snapshot_str,
-        strlen(snapshot_str));
-
-    free(snapshot_str);
+    instance->snapshot_update_count = 0;
 }
 
 static void busy_timer_profile_timer_callback(void* context) {
@@ -647,10 +691,11 @@ static void busy_timer_profile_timer_callback(void* context) {
     BusyTimer* instance = context;
 
     for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
-        if(instance->is_profile_updated[id]) {
+        if(instance->profile_update_count[id] > 1) {
             busy_timer_publish_profile(instance, id);
-            instance->is_profile_updated[id] = false;
         }
+
+        instance->profile_update_count[id] = 0;
     }
 }
 
@@ -913,7 +958,6 @@ static void
 
     if(result == BusyTimerSetProfileResultAccepted) {
         busy_timer_settings_save(&instance->settings[profile_id], profile_id);
-        busy_timer_notify_profile_changed(instance, profile_id);
     }
     // Do not re-publish upon receiving invalid or own (same) profile
     if(result != BusyTimerSetProfileResultRejectedInvalid &&
@@ -971,7 +1015,6 @@ static void
     profile->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
 
     busy_timer_settings_save(&instance->settings[profile_id], profile_id);
-    busy_timer_notify_profile_changed(instance, profile_id);
     busy_timer_schedule_publish_profile(instance, profile_id);
 }
 
