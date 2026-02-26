@@ -10,6 +10,11 @@ export enum UpdateStage {
   ERROR,
   SUCCESS
 }
+export interface AutoUpdateSelfCheckState {
+  is_enabled: boolean;
+  interval_start: string; // "HH:mm" format
+  interval_end: string; // "HH:mm" format
+}
 
 export const useFirmwareStore = defineStore('firmware', () => {
   const deviceStore = useDeviceStore();
@@ -39,6 +44,36 @@ export const useFirmwareStore = defineStore('firmware', () => {
       message: null as string | null
     }
   });
+
+  const autoUpdateSelfCheck = ref<AutoUpdateSelfCheckState>({ is_enabled: false, interval_start: '02:00', interval_end: '05:00' });
+  async function fetchAutoUpdateSelfCheck () {
+    return useApiStore().apiRequest<AutoUpdateSelfCheckState>('/api/update/autoupdate')
+      .then(response => {
+        autoUpdateSelfCheck.value = {
+          is_enabled: response.is_enabled,
+          interval_start: response.interval_start,
+          interval_end: response.interval_end
+        };
+
+        return autoUpdateSelfCheck.value;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t fetch auto-update self-check settings');
+      });
+  }
+  async function setAutoUpdateSelfCheck (payload: AutoUpdateSelfCheckState) {
+    return useApiStore().apiRequest('/api/update/autoupdate', {
+      method: 'POST',
+      body: payload
+    })
+      .then(() => {
+        autoUpdateSelfCheck.value = payload;
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t update auto-update self-check settings');
+      });
+  }
+
   function resetAutoUpdateState () {
     autoUpdate.value.status = null;
     autoUpdate.value.availableVersion = null;
@@ -371,6 +406,10 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
 
   return {
+    autoUpdateSelfCheck,
+    fetchAutoUpdateSelfCheck,
+    setAutoUpdateSelfCheck,
+
     autoUpdate,
     resetAutoUpdateState,
     fetchAutoUpdateStatus,
