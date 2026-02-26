@@ -12,6 +12,8 @@ typedef struct {
         instance_count; // <! 1 = both sides, 0 = only one side. Alice uses this one to connect the pipe to her EventLoop.
     FuriSemaphore* bobs_instance_count; // <! Bob uses this one to connect the pipe to his EventLoop.
     FuriMutex* state_transition;
+    _Atomic bool force_broken; // <! Set by pipe_close() to signal broken state without freeing
+    int sides_alive; // <! 2 = both alive; decremented by pipe_free() under state_transition mutex
 } PipeShared;
 
 /**
@@ -49,6 +51,7 @@ PipeSideBundle pipe_alloc_ex(PipeSideReceiveSettings alice, PipeSideReceiveSetti
         .instance_count = furi_semaphore_alloc(1, 1),
         .bobs_instance_count = furi_semaphore_alloc(1, 1),
         .state_transition = furi_mutex_alloc(FuriMutexTypeNormal),
+        .sides_alive = 2,
     };
 
     PipeSide* alices_side = malloc(sizeof(PipeSide));
@@ -79,8 +82,18 @@ PipeRole pipe_role(PipeSide* pipe) {
 
 PipeState pipe_state(PipeSide* pipe) {
     furi_check(pipe);
+    if(pipe->shared->force_broken) return PipeStateBroken;
     uint32_t count = furi_semaphore_get_count(pipe->shared->instance_count);
     return (count == 1) ? PipeStateOpen : PipeStateBroken;
+}
+
+void pipe_close(PipeSide* pipe) {
+    furi_check(pipe);
+    pipe->shared->force_broken = true;
+    // Drain event-loop semaphores so any broken-callback subscriber gets notified.
+    // Non-blocking: silently ignored if already drained by a prior close() or free().
+    furi_semaphore_acquire(pipe->shared->instance_count, 0);
+    furi_semaphore_acquire(pipe->shared->bobs_instance_count, 0);
 }
 
 void pipe_free(PipeSide* pipe) {
@@ -88,11 +101,14 @@ void pipe_free(PipeSide* pipe) {
     furi_check(!pipe->event_loop);
 
     furi_mutex_acquire(pipe->shared->state_transition, FuriWaitForever);
-    FuriStatus status = furi_semaphore_acquire(pipe->shared->instance_count, 0);
-    FuriStatus bobs_status = furi_semaphore_acquire(pipe->shared->bobs_instance_count, 0);
-    furi_check(status == bobs_status);
 
-    if(status == FuriStatusOk) {
+    // Signal event-loop subscribers (idempotent — no effect if already drained by close())
+    furi_semaphore_acquire(pipe->shared->instance_count, 0);
+    furi_semaphore_acquire(pipe->shared->bobs_instance_count, 0);
+
+    pipe->shared->sides_alive--;
+
+    if(pipe->shared->sides_alive > 0) {
         // the other side is still intact
         furi_mutex_release(pipe->shared->state_transition);
         free(pipe);

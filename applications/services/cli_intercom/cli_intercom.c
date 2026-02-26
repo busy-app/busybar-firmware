@@ -194,8 +194,12 @@ static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
     pipe_detach_from_event_loop(cli_intercom->own_pipe);
 #ifdef CLI_INTERCOM_SLAVE
     // on SLAVE (917), own_pipe is created by us in do_protocol_spawn
-    // on MASTER (U5), own_pipe is provided externally via cli_intercom_spawn
     pipe_free(cli_intercom->own_pipe);
+#else
+    // on MASTER (U5), own_pipe is provided externally via cli_intercom_spawn;
+    // mark it broken so the caller's pipe_receive/pipe_send exit promptly,
+    // but don't free it — the caller is responsible for pipe_free.
+    pipe_close(cli_intercom->own_pipe);
 #endif
     cli_intercom->own_pipe = NULL;
 }
