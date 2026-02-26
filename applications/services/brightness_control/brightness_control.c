@@ -1,5 +1,6 @@
 #include "brightness_control.h"
 #include "brightness_conv.h"
+#include "settings/settings.h"
 #include <furi/furi.h>
 #include <light_sensor/light_sensor.h>
 #include <front_display/front_display.h>
@@ -7,12 +8,8 @@
 #if defined(SRV_STATUS_LIGHTS)
 #include <status_lights/status_lights.h>
 #endif
-#include <storage/storage.h>
-#include <json_helper.h>
 
 #define TAG "BrightCtrl"
-
-#define CONFIG_FILE APP_DATA_PATH("config.json")
 
 #define MAX_MESSAGES                4
 #define LIGHT_SENSOR_UPDATE_TIMEOUT 10
@@ -35,6 +32,8 @@ struct BrightnessControl {
     FuriPubSub* light_sensor_events;
 
     FuriState* state;
+
+    SettingProvider* setting_provider;
 
     bool is_auto;
     UserBrightness manual_brightness;
@@ -189,6 +188,9 @@ static BrightnessControl* brightness_control_alloc(void) {
 #else
     UNUSED(light_sensor_event);
 #endif
+
+    instance->setting_provider = setting_provider_alloc(
+        BRIGHTNESS_SETTINGS_FILE_PATH, BRIGHTNESS_SETTINGS_VERSION, NULL, 0);
     load_config(instance);
 
     bzero(instance->is_overridden, sizeof(instance->is_overridden));
@@ -232,50 +234,26 @@ static void light_sensor_event(const void* message, void* context) {
 }
 
 static void load_config(BrightnessControl* instance) {
-    instance->is_auto = false;
-    instance->manual_brightness = DEFAULT_BRIGHTNESS;
+    BrightnessSettings settings;
 
-    JsonConfig* cfg = json_config_alloc();
+    setting_provider_open(instance->setting_provider);
+    setting_provider_load(instance->setting_provider, &BRIGHTNESS_SETTINGS_ROOT, &settings);
+    setting_provider_close(instance->setting_provider);
 
-    do {
-        if(json_config_open(cfg, CONFIG_FILE) == JsonConfigStatusError) {
-            // be resilient and not crash
-            FURI_LOG_E(TAG, "Cannot open config file");
-            break;
-        }
-
-#if defined(SRV_LIGHT_SENSOR)
-        FuriString* mode = furi_string_alloc();
-        json_config_read_str(cfg, "mode", mode, "manual");
-        if(furi_string_cmp_str(mode, "auto") == 0) {
-            instance->is_auto = true;
-        }
-        furi_string_free(mode);
-#endif
-
-        int brightness = DEFAULT_BRIGHTNESS.val;
-        json_config_read_int(cfg, "brightness", &brightness, NULL);
-        instance->manual_brightness = brightness_conv_int_to_user_clamped(brightness);
-    } while(false);
-
-    json_config_free(cfg);
+    instance->is_auto = settings.mode == BrightnessControlBrightnessModeAuto;
+    instance->manual_brightness = brightness_conv_int_to_user_clamped(settings.brightness);
 }
 
 static void save_config(const BrightnessControl* instance) {
-    JsonConfig* cfg = json_config_alloc();
+    BrightnessSettings settings = {
+        .brightness = instance->manual_brightness.val,
+        .mode = instance->is_auto ? BrightnessControlBrightnessModeAuto :
+                                    BrightnessControlBrightnessModeManual,
+    };
 
-    do {
-        if(json_config_open(cfg, CONFIG_FILE) == JsonConfigStatusError) {
-            // be resilient and not crash
-            FURI_LOG_E(TAG, "Cannot open config file");
-            break;
-        }
-
-        json_config_write_str(cfg, "mode", instance->is_auto ? "auto" : "manual");
-        json_config_write_int(cfg, "brightness", instance->manual_brightness.val);
-    } while(false);
-
-    json_config_free(cfg);
+    setting_provider_open(instance->setting_provider);
+    setting_provider_save(instance->setting_provider, &BRIGHTNESS_SETTINGS_ROOT, &settings);
+    setting_provider_close(instance->setting_provider);
 }
 
 static InternalBrightness get_effective_brightness(const BrightnessControl* instance) {

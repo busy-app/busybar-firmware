@@ -6,4 +6,5 @@ App(
     stack_size=1 * 1024,
     targets=["f20", "f21", "f22"],
     order=95,
+    requires=["storage"]
 )
