@@ -141,7 +141,6 @@ bool storage_file_close(File* file) {
         "File %p - %p closed",
         (void*)((uint32_t)file - SRAM_BASE),
         (void*)(file->file_id - SRAM_BASE));
-    file->type = FileTypeClosed;
 
     return S_RETURN_BOOL;
 }
@@ -385,8 +384,6 @@ bool storage_dir_close(File* file) {
         "Dir %p - %p closed",
         (void*)((uint32_t)file - SRAM_BASE),
         (void*)(file->file_id - SRAM_BASE));
-
-    file->type = FileTypeClosed;
 
     return S_RETURN_BOOL;
 }
@@ -1165,4 +1162,19 @@ void storage_get_next_filename(
     }
 
     furi_string_free(temp_str);
+}
+
+void storage_common_shutdown(Storage* storage) {
+    furi_check(storage);
+
+    S_API_PROLOGUE;
+    SAData data = {};
+    S_API_MESSAGE(StorageCommandCommonShutdown);
+    S_API_EPILOGUE;
+}
+
+void storage_common_revive(Storage* storage) {
+    furi_check(storage);
+
+    furi_event_flag_set(storage->shutdown_gate, SHUTDOWN_GATE_FLAG);
 }

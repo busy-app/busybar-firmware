@@ -4,21 +4,20 @@
 #include <sl_wifi.h>
 #include <sl_wifi_callback_framework.h>
 
-#include "ble_config.h"
+#include "../ble_common.h"
 #include "rsi_ble_apis.h"
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
+
+#define TAG "BleUtil"
+
+#define BLE_TAKE_NEXT_HANDLE_ERROR_MAX (3)
 
 typedef struct FURI_PACKED {
     uint8_t properties;
     uint16_t value_handle;
     uint8_t uuid[];
-    // union uuid_t {
-    //     uuid128_t val128;
-    //     uuid32_t val32;
-    //     uuid16_t val16;
-    // } val;
-} BleCharacteristicData;
+} BleCharacteristicInfo;
 
 typedef enum {
     BleItemTypeService,
@@ -30,14 +29,14 @@ typedef enum {
 
 static inline void
     ble_data_cat_printf_forward(const uint8_t* data, const uint8_t length, FuriString* output) {
-    for(int8_t i = 0; i < length; i++) {
+    for(int32_t i = 0; i < length; i++) {
         furi_string_cat_printf(output, "%02X", data[i]);
     }
 }
 
 static inline void
     ble_data_cat_printf_reverse(const uint8_t* data, const uint8_t length, FuriString* output) {
-    for(int8_t i = length - 1; i >= 0; i--) {
+    for(int32_t i = length - 1; i >= 0; i--) {
         furi_string_cat_printf(output, "%02X", data[i]);
     }
 }
@@ -56,25 +55,28 @@ static void ble_data_cat_printf(
         ble_data_cat_printf_reverse(data, length, output);
 }
 
-void ble_print_service_hierarchy(uint16_t last_handle) {
+void ble_print_service_hierarchy(void) {
     FuriString* str = furi_string_alloc();
 
     uint16_t handle = 0x0001;
+    uint8_t error_cnt = 0;
     BleItemType expected_type = BleItemTypeService;
-    FURI_LOG_I("BLE", "=========BLE service hierarchy===========");
+    bool descriptor_present = false;
+    BLE_LOG_I("=========BLE service hierarchy===========");
     while(true) {
         bool skip_increment = false;
         rsi_ble_resp_local_att_value_t value;
         int32_t res = rsi_ble_get_local_att_value(handle, &value);
 
-        if(handle > last_handle) {
-            FURI_LOG_I("BLE", "Exit");
+        if(error_cnt > BLE_TAKE_NEXT_HANDLE_ERROR_MAX) {
+            BLE_LOG_I("Exit");
             break;
         }
 
         if(res != RSI_SUCCESS || value.handle == 0) {
-            FURI_LOG_I("BLE", "Take next handle");
+            BLE_LOG_D("Take next handle, res: %08lX", res);
             handle++;
+            error_cnt++;
             continue;
         }
 
@@ -88,7 +90,7 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
             ble_data_cat_printf(str, value.data, value.data_len, "\e[36mService: \e[0m", true);
             expected_type = BleItemTypeCharacteristic;
         } else if(expected_type == BleItemTypeCharacteristic) {
-            BleCharacteristicData* char_descr = (BleCharacteristicData*)value.data;
+            BleCharacteristicInfo* char_descr = (BleCharacteristicInfo*)value.data;
             uint8_t uuid_len = value.data_len - 3;
 
             ble_data_cat_printf(str, char_descr->uuid, uuid_len, "Char: ", true);
@@ -98,31 +100,31 @@ void ble_print_service_hierarchy(uint16_t last_handle) {
                 char_descr->properties,
                 char_descr->value_handle);
 
-            if((char_descr->properties & RSI_BLE_ATT_PROPERTY_INDICATE) ||
-               (char_descr->properties & RSI_BLE_ATT_PROPERTY_NOTIFY)) {
-                expected_type = BleItemTypeCharacteristicDescriptor;
-            } else {
-                expected_type = BleItemTypeValue;
-            }
+            descriptor_present =
+                ((char_descr->properties & RSI_BLE_ATT_PROPERTY_INDICATE) ||
+                 (char_descr->properties & RSI_BLE_ATT_PROPERTY_NOTIFY));
+
+            expected_type = BleItemTypeValue;
 
             if(char_descr->value_handle != 0) {
                 handle = char_descr->value_handle;
                 skip_increment = true;
             }
-
-        } else if(expected_type == BleItemTypeCharacteristicDescriptor) {
-            ble_data_cat_printf(str, value.data, value.data_len, "Descriptor: ", false);
-            expected_type = BleItemTypeValue;
-
         } else if(expected_type == BleItemTypeValue) {
             ble_data_cat_printf(str, value.data, value.data_len, "Data: ", false);
+            expected_type = descriptor_present ? BleItemTypeCharacteristicDescriptor :
+                                                 BleItemTypeService;
+        } else if(expected_type == BleItemTypeCharacteristicDescriptor) {
+            ble_data_cat_printf(str, value.data, value.data_len, "Descriptor: ", false);
             furi_string_cat_printf(str, "\n");
+
             expected_type = BleItemTypeService;
+            descriptor_present = false;
         }
 
         if(!skip_increment) handle++;
 
-        FURI_LOG_I("BLE", "%s", furi_string_get_cstr(str));
+        BLE_LOG_I("%s", furi_string_get_cstr(str));
         furi_string_reset(str);
     }
     furi_string_free(str);
@@ -165,12 +167,12 @@ bool ble_find_characteristic_value_handle_by_uiid(
         int32_t res = rsi_ble_get_local_att_value(handle, &value);
 
         if(handle > last_handle) {
-            FURI_LOG_I("BLE", "Exit");
+            BLE_LOG_I("Exit");
             break;
         }
 
         if(res != RSI_SUCCESS || value.handle == 0) {
-            FURI_LOG_I("BLE", "Take next handle");
+            BLE_LOG_D("Take next handle");
             handle++;
             continue;
         }
@@ -187,7 +189,7 @@ bool ble_find_characteristic_value_handle_by_uiid(
 
             expected_type = BleItemTypeCharacteristic;
         } else if(expected_type == BleItemTypeCharacteristic) {
-            BleCharacteristicData* char_descr = (BleCharacteristicData*)value.data;
+            BleCharacteristicInfo* char_descr = (BleCharacteristicInfo*)value.data;
 
             buf.size = value.data_len - 3;
             memcpy(&buf.val, char_descr->uuid, buf.size);

@@ -9,10 +9,8 @@
 
 #define COUNTDOWN_THRESHOLD_S (3)
 
-#define TIMER_HIDDEN_TIME_S (15)
-#define TIMER_SHOWN_TIME_S  (5)
-
-#define TIMER_SHOWN_OFFSET_S (3)
+#define TIMER_HIDDEN_TIME_MS (S_TO_MS(15))
+#define TIMER_SHOWN_TIME_MS  (S_TO_MS(5))
 
 typedef struct {
     TimerIndicator* timer_indicator;
@@ -20,12 +18,13 @@ typedef struct {
     PauseOverlay* pause_overlay;
     FuriPubSub* timer_pubsub;
     FuriPubSubSubscription* timer_sub;
+    FuriEventLoopTimer* show_label_timer;
     TimerIndicatorPreset custom_preset;
     BusyTimerMode timer_mode;
     BusyTimerMode prev_timer_mode;
-    BusyTimerTime timer_time;
     BusyTimerState timer_state;
-    uint32_t prev_label_show_time;
+    uint32_t time_elapsed_s;
+    uint32_t time_remaining_s;
     bool is_custom_theme;
     bool is_paused;
     bool is_force_ended;
@@ -77,24 +76,25 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(event->type == BusyTimerEventTypeTick) {
-        data->timer_time = event->time;
+        data->time_elapsed_s = event->tick.time_elapsed_s;
+        data->time_remaining_s = event->tick.time_remaining_s;
         busy_send_custom_event(instance, BusyCustomEventTimerTick);
 
     } else if(event->type == BusyTimerEventTypeModeChanged) {
         data->prev_timer_mode = data->timer_mode;
-        data->timer_mode = event->mode;
+        data->timer_mode = event->mode_changed.mode;
         busy_send_custom_event(instance, BusyCustomEventTimerModeChanged);
 
     } else if(event->type == BusyTimerEventTypeStateChanged) {
-        data->timer_state = event->state;
+        data->timer_state = event->state_changed.state;
         busy_send_custom_event(instance, BusyCustomEventTimerStateChanged);
 
     } else if(event->type == BusyTimerEventTypeIntervalEnded) {
-        data->is_force_ended = event->is_force_ended;
+        data->is_force_ended = event->interval_ended.is_forced;
         busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
 
-    } else if(event->type == BusyTimerEventTypeTimerPaused) {
-        data->is_paused = event->timer_paused.is_paused;
+    } else if(event->type == BusyTimerEventTypePaused) {
+        data->is_paused = event->paused.is_paused;
         busy_send_custom_event(instance, BusyCustomEventTimerPaused);
     }
 }
@@ -106,10 +106,9 @@ static bool busy_scene_timer_has_label_tweaks(const BusySceneTimer* data) {
 static void busy_scene_timer_update_tick(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-    const BusyTimerTime* time = &data->timer_time;
 
-    const uint32_t time_remain_s = time->remain_s;
-    const uint32_t time_elapsed_s = time->elapsed_s;
+    const uint32_t time_remain_s = data->time_remaining_s;
+    const uint32_t time_elapsed_s = data->time_elapsed_s;
 
     const float progress = (float)time_elapsed_s / (time_elapsed_s + time_remain_s);
 
@@ -128,22 +127,18 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
             instance->timer_card, furi_string_get_cstr(mirror_card_footer_text));
         furi_string_free(mirror_card_footer_text);
 
-        if(busy_scene_timer_has_label_tweaks(data)) {
-            const uint32_t dt_s = time_elapsed_s - data->prev_label_show_time;
-
-            if(dt_s == TIMER_HIDDEN_TIME_S || time_remain_s <= COUNTDOWN_THRESHOLD_S) {
-                timer_label_show(data->timer_label, true);
-            } else if(dt_s == TIMER_HIDDEN_TIME_S + TIMER_SHOWN_TIME_S || dt_s == 0) {
-                timer_label_hide(data->timer_label, true);
-                data->prev_label_show_time = time_elapsed_s;
-            }
+        if(busy_scene_timer_has_label_tweaks(data) && time_remain_s == COUNTDOWN_THRESHOLD_S) {
+            timer_label_show(data->timer_label, true);
+            furi_event_loop_timer_start(data->show_label_timer, TIMER_SHOWN_TIME_MS);
         }
     });
 
-    if(time_remain_s == 0) {
-        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
-    } else if(time_remain_s <= COUNTDOWN_THRESHOLD_S) {
-        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
+    if(data->timer_mode != BusyTimerModeInfinite) {
+        if(time_remain_s == 0) {
+            audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
+        } else if(time_remain_s <= COUNTDOWN_THRESHOLD_S) {
+            audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
+        }
     }
 }
 
@@ -256,8 +251,6 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
-    data->prev_label_show_time = 0;
-
     const TimerIndicatorPreset* timer_indicator_preset =
         busy_scene_timer_get_indicator_preset(data);
     const TimerIndicatorTransition* timer_indicator_transition =
@@ -276,9 +269,12 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
             if(busy_scene_timer_has_label_tweaks(data)) {
                 timer_label_enable_background(data->timer_label, true);
                 timer_label_hide(data->timer_label, false);
+                furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
+
             } else {
                 timer_label_enable_background(data->timer_label, false);
                 timer_label_show(data->timer_label, false);
+                furi_event_loop_timer_stop(data->show_label_timer);
             }
         }
     });
@@ -289,13 +285,22 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 }
 
 static void busy_scene_timer_handle_pause(BusyApp* instance) {
-    BusySceneTimer* data =
+    const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
+    const bool is_paused = data->is_paused;
+
     with_gui(instance->gui, {
-        pause_overlay_show(data->pause_overlay, data->is_paused);
-        mirror_card_set_show_header(instance->timer_card, !data->is_paused);
-        timer_indicator_enable_animations(data->timer_indicator, !data->is_paused);
+        pause_overlay_show(data->pause_overlay, is_paused);
+        mirror_card_set_show_header(instance->timer_card, !is_paused);
+        timer_indicator_enable_animations(data->timer_indicator, !is_paused);
+
+        if(!is_paused && busy_scene_timer_has_label_tweaks(data)) {
+            furi_event_loop_timer_start(data->show_label_timer, TIMER_HIDDEN_TIME_MS);
+            timer_label_hide(data->timer_label, true);
+        } else {
+            furi_event_loop_timer_stop(data->show_label_timer);
+        }
     });
 
     busy_scene_timer_update_lights(instance);
@@ -315,17 +320,17 @@ static void busy_scene_timer_handle_skip(BusyApp* instance) {
 }
 
 static void busy_scene_timer_handle_increment_decrement(BusyApp* instance, int32_t value) {
-    BusySceneTimer* data =
+    const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(busy_scene_timer_has_label_tweaks(data)) {
-        with_gui(instance->gui, { timer_label_show(data->timer_label, true); });
+        with_gui(instance->gui, {
+            timer_label_show(data->timer_label, true);
+            furi_event_loop_timer_start(data->show_label_timer, TIMER_SHOWN_TIME_MS);
+        });
     }
 
     busy_timer_add_time(instance->busy_timer, value);
-
-    const uint32_t time_elapsed_s = data->timer_time.elapsed_s;
-    data->prev_label_show_time = time_elapsed_s + TIMER_SHOWN_OFFSET_S;
 }
 
 static void busy_scene_timer_handle_back(BusyApp* instance) {
@@ -336,6 +341,8 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
         busy_timer_stop(instance->busy_timer);
 
         busy_prepare_transition(instance, BusyTransitionTypeDefault);
+
+        busy_set_front_display_blanking(instance, false);
 
         if(!busy_return_to_start_scene(instance)) {
             busy_exit(instance);
@@ -412,6 +419,39 @@ static void busy_scene_timer_apply_theme(BusyApp* instance) {
     data->is_custom_theme = is_custom_theme;
 }
 
+static void busy_scene_timer_handle_app_config_changed(BusyApp* instance) {
+    busy_scene_timer_apply_theme(instance);
+}
+
+static void busy_scene_timer_show_label_timer_callback(void* context) {
+    furi_assert(context);
+    const BusyApp* instance = context;
+
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    FuriEventLoopTimer* label_timer = data->show_label_timer;
+
+    const uint32_t prev_interval_ms = furi_event_loop_timer_get_interval(label_timer);
+    uint32_t interval_ms;
+
+    with_gui(instance->gui, {
+        if(prev_interval_ms == TIMER_HIDDEN_TIME_MS) {
+            interval_ms = TIMER_SHOWN_TIME_MS;
+            timer_label_show(data->timer_label, true);
+
+        } else if(prev_interval_ms == TIMER_SHOWN_TIME_MS) {
+            interval_ms = TIMER_HIDDEN_TIME_MS;
+            timer_label_hide(data->timer_label, true);
+
+        } else {
+            furi_crash("Illegal timer label interval");
+        }
+    });
+
+    furi_event_loop_timer_start(label_timer, interval_ms);
+}
+
 // Standard SceneManager event handlers
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -443,6 +483,12 @@ static void busy_scene_timer_on_enter(void* context) {
     data->timer_sub =
         furi_pubsub_subscribe(data->timer_pubsub, busy_scene_timer_pubsub_callback, instance);
 
+    data->show_label_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        busy_scene_timer_show_label_timer_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
+
     data->timer_mode = BusyTimerModeMax;
     data->prev_timer_mode = BusyTimerModeMax;
 
@@ -464,6 +510,8 @@ static void busy_scene_timer_on_exit(void* context) {
 
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    furi_event_loop_timer_free(data->show_label_timer);
 
     furi_pubsub_unsubscribe(data->timer_pubsub, data->timer_sub);
 
@@ -521,6 +569,9 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
 
         } else if(event->event == BusyCustomEventReturnToStart) {
             busy_scene_timer_handle_return_to_start(instance);
+
+        } else if(event->event == BusyCustomEventAppConfigChanged) {
+            busy_scene_timer_handle_app_config_changed(instance);
         }
 
         consumed = true;
