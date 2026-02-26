@@ -528,6 +528,7 @@ async function forgetNetwork () {
   const wasConnectedViaWifi = useDeviceStore().connectionType === 'wifi';
   loading.value.forget = true;
   await wifiStore.disconnectFromWifiNetwork();
+  forgetNetworkModal.value = false;
   if (wasConnectedViaWifi) {
     window.location.reload();
   }
