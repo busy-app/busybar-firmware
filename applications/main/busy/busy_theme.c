@@ -4,10 +4,12 @@
 
 #include <json_helper.h>
 
-#define CONFIG_FILE_NAME "config.json"
-#define CONFIG_KEY_ASSET "asset_path"
+#define CONFIG_FILE_NAME "theme.json"
+#define CONFIG_KEY_ASSET "bg_path"
 
 #define DEFAULT_NAME "busy"
+
+#define TAG "BusyTheme"
 
 struct BusyTheme {
     FuriString* name;
@@ -53,16 +55,19 @@ static bool busy_theme_read_config(BusyTheme* instance, const char* root_path) {
 
     do {
         if(json_config_open(json, furi_string_get_cstr(config_path)) != JsonConfigStatusOk) {
+            FURI_LOG_D(TAG, "Failed to open config file: %s", furi_string_get_cstr(config_path));
             break;
         }
 
         if(json_config_read_str(json, CONFIG_KEY_ASSET, asset_path, NULL) != JsonConfigStatusOk) {
+            FURI_LOG_D(TAG, "Failed to read %s key", CONFIG_KEY_ASSET);
             break;
         }
 
         const char* path = furi_string_get_cstr(asset_path);
         BusyThemeFileType type = busy_theme_detect_file_type(path);
         if(type == BusyThemeFileTypeMax) {
+            FURI_LOG_D(TAG, "Failed to parse file type from path %s", path);
             break;
         }
 
@@ -71,6 +76,7 @@ static bool busy_theme_read_config(BusyTheme* instance, const char* root_path) {
         furi_record_close(RECORD_STORAGE);
 
         if(!exists) {
+            FURI_LOG_D(TAG, "Failed to find file %s", path);
             break;
         }
 
