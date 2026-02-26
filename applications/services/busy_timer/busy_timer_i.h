@@ -120,7 +120,8 @@ struct BusyTimer {
     uint32_t time_remaining_s;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     // <----- Refactor section ends
+    uint32_t snapshot_update_count;
+    uint32_t profile_update_count[BusyTimerProfileIdMax];
     bool is_timer_running;
     bool is_demo_mode_enabled;
-    bool is_profile_updated[BusyTimerProfileIdMax];
 };
