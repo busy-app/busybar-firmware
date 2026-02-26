@@ -108,7 +108,7 @@ struct BusyTimer {
     FuriMessageQueue* api_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
-    BusyTimerSnapshot captured_snapshot;
+    BusyTimerSnapshot last_known_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
     // TODO FW-635: Refactor & simplify internals ---->
     BusyTimerState state;
