@@ -1,34 +1,21 @@
 #include "../apps_menu_i.h"
 #include "../storage_macros.h"
 #include "apps_menu_scenes.h"
+#include "../app_list.h"
 
 #include <desktop/desktop.h>
-
-#include <gui/modules/image.h>
-#include <gui/modules/label.h>
-
 #include <gui/modules/menu.h>
 
 typedef enum {
     SceneCustomEventMenuItemClicked = AppsMenuCustomEventSceneEventsStart,
 } SceneCustomEvent;
 
-typedef enum {
-    AppsSceneMainMenuIndexClock,
-
-    AppsSceneMainMenuIndexesCount,
-} AppsSceneMainMenuIndex;
-
 typedef struct {
     Menu* front_menu;
     Menu* back_menu;
 
-    _Atomic AppsSceneMainMenuIndex menu_idx;
+    _Atomic AppsMenuEntryIdx menu_idx;
 } AppsMenuSceneMain;
-
-static const char* apps_menu_scene_app_names[AppsSceneMainMenuIndexesCount] = {
-    [AppsSceneMainMenuIndexClock] = "clock",
-};
 
 static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
@@ -56,7 +43,7 @@ static void apps_menu_scene_main_on_enter(void* context) {
             "Clock",
             "",
             APPS_MENU_IMG_PATH("clock_front_8x8.bin"),
-            AppsSceneMainMenuIndexClock,
+            AppsMenuEntryIdxClock,
             apps_scene_setup_menu_callback,
             instance);
 
@@ -67,9 +54,9 @@ static void apps_menu_scene_main_on_enter(void* context) {
             "Clock",
             "",
             APPS_MENU_IMG_PATH("clock_back_11x11.bin"),
-            AppsSceneMainMenuIndexClock,
+            0,
             NULL,
-            instance);
+            NULL);
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
@@ -94,12 +81,22 @@ static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* 
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == SceneCustomEventMenuItemClicked) {
-            furi_check(data->menu_idx < AppsSceneMainMenuIndexesCount);
+        switch(event->event) {
+        case SceneCustomEventMenuItemClicked:
+            furi_check(data->menu_idx < AppsMenuEntryIdxsCount);
+
+            const char* target_application = apps_menu_entries[data->menu_idx];
+
+            furi_string_set(instance->settings.active_application, target_application);
+            apps_menu_settings_save(&instance->settings);
 
             Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-            desktop_replace_current_app(desktop, apps_menu_scene_app_names[data->menu_idx], NULL);
+            desktop_replace_current_app(desktop, target_application, NULL);
             furi_record_close(RECORD_DESKTOP);
+            return true;
+
+        default:
+            break;
         }
     }
 

@@ -29,6 +29,12 @@ typedef enum {
 } ThisEvent;
 
 typedef struct {
+    bool do_skip_menu;
+} ThisArguments;
+
+typedef struct {
+    ThisArguments arguments;
+
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
