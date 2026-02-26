@@ -23,9 +23,7 @@ static void si917_info_client_rx_callback(const void* data, size_t data_size, vo
     furi_assert(context);
     Si917InfoClient* instance = context;
 
-    furi_check(
-        furi_message_queue_put(instance->response_queue, &msg->data, FuriWaitForever) ==
-        FuriStatusOk);
+    furi_message_queue_put(instance->response_queue, &msg->data, 0);
 }
 
 static Si917InfoClient* si917_info_client_alloc(void) {
@@ -51,6 +49,8 @@ bool si917_info_get(Si917InfoClient* client, Si917InfoData* info) {
         memcpy(info, &client->info_data, sizeof(Si917InfoData));
         success = true;
     } else {
+        furi_message_queue_reset(client->response_queue);
+
         Si917InfoRequestMessage request_msg = {.type = Si917InfoMessageRequest};
 
         size_t packet_len = sizeof(Si917InfoRequestMessage);
@@ -63,7 +63,7 @@ bool si917_info_get(Si917InfoClient* client, Si917InfoData* info) {
             memcpy(info, &client->info_data, sizeof(Si917InfoData));
             success = true;
         } else {
-            FURI_LOG_E(TAG, "Request timeout");
+            FURI_LOG_E(TAG, "Response timeout");
         }
 
         client->data_valid = success;
