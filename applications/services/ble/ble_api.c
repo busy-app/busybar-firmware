@@ -1,6 +1,7 @@
 #include "ble_i.h"
 
 #include "ble_system_command.h"
+#include "service/uart/ble_uart_characteristic.h"
 
 #define TAG "BleAPI"
 
@@ -112,7 +113,7 @@ void ble_uart_set_rx_callback(
     BleServiceIndex index = (channel == BleUartChannelHM10) ? BleServiceIndexHm10Uart :
                                                               BleServiceIndexNordicUart;
     BleServiceObject* service = ble->services[index];
-    ble_service_register_update_callback(service, 0, rx_cb, ctx);
+    ble_service_register_update_callback(service, BleUartCharacteristicIndexRx, rx_cb, ctx);
 }
 
 void ble_uart_set_tx_done_callback(
@@ -126,5 +127,23 @@ void ble_uart_set_tx_done_callback(
     BleServiceIndex index = (channel == BleUartChannelHM10) ? BleServiceIndexHm10Uart :
                                                               BleServiceIndexNordicUart;
     BleServiceObject* service = ble->services[index];
-    ble_service_register_transmission_done_callback(service, 1, tx_done_cb, ctx);
+    ble_service_register_transmission_done_callback(
+        service, BleUartCharacteristicIndexTx, tx_done_cb, ctx);
+}
+
+void ble_uart_set_session_callback(Ble* ble, BleDataUpdatedCallback session_update_cb, void* ctx) {
+    furi_assert(ble);
+    furi_assert(session_update_cb);
+    furi_assert(ctx);
+
+    BleServiceObject* service = ble->services[BleServiceIndexNordicUart];
+    ble_service_register_update_callback(
+        service, BleUartCharacteristicIndexSession, session_update_cb, ctx);
+}
+
+void ble_uart_session_set_value(Ble* ble, const uint32_t session) {
+    furi_assert(ble);
+
+    BleServiceObject* service = ble->services[BleServiceIndexNordicUart];
+    ble_service_write_data(service, BleUartCharacteristicIndexSession, &session, sizeof(uint32_t));
 }

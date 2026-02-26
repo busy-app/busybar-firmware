@@ -68,7 +68,17 @@ void ble_characteristic_set_data(
     memcpy(instance->data, data, data_size);
     instance->data_size = data_size;
     instance->modified = true;
+}
 
+void ble_characteristic_set_data_from_remote(
+    BleCharacteristicObject* instance,
+    const void* data,
+    const size_t data_size) {
+    furi_assert(instance);
+    furi_assert(data);
+    furi_assert(data_size > 0);
+
+    ble_characteristic_set_data(instance, data, data_size);
     if(instance->update_cb) {
         instance->update_cb(data_size, instance->data, instance->update_ctx);
         instance->modified = false;

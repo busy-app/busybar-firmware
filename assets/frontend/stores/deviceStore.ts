@@ -59,7 +59,7 @@ export const useDeviceStore = defineStore('device', () => {
           title: 'Device disconnected',
           description: 'Device lost. Please check the connection.',
           icon: 'i-bi-alert',
-          color: 'error',
+          color: 'warning',
           duration: 0,
           close: true,
           closeIcon: 'i-bi-cross'
@@ -71,6 +71,13 @@ export const useDeviceStore = defineStore('device', () => {
 
   const refreshInterval = ref<NodeJS.Timeout>();
   async function refreshDeviceData () {
+    const firmwareStore = useFirmwareStore();
+    if (firmwareStore.autoUpdate.stage === UpdateStage.LOADING || firmwareStore.fileUpdate.stage === UpdateStage.LOADING) {
+      // During auto update, the device is expected to be unresponsive, so skip connection check and just wait for it to come back
+      console.debug('Skipping connection check during auto update');
+      return;
+    }
+
     await checkConnection();
     if (!isConnected.value) {
       return;

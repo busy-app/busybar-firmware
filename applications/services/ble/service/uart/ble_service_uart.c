@@ -16,6 +16,8 @@
     {0x6E, 0x40, 0x00, 0x02, 0xB5, 0xA3, 0xF3, 0x93, 0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0xCA, 0x9E}
 #define UART_TX_CHAR_UUID \
     {0x6E, 0x40, 0x00, 0x03, 0xB5, 0xA3, 0xF3, 0x93, 0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0xCA, 0x9E}
+#define UART_CNT_CHAR_UUID \
+    {0x6E, 0x40, 0x00, 0x04, 0xB5, 0xA3, 0xF3, 0x93, 0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0xCA, 0x9E}
 
 // HM-10 Bluetooth UUIDs
 // HM10_UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb"
@@ -30,11 +32,6 @@
 
 #define NORDIC_UART_INITIAL_DATA_SIZE (237) //RSI_DEV_ATT_LEN - ATTRIBUTE_HEADER_SIZE (240-3 = 237)
 
-typedef enum {
-    BleSrvDeviceUartCharacterRx,
-    BleSrvDeviceUartCharacterTx,
-} BleSrvUartCharacterIndex;
-
 static bool ble_service_uart_init(void* object) {
     furi_assert(object);
     BLE_LOG_D("uart_init");
@@ -46,7 +43,7 @@ static bool ble_service_uart_init(void* object) {
 
 static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] = {
     {
-        .intercom_index = BleSrvDeviceUartCharacterRx,
+        .intercom_index = BleUartCharacteristicIndexRx,
         .name = "Uart Rx",
         .initial_data_size = NORDIC_UART_INITIAL_DATA_SIZE,
 #if defined(BSB_MCU_SI917)
@@ -56,13 +53,23 @@ static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] =
 #endif
     },
     {
-        .intercom_index = BleSrvDeviceUartCharacterTx,
+        .intercom_index = BleUartCharacteristicIndexTx,
         .name = "Uart Tx",
         .initial_data_size = NORDIC_UART_INITIAL_DATA_SIZE,
 #if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = UART_TX_CHAR_UUID},
         .uuid_size = 16,
         .char_properties = BLE_ATT_PROPERTY_READ | BLE_ATT_PROPERTY_INDICATE,
+#endif
+    },
+    {
+        .intercom_index = BleUartCharacteristicIndexSession,
+        .name = "Uart Cnt",
+        .initial_data_size = sizeof(uint32_t),
+#if defined(BSB_MCU_SI917)
+        .uuid = {.Char_UUID_128 = UART_CNT_CHAR_UUID},
+        .uuid_size = 16,
+        .char_properties = BLE_ATT_PROPERTY_READ | BLE_ATT_PROPERTY_WRITE,
 #endif
     },
 };
@@ -87,7 +94,7 @@ const BleServiceDescriptor ble_service_config_nordic_uart = {
 
 static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
     {
-        .intercom_index = BleSrvDeviceUartCharacterRx,
+        .intercom_index = BleUartCharacteristicIndexRx,
         .name = "HM10 Rx",
         .initial_data_size = 100,
 #if defined(BSB_MCU_SI917)
@@ -97,7 +104,7 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
 #endif
     },
     {
-        .intercom_index = BleSrvDeviceUartCharacterTx,
+        .intercom_index = BleUartCharacteristicIndexTx,
         .name = "HM10 Tx",
         .initial_data_size = 100,
 #if defined(BSB_MCU_SI917)
