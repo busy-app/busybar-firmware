@@ -1,10 +1,14 @@
 #include "busy_theme.h"
-
 #include "storage_macros.h"
 
-#define BG_FILE_NAME "bg"
+#include <json_helper.h>
+
+#define CONFIG_FILE_NAME "theme.json"
+#define CONFIG_KEY_ASSET "bg_path"
 
 #define DEFAULT_NAME "busy"
+
+#define TAG "BusyTheme"
 
 struct BusyTheme {
     FuriString* name;
@@ -25,44 +29,69 @@ static const BusyThemeFileSpec busy_theme_bg_specs[] = {
 
 // Implementation
 
-static BusyThemeFileType busy_theme_find_file_name(
-    const char* root_path,
-    const char* file_name,
-    const BusyThemeFileSpec* const specs,
-    uint32_t specs_count,
-    FuriString* out) {
-    BusyThemeFileType ret = BusyThemeFileTypeMax;
+static BusyThemeFileType busy_theme_parse_file_type(const FuriString* path) {
+    BusyThemeFileType type = BusyThemeFileTypeMax;
+    FuriString* path_ending = furi_string_alloc();
 
-    FuriString* tmp = furi_string_alloc();
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-
-    for(uint32_t i = 0; i < specs_count; ++i) {
-        const BusyThemeFileSpec* spec = &specs[i];
-
-        furi_string_printf(tmp, "%s/%s.%s", root_path, file_name, spec->extension);
-
-        if(storage_file_exists(storage, furi_string_get_cstr(tmp))) {
-            furi_string_set(out, tmp);
-            ret = spec->type;
+    for(uint32_t i = 0; i < COUNT_OF(busy_theme_bg_specs); ++i) {
+        furi_string_printf(path_ending, ".%s", busy_theme_bg_specs[i].extension);
+        if(furi_string_end_with(path, path_ending)) {
+            type = busy_theme_bg_specs[i].type;
             break;
         }
     }
 
-    furi_record_close(RECORD_STORAGE);
-    furi_string_free(tmp);
-
-    return ret;
+    furi_string_free(path_ending);
+    return type;
 }
 
-bool busy_theme_read_bg_path(BusyTheme* instance, const char* root_path) {
-    instance->bg_type = busy_theme_find_file_name(
-        root_path,
-        BG_FILE_NAME,
-        busy_theme_bg_specs,
-        COUNT_OF(busy_theme_bg_specs),
-        instance->bg_path);
+static bool busy_theme_read_config(BusyTheme* instance, const char* root_path) {
+    bool success = false;
 
-    return instance->bg_type != BusyThemeFileTypeMax;
+    FuriString* config_path = furi_string_alloc_printf("%s/%s", root_path, CONFIG_FILE_NAME);
+    FuriString* theme_path = furi_string_alloc();
+
+    JsonConfig* json = json_config_alloc();
+
+    do {
+        if(json_config_open(json, furi_string_get_cstr(config_path)) != JsonConfigStatusOk) {
+            FURI_LOG_D(TAG, "Failed to open config file: %s", furi_string_get_cstr(config_path));
+            break;
+        }
+
+        if(json_config_read_str(json, CONFIG_KEY_ASSET, theme_path, NULL) != JsonConfigStatusOk) {
+            FURI_LOG_D(TAG, "Failed to read %s key", CONFIG_KEY_ASSET);
+            break;
+        }
+
+        BusyThemeFileType type = busy_theme_parse_file_type(theme_path);
+        if(type == BusyThemeFileTypeMax) {
+            FURI_LOG_D(
+                TAG, "Failed to parse file type from path %s", furi_string_get_cstr(theme_path));
+            break;
+        }
+
+        const char* theme_path_cstr = furi_string_get_cstr(theme_path);
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        bool exists = storage_file_exists(storage, theme_path_cstr);
+        furi_record_close(RECORD_STORAGE);
+
+        if(!exists) {
+            FURI_LOG_D(TAG, "Failed to find file %s", theme_path_cstr);
+            break;
+        }
+
+        furi_string_set(instance->bg_path, theme_path);
+        instance->bg_type = type;
+        success = true;
+
+    } while(false);
+
+    json_config_free(json);
+    furi_string_free(theme_path);
+    furi_string_free(config_path);
+
+    return success;
 }
 
 // Public API
@@ -150,7 +179,7 @@ bool busy_theme_read(BusyTheme* instance, const char* name) {
             break;
         }
 
-        if(!busy_theme_read_bg_path(instance, root_path)) {
+        if(!busy_theme_read_config(instance, root_path)) {
             break;
         }
 
