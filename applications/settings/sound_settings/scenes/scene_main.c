@@ -77,7 +77,8 @@ static void scene_main_on_enter(void* context) {
         slider_view_set_suffix(data->front_slider, "%");
         slider_view_set_bar_gradient(
             data->front_slider, FRONT_SLIDER_GRADIENT_START, FRONT_SLIDER_GRADIENT_STOP);
-        slider_view_add_level_image(data->front_slider, 100, IMG_PATH("speaker_front_100_8x8.bin"));
+        slider_view_add_level_image(
+            data->front_slider, 100, IMG_PATH("speaker_front_100_8x8.bin"));
         slider_view_add_level_image(data->front_slider, 1, IMG_PATH("speaker_front_50_8x8.bin"));
         slider_view_add_level_image(data->front_slider, 0, IMG_PATH("speaker_front_mute_8x8.bin"));
         slider_view_set_callback(data->front_slider, scene_main_slider_view_callback, instance);
@@ -88,7 +89,8 @@ static void scene_main_on_enter(void* context) {
         slider_view_set_step(data->back_slider, SETTINGS_VOLUME_STEP);
         slider_view_set_value(data->back_slider, volume);
         slider_view_set_suffix(data->back_slider, "%");
-        slider_view_add_level_image(data->back_slider, 100, IMG_PATH("speaker_back_100_11x11.bin"));
+        slider_view_add_level_image(
+            data->back_slider, 100, IMG_PATH("speaker_back_100_11x11.bin"));
         slider_view_add_level_image(data->back_slider, 1, IMG_PATH("speaker_back_50_11x11.bin"));
         slider_view_add_level_image(data->back_slider, 0, IMG_PATH("speaker_back_mute_11x11.bin"));
     });
