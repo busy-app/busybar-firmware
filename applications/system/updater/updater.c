@@ -508,7 +508,8 @@ static UpdaterStatus do_unpack(Updater* instance, UpdaterMessage* message) {
     do {
         FURI_LOG_D(TAG, "Creating staging directory...");
 
-        if(storage_common_mkdir(instance->storage, staging_path) != FSE_OK) {
+        if(path_recursive_create_dir(instance->storage, message->as_unpack.staging_path) !=
+           FSE_OK) {
             FURI_LOG_E(TAG, "Failed to create staging directory %s", staging_path);
             update_status = UpdaterStatusUnpackCreateStagingDirectoryFailure;
             break;
