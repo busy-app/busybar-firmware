@@ -148,6 +148,18 @@ IntercomChannel* intercom_channel_open(
     void* context);
 
 /**
+ * @brief Wait for intercom channel ready
+ * 
+ * Block untill both channel peers are ready
+ * 
+ * @param[in] handle Pointer to the acquired Intercom channel handle
+ * @param[in] timeout Maximum time to wait, in milliseconds
+ * 
+ * @returns true if ready, false otherwise
+ */
+bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeout);
+
+/**
  * @brief Transmit data through Intercom.
  * 
  * The data will be automatically split into frames and sent asynchronously.

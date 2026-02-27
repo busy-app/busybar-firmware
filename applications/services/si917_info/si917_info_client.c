@@ -35,6 +35,7 @@ static Si917InfoClient* si917_info_client_alloc(void) {
     client->intercom = furi_record_open(RECORD_INTERCOM);
     client->intercom_ch = intercom_channel_open(
         client->intercom, IntercomChannelIdSi917Info, si917_info_client_rx_callback, client);
+    intercom_channel_await_peer_ready(client->intercom_ch, FuriWaitForever);
 
     return client;
 }
