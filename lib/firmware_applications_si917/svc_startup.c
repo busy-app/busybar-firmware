@@ -5,26 +5,61 @@
 
 #define TAG "SvcStartup"
 
-void flipper_init_services(void) {
+// TODO:
+// Find the minimum value that won't cause stack issues or OOM
+// Pay extra attention to NVM as it was known to cause issues in the past
+#define STARTUP_HOOK_STACK_SIZE (1024)
+
+static int32_t startup_hook_thread_callback(void* context) {
+    const FlipperInternalOnStartHook hook = context;
+    hook();
+    return 0;
+}
+
+static void
+    startup_hook_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
+    furi_assert(thread);
+    UNUSED(context);
+
+    if(state == FuriThreadStateStopped) {
+        furi_thread_free(thread);
+    }
+}
+
+static void run_service(const FlipperInternalApplication* service) {
+    FURI_LOG_D(TAG, "Starting service %s", service->name);
+
+    FuriThread* thread =
+        furi_thread_alloc_service(service->name, service->stack_size, service->app, NULL);
+    furi_thread_set_appid(thread, service->appid);
+    furi_thread_start(thread);
+}
+
+static void run_startup_hook(FlipperInternalOnStartHook hook) {
+    FuriThread* hook_thread = furi_thread_alloc_ex(
+        "Hook thread", STARTUP_HOOK_STACK_SIZE, startup_hook_thread_callback, hook);
+    furi_thread_set_state_callback(hook_thread, startup_hook_thread_state_callback);
+    furi_thread_start(hook_thread);
+}
+
+static void run_all_services(void) {
     FURI_LOG_I(TAG, "Starting %d services", FLIPPER_SERVICES_COUNT);
 
     for(size_t i = 0; i < FLIPPER_SERVICES_COUNT; i++) {
-        FURI_LOG_D(TAG, "Starting service %s", FLIPPER_SERVICES[i].name);
-
-        FuriThread* thread = furi_thread_alloc_service(
-            FLIPPER_SERVICES[i].name,
-            FLIPPER_SERVICES[i].stack_size,
-            FLIPPER_SERVICES[i].app,
-            NULL);
-        furi_thread_set_appid(thread, FLIPPER_SERVICES[i].appid);
-
-        furi_thread_start(thread);
+        run_service(&FLIPPER_SERVICES[i]);
     }
+}
 
-    // TODO: Move to Loader
+static void run_all_startup_hooks(void) {
     FURI_LOG_I(TAG, "Running %d startup hooks", FLIPPER_ON_SYSTEM_START_COUNT);
 
     for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
-        FLIPPER_ON_SYSTEM_START[i]();
+        run_startup_hook(FLIPPER_ON_SYSTEM_START[i]);
     }
+}
+
+// Redefinition of a global weak symbol in flipper.c
+void flipper_init_services(void) {
+    run_all_services();
+    run_all_startup_hooks();
 }
