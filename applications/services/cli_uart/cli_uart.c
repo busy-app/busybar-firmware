@@ -79,7 +79,7 @@ static CliUart* cli_uart_alloc(void) {
     furi_check(cli_uart->uart_handle);
     furi_hal_serial_init(cli_uart->uart_handle, UART_BAUD_RATE);
 
-    furi_hal_serial_set_callback(cli_uart->uart_handle, NULL, cli_uart_rx_callback, cli_uart);
+    furi_hal_serial_set_rx_callback(cli_uart->uart_handle, cli_uart_rx_callback, cli_uart);
     furi_hal_serial_clear(cli_uart->uart_handle, FuriHalSerialDirectionTxRx);
     furi_hal_serial_async_rx_start(cli_uart->uart_handle, false);
 
