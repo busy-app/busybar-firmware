@@ -20,20 +20,22 @@ static void
     furi_check(intercom_tx(info_channel, &frame, sizeof(frame), FuriWaitForever) == sizeof(frame));
 }
 
+static void sl_info_send_data(IntercomChannel* info_channel) {
+    FURI_LOG_D(TAG, "Sending info ...");
+
+    // Wifi needs to be ready for furi_hal_info_get() to work
+    furi_record_open(RECORD_WIFI);
+    furi_hal_info_get(sl_info_property_callback, '_', info_channel);
+    furi_record_close(RECORD_WIFI);
+
+    FURI_LOG_D(TAG, "Info sent");
+}
+
 void sl_info_on_system_start(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     IntercomChannel* info_channel =
         intercom_channel_open(intercom, IntercomChannelIdSlInfo, NULL, NULL);
 
-    // Wifi needs to be ready for furi_hal_info_get() to work
-    furi_record_open(RECORD_WIFI);
-
-    FURI_LOG_D(TAG, "Sending info ...");
-
-    furi_hal_info_get(sl_info_property_callback, '_', info_channel);
-
-    FURI_LOG_D(TAG, "Info sent");
-
+    sl_info_send_data(info_channel);
     furi_record_close(RECORD_INTERCOM);
-    furi_record_close(RECORD_WIFI);
 }
