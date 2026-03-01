@@ -10,24 +10,42 @@ typedef enum {
 
 #ifdef SRV_INTERCOM_WATCHDOG
 
-static FURI_ALWAYS_INLINE void intercom_rx_watchdog_begin(Intercom* instance) {
-    intercom_watchdog_arm(instance->watchdog);
+#include "intercom_watchdog.h"
+
+typedef struct {
+    IntercomWatchdog* watchdog;
+    FuriHalSerialHandle* serial;
+} IntercomRxWatchdogCtx;
+
+static FURI_ALWAYS_INLINE void intercom_rx_watchdog_begin(const IntercomRxWatchdogCtx* ctx) {
+    intercom_watchdog_arm(ctx->watchdog);
 }
 
-static FURI_ALWAYS_INLINE void intercom_rx_watchdog_end(Intercom* instance) {
-    if(furi_hal_serial_rx_available(instance->serial)) {
+static FURI_ALWAYS_INLINE void intercom_rx_watchdog_end(const IntercomRxWatchdogCtx* ctx) {
+    if(furi_hal_serial_rx_available(ctx->serial)) {
         // Some more data is already in FIFO, re-arm watchdog
-        intercom_watchdog_arm(instance->watchdog);
+        intercom_watchdog_arm(ctx->watchdog);
     } else {
         // No data in FIFO yet, disarm watchdog for now
-        intercom_watchdog_disarm(instance->watchdog);
+        intercom_watchdog_disarm(ctx->watchdog);
     }
 }
 
+#define WATCHDOG_INIT(instance)                                 \
+    const IntercomRxWatchdogCtx _ctx = {                        \
+        .watchdog = furi_record_open(RECORD_INTERCOM_WATCHDOG), \
+        .serial = instance->serial,                             \
+    }
+
+#define WATCHDOG_BEGIN() intercom_rx_watchdog_begin(&_ctx)
+
+#define WATCHDOG_END() intercom_rx_watchdog_end(&_ctx)
+
 #else
 
-#define intercom_rx_watchdog_begin(instance) UNUSED(instance)
-#define intercom_rx_watchdog_end(instance)   UNUSED(instance)
+#define WATCHDOG_INIT(instance) UNUSED(instance)
+#define WATCHDOG_BEGIN()
+#define WATCHDOG_END()
 
 #endif // SRV_INTERCOM_WATCHDOG
 
@@ -54,10 +72,7 @@ static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
     if(intercom_frame_is_valid(rx_frame)) {
         const IntercomChannelId channel_id = rx_frame->channel_id;
         const IntercomChannel* channel = &instance->handles[channel_id];
-
-        intercom_rx_watchdog_begin(instance);
         intercom_channel_call_callback(channel, rx_frame);
-        intercom_rx_watchdog_end(instance);
 
     } else {
         // TODO: Better error handling
@@ -84,10 +99,13 @@ static int32_t intercom_rx_thread(void* arg) {
     Intercom* instance = arg;
 
     intercom_rx_init_serial(instance);
+    WATCHDOG_INIT(instance);
 
     for(;;) {
         intercom_rx_wait_for_data(instance);
+        WATCHDOG_BEGIN();
         intercom_rx_process_data(instance);
+        WATCHDOG_END();
     }
 
     return 0;

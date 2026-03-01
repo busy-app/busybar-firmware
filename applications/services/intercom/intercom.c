@@ -181,9 +181,6 @@ static Intercom* intercom_alloc(void) {
         instance->event_loop, intercom_tx_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->serial = furi_hal_serial_control_acquire(INTERCOM_SERIAL);
     instance->pubsub = furi_pubsub_alloc();
-#ifdef SRV_INTERCOM_WATCHDOG
-    instance->watchdog = furi_record_open(RECORD_INTERCOM_WATCHDOG);
-#endif
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, intercom_custom_event_callback, instance);

@@ -3,15 +3,10 @@
 #include "intercom.h"
 #include "intercom_frame.h"
 
-#ifdef SRV_INTERCOM_WATCHDOG
-#include "intercom_watchdog.h"
-#endif
-
 #include <furi.h>
 
 #include <furi_hal_serial.h>
 #include <furi_hal_serial_control.h>
-#include <furi_hal_resources.h>
 
 #define INTERCOM_TX_TIMEOUT_MS                 (1000UL)
 #define INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS (500UL)
@@ -68,9 +63,6 @@ struct Intercom {
     IntercomChannel handles[IntercomChannelIdMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
-#ifdef SRV_INTERCOM_WATCHDOG
-    IntercomWatchdog* watchdog;
-#endif
 };
 
 // intercom.c:
