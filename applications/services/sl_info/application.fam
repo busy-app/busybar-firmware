@@ -11,10 +11,10 @@ App(
 
 App(
     appid="sl_info",
-    apptype=FlipperAppType.SERVICE,
+    apptype=FlipperAppType.STARTUP,
     cdefines=["SRV_SL_INFO"],
     entry_point="sl_info_on_system_start",
-    order=85,
+    order=130,
     requires=["intercom"],
     sources=["sl_info_backend.c"],
     targets=["f64", "f65"],
