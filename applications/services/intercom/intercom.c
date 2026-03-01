@@ -1,8 +1,5 @@
 #include "intercom_i.h"
 
-#include <furi_hal_nvm.h>
-#include <furi_hal_power.h>
-
 #define TAG "IntercomSrv"
 
 // Called in ISR context
@@ -17,29 +14,6 @@ static void intercom_serial_tx_callback(
     if(event & FuriHalSerialTxEventComplete) {
         furi_event_loop_set_custom_event(instance->event_loop, IntercomCustomEventFrameSent);
     }
-}
-
-void intercom_dump_frame(const IntercomFrame* frame) {
-    FuriString* tmp = furi_string_alloc();
-
-    furi_string_printf(
-        tmp,
-        "chan : %hhu\r\n"
-        "size : %hu\r\n"
-        "data : \r\n",
-        frame->channel_id,
-        frame->data_size);
-
-    for(uint32_t i = 0; i < sizeof(frame->data); ++i) {
-        if(i && i % 32 == 0) furi_string_cat(tmp, "\r\n");
-        furi_string_cat_printf(tmp, "%02X ", frame->data[i]);
-    }
-
-    furi_string_cat_printf(tmp, "\r\ncheck: 0x%04X\r\n", frame->check);
-
-    furi_log_puts(furi_string_get_cstr(tmp));
-
-    furi_string_free(tmp);
 }
 
 static void intercom_publish_sync_state_change(Intercom* instance, bool is_in_sync) {
@@ -101,9 +75,11 @@ static void intercom_error_handler(IntercomError error, void* context) {
 static bool intercom_do_sync(Intercom* instance) {
     INTERCOM_LOG_D("Sync started");
 
-    const bool sync_result = intercom_sync_serial(instance->serial);
+    intercom_reset_other_side();
 
-    if(sync_result) {
+    const bool sync_success = intercom_sync_serial(instance->serial);
+
+    if(sync_success) {
         furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
         // TODO: find proper enterprise delay value
         furi_delay_ms(INTERCOM_MAGIC_DELAY);
@@ -115,7 +91,7 @@ static bool intercom_do_sync(Intercom* instance) {
         intercom_error_handler(IntercomErrorSync, instance);
     }
 
-    return sync_result;
+    return sync_success;
 }
 
 static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
@@ -155,31 +131,6 @@ static void intercom_tx_timer_callback(void* context) {
     intercom_error_handler(IntercomErrorTransmit, instance);
 }
 
-size_t intercom_tx_internal(
-    Intercom* instance,
-    IntercomChannelId channel_id,
-    const void* data,
-    size_t data_size,
-    uint32_t timeout_ticks) {
-    if(furi_semaphore_acquire(instance->tx_semaphore, timeout_ticks) != FuriStatusOk) {
-        return 0;
-    }
-
-    IntercomFrame* frame = &instance->tx_frame;
-    const size_t tx_size = MIN(data_size, sizeof(frame->data));
-
-    memcpy(frame->data, data, tx_size);
-    frame->data_size = tx_size;
-    frame->channel_id = channel_id;
-    frame->check = intercom_frame_get_checksum(frame);
-
-    INTERCOM_LOG_D("TX payload size: %zu byte(s)", data_size);
-
-    furi_event_loop_set_custom_event(instance->event_loop, IntercomCustomEventDataAvailable);
-
-    return tx_size;
-}
-
 static void intercom_init_channels(Intercom* instance) {
     for(IntercomChannelId i = 0; i < IntercomChannelIdMax; i++) {
         intercom_channel_init(&instance->handles[i], instance);
@@ -216,6 +167,26 @@ static Intercom* intercom_alloc(void) {
     return instance;
 }
 
+// Private API
+
+size_t intercom_tx_internal(
+    Intercom* instance,
+    IntercomChannelId channel_id,
+    const void* data,
+    size_t data_size,
+    uint32_t timeout_ticks) {
+    if(furi_semaphore_acquire(instance->tx_semaphore, timeout_ticks) != FuriStatusOk) {
+        return 0;
+    }
+
+    const size_t tx_size = intercom_build_frame(&instance->tx_frame, channel_id, data, data_size);
+    furi_event_loop_set_custom_event(instance->event_loop, IntercomCustomEventDataAvailable);
+
+    INTERCOM_LOG_D("TX payload size: %zu byte(s)", tx_size);
+
+    return tx_size;
+}
+
 // Public API
 
 size_t
@@ -246,14 +217,14 @@ size_t
         const void* data_remain = data + sent_data_size;
         const size_t data_size_remain = data_size - sent_data_size;
 
-        const size_t tx_size = intercom_tx_internal(
+        const size_t chunk_size = intercom_tx_internal(
             instance, channel_id, data_remain, data_size_remain, deadline_timestamp - now);
 
-        if(tx_size == 0) {
+        if(chunk_size == 0) {
             break;
         }
 
-        sent_data_size += tx_size;
+        sent_data_size += chunk_size;
 
     } while(sent_data_size != data_size);
 
@@ -301,13 +272,6 @@ bool intercom_is_in_sync(Intercom* instance) {
 
 int32_t intercom_srv(void* arg) {
     UNUSED(arg);
-    // TODO: Find a better place for this code
-#if defined(BSB_MCU_U5)
-    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
-        furi_hal_power_reset_917(false);
-        FURI_LOG_I(TAG, "917 was reset");
-    }
-#endif
 
     Intercom* instance = intercom_alloc();
     furi_event_loop_run(instance->event_loop);
