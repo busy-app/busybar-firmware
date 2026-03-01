@@ -29,20 +29,26 @@ extern "C" {
 typedef struct SlInfo SlInfo;
 
 /**
+ * @brief Enumeration of possible return statuses used in getter functions.
+ */
+typedef enum {
+    SlInfoStatusOk, /**< Success, data was found and/or is valid */
+    SlInfoStatusNotReady, /**< Data is not ready (too early or Intercom failure) */
+    SlInfoStatusNotFound, /**< Value was not found (wrong key) */
+} SlInfoStatus;
+
+/**
  * @brief Get a string value by key.
  *
- * On success, the return value is guaranteed to be valid during
- * the entire run time of the firmware and will never change.
- *
- * This function will fail in the following cases:
- * - The value under the requested key does not exist,
- * - Data has not yet been received from the wireless co-processor (too early or Intercom failure).
+ * On success, the value pointer is guaranteed to be valid during
+ * the entire run time of the firmware and the data itself will never change.
  *
  * @param[in] instance Pointer to the SlInfo service instance
  * @param[in] key Pointer to a C-string containing the key
- * @returns Pointer to a C-string containing the value on success, or @c NULL on failure.
+ * @param[out] value Pointer to a pointer to a C-string to contain the value (no allocation needed)
+ * @returns @c SlInfoStatusOk on success, any other value from SlInfoStatus otherwise
  */
-const char* sl_info_get_value(const SlInfo* instance, const char* key);
+SlInfoStatus sl_info_get_value(const SlInfo* instance, const char* key, const char** value);
 
 /**
  * @brief Get all available key-value pairs via the Property callback API.
@@ -50,12 +56,10 @@ const char* sl_info_get_value(const SlInfo* instance, const char* key);
  * @param[in] instance Pointer to the SlInfo service instance
  * @param[in] value_callback Pointer to the output callback function
  * @param[in,out] context Pointer to a user-specific object (will be passed to the value callback)
- * @returns @c true on success, @c false otherwise
+ * @returns @c SlInfoStatusOk on success, any other value from SlInfoStatus otherwise
  */
-bool sl_info_get_values(
-    const SlInfo* instance,
-    PropertyValueCallback value_callback,
-    void* context);
+SlInfoStatus
+    sl_info_get_values(const SlInfo* instance, PropertyValueCallback value_callback, void* context);
 
 #ifdef __cplusplus
 }

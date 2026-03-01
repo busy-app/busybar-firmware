@@ -22,13 +22,11 @@ static void status_append_sl_device_info(FuriString* json_str) {
 
     const char* value;
 
-    value = sl_info_get_value(sl_info, "sl_wifi_mac");
-    if(value) {
+    if(sl_info_get_value(sl_info, "sl_wifi_mac", &value) == SlInfoStatusOk) {
         furi_string_cat_printf(json_str, ",\"wifi_mac\":\"%s\"", value);
     }
 
-    value = sl_info_get_value(sl_info, "sl_ble_mac");
-    if(value) {
+    if(sl_info_get_value(sl_info, "sl_ble_mac", &value) == SlInfoStatusOk) {
         furi_string_cat_printf(json_str, ",\"ble_mac\":\"%s\"", value);
     }
 
@@ -40,8 +38,7 @@ static void status_append_sl_firmware_info(FuriString* json_str) {
 
     const char* value;
 
-    value = sl_info_get_value(sl_info, "sl_nwp_firmware");
-    if(value) {
+    if(sl_info_get_value(sl_info, "sl_nwp_firmware", &value) == SlInfoStatusOk) {
         furi_string_cat_printf(json_str, ",\"nwp_version\":\"%s\"", value);
     }
 

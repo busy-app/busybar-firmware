@@ -91,32 +91,49 @@ static SlInfo* sl_info_alloc(void) {
 }
 
 // Public API
-const char* sl_info_get_value(const SlInfo* instance, const char* key) {
+SlInfoStatus sl_info_get_value(const SlInfo* instance, const char* key, const char** value) {
     furi_check(instance);
+    furi_check(key);
+    furi_check(value);
 
-    const char* value = NULL;
+    SlInfoStatus status;
 
-    if(instance->is_ready) {
-        value = sl_info_find_value(instance, key);
-    }
+    do {
+        if(instance->is_ready) {
+            status = SlInfoStatusNotReady;
+            break;
+        }
 
-    return value;
+        const char* found_value = sl_info_find_value(instance, key);
+
+        if(found_value == NULL) {
+            status = SlInfoStatusNotFound;
+            break;
+        }
+
+        *value = found_value;
+        status = SlInfoStatusOk;
+
+    } while(false);
+
+    return status;
 }
 
-bool sl_info_get_values(
+SlInfoStatus sl_info_get_values(
     const SlInfo* instance,
     PropertyValueCallback value_callback,
     void* context) {
     furi_check(instance);
     furi_check(value_callback);
 
-    bool success = false;
+    SlInfoStatus status = SlInfoStatusNotReady;
 
     if(instance->is_ready) {
         sl_info_output_values(instance, value_callback, context);
+        status = SlInfoStatusOk;
     }
 
-    return success;
+    return status;
 }
 
 // Startup hook thread

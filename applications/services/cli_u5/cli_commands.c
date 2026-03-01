@@ -154,13 +154,16 @@ static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* cont
     furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
 #ifdef SRV_SL_INFO
     const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
-    const bool sl_info_success =
+    const SlInfoStatus sl_info_status =
         sl_info_get_values(sl_info, cli_command_device_info_callback, NULL);
     furi_record_close(RECORD_SL_INFO);
 #else // SRV_SL_INFO
-    const bool sl_info_success = false;
+    const SlInfoStatus sl_info_status = SlInfoStatusNotReady;
 #endif // SRV_SL_INFO
-    printf("%-30s: %s\r\n", "sl_intercom_status", sl_info_success ? "ok" : "error");
+    printf(
+        "%-30s: %s\r\n",
+        "sl_intercom_status",
+        (sl_info_status == SlInfoStatusOk) ? "ok" : "error");
 }
 
 static void cli_commands_init(CliRegistry* registry) {
