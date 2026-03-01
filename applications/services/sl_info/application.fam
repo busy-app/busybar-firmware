@@ -1,6 +1,7 @@
 App(
     appid="sl_info",
     apptype=FlipperAppType.STARTUP,
+    cdefines=["SRV_SL_INFO"],
     entry_point="sl_info_on_system_start",
     order=15,
     requires=["intercom"],
@@ -11,6 +12,7 @@ App(
 App(
     appid="sl_info",
     apptype=FlipperAppType.SERVICE,
+    cdefines=["SRV_SL_INFO"],
     entry_point="sl_info_on_system_start",
     order=85,
     requires=["intercom"],
