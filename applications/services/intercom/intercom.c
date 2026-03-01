@@ -155,15 +155,29 @@ static void intercom_tx_timer_callback(void* context) {
     intercom_error_handler(IntercomErrorTransmit, instance);
 }
 
-IntercomFrame* intercom_do_acquire_tx(Intercom* intercom) {
-    furi_assert(intercom);
-    furi_check(furi_semaphore_acquire(intercom->tx_semaphore, FuriWaitForever) == FuriStatusOk);
-    return &intercom->tx_frame;
-}
+size_t intercom_tx_internal(
+    Intercom* instance,
+    IntercomChannelId channel_id,
+    const void* data,
+    size_t data_size,
+    uint32_t timeout_ticks) {
+    if(furi_semaphore_acquire(instance->tx_semaphore, timeout_ticks) != FuriStatusOk) {
+        return 0;
+    }
 
-void intercom_do_tx(Intercom* intercom) {
-    furi_assert(intercom);
-    furi_event_loop_set_custom_event(intercom->event_loop, IntercomCustomEventDataAvailable);
+    IntercomFrame* frame = &instance->tx_frame;
+    const size_t tx_size = MIN(data_size, sizeof(frame->data));
+
+    memcpy(frame->data, data, tx_size);
+    frame->data_size = tx_size;
+    frame->channel_id = channel_id;
+    frame->check = intercom_frame_get_checksum(frame);
+
+    INTERCOM_LOG_D("TX payload size: %zu byte(s)", data_size);
+
+    furi_event_loop_set_custom_event(instance->event_loop, IntercomCustomEventDataAvailable);
+
+    return tx_size;
 }
 
 static void intercom_init_channels(Intercom* instance) {
@@ -202,39 +216,46 @@ static Intercom* intercom_alloc(void) {
     return instance;
 }
 
+// Public API
+
 size_t
     intercom_tx(IntercomChannel* channel, const void* data, size_t data_size, uint32_t timeout) {
     furi_check(channel);
     furi_check(data);
     furi_check(data_size > 0);
 
+    const uint32_t timeout_ticks = furi_ms_to_ticks(timeout);
+    const uint32_t deadline_timestamp = furi_get_tick() + timeout_ticks;
+
+    if(!intercom_channel_await_peer_ready(channel, timeout_ticks)) {
+        return 0;
+    }
+
     Intercom* instance = channel->intercom;
+    // TODO: Store channel id within the channel?
+    const IntercomChannelId channel_id = channel - instance->handles;
 
     size_t sent_data_size = 0;
-    const uint32_t timeout_ticks = furi_ms_to_ticks(timeout);
-    const uint32_t start_time = furi_get_tick();
-    const uint32_t end_by = start_time + timeout_ticks;
 
-    if(!intercom_channel_await_peer_ready(channel, timeout_ticks)) return 0;
+    do {
+        const uint32_t now = furi_get_tick();
+        if(now >= deadline_timestamp) {
+            break;
+        }
 
-    while(furi_semaphore_acquire(instance->tx_semaphore, end_by - furi_get_tick()) ==
-          FuriStatusOk) {
-        IntercomFrame* frame = &instance->tx_frame;
-        IntercomChannelId channel_id = channel - instance->handles;
+        const void* data_remain = data + sent_data_size;
+        const size_t data_size_remain = data_size - sent_data_size;
 
-        const size_t chunk_size = MIN(data_size - sent_data_size, sizeof(frame->data));
+        const size_t tx_size = intercom_tx_internal(
+            instance, channel_id, data_remain, data_size_remain, deadline_timestamp - now);
 
-        memcpy(frame->data, data + sent_data_size, chunk_size);
-        frame->data_size = chunk_size;
-        frame->channel_id = channel_id;
-        frame->check = intercom_frame_get_checksum(frame);
+        if(tx_size == 0) {
+            break;
+        }
 
-        INTERCOM_LOG_D("TX payload size: %zu byte(s)", data_size);
-        intercom_do_tx(instance);
+        sent_data_size += tx_size;
 
-        sent_data_size += chunk_size;
-        if(sent_data_size == data_size) break;
-    }
+    } while(sent_data_size != data_size);
 
     return sent_data_size;
 }
@@ -275,6 +296,8 @@ bool intercom_is_in_sync(Intercom* instance) {
     furi_check(instance);
     return instance->is_in_sync;
 }
+
+// Service thread
 
 int32_t intercom_srv(void* arg) {
     UNUSED(arg);

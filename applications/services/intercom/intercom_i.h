@@ -67,8 +67,13 @@ struct Intercom {
 
 // intercom.c:
 
-IntercomFrame* intercom_do_acquire_tx(Intercom* intercom);
-void intercom_do_tx(Intercom* intercom);
+size_t intercom_tx_internal(
+    Intercom* instance,
+    IntercomChannelId channel_id,
+    const void* data,
+    size_t data_size,
+    uint32_t timeout_ticks);
+
 void intercom_dump_frame(const IntercomFrame* frame);
 
 // intercom_rx.c:
@@ -87,6 +92,7 @@ void intercom_channel_set_callback(
     IntercomChannel* channel,
     IntercomRxCallback callback,
     void* context);
+
 void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* rx_frame);
 
 void intercom_channel_send_ready(IntercomChannel* channel);

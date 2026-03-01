@@ -117,19 +117,18 @@ void intercom_channel_call_callback(const IntercomChannel* channel, const Interc
 
 void intercom_channel_send_ready(IntercomChannel* channel) {
     furi_assert(channel);
-    IntercomChannelId channel_id = intercom_channel_id(channel);
+
+    const IntercomChannelId channel_id = intercom_channel_id(channel);
     furi_check(channel_id != IntercomChannelIdMeta);
 
-    IntercomFrame* tx_frame = intercom_do_acquire_tx(channel->intercom);
-    tx_frame->channel_id = IntercomChannelIdMeta;
+    const IntercomMetaFrame frame = {
+        .type = IntercomMetaTypeChannelReady,
+        .channel_ready.channel_id = channel_id,
+    };
 
-    IntercomMetaFrame* frame = (IntercomMetaFrame*)tx_frame->data;
-    frame->type = IntercomMetaTypeChannelReady;
-    frame->channel_ready.channel_id = channel_id;
-
-    tx_frame->data_size = sizeof(*frame);
-    tx_frame->check = intercom_frame_get_checksum(tx_frame);
-    intercom_do_tx(channel->intercom);
+    const size_t tx_size = intercom_tx_internal(
+        channel->intercom, IntercomChannelIdMeta, &frame, sizeof(frame), FuriWaitForever);
+    furi_check(tx_size == sizeof(frame));
 
     FURI_LOG_D(TAG, "THIS side ready: %s", intercom_channel_id_name(channel_id));
 }
