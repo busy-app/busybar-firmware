@@ -43,6 +43,8 @@ typedef enum {
  * On success, the value pointer is guaranteed to be valid during
  * the entire run time of the firmware and the data itself will never change.
  *
+ * @note To get the list of available keys, run `device_info` inside `sl_cli`.
+ *
  * @param[in] instance Pointer to the SlInfo service instance
  * @param[in] key Pointer to a C-string containing the key
  * @param[out] value Pointer to a pointer to a C-string to contain the value (no allocation needed)
