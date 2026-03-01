@@ -1,0 +1,19 @@
+App(
+    appid="sl_info",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="sl_info_on_system_start",
+    order=15,
+    requires=["intercom"],
+    sources=["sl_info.c"],
+    targets=["f20", "f21", "f22"],
+)
+
+App(
+    appid="sl_info",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="sl_info_on_system_start",
+    order=85,
+    requires=["intercom"],
+    sources=["sl_info_backend.c"],
+    targets=["f64", "f65"],
+)

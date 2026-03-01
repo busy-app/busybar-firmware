@@ -99,7 +99,7 @@ typedef enum {
     IntercomChannelIdCryptoBackup, /**< Crypto backup handling */
     IntercomChannelIdTlsCrypto, /**< TLS Crypto handling */
     IntercomChannelIdMatter, /**< Matter smart home protocol */
-    IntercomChannelIdSi917Info, /**< 917 device info channel */
+    IntercomChannelIdSlInfo, /**< Wireless co-processor info channel */
     /* Add more channels here as needed */
     IntercomChannelIdDebug, /**< Testing, debugging, etc */
     IntercomChannelIdMeta, /**< Special channel for internal Intercom use. Do not use. */
@@ -146,18 +146,6 @@ IntercomChannel* intercom_channel_open(
     IntercomChannelId channel_id,
     IntercomRxCallback rx_callback,
     void* context);
-
-/**
- * @brief Wait for intercom channel ready
- * 
- * Block untill both channel peers are ready
- * 
- * @param[in] handle Pointer to the acquired Intercom channel handle
- * @param[in] timeout Maximum time to wait, in milliseconds
- * 
- * @returns true if ready, false otherwise
- */
-bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeout);
 
 /**
  * @brief Transmit data through Intercom.
