@@ -106,10 +106,10 @@ void intercom_channel_set_callback(
     channel->callback_context = context;
 }
 
-void intercom_channel_call_callback(IntercomChannel* channel, const IntercomFrame* rx_frame) {
+void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* rx_frame) {
     furi_assert(channel);
 
-    IntercomRxCallback callback = channel->rx_callback;
+    const IntercomRxCallback callback = channel->rx_callback;
     furi_check(callback, "rx_callback==NULL, other side sent data");
 
     callback(rx_frame->data, rx_frame->data_size, channel->callback_context);
