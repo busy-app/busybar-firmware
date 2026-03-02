@@ -3,7 +3,6 @@
 #include "type_int.h"
 #include "type_float.h"
 #include "type_string.h"
-#include "type_furi_string.h"
 #include "type_custom.h"
 #include "type_struct.h"
 
@@ -25,7 +24,6 @@ static const SettingTypeActions* const setting_type_actions[] = {
     [SettingProviderSettingTypeInt] = &SETTING_TYPE_ACTIONS(type_int),
     [SettingProviderSettingTypeFloat] = &SETTING_TYPE_ACTIONS(type_float),
     [SettingProviderSettingTypeString] = &SETTING_TYPE_ACTIONS(type_string),
-    [SettingProviderSettingTypeFuriString] = &SETTING_TYPE_ACTIONS(type_furi_string),
     [SettingProviderSettingTypeCustom] = &SETTING_TYPE_ACTIONS(type_custom),
     [SettingProviderSettingTypeStruct] = &SETTING_TYPE_ACTIONS(type_struct),
 };
