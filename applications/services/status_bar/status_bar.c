@@ -13,6 +13,7 @@
 #include <power/power_service/power.h>
 #include <audio/audio.h>
 #include <wifi/wifi.h>
+#include <ble/ble.h>
 
 #define TAG "StatusBar"
 
@@ -20,6 +21,7 @@
 
 typedef enum {
     StatusBarEventTypeWifi,
+    StatusBarEventTypeBle,
     StatusBarEventTypeMax,
 } StatusBarEventType;
 
@@ -28,9 +30,14 @@ typedef struct {
 } StatusBarWifiEvent;
 
 typedef struct {
+    BleStatus status;
+} StatusBarBleEvent;
+
+typedef struct {
     StatusBarEventType type;
     union {
         StatusBarWifiEvent wifi;
+        StatusBarBleEvent ble;
     };
 } StatusBarEvent;
 
@@ -70,6 +77,22 @@ static void wifi_state_callback(const void* state, void* context) {
         .wifi =
             {
                 .state = info->state,
+            },
+    };
+
+    StatusBar* instance = context;
+    furi_check(
+        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
+
+static void ble_pubsub_callback(const void* message, void* context) {
+    const BleStatus* status = message;
+
+    const StatusBarEvent event = {
+        .type = StatusBarEventTypeBle,
+        .ble =
+            {
+                .status = *status,
             },
     };
 
@@ -183,6 +206,22 @@ static void status_bar_process_wifi_event(StatusBar* instance, const StatusBarWi
     });
 }
 
+static void status_bar_process_ble_event(StatusBar* instance, const StatusBarBleEvent* event) {
+    BleStatusIndicatorState indicator_state = BleStatusIndicatorStateUnknown;
+
+    if(event->status.state == BleServiceStateAdvertising) {
+        indicator_state = BleStatusIndicatorStateConnecting;
+    } else if(event->status.state == BleServiceStateConnected) {
+        indicator_state = BleStatusIndicatorStateConnected;
+    } else if(event->status.state == BleServiceStateError) {
+        indicator_state = BleStatusIndicatorStateDisconnected;
+    }
+
+    with_gui(instance->gui, {
+        Ble_status_indicator_set_state(instance->ble_status_indicator, indicator_state);
+    });
+}
+
 static void status_bar_event_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     StatusBar* instance = context;
@@ -193,6 +232,8 @@ static void status_bar_event_queue_callback(FuriEventLoopObject* object, void* c
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
         if(event.type == StatusBarEventTypeWifi) {
             status_bar_process_wifi_event(instance, &event.wifi);
+        } else if(event.type == StatusBarEventTypeBle) {
+            status_bar_process_ble_event(instance, &event.ble);
         }
     }
 }
@@ -239,9 +280,14 @@ static StatusBar* status_bar_alloc(void) {
         flex_layout_set_spacing(status_bar, 3);
 
 #ifdef SRV_BLE
+        Ble* ble = furi_record_open(RECORD_BLE);
+        furi_pubsub_subscribe(ble_get_pubsub(ble), ble_pubsub_callback, instance);
+#else
+        UNUSED(ble_pubsub_callback);
+#endif // SRV_BLE
+
         instance->ble_status_indicator =
             ble_status_indicator_alloc(flex_layout_get_base(status_bar));
-#endif // SRV_BLE
 
         instance->wifi_status_indicator =
             wifi_status_indicator_alloc(flex_layout_get_base(status_bar));
