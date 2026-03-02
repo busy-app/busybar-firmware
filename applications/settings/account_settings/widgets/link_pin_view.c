@@ -13,8 +13,8 @@
 #define COLOR_COUNTDOWN   (0xA0A0A0)
 
 struct LinkPinView {
-    FontRegistry* font_registry;
     Widget base;
+    FontRegistry* font_registry;
     lv_obj_t* code_label;
     AnimPlayer* loading_spinner;
     Countdown* code_timer;
@@ -59,7 +59,7 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_img_set_src(lock_image, IMG_PATH("lock_front_12x12.bin"));
     lv_obj_align(lock_image, LV_ALIGN_RIGHT_MID, 0, 0);
 
-    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5);
+    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7);
 
     instance->code_label = lv_label_create(code_cont);
     lv_label_set_text(instance->code_label, "");
@@ -81,7 +81,8 @@ static void link_pin_view_front_lvgl_destructor(const lv_obj_class_t* class_p, l
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
 
-    font_registry_unload_font(instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
+    font_registry_unload_font(
+        instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }
@@ -90,7 +91,8 @@ static void link_pin_view_back_lvgl_destructor(const lv_obj_class_t* class_p, lv
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
 
-    font_registry_unload_font(instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
+    font_registry_unload_font(
+        instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }
@@ -128,13 +130,13 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     lv_img_set_src(lock_image, IMG_PATH("lock_back_11x11.bin"));
     lv_obj_align(lock_image, LV_ALIGN_BOTTOM_RIGHT, 0, -1);
 
-    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5);
+    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7);
 
     instance->code_label = lv_label_create(code_cont);
     lv_label_set_text(instance->code_label, "");
     lv_obj_set_style_text_color(instance->code_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_font(instance->code_label, font, LV_PART_MAIN);
-    lv_obj_align(instance->code_label, LV_ALIGN_BOTTOM_LEFT, 0, 1);
+    lv_obj_align(instance->code_label, LV_ALIGN_LEFT_MID, 0, 1);
     lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->loading_spinner = anim_player_alloc((Widget*)code_cont);

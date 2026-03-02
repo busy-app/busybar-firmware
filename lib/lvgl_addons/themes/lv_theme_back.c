@@ -126,7 +126,7 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 
     lv_style_init(&theme->styles.menu_arrow);
     lv_style_set_pad_left(&theme->styles.menu_arrow, MENU_ITEM_PAD_HOR / 2);
-    lv_style_set_text_font(&theme->styles.menu_arrow, theme->base.font_small);
+    lv_style_set_text_font(&theme->styles.menu_arrow, theme->base.font_normal);
 
     lv_style_init(&theme->styles.submenu_item);
     lv_style_set_pad_hor(&theme->styles.submenu_item, MENU_ITEM_PAD_HOR);
@@ -400,7 +400,7 @@ lv_theme_t* lv_theme_back_alloc(lv_display_t* disp) {
     FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
 
     theme->base.disp = disp;
-    theme->base.font_small = &lv_font_tiny5_8;
+    theme->base.font_small = &lv_font_busy_regular_5;
     theme->base.font_normal = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_9);
     theme->base.font_large = font_registry_load_font(font_registry, FONT_BUSY_BOLD_10);
     theme->base.apply_cb = theme_apply_callback;

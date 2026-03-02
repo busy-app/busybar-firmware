@@ -16,13 +16,13 @@
 #define TEXT_COLOR      lv_color_black()
 
 struct MatterCodeView {
-    FontRegistry* font_registry;
     Widget base;
     lv_obj_t* logo;
     lv_obj_t* wordmark;
     lv_obj_t* man_title;
     lv_obj_t* man_code;
     lv_obj_t* qr_code;
+    FontRegistry* font_registry;
 };
 
 const lv_obj_class_t matter_code_view_lvgl_class;
@@ -97,7 +97,10 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     lv_obj_set_style_align(instance->wordmark, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
     lv_obj_set_style_x(instance->wordmark, 19, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->wordmark, TEXT_COLOR, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->wordmark, font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9), LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->wordmark,
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9),
+        LV_PART_MAIN);
 
     instance->man_title = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
     lv_obj_class_init_obj(instance->man_title);
@@ -111,7 +114,9 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     lv_obj_set_style_align(instance->man_code, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->man_code, TEXT_COLOR, LV_PART_MAIN);
     lv_obj_set_style_text_font(
-        instance->man_code, font_registry_load_font(instance->font_registry, FONT_BUSY_CONDENSED_7), LV_PART_MAIN);
+        instance->man_code,
+        font_registry_load_font(instance->font_registry, FONT_BUSY_CONDENSED_7),
+        LV_PART_MAIN);
 
     instance->qr_code = lv_obj_class_create_obj(MY_QR_CODE_CLASS, obj);
     lv_obj_class_init_obj(instance->qr_code);
@@ -123,8 +128,10 @@ static void matter_code_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_o
 
     MatterCodeView* instance = (MatterCodeView*)obj;
 
-    font_registry_unload_font(instance->font_registry, lv_obj_get_style_text_font(instance->wordmark, LV_PART_MAIN));
-    font_registry_unload_font(instance->font_registry, lv_obj_get_style_text_font(instance->man_code, LV_PART_MAIN));
+    font_registry_unload_font(
+        instance->font_registry, lv_obj_get_style_text_font(instance->wordmark, LV_PART_MAIN));
+    font_registry_unload_font(
+        instance->font_registry, lv_obj_get_style_text_font(instance->man_code, LV_PART_MAIN));
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }

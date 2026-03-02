@@ -20,4 +20,13 @@ void flipper_init_services(void) {
 
         furi_thread_start(thread);
     }
+
+#ifdef FURI_RAM_EXEC
+    FURI_LOG_I(TAG, "Executing %d system start hooks", FLIPPER_ON_SYSTEM_START_COUNT);
+
+    for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
+        FlipperInternalOnStartHook hook = FLIPPER_ON_SYSTEM_START[i];
+        hook();
+    }
+#endif
 }

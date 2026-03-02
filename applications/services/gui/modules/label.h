@@ -7,6 +7,7 @@
 #include <gui/widget.h>
 #include <gui/gui.h>
 #include <toolbox/color.h>
+#include <font_registry/fonts.h>
 
 #ifdef __cplusplus
 extern "C" {

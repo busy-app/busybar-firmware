@@ -76,7 +76,8 @@ size_t value_index_string(const char* value, const char* const values[], size_t 
 /**
  * @brief Maps a string value using two arrays logically representing an associative array
  */
-#define VALUE_INDEX_MAP_STRING(_src_array, _dst_array, _input) ({  \
+#define VALUE_INDEX_MAP_STRING(_src_array, _dst_array, _input)     \
+    ({                                                             \
         const char* const* src_array = _src_array;                 \
         const char* const* dst_array = _dst_array;                 \
         const char* input = _input;                                \

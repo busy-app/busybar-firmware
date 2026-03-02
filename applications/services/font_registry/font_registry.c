@@ -16,6 +16,24 @@ struct FontRegistry {
     LoadedFont* loaded_fonts;
 };
 
+typedef struct {
+    const char* simulated_path;
+    const lv_font_t* font;
+} FontRegistryBaked;
+
+#ifdef FURI_RAM_EXEC
+extern const lv_font_t lv_font_busy_regular_7;
+extern const lv_font_t lv_font_busy_regular_9;
+#endif
+
+static const FontRegistryBaked font_registry_baked[] = {
+    {FONT_BUSY_REGULAR_5, &lv_font_busy_regular_5},
+#ifdef FURI_RAM_EXEC
+    {FONT_BUSY_REGULAR_7, &lv_font_busy_regular_7},
+    {FONT_BUSY_REGULAR_9, &lv_font_busy_regular_9},
+#endif
+};
+
 const lv_font_t* font_registry_load_font(FontRegistry* instance, const char* font_path) {
     furi_check(instance);
     furi_check(font_path);
@@ -24,10 +42,24 @@ const lv_font_t* font_registry_load_font(FontRegistry* instance, const char* fon
     furi_check(furi_mutex_acquire(instance->mutex, FuriWaitForever) == FuriStatusOk);
 
     do {
+        for(size_t i = 0; i < COUNT_OF(font_registry_baked); i++) {
+            if(strcmp(font_path, font_registry_baked[i].simulated_path) == 0) {
+                ret_val = font_registry_baked[i].font;
+            }
+        }
+        if(ret_val) {
+            FURI_LOG_D(TAG, "Font \"%s\": baked", font_path);
+            break;
+        }
+
         LoadedFont* already_loaded = stbds_shgetp_null(instance->loaded_fonts, font_path);
         if(already_loaded) {
             already_loaded->value.references++;
-            FURI_LOG_D(TAG, "Font \"%s\": references=%zu (+1)", font_path, already_loaded->value.references);
+            FURI_LOG_D(
+                TAG,
+                "Font \"%s\": references=%zu (+1)",
+                font_path,
+                already_loaded->value.references);
             ret_val = already_loaded->value.loaded_data;
             break;
         }
@@ -37,10 +69,11 @@ const lv_font_t* font_registry_load_font(FontRegistry* instance, const char* fon
 
         LoadedFont now_loaded = {
             .key = font_path,
-            .value = {
-                .loaded_data = font_data,
-                .references = 1,
-            },
+            .value =
+                {
+                    .loaded_data = font_data,
+                    .references = 1,
+                },
         };
 
         FURI_LOG_D(TAG, "Font \"%s\": references=1 (newly loaded)", font_path);
@@ -63,8 +96,10 @@ void font_registry_unload_font(FontRegistry* instance, const lv_font_t* const_fo
     furi_check(instance);
     furi_check(const_font);
 
-    // the only font in RO memory that `load` can return is the default one
-    if(const_font == LV_FONT_DEFAULT) return;
+    // the only fonts in RO memory that `load` can return are the baked ones
+    for(size_t i = 0; i < COUNT_OF(font_registry_baked); i++) {
+        if(font_registry_baked[i].font == const_font) return;
+    }
     lv_font_t* font = (lv_font_t*)const_font;
 
     furi_check(furi_mutex_acquire(instance->mutex, FuriWaitForever) == FuriStatusOk);

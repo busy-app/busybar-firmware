@@ -505,7 +505,11 @@ int32_t loader_srv(void* p) {
 
     Loader* loader = loader_alloc();
 
+#ifdef FURI_RAM_EXEC
+    UNUSED(loader_do_on_start);
+#else
     loader_do_on_start();
+#endif
     loader_do_autorun(loader);
 
     furi_event_loop_run(loader->event_loop);

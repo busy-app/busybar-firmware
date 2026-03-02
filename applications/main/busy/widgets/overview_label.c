@@ -79,6 +79,7 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
         lv_obj_set_style_text_font(column->top_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
         lv_obj_set_style_text_font(
             column->bottom_label, lv_theme_get_font_large(obj), LV_PART_MAIN);
+        lv_obj_set_content_height(column->top_label, 5);
 
         if(i == OverviewLabelColumnIdxWork) {
             lv_label_set_text(column->top_label, "WORK");

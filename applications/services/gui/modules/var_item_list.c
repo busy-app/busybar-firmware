@@ -11,11 +11,9 @@
 #define MY_CURSOR_CLASS (&var_item_cursor_lvgl_class)
 #define MY_ARROW_CLASS  (&var_item_arrow_lvgl_class)
 
-#define SYM_INFINITY        "∞"
-#define SYM_ARROW_LEFT      "◃"
-#define SYM_ARROW_RIGHT     "▹"
-#define SYM_ARROW_LEFT_BIG  "<"
-#define SYM_ARROW_RIGHT_BIG ">"
+#define SYM_INFINITY    "∞"
+#define SYM_ARROW_LEFT  "<"
+#define SYM_ARROW_RIGHT ">"
 
 #define SCROLL_ANIM_DURATION_MS (0)
 
@@ -161,6 +159,7 @@ static void var_item_editor_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
 
     VarItemEditor* instance = (VarItemEditor*)obj;
 
@@ -172,9 +171,8 @@ static void var_item_editor_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
     instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow_right);
 
-    // TODO: ark_regular_10: copy arrows to BIG symbols
-    lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT_BIG);
-    lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT_BIG);
+    lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT);
+    lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT);
 }
 
 static void var_item_editor_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {

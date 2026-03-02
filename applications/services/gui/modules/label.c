@@ -184,9 +184,10 @@ uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_pp
 void label_set_font(Label* instance, const char* font_path) {
     furi_check(instance);
 
-    if(instance->loaded_font) font_registry_unload_font(instance->font_registry, instance->loaded_font);
+    if(instance->loaded_font)
+        font_registry_unload_font(instance->font_registry, instance->loaded_font);
     instance->loaded_font = font_registry_load_font(instance->font_registry, font_path);
-    
+
     lv_obj_set_style_text_font(instance->label, instance->loaded_font, LV_PART_MAIN);
 }
 

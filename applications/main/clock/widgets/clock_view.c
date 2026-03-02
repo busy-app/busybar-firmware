@@ -6,7 +6,6 @@
 #define MY_CLASS (&clock_view_lvgl_class)
 
 struct ClockView {
-    FontRegistry* font_registry;
     Widget base;
 
     lv_obj_t* primary_container;
@@ -20,6 +19,7 @@ struct ClockView {
 
     bool show_seconds;
     bool show_date;
+    FontRegistry* font_registry;
 };
 
 const lv_obj_class_t clock_view_lvgl_class;
@@ -83,12 +83,18 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_size(instance->text_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     instance->text_label_time = lv_label_create(instance->text_container);
-    lv_obj_set_style_text_font(instance->text_label_time, font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7), LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->text_label_time,
+        font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7),
+        LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->text_label_time, lv_color_white(), LV_PART_MAIN);
 
     instance->text_label_date = lv_label_create(instance->text_container);
     lv_obj_set_style_translate_y(instance->text_label_date, -2, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->text_label_date, font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5), LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->text_label_date,
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5),
+        LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->text_label_date, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_opa(instance->text_label_date, LV_OPA_50, LV_PART_MAIN);
 }
@@ -98,7 +104,9 @@ static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
     ClockView* instance = (ClockView*)obj;
 
-    font_registry_unload_font(instance->font_registry, lv_obj_get_style_text_font(instance->text_label_date, LV_PART_MAIN));
+    font_registry_unload_font(
+        instance->font_registry,
+        lv_obj_get_style_text_font(instance->text_label_date, LV_PART_MAIN));
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }

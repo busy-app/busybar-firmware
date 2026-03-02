@@ -52,6 +52,7 @@ static void install_scene_on_enter(void* context) {
 
         Label* back_status_label = label_alloc(flex_layout_get_base(back_status_line_flex));
         label_set_text(back_status_label, "Installing");
+        label_set_font(back_status_label, FONT_BUSY_REGULAR_9);
         widget_set_size_content(label_get_base(back_status_label));
 
         data->back_status_percent_label = label_alloc(flex_layout_get_base(back_status_line_flex));
@@ -61,7 +62,7 @@ static void install_scene_on_enter(void* context) {
         widget_set_height(progress_bar_get_base(data->back_progress_bar), 8);
 
         data->back_extras_label = label_alloc(flex_layout_get_base(data->back_flex));
-        label_set_text_font_size(data->back_extras_label, LabelFontSizeSmall);
+        label_set_font(back_status_label, FONT_BUSY_REGULAR_7);
         label_set_text_color(
             data->back_extras_label, (Color)COLOR_MAKE_HEX(BACK_EXTRAS_LABEL_COLOR));
 
