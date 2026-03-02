@@ -196,7 +196,7 @@ size_t
     furi_check(data_size > 0);
 
     const uint32_t timeout_ticks = furi_ms_to_ticks(timeout);
-    const uint32_t deadline_timestamp = furi_get_tick() + timeout_ticks;
+    const uint32_t deadline_ticks = furi_get_tick() + timeout_ticks;
 
     if(!intercom_channel_await_peer_ready(channel, timeout_ticks)) {
         return 0;
@@ -209,16 +209,12 @@ size_t
     size_t sent_data_size = 0;
 
     do {
-        const uint32_t now = furi_get_tick();
-        if(now >= deadline_timestamp) {
-            break;
-        }
-
         const void* data_remain = data + sent_data_size;
         const size_t data_size_remain = data_size - sent_data_size;
+        const uint32_t timeout_ticks_left = deadline_ticks - furi_get_tick();
 
         const size_t chunk_size = intercom_tx_internal(
-            instance, channel_id, data_remain, data_size_remain, deadline_timestamp - now);
+            instance, channel_id, data_remain, data_size_remain, timeout_ticks_left);
 
         if(chunk_size == 0) {
             break;
