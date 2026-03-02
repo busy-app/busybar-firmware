@@ -1,7 +1,6 @@
 #include <furi_hal_info.h>
 
 #include <intercom/intercom.h>
-#include <wifi/wifi_common.h>
 
 #include "sl_info_common_i.h"
 
@@ -23,10 +22,7 @@ static void
 static void sl_info_send_data(IntercomChannel* info_channel) {
     FURI_LOG_D(TAG, "Sending info ...");
 
-    // Wifi needs to be ready for furi_hal_info_get() to work
-    furi_record_open(RECORD_WIFI);
     furi_hal_info_get(sl_info_property_callback, '_', info_channel);
-    furi_record_close(RECORD_WIFI);
 
     FURI_LOG_D(TAG, "Info sent");
 }
