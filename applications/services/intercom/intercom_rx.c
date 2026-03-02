@@ -71,7 +71,7 @@ static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
 
     if(intercom_frame_is_valid(rx_frame)) {
         const IntercomChannelId channel_id = rx_frame->channel_id;
-        const IntercomChannel* channel = &instance->handles[channel_id];
+        const IntercomChannel* channel = &instance->channels[channel_id];
         intercom_channel_call_callback(channel, rx_frame);
 
     } else {

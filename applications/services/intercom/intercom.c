@@ -127,7 +127,7 @@ static void intercom_tx_timer_callback(void* context) {
 
 static void intercom_init_channels(Intercom* instance) {
     for(IntercomChannelId i = 0; i < IntercomChannelIdMax; i++) {
-        intercom_channel_init(&instance->handles[i], instance);
+        intercom_channel_init(&instance->channels[i], instance);
     }
 }
 
@@ -197,7 +197,7 @@ size_t
 
     Intercom* instance = channel->intercom;
     // TODO: Store channel id within the channel?
-    const IntercomChannelId channel_id = channel - instance->handles;
+    const IntercomChannelId channel_id = channel - instance->channels;
 
     size_t sent_data_size = 0;
 
@@ -228,13 +228,12 @@ IntercomChannel* intercom_channel_open(
     furi_check(instance);
     furi_check(channel_id < IntercomChannelIdMax);
     furi_check(channel_id != IntercomChannelIdMeta);
-    if(context) furi_check(callback);
 
-    IntercomChannel* handle = &instance->handles[channel_id];
-    intercom_channel_set_callback(handle, callback, context);
-    intercom_channel_send_ready(handle);
+    IntercomChannel* channel = &instance->channels[channel_id];
+    intercom_channel_set_callback(channel, callback, context);
+    intercom_channel_send_ready(channel);
 
-    return handle;
+    return channel;
 }
 
 FuriPubSub* intercom_get_pubsub(Intercom* instance) {

@@ -47,7 +47,7 @@ static const char* intercom_channel_id_name(IntercomChannelId channel_id) {
 
 static FURI_ALWAYS_INLINE IntercomChannelId intercom_channel_id(IntercomChannel* channel) {
     furi_assert(channel);
-    return channel - channel->intercom->handles;
+    return channel - channel->intercom->channels;
 }
 
 static void intercom_meta_channel_ready(Intercom* intercom, const IntercomMetaFrame* frame) {
@@ -62,7 +62,7 @@ static void intercom_meta_channel_ready(Intercom* intercom, const IntercomMetaFr
 
     FURI_LOG_D(TAG, "OTHER side ready: %s", intercom_channel_id_name(channel_id));
 
-    const IntercomChannel* channel = &intercom->handles[channel_id];
+    const IntercomChannel* channel = &intercom->channels[channel_id];
     furi_check(
         !(furi_event_flag_set(channel->flags, IntercomChannelFlagPeerReady) & FuriFlagError));
 }

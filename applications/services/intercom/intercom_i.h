@@ -58,7 +58,7 @@ struct Intercom {
     FuriEventLoopTimer* tx_timer;
     FuriHalSerialHandle* serial;
     FuriPubSub* pubsub;
-    IntercomChannel handles[IntercomChannelIdMax];
+    IntercomChannel channels[IntercomChannelIdMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
     _Atomic bool is_in_sync;
