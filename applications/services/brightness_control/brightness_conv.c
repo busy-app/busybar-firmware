@@ -31,15 +31,6 @@ UserBrightness brightness_conv_int_to_user_clamped(int brightness) {
     return (UserBrightness){brightness};
 }
 
-bool brightness_conv_int_to_user_checked(int brightness_in, UserBrightness* brightness_out) {
-    if(brightness_in < BRIGHTNESS_MIN || brightness_in > BRIGHTNESS_MAX) {
-        return false;
-    } else {
-        *brightness_out = (UserBrightness){brightness_in};
-        return true;
-    }
-}
-
 InternalBrightness brightness_conv_user_to_internal(UserBrightness v) {
     return (InternalBrightness){v.val * INTERNAL_BRIGHTNESS_MAX / BRIGHTNESS_MAX};
 }

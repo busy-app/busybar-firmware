@@ -20,12 +20,6 @@ typedef struct InternalBrightness {
 /// Clamp and convert an integer to user brightness.
 UserBrightness brightness_conv_int_to_user_clamped(int brightness);
 
-/** @brief Convert an integer to user brightness if it is in range.
- *
- * @return true if conversion was performed
- */
-bool brightness_conv_int_to_user_checked(int brightness_in, UserBrightness* brightness_out);
-
 /// Convert user brightness to internal brightness.
 InternalBrightness brightness_conv_user_to_internal(UserBrightness v);
 

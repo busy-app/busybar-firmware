@@ -531,20 +531,18 @@ static bool api_display_set_brightness_callback(
             is_auto = true;
         } else if(sscanf(value_str, "%u", &brightness_value) != 1) {
             break;
+        } else if(brightness_value < BRIGHTNESS_MIN || brightness_value > BRIGHTNESS_MAX) {
+            break;
         }
 
         BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
 
-        do {
-            if(is_auto) {
-                brightness_control_set_auto_brightness(srv);
-            } else {
-                if(!brightness_control_set_manual_brightness_checked(srv, brightness_value)) {
-                    break;
-                }
-            }
-            success = true;
-        } while(false);
+        if(is_auto) {
+            brightness_control_set_auto_brightness(srv);
+        } else {
+            brightness_control_set_manual_brightness(srv, brightness_value);
+        }
+        success = true;
 
         furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 

@@ -81,31 +81,13 @@ void brightness_control_set_auto_brightness(BrightnessControl* instance) {
     furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
 }
 
-void brightness_control_set_manual_brightness_clamped(
-    BrightnessControl* instance,
-    uint8_t brightness) {
+void brightness_control_set_manual_brightness(BrightnessControl* instance, uint8_t brightness) {
     Message msg = {
         .type = MessageTypeSetManualBrightness,
         .user_brightness = brightness_conv_int_to_user_clamped(brightness),
     };
 
     furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
-}
-
-bool brightness_control_set_manual_brightness_checked(
-    BrightnessControl* instance,
-    uint8_t brightness) {
-    UserBrightness user_brightness;
-    if(!brightness_conv_int_to_user_checked(brightness, &user_brightness)) {
-        return false;
-    }
-    Message msg = {
-        .type = MessageTypeSetManualBrightness,
-        .user_brightness = user_brightness,
-    };
-
-    furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever);
-    return true;
 }
 
 FuriState* brightness_control_get_state(const BrightnessControl* instance) {

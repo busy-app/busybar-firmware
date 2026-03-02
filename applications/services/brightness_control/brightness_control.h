@@ -53,19 +53,7 @@ void brightness_control_set_auto_brightness(BrightnessControl* instance);
  *
  * @param brightness brightness value (0-100).
  */
-void brightness_control_set_manual_brightness_clamped(
-    BrightnessControl* instance,
-    uint8_t brightness);
-
-/**
- * @brief Set manual brightness if the input value is in range.
- *
- * @param brightness brightness value (0-100).
- * @return true if brightness was in range, false otherwise.
- */
-bool brightness_control_set_manual_brightness_checked(
-    BrightnessControl* instance,
-    uint8_t brightness);
+void brightness_control_set_manual_brightness(BrightnessControl* instance, uint8_t brightness);
 
 /**
  * @brief enable temporary brightness override for a module.
