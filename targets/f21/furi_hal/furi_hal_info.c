@@ -225,6 +225,9 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "otp1_sig",
             furi_hal_version_get_otp1_signature(),
             furi_hal_version_get_signature_size());
+
+        property_context.last = true;
+
         property_out_hex(
             &property_context,
             temp_str,

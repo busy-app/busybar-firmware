@@ -9,10 +9,10 @@ extern "C" {
 
 /** Callback type called every time another key-value pair of device information is ready
  *
- * @param      key[in]      device information type identifier
- * @param      value[in]    device information value
- * @param      last[in]     whether the passed key-value pair is the last one
- * @param      context[in]  to pass to callback
+ * @param[in] key      device information type identifier
+ * @param[in] value    device information value
+ * @param[in] last     whether the passed key-value pair is the last one
+ * @param[in] context  to pass to callback
  */
 typedef void (*PropertyValueCallback)(const char* key, const char* value, bool last, void* context);
 
@@ -27,10 +27,10 @@ typedef struct {
 
 /** Builds key and value strings and outputs them via a callback function
  *
- * @param       ctx[in]     local property context
- * @param       fmt[in]     value format, set to NULL to bypass formatting
- * @param       nparts[in]  number of key parts (separated by character)
- * @param       ...[in]     list of key parts followed by value
+ * @param[in] ctx     local property context
+ * @param[in] fmt     value format, set to NULL to bypass formatting
+ * @param[in] nparts  number of key parts (separated by character)
+ * @param[in] ...     list of key parts followed by value
  */
 void property_value_out(PropertyValueContext* ctx, const char* fmt, unsigned int nparts, ...);
 

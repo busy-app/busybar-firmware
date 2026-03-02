@@ -4,7 +4,7 @@
 #include <furi_hal_version.h>
 #include <furi_hal_rtc.h>
 #include <toolbox/hex.h>
-#include <si917_info/si917_info_client.h>
+#include <sl_info/sl_info.h>
 
 #define TAG "HttpStatus"
 
@@ -15,6 +15,34 @@ typedef struct {
 static void format_mac(FuriString* str, const uint8_t* mac) {
     furi_string_printf(
         str, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
+static void status_append_sl_device_info(FuriString* json_str) {
+    SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
+
+    const char* value;
+
+    if(sl_info_get_value(sl_info, "sl_wifi_mac", &value) == SlInfoStatusOk) {
+        furi_string_cat_printf(json_str, ",\"wifi_mac\":\"%s\"", value);
+    }
+
+    if(sl_info_get_value(sl_info, "sl_ble_mac", &value) == SlInfoStatusOk) {
+        furi_string_cat_printf(json_str, ",\"ble_mac\":\"%s\"", value);
+    }
+
+    furi_record_close(RECORD_SL_INFO);
+}
+
+static void status_append_sl_firmware_info(FuriString* json_str) {
+    SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
+
+    const char* value;
+
+    if(sl_info_get_value(sl_info, "sl_nwp_firmware", &value) == SlInfoStatusOk) {
+        furi_string_cat_printf(json_str, ",\"nwp_version\":\"%s\"", value);
+    }
+
+    furi_record_close(RECORD_SL_INFO);
 }
 
 static bool status_get_device(FuriString* json_str, ApiStatusCtx* context) {
@@ -30,22 +58,7 @@ static bool status_get_device(FuriString* json_str, ApiStatusCtx* context) {
     format_mac(temp_str, mac);
     furi_string_cat_printf(json_str, ",\"usb_mac\":\"%s\"", furi_string_get_cstr(temp_str));
 
-    Si917InfoData info_917;
-    bool si917_data_valid = false;
-
-    if(furi_record_exists(RECORD_SI917_INFO_CLIENT)) {
-        Si917InfoClient* si917_info = furi_record_open(RECORD_SI917_INFO_CLIENT);
-        si917_data_valid = si917_info_get(si917_info, &info_917);
-        furi_record_close(RECORD_SI917_INFO_CLIENT);
-    }
-
-    if(si917_data_valid) {
-        format_mac(temp_str, info_917.wifi_mac);
-        furi_string_cat_printf(json_str, ",\"wifi_mac\":\"%s\"", furi_string_get_cstr(temp_str));
-
-        format_mac(temp_str, info_917.ble_mac);
-        furi_string_cat_printf(json_str, ",\"ble_mac\":\"%s\"", furi_string_get_cstr(temp_str));
-    }
+    status_append_sl_device_info(json_str);
 
     bool otp_valid = furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp1) &&
                      furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp2) &&
@@ -87,18 +100,7 @@ static bool status_get_firmware(FuriString* json_str, ApiStatusCtx* context) {
         version_get_githash(firmware_version),
         version_get_dirty_flag(firmware_version) ? "-dirty" : "");
 
-    Si917InfoData info_917;
-    bool si917_data_valid = false;
-
-    if(furi_record_exists(RECORD_SI917_INFO_CLIENT)) {
-        Si917InfoClient* si917_info = furi_record_open(RECORD_SI917_INFO_CLIENT);
-        si917_data_valid = si917_info_get(si917_info, &info_917);
-        furi_record_close(RECORD_SI917_INFO_CLIENT);
-    }
-
-    if(si917_data_valid) {
-        furi_string_cat_printf(json_str, ",\"nwp_version\":\"%s\"", info_917.nwp_version);
-    }
+    status_append_sl_firmware_info(json_str);
 
     furi_string_cat_printf(json_str, "}");
 
