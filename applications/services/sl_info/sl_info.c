@@ -99,7 +99,7 @@ SlInfoStatus sl_info_get_value(const SlInfo* instance, const char* key, const ch
     SlInfoStatus status;
 
     do {
-        if(instance->is_ready) {
+        if(!instance->is_ready) {
             status = SlInfoStatusNotReady;
             break;
         }
@@ -126,12 +126,18 @@ SlInfoStatus sl_info_get_values(
     furi_check(instance);
     furi_check(value_callback);
 
-    SlInfoStatus status = SlInfoStatusNotReady;
+    SlInfoStatus status;
 
-    if(instance->is_ready) {
+    do {
+        if(!instance->is_ready) {
+            status = SlInfoStatusNotReady;
+            break;
+        }
+
         sl_info_output_values(instance, value_callback, context);
         status = SlInfoStatusOk;
-    }
+
+    } while(false);
 
     return status;
 }
