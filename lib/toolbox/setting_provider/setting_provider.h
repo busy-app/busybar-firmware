@@ -16,7 +16,6 @@ extern "C" {
 #endif
 
 typedef struct SettingProvider SettingProvider;
-typedef struct SettingProviderSetting SettingProviderSetting;
 
 /**
  * @brief Setting types
@@ -29,13 +28,23 @@ typedef enum {
     SettingProviderSettingTypeFuriString, ///< FuriString value with validation
     SettingProviderSettingTypeEnum, ///< Enumeration represented as a string
     SettingProviderSettingTypeCustom, ///< Custom type with serialize/deserialize
-    /* TODO: SettingProviderSettingTypeArray */
-    /* TODO: SettingProviderSettingTypeRaw */
-
-    SettingProviderSettingTypeStructure, ///< Nested structure
+    SettingProviderSettingTypeStruct, ///< Nested structure
 
     SettingProviderSettingTypesCount ///< Total number of setting types
 } SettingProviderSettingType;
+
+/**
+ * @brief Descriptor for a single setting
+ *
+ * Defines the type, location, validation rules, and default values for a setting.
+ */
+typedef struct {
+    const char* name; ///< JSON key name (NULL for root structure)
+    const void* interface; ///< Type-specific interface (e.g., SettingProviderIntInterface*)
+    const void* context; ///< Optional user context passed to callbacks
+    size_t field_offset; ///< Offset in bytes from containing structure start
+    SettingProviderSettingType type; ///< Setting type
+} SettingProviderSetting;
 
 /**
  * @brief Interface for boolean settings
@@ -84,7 +93,7 @@ typedef struct {
      * @return true if valid, false otherwise
      */
     bool (*is_valid_callback)(const SettingProviderSetting* setting, const char* value);
-    size_t max_length; ///< Maximum length of the string (including null terminator)
+    size_t max_size; ///< Maximum size of the string (including null terminator)
 } SettingProviderStringInterface;
 
 /**
@@ -118,7 +127,6 @@ typedef struct {
  * Custom types require serialize/deserialize callbacks to convert to/from string representation.
  */
 typedef struct {
-    const void* default_value; ///< Pointer to default value buffer
     /**
      * @brief Serialize callback - convert value to string
      * @param setting The setting descriptor
@@ -141,6 +149,7 @@ typedef struct {
         const SettingProviderSetting* setting,
         void* value,
         const FuriString* string);
+    const void* default_value; ///< Pointer to default value buffer
     size_t default_value_size; ///< Size of the default value type in bytes
 } SettingProviderCustomInterface;
 
@@ -163,20 +172,7 @@ typedef struct {
      * @return true if valid, false otherwise
      */
     bool (*is_valid_callback)(const SettingProviderSetting* setting, const void* value);
-} SettingProviderStructureInterface;
-
-/**
- * @brief Descriptor for a single setting
- *
- * Defines the type, location, validation rules, and default values for a setting.
- */
-struct SettingProviderSetting {
-    const char* name; ///< JSON key name (NULL for root structure)
-    const void* interface; ///< Type-specific interface (e.g., SettingProviderIntInterface*)
-    const void* context; ///< Optional user context passed to callbacks
-    size_t field_offset; ///< Offset in bytes from containing structure start
-    SettingProviderSettingType type; ///< Setting type
-};
+} SettingProviderStructInterface;
 
 /**
  * @brief Migration step descriptor
@@ -189,9 +185,6 @@ typedef struct {
      * @brief Migration callback
      * @param provider The setting provider
      * @return true if successful, false otherwise
-     *
-     * The callback should modify the JSON structure directly through
-     * provider->json_root and provider->json_values.
      */
     bool (*callback)(SettingProvider* provider);
 } SettingProviderMigration;
@@ -217,9 +210,9 @@ SettingProvider* setting_provider_alloc(
 /**
  * @brief Free a setting provider
  *
- * @param provider Provider to free (can be closed or unclosed)
+ * @param instance Provider instance to free (can be closed or unclosed)
  */
-void setting_provider_free(SettingProvider* provider);
+void setting_provider_free(SettingProvider* instance);
 
 /**
  * @brief Open and load settings from file
@@ -227,50 +220,21 @@ void setting_provider_free(SettingProvider* provider);
  * Loads the JSON file, applies migrations if needed, and resets to defaults
  * if the file is corrupt or missing.
  *
- * @param provider Provider to open (must be allocated but not yet opened)
+ * @param instance Provider instance to open (must be allocated but not yet opened)
  *
  * @note Must be called before any load/save/reset operations
  */
-void setting_provider_open(SettingProvider* provider);
+void setting_provider_open(SettingProvider* instance);
 
 /**
  * @brief Close and save settings to file
  *
  * Writes the current state to disk if there are pending changes.
  *
- * @param provider Provider to close (must be opened)
+ * @param provider Provider instance to close (must be opened)
  * @return true if save was successful, false on error
  */
-bool setting_provider_close(SettingProvider* provider);
-
-/**
- * @brief Reset a setting to its default value
- *
- * Resets the setting to its default value and marks for writing.
- *
- * @param provider Open provider instance
- * @param setting Setting descriptor
- * @param value Pointer to value buffer, nullable
- */
-void setting_provider_reset(
-    SettingProvider* provider,
-    const SettingProviderSetting* setting,
-    void* value);
-
-/**
- * @brief Load a setting from the stored JSON
- *
- * Loads the value from JSON, applying validation and defaults as needed.
- * If the value is missing or invalid, the default will be used.
- *
- * @param provider Open provider instance
- * @param setting Setting descriptor
- * @param value Pointer to value buffer (will be updated with loaded value)
- */
-void setting_provider_load(
-    SettingProvider* provider,
-    const SettingProviderSetting* setting,
-    void* value);
+bool setting_provider_close(SettingProvider* instance);
 
 /**
  * @brief Save a setting to the JSON structure
@@ -284,9 +248,38 @@ void setting_provider_load(
  * @return true if value was valid and saved, false if validation failed
  */
 bool setting_provider_save(
-    SettingProvider* provider,
+    SettingProvider* instance,
     const SettingProviderSetting* setting,
     const void* value);
+
+/**
+ * @brief Load a setting from the stored JSON
+ *
+ * Loads the value from JSON, applying validation and defaults as needed.
+ * If the value is missing or invalid, the default will be used.
+ *
+ * @param provider Open provider instance
+ * @param setting Setting descriptor
+ * @param value Pointer to value buffer (will be updated with loaded value)
+ */
+void setting_provider_load(
+    SettingProvider* instance,
+    const SettingProviderSetting* setting,
+    void* value);
+
+/**
+ * @brief Reset a setting to its default value
+ *
+ * Resets the setting to its default value and marks for writing.
+ *
+ * @param provider Open provider instance
+ * @param setting Setting descriptor
+ * @param value Pointer to value buffer, nullable
+ */
+void setting_provider_reset(
+    SettingProvider* instance,
+    const SettingProviderSetting* setting,
+    void* value);
 
 /**
  * @brief Delete a setting from the JSON structure
@@ -296,7 +289,7 @@ bool setting_provider_save(
  *
  * @note When setting is NULL, clears the entire "values" object
  */
-void setting_provider_drop(SettingProvider* provider, const SettingProviderSetting* setting);
+void setting_provider_drop(SettingProvider* instance, const SettingProviderSetting* setting);
 
 #ifdef __cplusplus
 }
