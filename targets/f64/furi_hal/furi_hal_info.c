@@ -19,6 +19,8 @@
 #define FURI_HAL_INFO_917_SILICON_REV_VALUES_OFFSET_COMMON_FLASH  0x81F0293
 #define FURI_HAL_INFO_917_COMMON_FLASH_IPMU_VALUES_OFFSET         0x81F0258
 
+#define FURI_HAL_INFO_NWP_RETRY_COUNT (10)
+
 typedef struct {
     uint8_t _reserved0[337];
 
@@ -96,13 +98,12 @@ static void furi_hal_info_nwp_free(FuriHalInfoNwp* instance) {
     free(instance);
 }
 
-static void furi_hal_info_format_nwp_version(FuriString* version_str) {
+static bool furi_hal_info_get_nwp_version(FuriString* version_str) {
     sl_wifi_firmware_version_t fw_version;
     const sl_status_t status = sl_wifi_get_firmware_version(&fw_version);
 
     if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to get firmware version: 0x%08lX", status);
-        return;
+        return false;
     }
 
     const SlRpsNwpVersion nwp_version = {
@@ -117,15 +118,16 @@ static void furi_hal_info_format_nwp_version(FuriString* version_str) {
     };
 
     sl_rps_format_nwp_version(version_str, &nwp_version);
+
+    return true;
 }
 
-static void furi_hal_info_format_ble_mac(FuriString* ble_mac_str) {
+static bool furi_hal_info_get_nwp_ble_mac(FuriString* ble_mac_str) {
     sl_mac_address_t mac_addr = {0};
     const sl_status_t status = rsi_bt_get_local_device_address((uint8_t*)&mac_addr);
 
     if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to get local device address: 0x%08lX", status);
-        return;
+        return false;
     }
 
     furi_string_printf(
@@ -137,15 +139,16 @@ static void furi_hal_info_format_ble_mac(FuriString* ble_mac_str) {
         mac_addr.octet[2],
         mac_addr.octet[1],
         mac_addr.octet[0]);
+
+    return true;
 }
 
-static void furi_hal_info_format_wifi_mac(FuriString* wifi_mac_str) {
+static bool furi_hal_info_get_nwp_wifi_mac(FuriString* wifi_mac_str) {
     sl_mac_address_t mac_addr = {0};
     const sl_status_t status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
 
     if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to get WiFi MAC address: 0x%08lX", status);
-        return;
+        return false;
     }
 
     furi_string_printf(
@@ -157,6 +160,8 @@ static void furi_hal_info_format_wifi_mac(FuriString* wifi_mac_str) {
         mac_addr.octet[3],
         mac_addr.octet[4],
         mac_addr.octet[5]);
+
+    return true;
 }
 
 static void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
@@ -164,9 +169,26 @@ static void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
 
     furi_record_open(RECORD_WIFI);
 
-    furi_hal_info_format_ble_mac(instance->mac_ble);
-    furi_hal_info_format_wifi_mac(instance->mac_wifi);
-    furi_hal_info_format_nwp_version(instance->firmware_version);
+    uint32_t n_retries;
+    for(n_retries = 0; n_retries < FURI_HAL_INFO_NWP_RETRY_COUNT; ++n_retries) {
+        if(!furi_hal_info_get_nwp_version(instance->firmware_version)) {
+            continue;
+        }
+
+        if(!furi_hal_info_get_nwp_ble_mac(instance->mac_ble)) {
+            continue;
+        }
+
+        if(!furi_hal_info_get_nwp_wifi_mac(instance->mac_wifi)) {
+            continue;
+        }
+
+        break;
+    }
+
+    if(n_retries == FURI_HAL_INFO_NWP_RETRY_COUNT) {
+        FURI_LOG_E(TAG, "Failed to get NWP info");
+    }
 
     furi_record_close(RECORD_WIFI);
 }
