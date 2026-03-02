@@ -96,64 +96,77 @@ static void furi_hal_info_nwp_free(FuriHalInfoNwp* instance) {
     free(instance);
 }
 
+static void furi_hal_info_format_nwp_version(FuriString* version_str) {
+    sl_wifi_firmware_version_t fw_version;
+    const sl_status_t status = sl_wifi_get_firmware_version(&fw_version);
+
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to get firmware version: 0x%08lX", status);
+        return;
+    }
+
+    const SlRpsNwpVersion nwp_version = {
+        .major = fw_version.major,
+        .minor = fw_version.minor,
+        .patch = fw_version.patch_num,
+        .build = fw_version.build_num,
+        .security = fw_version.security_version,
+        .rom_id = fw_version.rom_id,
+        .chip_id = fw_version.chip_id,
+        .customer_id = fw_version.customer_id,
+    };
+
+    sl_rps_format_nwp_version(version_str, &nwp_version);
+}
+
+static void furi_hal_info_format_ble_mac(FuriString* ble_mac_str) {
+    sl_mac_address_t mac_addr = {0};
+    const sl_status_t status = rsi_bt_get_local_device_address((uint8_t*)&mac_addr);
+
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to get local device address: 0x%08lX", status);
+        return;
+    }
+
+    furi_string_printf(
+        ble_mac_str,
+        "%02x:%02x:%02x:%02x:%02x:%02x",
+        mac_addr.octet[5],
+        mac_addr.octet[4],
+        mac_addr.octet[3],
+        mac_addr.octet[2],
+        mac_addr.octet[1],
+        mac_addr.octet[0]);
+}
+
+static void furi_hal_info_format_wifi_mac(FuriString* wifi_mac_str) {
+    sl_mac_address_t mac_addr = {0};
+    const sl_status_t status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to get WiFi MAC address: 0x%08lX", status);
+        return;
+    }
+
+    furi_string_printf(
+        wifi_mac_str,
+        "%02x:%02x:%02x:%02x:%02x:%02x",
+        mac_addr.octet[0],
+        mac_addr.octet[1],
+        mac_addr.octet[2],
+        mac_addr.octet[3],
+        mac_addr.octet[4],
+        mac_addr.octet[5]);
+}
+
 static void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
     furi_check(instance);
 
     furi_record_open(RECORD_WIFI);
 
-    sl_wifi_firmware_version_t fw_version;
-    sl_mac_address_t mac_addr = {0};
-
-    sl_status_t status = SL_STATUS_FAIL;
-
-    do {
-        status = sl_wifi_get_firmware_version(&fw_version);
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get firmware version: 0x%08lX", status);
-        } else {
-            sl_rps_format_nwp_version(
-                instance->firmware_version,
-                &(SlRpsNwpVersion){
-                    .major = fw_version.major,
-                    .minor = fw_version.minor,
-                    .patch = fw_version.patch_num,
-                    .build = fw_version.build_num,
-                    .security = fw_version.security_version,
-                    .rom_id = fw_version.rom_id,
-                    .chip_id = fw_version.chip_id,
-                    .customer_id = fw_version.customer_id,
-                });
-        }
-
-        status = rsi_bt_get_local_device_address((uint8_t*)&mac_addr);
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get local device address: 0x%08lX", status);
-        } else {
-            furi_string_printf(
-                instance->mac_ble,
-                "%02x:%02x:%02x:%02x:%02x:%02x",
-                mac_addr.octet[5],
-                mac_addr.octet[4],
-                mac_addr.octet[3],
-                mac_addr.octet[2],
-                mac_addr.octet[1],
-                mac_addr.octet[0]);
-        }
-        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get WiFi MAC address: 0x%08lX", status);
-        } else {
-            furi_string_printf(
-                instance->mac_wifi,
-                "%02x:%02x:%02x:%02x:%02x:%02x",
-                mac_addr.octet[0],
-                mac_addr.octet[1],
-                mac_addr.octet[2],
-                mac_addr.octet[3],
-                mac_addr.octet[4],
-                mac_addr.octet[5]);
-        }
-    } while(false);
+    furi_hal_info_format_ble_mac(instance->mac_ble);
+    furi_hal_info_format_wifi_mac(instance->mac_wifi);
+    furi_hal_info_format_nwp_version(instance->firmware_version);
 
     furi_record_close(RECORD_WIFI);
 }
