@@ -1,5 +1,6 @@
 #include "lv_theme_back.h"
 #include "lv_theme_common.h"
+#include <font_registry/font_registry.h>
 
 #define COLOR_BG_NORMAL   lv_color_black()
 #define COLOR_FG_NORMAL   lv_color_hex(0xAAAAAA)
@@ -69,7 +70,9 @@ typedef struct {
     my_theme_styles_t styles;
 } my_theme_t;
 
-static void style_init(my_theme_t* theme) {
+static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
+    UNUSED(font_registry);
+
     lv_style_init(&theme->styles.screen);
     lv_style_set_bg_opa(&theme->styles.screen, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.screen, COLOR_BG_NORMAL);
@@ -182,7 +185,7 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.title_card);
     lv_style_set_pad_column(&theme->styles.title_card, 6);
-    lv_style_set_text_font(&theme->styles.title_card, &lv_font_ark_regular_20);
+    lv_style_set_text_font(&theme->styles.title_card, theme->base.font_normal);
 
     lv_style_init(&theme->styles.title_card_label);
     lv_style_set_translate_y(&theme->styles.title_card_label, 2);
@@ -394,14 +397,15 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 // Public API
 lv_theme_t* lv_theme_back_alloc(lv_display_t* disp) {
     my_theme_t* theme = malloc(sizeof(my_theme_t));
+    FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
 
     theme->base.disp = disp;
     theme->base.font_small = &lv_font_tiny5_8;
-    theme->base.font_normal = &lv_font_ark_regular_10;
-    theme->base.font_large = &lv_font_ark_regular_10;
+    theme->base.font_normal = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_9);
+    theme->base.font_large = font_registry_load_font(font_registry, FONT_BUSY_BOLD_10);
     theme->base.apply_cb = theme_apply_callback;
 
-    style_init(theme);
+    style_init(theme, font_registry);
 
     return (lv_theme_t*)theme;
 }

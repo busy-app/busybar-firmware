@@ -156,7 +156,7 @@ static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event
 
 // VarItemSpinbox
 
-static void var_item_editor_lvlgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void var_item_editor_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -172,13 +172,9 @@ static void var_item_editor_lvlgl_constructor(const lv_obj_class_t* class_p, lv_
     instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow_right);
 
-    if(lv_theme_get_font_normal(obj) == &lv_font_tiny5_8) {
-        lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT);
-        lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT);
-    } else {
-        lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT_BIG);
-        lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT_BIG);
-    }
+    // TODO: ark_regular_10: copy arrows to BIG symbols
+    lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT_BIG);
+    lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT_BIG);
 }
 
 static void var_item_editor_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -658,7 +654,7 @@ const lv_obj_class_t var_item_lvgl_class = {
 
 const lv_obj_class_t var_item_editor_lvgl_class = {
     .base_class = &lv_obj_class,
-    .constructor_cb = var_item_editor_lvlgl_constructor,
+    .constructor_cb = var_item_editor_lvgl_constructor,
     .destructor_cb = var_item_editor_lvgl_destructor,
     .name = "var-item-editor",
     .width_def = LV_SIZE_CONTENT,

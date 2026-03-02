@@ -73,6 +73,19 @@ size_t value_index_bool(const bool value, const bool values[], size_t values_cou
  */
 size_t value_index_string(const char* value, const char* const values[], size_t values_count);
 
+/**
+ * @brief Maps a string value using two arrays logically representing an associative array
+ */
+#define VALUE_INDEX_MAP_STRING(_src_array, _dst_array, _input) ({  \
+        const char* const* src_array = _src_array;                 \
+        const char* const* dst_array = _dst_array;                 \
+        const char* input = _input;                                \
+        size_t src_size = COUNT_OF(_src_array);                    \
+        size_t dst_size = COUNT_OF(_dst_array);                    \
+        furi_assert(src_size == dst_size);                         \
+        dst_array[value_index_string(input, src_array, src_size)]; \
+    })
+
 #ifdef __cplusplus
 }
 #endif

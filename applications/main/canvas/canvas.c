@@ -13,6 +13,7 @@
 #include "canvas.h"
 #include <gui/modules/front_display_mirror.h>
 #include <lvgl.h>
+#include <font_registry/fonts.h>
 
 typedef struct {
     enum {
@@ -284,17 +285,17 @@ static void canvas_element_reanchor(Widget* root, Align align, int32_t* x, int32
 /**
  * Slight vertical nudge for perceptually better aligned text at low resolution
  */
-static int32_t canvas_text_nudge_y(GuiFont font, Align align) {
+static int32_t canvas_text_nudge_y(const char* font, Align align) {
     AlignBitmask align_bm = widget_align_to_bitmask(align);
-    if(font == GuiFontBf4x5) {
+    if(strcmp(font, FONT_BUSY_REGULAR_5) == 0) {
         if(align_bm & AlignBitmaskBottom) return 0;
         if(align_bm & AlignBitmaskVerCenter) return -1;
         return -2; // BitmaskTop
-    } else if(font == GuiFontBf5x7 || font == GuiFontBf5x7CondensedNumerals) {
+    } else if((strcmp(font, FONT_BUSY_REGULAR_7) == 0) || (strcmp(font, FONT_BUSY_CONDENSED_7) == 0)) {
         if(align_bm & AlignBitmaskBottom) return 0;
         if(align_bm & AlignBitmaskVerCenter) return -1;
         return -2; // BitmaskTop
-    } else if(font == GuiFontBf7x10) {
+    } else if(strcmp(font, FONT_BUSY_BOLD_10) == 0) {
         if(align_bm & AlignBitmaskBottom) return 2;
         if(align_bm & AlignBitmaskVerCenter) return 0;
         return -2; // BitmaskTop
