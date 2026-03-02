@@ -5,7 +5,8 @@ env.Append(
         "#/lib/stb",
     ],
     LINT_SOURCES=[
-        Dir("."),
+        File("stb.c"),
+        File("stb.h"),
     ],
     SDK_HEADERS=[
         File("stb.h"),
