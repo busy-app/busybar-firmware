@@ -413,6 +413,9 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "nwp",
             "debug",
             furi_hal_info_917_mbr->disable_ta_jtag ? "false" : "true");
+
+        property_context.last = true;
+
         FuriString* ver_name = furi_string_alloc();
         furi_string_printf(ver_name, "%02x", furi_hal_info_917_mbr->mbr_variant);
         property_value_out(
