@@ -147,6 +147,14 @@ size_t
 // Input handlers
 // ==============
 
+/** Clamp line_position to the actual string length */
+static void cli_shell_line_clamp_position(CliShellLine* line, FuriString* str) {
+    size_t str_size = furi_string_size(str);
+    if(line->line_position > str_size) {
+        line->line_position = str_size;
+    }
+}
+
 static bool cli_shell_line_input_ctrl_c(CliKeyCombo combo, void* context) {
     UNUSED(combo);
     CliShellLine* line = context;
@@ -293,6 +301,7 @@ static bool cli_shell_line_input_bksp(CliKeyCombo combo, void* context) {
     // erase one character
     cli_shell_line_ensure_not_overwriting_history(line);
     FuriString* editing_line = cli_shell_line_get_editing(line);
+    cli_shell_line_clamp_position(line, editing_line);
     if(line->line_position == 0) {
         putc(CliKeyBell, stdout);
         fflush(stdout);
@@ -348,6 +357,7 @@ static bool cli_shell_line_input_ctrl_bksp(CliKeyCombo combo, void* context) {
     // delete run of similar chars to the left
     cli_shell_line_ensure_not_overwriting_history(line);
     FuriString* selected_line = cli_shell_line_get_selected(line);
+    cli_shell_line_clamp_position(line, selected_line);
     size_t run_start =
         cli_shell_line_skip_run(selected_line, line->line_position, CliSkipDirectionLeft);
     furi_string_replace_at(selected_line, run_start, line->line_position - run_start, "");
@@ -369,6 +379,7 @@ static bool cli_shell_line_input_normal(CliKeyCombo combo, void* context) {
     // insert character
     cli_shell_line_ensure_not_overwriting_history(line);
     FuriString* editing_line = cli_shell_line_get_editing(line);
+    cli_shell_line_clamp_position(line, editing_line);
     if(line->line_position == furi_string_size(editing_line)) {
         furi_string_push_back(editing_line, combo.key);
         printf("%c", combo.key);

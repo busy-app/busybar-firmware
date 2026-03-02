@@ -19,7 +19,7 @@ FURI_CHECK_RETURN bool
     bool is_success = false;
 
     do {
-        if(cli_intercom_spawn(cli_intercom, temp_shell_pipe) != CliIntercomSpawnStatusOk) {
+        if(cli_intercom_spawn(cli_intercom, temp_shell_pipe, true) != CliIntercomSpawnStatusOk) {
             pipe_free(temp_shell_pipe);
             break;
         }
@@ -47,7 +47,7 @@ void cli_command_sl_cli(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
 
     CliIntercom* cli_intercom = furi_record_open(RECORD_CLI_INTERCOM);
-    furi_check(cli_intercom_spawn(cli_intercom, pipe) == CliIntercomSpawnStatusOk);
+    furi_check(cli_intercom_spawn(cli_intercom, pipe, false) == CliIntercomSpawnStatusOk);
     cli_intercom_join(cli_intercom);
     furi_record_close(RECORD_CLI_INTERCOM);
 }

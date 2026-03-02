@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 6.3.0
+  version: 9.0.0
   contact:
     name: tbd
 
@@ -970,6 +970,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/status/device:
+    get:
+      tags:
+        - System
+      summary: Get device info
+      description: Get device info
+      operationId: getStatusDevice
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusDevice"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/status/firmware:
+    get:
+      tags:
+        - System
+      summary: Get firmware info
+      description: Get firmware info
+      operationId: getStatusFirmware
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusFirmware"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/status/system:
     get:
       tags:
@@ -1463,7 +1505,7 @@ paths:
     put:
       tags:
         - Busy
-      summary: Set BUSY time snapshot
+      summary: Set BUSY timer snapshot
       description: Run the timer starting from the given snapshot
       operationId: setBusySnapshot
       parameters: []
@@ -1482,6 +1524,65 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Error setting snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/busy/profiles/{slot}:
+    get:
+      tags:
+        - Busy
+      summary: Get BUSY timer profile
+      description: Gets the BUSY timer profile under specified slot
+      operationId: getBusyProfile
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/BusyProfileSlot"
+      responses:
+        "200":
+          description: Got profile successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusyProfile"
+        "400":
+          description: Error getting profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+        - Busy
+      summary: Set BUSY time profile
+      description: Sets the BUSY timer profile under specified slot
+      operationId: setBusyProfile
+      parameters:
+        - name: slot
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/BusyProfileSlot"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusyProfile"
+      responses:
+        "200":
+          description: Profile successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Error setting profile
           content:
             application/json:
               schema:
@@ -2106,26 +2207,62 @@ components:
     Status:
       type: object
       properties:
+        device:
+          $ref: "#/components/schemas/StatusDevice"
+        firmware:
+          $ref: "#/components/schemas/StatusFirmware"
         system:
           $ref: "#/components/schemas/StatusSystem"
         power:
           $ref: "#/components/schemas/StatusPower"
 
-    StatusSystem:
+    StatusDevice:
       type: object
       properties:
         serial_number:
           type: string
           description: Device serial number
           example: "203638485431500400123456"
-        api_semver:
+        usb_mac:
           type: string
-          description: API SemVer
-          example: "0.0.0"
+          description: MAC of USB ethernet device
+          example: "0c:fa:22:21:2a:31"
+        wifi_mac:
+          type: string
+          description: WIFI MAC
+          example: "0c:fa:22:21:2a:31"
+        ble_mac:
+          type: string
+          description: BLE MAC
+          example: "0c:fa:22:21:2a:31"
+        otp_valid:
+          type: boolean
+          description: Is OTP data valid
+          example: true
+        otp_model:
+          type: string
+          description: Device model code
+          example: "BB.1"
+        otp_timestamp:
+          type: integer
+          description: Production timestamp
+          example: 1767225600
+      required:
+        - serial_number
+        - usb_mac
+        - otp_valid
+
+    StatusFirmware:
+      type: object
+      properties:
         version:
           type: string
           description: Firmware version
           example: "1.0.0"
+        target:
+          type: integer
+          description: Firmware target code
+          example: 22
         branch:
           type: string
           description: Git branch name
@@ -2138,6 +2275,24 @@ components:
           type: string
           description: Git commit hash (may include -dirty suffix)
           example: "abc123def456-dirty"
+        nwp_version:
+          type: string
+          description: Radio firmware version
+          example: "1711.2.14.5.2.0.7"
+      required:
+        - version
+        - target
+        - branch
+        - build_date
+        - commit_hash
+
+    StatusSystem:
+      type: object
+      properties:
+        api_semver:
+          type: string
+          description: API SemVer
+          example: "0.0.0"
         uptime:
           type: string
           description: System uptime
@@ -2146,6 +2301,10 @@ components:
           type: integer
           description: System boot timestamp
           example: 1767225600
+      required:
+        - api_semver
+        - uptime
+        - boot_time
 
     StatusPower:
       type: object
@@ -2171,6 +2330,12 @@ components:
           type: integer
           description: USB voltage in mV
           example: 4843
+      required:
+        - state
+        - battery_charge
+        - battery_voltage
+        - battery_current
+        - usb_voltage
 
     WifiSecurityMethod:
       type: string
@@ -2358,17 +2523,19 @@ components:
       type: object
       properties:
         snapshot:
-          type: object
           oneOf:
             - $ref: "#/components/schemas/BusySnapshotNotStarted"
             - $ref: "#/components/schemas/BusySnapshotInfinite"
             - $ref: "#/components/schemas/BusySnapshotSimple"
             - $ref: "#/components/schemas/BusySnapshotInterval"
+        busy_bar_settings:
+          $ref: "#/components/schemas/BusyBarSettings"
         snapshot_timestamp_ms:
           type: integer
           example: 1761582532251
       required:
         - snapshot
+        - busy_bar_settings
         - snapshot_timestamp_ms
 
     BusySnapshotNotStarted:
@@ -2376,8 +2543,7 @@ components:
       properties:
         type:
           type: string
-          enum: ["NOT_STARTED"]
-          example: "NOT_STARTED"
+          const: "NOT_STARTED"
       required:
         - type
 
@@ -2386,10 +2552,10 @@ components:
       properties:
         type:
           type: string
-          enum: ["INFINITE"]
-          example: "INFINITE"
+          const: "INFINITE"
         card_id:
           type: string
+          format: uuid
           example: "00000000-0000-0000-0000-000000000000"
         is_paused:
           type: boolean
@@ -2404,10 +2570,10 @@ components:
       properties:
         type:
           type: string
-          enum: ["SIMPLE"]
-          example: "SIMPLE"
+          const: "SIMPLE"
         card_id:
           type: string
+          format: uuid
           example: "00000000-0000-0000-0000-000000000000"
         time_left_ms:
           type: integer
@@ -2426,10 +2592,10 @@ components:
       properties:
         type:
           type: string
-          enum: ["INTERVAL"]
-          example: "INTERVAL"
+          const: "INTERVAL"
         card_id:
           type: string
+          format: uuid
           example: "00000000-0000-0000-0000-000000000000"
         current_interval:
           type: integer
@@ -2444,7 +2610,7 @@ components:
           type: boolean
           example: false
         interval_settings:
-          $ref: "#/components/schemas/BusySnapshotIntervalSettings"
+          $ref: "#/components/schemas/BusyTimerIntervalSettings"
       required:
         - type
         - card_id
@@ -2454,13 +2620,72 @@ components:
         - is_paused
         - interval_settings
 
-    BusySnapshotIntervalSettings:
+    BusyProfile:
+      type: object
+      properties:
+        sort_order:
+          type: integer
+          example: -1
+        title:
+          type: string
+          example: "study"
+        id:
+          type: string
+          format: uuid
+          example: "00000000-0000-0000-0000-000000000000"
+        timer_settings:
+          oneOf:
+            - $ref: "#/components/schemas/BusyTimerInfiniteSettings"
+            - $ref: "#/components/schemas/BusyTimerSimpleSettings"
+            - $ref: "#/components/schemas/BusyTimerIntervalSettings"
+        busy_bar_settings:
+          $ref: "#/components/schemas/BusyBarSettings"
+        profile_timestamp_ms:
+          type: integer
+          example: 1761582532251
+      required:
+        - sort_order
+        - title
+        - timer_settings
+        - profile_timestamp_ms
+        - id
+        - busy_bar_settings
+
+    BusyProfileSlot:
+      type: string
+      enum:
+        - "busy"
+        - "custom"
+      example: "busy"
+
+    BusyTimerInfiniteSettings:
       type: object
       properties:
         type:
           type: string
-          enum: ["INTERVAL"]
-          example: "INTERVAL"
+          const: "INFINITE"
+      required:
+        - type
+
+    BusyTimerSimpleSettings:
+      type: object
+      properties:
+        type:
+          type: string
+          const: "SIMPLE"
+        total_time_ms:
+          type: integer
+          example: 300000
+      required:
+        - type
+        - total_time_ms
+
+    BusyTimerIntervalSettings:
+      type: object
+      properties:
+        type:
+          type: string
+          const: "INTERVAL"
         interval_work_ms:
           type: integer
           example: 120000
@@ -2473,24 +2698,50 @@ components:
         is_autostart_enabled:
           type: boolean
           example: false
+      required:
+        - type
+        - interval_work_ms
+        - interval_rest_ms
+        - interval_work_cycles_count
+        - is_autostart_enabled
+
+    BusyBarSettings:
+      type: object
+      properties:
+        theme:
+          type: string
+          example: "on_air"
+        show_work_phase_only:
+          type: boolean
+          example: false
+        trigger_smart_home:
+          type: boolean
+          example: true
+      required:
+        - theme
+        - show_work_phase_only
+        - trigger_smart_home
 
     TimezoneListResponse:
-      type: array
-      items:
-        type: object
-        properties:
-          name:
-            type: string
-            description: "Time zone name"
-            example: "Bangalore"
-          offset:
-            type: string
-            description: "Time zone offset from UTC"
-            example: "+05:30"
-          abbr:
-            type: string
-            description: "Time zone abbreviation"
-            example: "IST"
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: "Time zone name"
+                example: "Bangalore"
+              offset:
+                type: string
+                description: "Time zone offset from UTC"
+                example: "+05:30"
+              abbr:
+                type: string
+                description: "Time zone abbreviation"
+                example: "IST"
 
     MatterCommissionedFabrics:
       type: object

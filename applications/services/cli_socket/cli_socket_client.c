@@ -9,7 +9,8 @@
 #include <lwip/tcpip.h>
 
 #define THREAD_STACK_SIZE     (2 * 1024)
-#define PIPE_SZ_PER_DIRECTION 1024U
+#define PIPE_SZ_PER_DIRECTION (8 * 1024U)
+#define COPY_BUF_SZ           256U
 // #define CLI_SOCKET_TRACE_ENABLE
 
 #define TAG       "CliSocketClient"
@@ -35,6 +36,13 @@ typedef struct {
     CliRegistry* main_registry;
     CliShell* shell;
     FuriEventFlag* event_flag;
+
+    // Pending data from TCP that didn't fit in the pipe
+    struct pbuf* pending_data;
+    size_t pending_offset; // offset into first pbuf of pending_data
+
+    // Reusable buffer for shell->client copies
+    uint8_t copy_buf[COPY_BUF_SZ];
 } CliSocketClient;
 
 typedef enum {
@@ -63,97 +71,181 @@ static void cli_socket_client_wait_tcpip_unlock(CliSocketClient* client) {
 // Data copying
 // ============
 
+/**
+ * @brief Drain pipe into TCP socket in COPY_BUF_SZ chunks.
+ *
+ * @param client      Client context
+ * @param to_send     Number of bytes to transfer (must be <= pipe available AND tcp_sndbuf)
+ * @param pipe_avail  Total bytes available in pipe (used for TCP_WRITE_FLAG_MORE hint)
+ */
+static void
+    cli_socket_client_pipe_to_tcp(CliSocketClient* client, size_t to_send, size_t pipe_avail) {
+    size_t sent = 0;
+    while(sent < to_send) {
+        size_t chunk = MIN(to_send - sent, sizeof(client->copy_buf));
+        furi_check(pipe_receive(client->own_pipe, client->copy_buf, chunk) == chunk);
+        sent += chunk;
+
+        bool more_coming = (sent < to_send) || (to_send < pipe_avail);
+        uint8_t flags = TCP_WRITE_FLAG_COPY | (more_coming ? TCP_WRITE_FLAG_MORE : 0);
+
+        if(tcp_write(client->socket, client->copy_buf, chunk, flags) != ERR_OK) {
+            FURI_LOG_E(TAG, "tcp_write error");
+            break;
+        }
+    }
+
+    err_t err = tcp_output(client->socket);
+    if(err != ERR_OK) {
+        FURI_LOG_W(TAG, "tcp_output error: %d (data still queued)", err);
+    }
+}
+
 static void cli_socket_client_try_copy_sh2cl(void* context) {
     furi_assert(context);
     CliSocketClient* client = context;
 
-    if(!client->socket || client->socket->state != ESTABLISHED) {
-        if(client->socket) {
+    do {
+        if(!client->socket) {
+            FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
+            break;
+        }
+        if(client->socket->state != ESTABLISHED) {
             FURI_LOG_E(
                 TAG,
                 "%s:%d not established: %d",
                 ipaddr_ntoa(&client->socket->remote_ip),
                 client->socket->remote_port,
                 client->socket->state);
-        } else {
-            FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
+            break;
         }
 
-        cli_socket_client_tcpip_unlock(client);
-        return;
-    }
+        size_t tcp_space = tcp_sndbuf(client->socket);
+        size_t pipe_avail = pipe_bytes_available(client->own_pipe);
+        size_t to_send = MIN(pipe_avail, tcp_space);
+        CLI_SOCKET_TRACE(
+            TAG, DIR_SH_CL ": to_send=%zu (tcp=%zu pipe=%zu)", to_send, tcp_space, pipe_avail);
 
-    size_t available_in_tcp_buf = tcp_sndbuf(client->socket);
-    size_t available_in_pipe = pipe_bytes_available(client->own_pipe);
-    size_t batch_sz = MIN(available_in_pipe, available_in_tcp_buf);
-    CLI_SOCKET_TRACE(
-        TAG,
-        DIR_SH_CL ": batch=%zu (tcp=%zu pipe=%zu)",
-        batch_sz,
-        available_in_tcp_buf,
-        available_in_pipe);
-
-    do {
-        if(!batch_sz) break;
+        if(!to_send) break;
 
         if(furi_semaphore_release(client->tx_semaphore) != FuriStatusOk) {
             CLI_SOCKET_TRACE(TAG, DIR_SH_CL ": tx locked");
             break;
         }
 
-        uint8_t buf[batch_sz];
-        furi_check(pipe_receive(client->own_pipe, buf, sizeof(buf)) == sizeof(buf));
-
-        uint8_t lwip_flags = TCP_WRITE_FLAG_COPY;
-        if(batch_sz < available_in_pipe) lwip_flags |= TCP_WRITE_FLAG_MORE;
-
-        err_t err;
-        err = tcp_write(client->socket, buf, sizeof(buf), lwip_flags);
-        if(err != ERR_OK) {
-            FURI_LOG_E(TAG, "tcp_write error: %d", err);
-            furi_crash();
-        }
-
-        err = tcp_output(client->socket);
-        if(err != ERR_OK) {
-            FURI_LOG_E(TAG, "tcp_output error: %d", err);
-            furi_crash();
-        }
+        cli_socket_client_pipe_to_tcp(client, to_send, pipe_avail);
     } while(false);
 
     cli_socket_client_tcpip_unlock(client);
 }
 
-static void cli_socket_client_try_copy_cl2sh(CliSocketClient* client, struct pbuf* chunk_chain) {
-    CLI_SOCKET_TRACE(TAG, DIR_CL_SH ": pbuf chain:");
-    size_t read_total = 0;
+// Forward declaration
+static void cli_socket_client_drain_pending(void* context);
 
-    struct pbuf* chunk = chunk_chain;
-    while(chunk) {
-        uint8_t* payload = chunk->payload;
-        size_t available_in_chunk = chunk->len;
+/**
+ * @brief Try to copy data from a pbuf chain into the pipe.
+ *
+ * Consumes as much data as fits into the pipe without blocking.
+ * Any unconsumed remainder is stored in client->pending_data/pending_offset
+ * for later retry when the pipe has space.
+ *
+ * @param client     Client context
+ * @param chain      pbuf chain to consume from
+ * @param offset     byte offset into the first pbuf to start from
+ */
+static void
+    cli_socket_client_try_copy_cl2sh(CliSocketClient* client, struct pbuf* chain, size_t offset) {
+    CLI_SOCKET_TRACE(TAG, DIR_CL_SH ": pbuf chain (offset=%zu):", offset);
+    size_t read_total = 0;
+    bool pipe_full = false;
+
+    struct pbuf* chunk = chain;
+    size_t chunk_offset = offset;
+
+    while(chunk && !pipe_full) {
+        uint8_t* payload = (uint8_t*)chunk->payload + chunk_offset;
+        size_t available_in_chunk = chunk->len - chunk_offset;
         CLI_SOCKET_TRACE(TAG, DIR_CL_SH ":   tcp_chunk=%zu", available_in_chunk);
 
         while(available_in_chunk) {
-            size_t batch_sz = MIN(available_in_chunk, PIPE_SZ_PER_DIRECTION);
+            size_t pipe_space = pipe_spaces_available(client->own_pipe);
+            if(pipe_space == 0) {
+                CLI_SOCKET_TRACE(TAG, DIR_CL_SH ":     pipe full, stopping");
+                pipe_full = true;
+                break;
+            }
+
+            size_t batch_sz = MIN(available_in_chunk, MIN(pipe_space, PIPE_SZ_PER_DIRECTION));
             CLI_SOCKET_TRACE(
                 TAG, DIR_CL_SH ":     batch=%zu (left=%zu)", batch_sz, available_in_chunk);
 
-            uint8_t buf[batch_sz];
-            memcpy(buf, payload, sizeof(buf));
-            if(pipe_send(client->own_pipe, buf, sizeof(buf)) != sizeof(buf)) break;
+            size_t sent = pipe_send(client->own_pipe, payload, batch_sz);
+            read_total += sent;
+            chunk_offset += sent;
+            if(sent != batch_sz) {
+                pipe_full = true;
+                break;
+            }
 
             available_in_chunk -= batch_sz;
             payload += batch_sz;
-            read_total += batch_sz;
         }
 
-        chunk = chunk->next;
+        if(!pipe_full) {
+            chunk = chunk->next;
+            chunk_offset = 0;
+        }
     }
 
     CLI_SOCKET_TRACE(TAG, DIR_CL_SH ": total=%zu", read_total);
-    tcp_recved(client->socket, read_total);
-    pbuf_free(chunk_chain);
+    if(read_total > 0) {
+        tcp_recved(client->socket, read_total);
+    }
+
+    if(pipe_full && chunk) {
+        // Free fully consumed pbufs from the head of the chain.
+        // Each pbuf is detached before freeing to prevent pbuf_free from
+        // cascading into the remaining (unconsumed) tail of the chain.
+        while(chain != chunk) {
+            struct pbuf* consumed = chain;
+            chain = chain->next;
+            consumed->next = NULL;
+            pbuf_free(consumed);
+        }
+
+        client->pending_data = chain;
+        client->pending_offset = chunk_offset;
+        CLI_SOCKET_TRACE(
+            TAG,
+            DIR_CL_SH ": pending %zu bytes (offset=%zu)",
+            chain->tot_len - chunk_offset,
+            chunk_offset);
+    } else {
+        // All data consumed, free the entire chain
+        client->pending_data = NULL;
+        client->pending_offset = 0;
+        pbuf_free(chain);
+    }
+}
+
+/**
+ * @brief Drain pending data into the pipe (requires lwip thread context).
+ */
+static void cli_socket_client_drain_pending(void* context) {
+    CliSocketClient* client = context;
+
+    if(!client->pending_data || !client->socket) {
+        cli_socket_client_tcpip_unlock(client);
+        return;
+    }
+
+    struct pbuf* chain = client->pending_data;
+    size_t offset = client->pending_offset;
+    client->pending_data = NULL;
+    client->pending_offset = 0;
+
+    cli_socket_client_try_copy_cl2sh(client, chain, offset);
+    cli_socket_client_tcpip_unlock(client);
 }
 
 // ==============
@@ -201,8 +293,15 @@ static err_t cli_socket_data_from_client(
     if(err != ERR_OK) return ERR_OK;
 
     if(data) {
-        CLI_SOCKET_TRACE(TAG, "evt: " DIR_CL_SH);
-        cli_socket_client_try_copy_cl2sh(client, data);
+        if(client->pending_data) {
+            // Still have pending data that hasn't been drained yet,
+            // concatenate new data to pending chain
+            CLI_SOCKET_TRACE(TAG, "evt: " DIR_CL_SH " (appending to pending)");
+            pbuf_cat(client->pending_data, data);
+        } else {
+            CLI_SOCKET_TRACE(TAG, "evt: " DIR_CL_SH);
+            cli_socket_client_try_copy_cl2sh(client, data, 0);
+        }
     } else {
         // Connection closed by client
         CLI_SOCKET_TRACE(TAG, "evt: client disconnected");
@@ -221,14 +320,22 @@ static void cli_socket_client_event(FuriEventLoopObject* object, void* context) 
     CliSocketClient* client = context;
 
     uint32_t flags = furi_event_flag_wait(flag, CliSocketClientEventAll, FuriFlagWaitAny, 0);
-    furi_check(!(flags & FuriFlagError));
+    if(flags & FuriFlagError) {
+        // flags were already consumed by a previous edge callback
+        return;
+    }
 
     if(flags & CliSocketClientEventTcpTxDone) {
         furi_semaphore_acquire(client->tx_semaphore, 0);
+        if(pipe_bytes_available(client->own_pipe) > 0) {
+            tcpip_callback(cli_socket_client_try_copy_sh2cl, client);
+            cli_socket_client_wait_tcpip_unlock(client);
+        }
     }
 
     if((flags & CliSocketClientEventDisconnected) || (flags & CliSocketClientEventShellExit)) {
         pipe_set_data_arrived_callback(client->own_pipe, NULL, 0);
+        pipe_set_space_freed_callback(client->own_pipe, NULL, 0);
         furi_event_loop_stop(client->event_loop);
     }
 }
@@ -239,6 +346,16 @@ static void cli_socket_client_data_from_shell(PipeSide* pipe, void* context) {
     CLI_SOCKET_TRACE(TAG, "evt: " DIR_SH_CL);
     tcpip_callback(cli_socket_client_try_copy_sh2cl, client);
     cli_socket_client_wait_tcpip_unlock(client);
+}
+
+static void cli_socket_client_space_freed(PipeSide* pipe, void* context) {
+    UNUSED(pipe);
+    CliSocketClient* client = context;
+    if(client->pending_data) {
+        CLI_SOCKET_TRACE(TAG, "evt: pipe space freed, draining pending");
+        tcpip_callback(cli_socket_client_drain_pending, client);
+        cli_socket_client_wait_tcpip_unlock(client);
+    }
 }
 
 static void cli_socket_client_init_callback(void* context) {
@@ -271,7 +388,10 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     client->shell_pipe = pipes.bobs_side;
     pipe_attach_to_event_loop(client->own_pipe, client->event_loop);
     pipe_set_callback_context(client->own_pipe, client);
-    pipe_set_data_arrived_callback(client->own_pipe, cli_socket_client_data_from_shell, 0);
+    pipe_set_data_arrived_callback(
+        client->own_pipe, cli_socket_client_data_from_shell, FuriEventLoopEventFlagEdge);
+    pipe_set_space_freed_callback(
+        client->own_pipe, cli_socket_client_space_freed, FuriEventLoopEventFlagEdge);
     pipe_set_broken_callback(client->own_pipe, cli_socket_client_shell_exit_callback, 0);
 
     tcpip_callback(cli_socket_client_init_callback, client);
@@ -288,6 +408,12 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
 static void cli_socket_client_deinit_callback(void* context) {
     furi_assert(context);
     CliSocketClient* client = context;
+
+    if(client->pending_data) {
+        pbuf_free(client->pending_data);
+        client->pending_data = NULL;
+        client->pending_offset = 0;
+    }
 
     if(client->socket) {
         tcp_arg(client->socket, NULL);
@@ -310,9 +436,15 @@ static void cli_socket_client_thread_deinit(CliSocketClient* client) {
     cli_socket_client_wait_tcpip_unlock(client);
 
     pipe_set_data_arrived_callback(client->own_pipe, NULL, 0);
+    pipe_set_space_freed_callback(client->own_pipe, NULL, 0);
     pipe_set_broken_callback(client->own_pipe, NULL, 0);
     pipe_detach_from_event_loop(client->own_pipe);
     pipe_free(client->own_pipe);
+
+    if(client->pending_data) {
+        pbuf_free(client->pending_data);
+        client->pending_data = NULL;
+    }
 
     cli_shell_join(client->shell);
     cli_shell_free(client->shell);

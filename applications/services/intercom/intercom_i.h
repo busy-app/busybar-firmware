@@ -3,6 +3,10 @@
 #include "intercom.h"
 #include "intercom_frame.h"
 
+#ifdef SRV_INTERCOM_WATCHDOG
+#include "intercom_watchdog.h"
+#endif
+
 #include <furi.h>
 
 #include <furi_hal_serial.h>
@@ -37,12 +41,16 @@ struct Intercom {
     IntercomChannel handles[IntercomChannelIdMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
+#ifdef SRV_INTERCOM_WATCHDOG
+    IntercomWatchdog* watchdog;
+#endif
 };
 
 // intercom.c:
 
 IntercomFrame* intercom_do_acquire_tx(Intercom* intercom);
 void intercom_do_tx(Intercom* intercom);
+void intercom_dump_frame(const IntercomFrame* frame);
 
 // intercom_sync.c:
 
@@ -60,4 +68,3 @@ void intercom_channel_set_callback(
 void intercom_channel_call_callback(IntercomChannel* channel, const IntercomFrame* rx_frame);
 
 void intercom_channel_send_ready(IntercomChannel* channel);
-bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeout);

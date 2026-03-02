@@ -24,6 +24,7 @@ jobs:
         target_spec: ["21_64"]
     outputs:
       update_url: ${{ steps.set-url.outputs.update_url }}
+      normal_update_url: ${{ steps.set-url.outputs.normal_update_url }}
       target: ${{ steps.build-fw.outputs.u5_target_hw }}
 
     steps:
@@ -34,7 +35,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -92,17 +93,21 @@ jobs:
 
       - name: "Set update URL output"
         id: set-url
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
+        if: ${{ steps.build-fw.outcome == 'success' }}
         run: |
-          echo "update_url=${{ steps.names.outputs.branch_name }}/${{ steps.zip.outputs.zip_path }}" >> "$GITHUB_OUTPUT"
+          BRANCH="${{ steps.names.outputs.branch_name }}"
+          SUFFIX="${{ steps.names.outputs.suffix }}"
+          echo "update_url=${BRANCH}/${{ steps.zip.outputs.zip_path }}" >> "$GITHUB_OUTPUT"
+          echo "normal_update_url=${BRANCH}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${SUFFIX}.tgz" >> "$GITHUB_OUTPUT"
 
-  # brick-tests:
-  #   needs: brick-test-build
-  #   if: ${{ needs.brick-test-build.result == 'success' && needs.brick-test-build.outputs.update_url != '' }}
-  #   uses: "./.github/workflows/brick-test.yml"
-  #   with:
-  #     branch_name: ${{ github.head_ref || github.ref_name }}
-  #     commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
-  #     update_url: ${{ needs.brick-test-build.outputs.update_url }}
-  #     target: ${{ needs.brick-test-build.outputs.target }}
-  #   secrets: inherit
+  brick-tests:
+    needs: brick-test-build
+    if: ${{ needs.brick-test-build.result == 'success' && needs.brick-test-build.outputs.update_url != '' }}
+    uses: "./.github/workflows/brick-test.yml"
+    with:
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      brick_update_url: ${{ needs.brick-test-build.outputs.update_url }}
+      normal_update_url: ${{ needs.brick-test-build.outputs.normal_update_url }}
+      target: ${{ needs.brick-test-build.outputs.target }}
+    secrets: inherit

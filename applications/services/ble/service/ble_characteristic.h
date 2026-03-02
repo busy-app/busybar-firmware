@@ -9,10 +9,17 @@ void ble_characteristic_free(BleCharacteristicObject* instance);
 
 const void* ble_characteristic_get_data(BleCharacteristicObject* instance);
 size_t ble_characteristic_get_data_size(BleCharacteristicObject* instance);
+
 void ble_characteristic_set_data(
     BleCharacteristicObject* instance,
     const void* data,
     const size_t data_size);
+
+void ble_characteristic_set_data_from_remote(
+    BleCharacteristicObject* instance,
+    const void* data,
+    const size_t data_size);
+
 bool ble_characteristic_is_modified(BleCharacteristicObject* instance);
 
 void ble_characteristic_tx_done(BleCharacteristicObject* instance);

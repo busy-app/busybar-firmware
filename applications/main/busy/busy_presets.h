@@ -9,8 +9,6 @@
 #include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
 
-#include "settings/busy_settings_common.h"
-
 typedef enum {
     BusyTransitionTypeDefault,
     BusyTransitionTypeAutomatic,
@@ -56,16 +54,15 @@ typedef enum {
 } BusyTimerLabelType;
 
 typedef enum {
-    BusyAppGlobalPresetIdBusy,
-    BusyAppGlobalPresetIdCustom,
-    BusyAppGlobalPresetIdMax,
-} BusyAppGlobalPresetId;
+    BusyAppPresetIdBusy,
+    BusyAppPresetIdCustom,
+    BusyAppPresetIdMax,
+} BusyAppPresetId;
 
 typedef struct {
     const char* const header_img_path;
     const char* const start_anim_path;
     BusyTimerProfileId timer_profile_id;
-    BusySettingsProfileId settings_profile_id;
 } BusyAppGlobalPreset;
 
 extern const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax];
@@ -79,4 +76,4 @@ extern const TimerIndicatorTransition
 
 extern const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax];
 
-extern const BusyAppGlobalPreset busy_app_global_presets[BusyAppGlobalPresetIdMax];
+extern const BusyAppGlobalPreset busy_app_global_presets[BusyAppPresetIdMax];

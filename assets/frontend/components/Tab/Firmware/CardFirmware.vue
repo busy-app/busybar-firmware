@@ -31,6 +31,20 @@
       </UTooltip>
     </template>
 
+    <div class="flex justify-between items-center">
+      <div class="flex flex-col gap-1">
+        <span>Auto-update</span>
+        <span class="text-sm text-muted">Updates will be downloaded and installed automatically during the night</span>
+      </div>
+
+      <div>
+        <USwitch
+          v-model="firmwareStore.autoUpdateSelfCheck.is_enabled"
+          @change="firmwareStore.setAutoUpdateSelfCheck(firmwareStore.autoUpdateSelfCheck)"
+        />
+      </div>
+    </div>
+
     <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
       <div
         v-for="[property, value] in Object.entries({
@@ -114,6 +128,7 @@ watch(() => firmwareStore.fileUpdate.stage, newStage => {
 async function init () {
   await deviceStore.fetchApiVersion();
   await deviceStore.fetchDeviceStatus();
+  await firmwareStore.fetchAutoUpdateSelfCheck();
 }
 
 onMounted(async () => {

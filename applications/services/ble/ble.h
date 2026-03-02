@@ -68,3 +68,7 @@ void ble_uart_set_tx_done_callback(
     void* ctx);
 
 void ble_uart_tx_data(Ble* ble, BleUartChannel channel, const void* data, const size_t data_size);
+
+void ble_uart_set_session_callback(Ble* ble, BleDataUpdatedCallback session_update_cb, void* ctx);
+
+void ble_uart_session_set_value(Ble* ble, const uint32_t session);

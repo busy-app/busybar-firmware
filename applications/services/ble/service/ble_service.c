@@ -3,8 +3,13 @@
 
 #define TAG "BleServiceBase"
 
+/**
+ * @brief This must be less than @ref INTERCOM_SYNC_CHAR_TIMEOUT_MS.
+ */
+#define BLE_SERVICE_INPUT_FRAME_LOCK_TIMEOUT (500)
+
 bool ble_service_lock(BleServiceObject* instance) {
-    if(furi_mutex_acquire(instance->service_lock, 2000) != FuriStatusOk) {
+    if(furi_mutex_acquire(instance->service_lock, FuriWaitForever) != FuriStatusOk) {
         BLE_LOG_W("%s - service lock failed", instance->config->name);
         return false;
     }
@@ -18,7 +23,8 @@ void ble_service_unlock(BleServiceObject* instance) {
 }
 
 static bool ble_service_lock_input_frame(BleServiceObject* instance) {
-    if(furi_semaphore_acquire(instance->frame_lock, 2000) != FuriStatusOk) {
+    if(furi_semaphore_acquire(instance->frame_lock, BLE_SERVICE_INPUT_FRAME_LOCK_TIMEOUT) !=
+       FuriStatusOk) {
         BLE_LOG_W("%s - frame lock failed", instance->config->name);
         return false;
     }
@@ -316,7 +322,7 @@ BleIntercomServiceData* ble_service_create_intercom_service_data_pack(
 
     BleIntercomServiceData* config = malloc(total_config_size);
     config->char_count = chars_count;
-    uint8_t offset = 0;
+    size_t offset = 0;
     for(size_t i = 0; i < chars_count_max; i++) {
         BleCharacteristicObject* ch_obj = instance->chars[i];
 
@@ -336,7 +342,7 @@ bool ble_service_parse_intercom_service_data(
     const BleIntercomServiceData* data,
     BleParseIntercomServiceDataCharacteristicExtraAction action) {
     const BleIntercomServiceData* service_config = data;
-    uint8_t offset = 0;
+    size_t offset = 0;
 
     for(size_t i = 0; i < service_config->char_count; i++) {
         const BleCharacteristicData* char_init =
@@ -344,12 +350,9 @@ bool ble_service_parse_intercom_service_data(
         size_t data_size = char_init->header.data_size;
 
         BleCharacteristicObject* ch = instance->chars[char_init->header.index];
-        ble_characteristic_set_data(ch, char_init->data, data_size);
+        ble_characteristic_set_data_from_remote(ch, char_init->data, data_size);
 
-        BLE_LOG_D(
-            "Ch: %s new data: %s",
-            ble_characteristic_get_config(ch)->name,
-            (const char*)char_init->data);
+        BLE_LOG_D("Ch: %s new data size: %d", ble_characteristic_get_config(ch)->name, data_size);
 
         if(action) action(ch);
 
