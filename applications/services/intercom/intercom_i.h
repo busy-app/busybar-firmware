@@ -61,7 +61,6 @@ struct Intercom {
     IntercomChannel handles[IntercomChannelIdMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
-    bool error_handling_disabled;
     _Atomic bool is_in_sync;
 };
 

@@ -42,19 +42,13 @@ static void intercom_unrecoverable_error(Intercom* instance, const char* message
 }
 
 static void intercom_error_handler(IntercomError error, void* context) {
-    furi_assert(context);
-
-    Intercom* instance = context;
-
-    if(instance->error_handling_disabled) {
-        FURI_LOG_E(TAG, "Intercom error in disabled state: %d", error);
-        return;
-    }
-
 #if defined(FURI_RAM_EXEC)
     FURI_LOG_E(TAG, "Intercom error: %d", error);
     return;
 #endif
+
+    furi_assert(context);
+    Intercom* instance = context;
 
     if(error == IntercomErrorSync) {
         intercom_publish_sync_state_change(instance, false);
@@ -155,7 +149,6 @@ static Intercom* intercom_alloc(void) {
     furi_hal_serial_set_tx_callback(instance->serial, intercom_serial_tx_callback, instance);
 
     intercom_init_channels(instance);
-    intercom_error_handling_enable(instance);
 
     // dont't hold up the rest of the system
     furi_record_create(RECORD_INTERCOM, instance);
@@ -242,16 +235,6 @@ IntercomChannel* intercom_channel_open(
     intercom_channel_send_ready(handle);
 
     return handle;
-}
-
-void intercom_error_handling_enable(Intercom* instance) {
-    furi_check(instance);
-    instance->error_handling_disabled = false;
-}
-
-void intercom_error_handling_disable(Intercom* instance) {
-    furi_check(instance);
-    instance->error_handling_disabled = true;
 }
 
 FuriPubSub* intercom_get_pubsub(Intercom* instance) {

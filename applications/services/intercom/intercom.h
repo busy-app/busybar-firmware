@@ -51,22 +51,6 @@ typedef struct {
 } IntercomEvent;
 
 /**
- * @brief Enable error handling. 
- *        If enabled, the Intercom service will call the error callback and can crash on errors.
- *
- * @param[in,out] instance Pointer to the Intercom instance
- */
-void intercom_error_handling_enable(Intercom* instance);
-
-/**
- * @brief Disable error handling.
- *        If disabled, the Intercom service will not call the error callback and will not crash on errors.
- *
- * @param[in,out] instance Pointer to the Intercom instance
- */
-void intercom_error_handling_disable(Intercom* instance);
-
-/**
  * @brief Get the Intercom PubSub instance.
  *
  * @param[in,out] instance Pointer to the Intercom instance
