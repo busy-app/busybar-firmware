@@ -18,7 +18,7 @@ const char* ble_state_names[BleServiceStateCount] = {
 };
 
 const char* ble_pairing_state_names[BlePairingStateCount] = {
-    [BlePairingStateUnkown] = "unknown",
+    [BlePairingStateUnknown] = "unknown",
     [BlePairingStateNotPaired] = "not paired",
     [BlePairingStatePaired] = "paired",
 };

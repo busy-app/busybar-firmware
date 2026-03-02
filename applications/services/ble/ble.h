@@ -23,7 +23,7 @@ typedef enum {
 } BleServiceState;
 
 typedef enum {
-    BlePairingStateUnkown,
+    BlePairingStateUnknown,
     BlePairingStateNotPaired,
     BlePairingStatePaired,
 

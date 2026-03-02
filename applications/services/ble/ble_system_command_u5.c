@@ -192,7 +192,7 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
 
     BleStatus status = {
         .state = instance->state,
-        .pairing = BlePairingStateUnkown,
+        .pairing = BlePairingStateUnknown,
     };
     furi_pubsub_publish(instance->on_status_change, &status);
     return true;
@@ -232,7 +232,7 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
 
     BleStatus status = {
         .state = instance->state,
-        .pairing = BlePairingStateUnkown,
+        .pairing = BlePairingStateUnknown,
     };
     furi_pubsub_publish(instance->on_status_change, &status);
     return true;

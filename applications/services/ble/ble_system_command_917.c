@@ -133,7 +133,7 @@ static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void*
         response->pairing = ble_worker_pairing_exists() ? BlePairingStatePaired :
                                                           BlePairingStateNotPaired;
     } else {
-        response->pairing = BlePairingStateUnkown;
+        response->pairing = BlePairingStateUnknown;
     }
 
     memcpy(
