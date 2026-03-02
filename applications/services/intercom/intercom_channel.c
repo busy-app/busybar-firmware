@@ -34,7 +34,7 @@ static const char* const intercom_channel_names[IntercomChannelIdMax] = {
     [IntercomChannelIdTlsCrypto] = "TlsCrypto",
     [IntercomChannelIdCryptoBackup] = "CryptoBackup",
     [IntercomChannelIdMatter] = "Matter",
-    [IntercomChannelIdSi917Info] = "Si917Info",
+    [IntercomChannelIdSlInfo] = "SlInfo",
     [IntercomChannelIdDebug] = "Debug",
     [IntercomChannelIdMeta] = "Meta",
 };

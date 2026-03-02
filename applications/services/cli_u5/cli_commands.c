@@ -24,6 +24,7 @@
 #include <applications.h>
 #include <storage/storage_backup.h>
 #include <device_name/device_name.h>
+#include <sl_info/sl_info.h>
 
 static void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
@@ -151,12 +152,18 @@ static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* cont
 
     cli_command_device_info_print_name();
     furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
-#ifdef SRV_INTERCOM
-    bool sl_cli_command_status = cli_command_sl_cli_send_command_get_response(pipe, "device_info");
-#else // SRV_INTERCOM
-    bool sl_cli_command_status = false;
-#endif // SRV_INTERCOM
-    printf("%-30s: %s\r\n", "sl_intercom_status", sl_cli_command_status ? "ok" : "error");
+#ifdef SRV_SL_INFO
+    const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
+    const SlInfoStatus sl_info_status =
+        sl_info_get_values(sl_info, cli_command_device_info_callback, NULL);
+    furi_record_close(RECORD_SL_INFO);
+#else // SRV_SL_INFO
+    const SlInfoStatus sl_info_status = SlInfoStatusNotReady;
+#endif // SRV_SL_INFO
+    printf(
+        "%-30s: %s\r\n",
+        "sl_intercom_status",
+        (sl_info_status == SlInfoStatusOk) ? "ok" : "error");
 }
 
 static void cli_commands_init(CliRegistry* registry) {

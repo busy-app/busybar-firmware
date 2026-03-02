@@ -94,6 +94,8 @@ void intercom_channel_call_callback(const IntercomChannel* channel, const Interc
 
 void intercom_channel_send_ready(IntercomChannel* channel);
 
+bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeout);
+
 // intercom_util.c
 
 size_t intercom_build_frame(
