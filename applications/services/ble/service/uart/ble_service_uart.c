@@ -32,12 +32,6 @@
 
 #define NORDIC_UART_INITIAL_DATA_SIZE (237) //RSI_DEV_ATT_LEN - ATTRIBUTE_HEADER_SIZE (240-3 = 237)
 
-typedef enum {
-    BleSrvDeviceUartCharacterRx,
-    BleSrvDeviceUartCharacterTx,
-    BleSrvDeviceUartCharacterSession,
-} BleSrvUartCharacterIndex;
-
 static bool ble_service_uart_init(void* object) {
     furi_assert(object);
     BLE_LOG_D("uart_init");
@@ -49,7 +43,7 @@ static bool ble_service_uart_init(void* object) {
 
 static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] = {
     {
-        .intercom_index = BleSrvDeviceUartCharacterRx,
+        .intercom_index = BleUartCharacteristicIndexRx,
         .name = "Uart Rx",
         .initial_data_size = NORDIC_UART_INITIAL_DATA_SIZE,
 #if defined(BSB_MCU_SI917)
@@ -59,7 +53,7 @@ static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] =
 #endif
     },
     {
-        .intercom_index = BleSrvDeviceUartCharacterTx,
+        .intercom_index = BleUartCharacteristicIndexTx,
         .name = "Uart Tx",
         .initial_data_size = NORDIC_UART_INITIAL_DATA_SIZE,
 #if defined(BSB_MCU_SI917)
@@ -69,7 +63,7 @@ static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] =
 #endif
     },
     {
-        .intercom_index = BleSrvDeviceUartCharacterSession,
+        .intercom_index = BleUartCharacteristicIndexSession,
         .name = "Uart Cnt",
         .initial_data_size = sizeof(uint32_t),
 #if defined(BSB_MCU_SI917)
@@ -100,7 +94,7 @@ const BleServiceDescriptor ble_service_config_nordic_uart = {
 
 static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
     {
-        .intercom_index = BleSrvDeviceUartCharacterRx,
+        .intercom_index = BleUartCharacteristicIndexRx,
         .name = "HM10 Rx",
         .initial_data_size = 100,
 #if defined(BSB_MCU_SI917)
@@ -110,7 +104,7 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
 #endif
     },
     {
-        .intercom_index = BleSrvDeviceUartCharacterTx,
+        .intercom_index = BleUartCharacteristicIndexTx,
         .name = "HM10 Tx",
         .initial_data_size = 100,
 #if defined(BSB_MCU_SI917)

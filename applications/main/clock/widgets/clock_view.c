@@ -156,8 +156,8 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
         lv_label_set_text_fmt(
             instance->text_label_date,
             "%s, %s",
-            clock_app_get_weekday_short_name(date_time->dayofweek),
-            clock_app_get_month_short_name(date_time->month));
+            clock_app_get_month_short_name(date_time->month),
+            clock_app_get_weekday_short_name(date_time->dayofweek));
     }
 
     if(instance->show_seconds) {

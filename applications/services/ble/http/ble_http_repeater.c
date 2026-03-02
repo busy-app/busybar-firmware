@@ -29,21 +29,33 @@ typedef struct {
 static FuriMutex* ble_http_init_mutex;
 static BleHttpRepeater* ble_http_repeater;
 
+static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data);
+
 static void ble_session_reset(BleHttpRepeater* instance) {
     FURI_LOG_W(TAG, "Session reset");
     furi_mutex_acquire(instance->session_lock, FuriWaitForever);
     instance->current_request_num = 0;
+    instance->previous_request_num = 0;
     instance->conn->is_draining = true;
     furi_mutex_release(instance->session_lock);
 }
 
 static void ble_session_callback(size_t data_size, void* data, void* context) {
     furi_assert(context);
-    UNUSED(data_size);
-    const uint32_t session = *((uint32_t*)data);
-    if(session == 0) {
+    do {
+        if(data_size != sizeof(uint32_t)) {
+            FURI_LOG_W(TAG, "Wrong session data size");
+            break;
+        }
+
+        const uint32_t session = *((uint32_t*)data);
+        if(session != 0) {
+            FURI_LOG_W(TAG, "Session not 0, ignore");
+            break;
+        }
+
         ble_session_reset(context);
-    }
+    } while(false);
 }
 
 static void ble_session_update_on_open(BleHttpRepeater* instance) {
@@ -55,6 +67,10 @@ static void ble_session_update_on_open(BleHttpRepeater* instance) {
 
 static void ble_session_update_on_close(BleHttpRepeater* instance) {
     furi_mutex_acquire(instance->session_lock, FuriWaitForever);
+
+    instance->conn =
+        mg_connect(&instance->mgr, BLE_HTTP_HOST, ble_event_handler, ble_http_repeater);
+
     ble_uart_session_set_value(instance->ble, instance->current_request_num);
     instance->previous_request_num = instance->current_request_num;
     furi_mutex_release(instance->session_lock);
@@ -104,8 +120,6 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
         conn->recv.len = 0;
     } else if(ev == MG_EV_CLOSE) {
         if(ble_http->exit) return;
-        ble_http->conn =
-            mg_connect(&ble_http->mgr, BLE_HTTP_HOST, ble_event_handler, ble_http_repeater);
         ble_session_update_on_close(ble_http);
     }
 }
@@ -144,10 +158,12 @@ static BleHttpRepeater* ble_http_repeater_alloc(Ble* ble) {
     ble_uart_set_rx_callback(ble, BleUartChannelNordic, ble_uart_rx_callback, instance);
     ble_uart_set_tx_done_callback(ble, BleUartChannelNordic, ble_uart_tx_done_callback, instance);
 
-    ble_uart_set_session_callback(ble, ble_session_callback, instance);
     instance->session_lock = furi_mutex_alloc(FuriMutexTypeNormal);
+    furi_mutex_acquire(instance->session_lock, FuriWaitForever);
+    ble_uart_set_session_callback(ble, ble_session_callback, instance);
     instance->current_request_num = 0;
     instance->previous_request_num = 0;
+    furi_mutex_release(instance->session_lock);
 
     instance->thread = furi_thread_alloc_ex(TAG, 1024 * 8, ble_http_repeater_thread_handler, NULL);
     return instance;

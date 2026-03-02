@@ -3,6 +3,7 @@
 #include <settings_helpers/gui_params.h>
 
 #include <furi.h>
+#include <cli/args.h>
 
 #define TAG "clock"
 
@@ -13,6 +14,29 @@
 #define EVENT_QUEUE_TIMEOUT_MS 3000
 
 #define TIMER_INTERVAL_MS 100
+
+static const ThisArguments default_arguments = {
+    .do_skip_menu = false,
+};
+
+static void parse_arguments(const char* string, ThisArguments* arguments) {
+    *arguments = default_arguments;
+
+    if(!string) return;
+
+    FuriString* _string = furi_string_alloc_set(string);
+    FuriString* argument = furi_string_alloc();
+    while(args_read_string_and_trim(_string, argument)) {
+        if(furi_string_equal_str(argument, "-s") ||
+           furi_string_equal_str(argument, "--skip-menu")) {
+            arguments->do_skip_menu = true;
+        } else {
+            FURI_LOG_W(TAG, "Unknown argument: %s.", furi_string_get_cstr(argument));
+        }
+    }
+
+    furi_string_free(argument);
+}
 
 static bool thread_signal_callback(uint32_t signal, void* argument, void* context) {
     UNUSED(argument);
@@ -85,8 +109,10 @@ static void clock_timer_callback(void* context) {
     clock_app_fire_event(instance, ThisEventTimerUpdate);
 }
 
-static ThisInstance* this_alloc(void) {
+static ThisInstance* this_alloc(const char* arguments) {
     ThisInstance* instance = malloc(sizeof(*instance));
+
+    parse_arguments(arguments, &instance->arguments);
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_CAPACITY, sizeof(InputEvent));
@@ -143,6 +169,13 @@ static ThisInstance* this_alloc(void) {
 
     scene_manager_next_scene(instance->scene_manager, ThisSceneIdxMain);
 
+    if(instance->arguments.do_skip_menu) {
+        with_gui(instance->gui, {
+            widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
+        });
+        scene_manager_next_scene(instance->scene_manager, ThisSceneIdxClock);
+    }
+
     return instance;
 }
 
@@ -177,9 +210,7 @@ static void this_free(ThisInstance* instance) {
 }
 
 int32_t clock_app_entry(void* argument) {
-    UNUSED(argument);
-
-    ThisInstance* instance = this_alloc();
+    ThisInstance* instance = this_alloc(argument);
 
     FuriThread* thread = furi_thread_get_current();
     furi_thread_set_signal_callback(thread, thread_signal_callback, instance);

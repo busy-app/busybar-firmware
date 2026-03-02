@@ -8,8 +8,8 @@ export const useTzListStore = defineStore('tzList', () => {
   async function fetchTimezoneOptions (): Promise<TimezoneItem[] | undefined> {
     return await deviceStore.busyBar.TimeTzListGet()
       .then(data => {
-        timezoneOptions.value = data;
-        return data;
+        timezoneOptions.value = data.list;
+        return data.list;
       })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t get timezone options', true);

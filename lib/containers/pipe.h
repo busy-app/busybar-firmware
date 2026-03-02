@@ -122,6 +122,21 @@ PipeRole pipe_role(PipeSide* pipe);
 PipeState pipe_state(PipeSide* pipe);
 
 /**
+ * @brief Marks a pipe as broken without freeing memory.
+ *
+ * After this call, both sides will observe `PipeStateBroken` from `pipe_state()`.
+ * Any blocking `pipe_receive` or `pipe_send` will exit within one state-check
+ * period (~100 ms). The pipe memory remains valid and must still be freed with
+ * `pipe_free()` by its owner.
+ *
+ * Use this when you need to signal the other side to stop waiting, but you do
+ * not own the pipe's lifetime (e.g. the pipe was provided by an external caller).
+ *
+ * @param [in] pipe Either side of the pipe
+ */
+void pipe_close(PipeSide* pipe);
+
+/**
  * @brief Frees a side of a pipe.
  * 
  * When only one of the sides is freed, the pipe is transitioned from the "Open"

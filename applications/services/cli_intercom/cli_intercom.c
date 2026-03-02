@@ -33,6 +33,7 @@ struct CliIntercom {
 
     CliShell* cli_shell;
     PipeSide* own_pipe;
+    bool close_pipe_on_detach;
 
     FuriThread* tx_thread;
     FuriSemaphore* tx_data_available;
@@ -59,6 +60,7 @@ typedef struct {
         struct {
             PipeSide* pipe;
             CliIntercomSpawnStatus* spawn_status;
+            bool close_pipe_on_detach;
         };
     };
 } CliIntercomInternalEvent;
@@ -194,8 +196,15 @@ static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
     pipe_detach_from_event_loop(cli_intercom->own_pipe);
 #ifdef CLI_INTERCOM_SLAVE
     // on SLAVE (917), own_pipe is created by us in do_protocol_spawn
-    // on MASTER (U5), own_pipe is provided externally via cli_intercom_spawn
     pipe_free(cli_intercom->own_pipe);
+#else
+    // on MASTER (U5), own_pipe is provided externally via cli_intercom_spawn.
+    // Only close/break the pipe if the caller requested it (e.g. programmatic
+    // callers blocked in pipe_copy_until that need to be unblocked on disconnect).
+    // Interactive callers (sl_cli) pass their outer shell pipe and need it intact.
+    if(cli_intercom->close_pipe_on_detach) {
+        pipe_close(cli_intercom->own_pipe);
+    }
 #endif
     cli_intercom->own_pipe = NULL;
 }
@@ -278,6 +287,7 @@ static void cli_intercom_do_api_spawn(CliIntercom* cli_intercom, CliIntercomInte
             break;
         }
 
+        cli_intercom->close_pipe_on_detach = event->close_pipe_on_detach;
         cli_intercom_attach_own_pipe(cli_intercom, event->pipe);
 
         if(!cli_intercom_send_protocol_status(
@@ -490,13 +500,15 @@ static void cli_intercom_api_call(CliIntercom* cli_intercom, CliIntercomInternal
     api_lock_wait_unlock_and_free(event->api_lock);
 }
 
-CliIntercomSpawnStatus cli_intercom_spawn(CliIntercom* cli_intercom, PipeSide* pipe) {
+CliIntercomSpawnStatus
+    cli_intercom_spawn(CliIntercom* cli_intercom, PipeSide* pipe, bool close_pipe_on_detach) {
     furi_check(pipe);
     CliIntercomSpawnStatus spawn_status;
     CliIntercomInternalEvent event = {
         .type = CliIntercomInternalEventTypeApiSpawn,
         .pipe = pipe,
         .spawn_status = &spawn_status,
+        .close_pipe_on_detach = close_pipe_on_detach,
     };
     cli_intercom_api_call(cli_intercom, &event);
     return spawn_status;

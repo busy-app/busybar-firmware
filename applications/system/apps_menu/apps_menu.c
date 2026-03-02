@@ -1,9 +1,7 @@
 #include "apps_menu_i.h"
-#include "storage_macros.h"
 #include "scenes/apps_menu_scenes.h"
 
-#include <applications.h>
-
+#include <storage/storage.h>
 #include <gui/modules/submenu.h>
 
 #define TAG "AppsMenu"
@@ -32,13 +30,13 @@ static void apps_menu_input_queue_callback(FuriEventLoopObject* object, void* co
 
     furi_assert(context);
 
-    AppsMenu* app = context;
+    AppsMenu* instance = context;
 
     InputEvent event;
-    while(furi_message_queue_get(app->input_queue, &event, 0) == FuriStatusOk) {
+    while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         if(event.type == InputTypeShort) {
             if(event.key == InputKeyBack) {
-                scene_manager_handle_back_event(app->scene_manager);
+                scene_manager_handle_back_event(instance->scene_manager);
             }
         }
     }
@@ -49,18 +47,18 @@ static void apps_menu_event_queue_callback(FuriEventLoopObject* object, void* co
 
     furi_assert(context);
 
-    AppsMenu* app = context;
+    AppsMenu* instance = context;
 
     uint32_t event;
-    while(furi_message_queue_get(app->event_queue, &event, 0) == FuriStatusOk) {
-        scene_manager_handle_custom_event(app->scene_manager, event);
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
+        scene_manager_handle_custom_event(instance->scene_manager, event);
     }
 }
 
 static bool apps_menu_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
-    AppsMenu* app = context;
+    AppsMenu* instance = context;
 
     bool consumed = false;
     if(event->type == InputTypeShort) {
@@ -71,95 +69,118 @@ static bool apps_menu_gui_input_callback(const InputEvent* event, void* context)
 
     if(consumed) {
         furi_check(
-            furi_message_queue_put(app->input_queue, event, FuriWaitForever) == FuriStatusOk);
+            furi_message_queue_put(instance->input_queue, event, FuriWaitForever) == FuriStatusOk);
     }
 
     return consumed;
 }
 
-static AppsMenu* apps_menu_alloc(void* launching_subapp) {
-    AppsMenu* app = malloc(sizeof(AppsMenu));
+static AppsMenu* apps_menu_alloc(void* launching_application) {
     FuriThread* thread = furi_thread_get_current();
 
-    app->launching_subapp = launching_subapp;
+    AppsMenuSettings settings = {.active_application = furi_string_alloc()};
+    apps_menu_settings_load(&settings);
 
-    app->event_loop = furi_event_loop_alloc();
-    app->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
-    app->event_queue = furi_message_queue_alloc(1, sizeof(AppsMenuCustomEvent));
-    furi_thread_set_signal_callback(thread, apps_menu_thread_signal_callback, app);
+    if(launching_application) {
+        furi_string_reset(settings.active_application);
+        apps_menu_settings_save(&settings);
+    } else if(!furi_string_empty(settings.active_application)) {
+        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+        desktop_replace_current_app(
+            desktop, furi_string_get_cstr(settings.active_application), "-s");
+        furi_record_close(RECORD_DESKTOP);
 
-    app->scene_manager = scene_manager_alloc(apps_menu_scenes, COUNT_OF(apps_menu_scenes), app);
-    app->gui = furi_record_open(RECORD_GUI);
-    app->desktop = furi_record_open(RECORD_DESKTOP);
-
-    furi_event_loop_subscribe_message_queue(
-        app->event_loop,
-        app->input_queue,
-        FuriEventLoopEventIn,
-        apps_menu_input_queue_callback,
-        app);
-
-    furi_event_loop_subscribe_message_queue(
-        app->event_loop,
-        app->event_queue,
-        FuriEventLoopEventIn,
-        apps_menu_event_queue_callback,
-        app);
-
-    with_gui(app->gui, {
-        GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, apps_menu_gui_input_callback, app);
-
-        Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
-        app->front_scene_window = widget_alloc(front_root);
-
-        Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
-        app->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
-        flex_layout_set_spacing(app->back_container, 2);
-
-        app->back_nav_bar = nav_bar_alloc(flex_layout_get_base(app->back_container));
-        nav_bar_set_header_image(app->back_nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.bin"));
-        nav_bar_set_header_text(app->back_nav_bar, "APPS");
-        widget_set_height(nav_bar_get_base(app->back_nav_bar), 14);
-        widget_set_padding(nav_bar_get_base(app->back_nav_bar), 1, 0, 0, 0);
-
-        app->back_scene_window = widget_alloc(flex_layout_get_base(app->back_container));
-        flex_layout_set_child_widget_grow(app->back_container, app->back_scene_window, 1);
-    });
-
-    scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdStart);
-
-    if(app->launching_subapp) {
-        scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdMain);
+        furi_string_free(settings.active_application);
+        return NULL;
     }
 
-    return app;
+    AppsMenu* instance = malloc(sizeof(*instance));
+
+    instance->launching_application = launching_application;
+    instance->settings = settings;
+
+    instance->event_loop = furi_event_loop_alloc();
+    instance->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
+    instance->event_queue = furi_message_queue_alloc(1, sizeof(AppsMenuCustomEvent));
+    furi_thread_set_signal_callback(thread, apps_menu_thread_signal_callback, instance);
+
+    instance->scene_manager =
+        scene_manager_alloc(apps_menu_scenes, COUNT_OF(apps_menu_scenes), instance);
+    instance->gui = furi_record_open(RECORD_GUI);
+    instance->desktop = furi_record_open(RECORD_DESKTOP);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->input_queue,
+        FuriEventLoopEventIn,
+        apps_menu_input_queue_callback,
+        instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        apps_menu_event_queue_callback,
+        instance);
+
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, apps_menu_gui_input_callback, instance);
+
+        Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+        instance->front_scene_window = widget_alloc(front_root);
+
+        Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
+        instance->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
+        flex_layout_set_spacing(instance->back_container, 2);
+
+        instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
+        nav_bar_set_header_image(
+            instance->back_nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.bin"));
+        nav_bar_set_header_text(instance->back_nav_bar, "APPS");
+        widget_set_height(nav_bar_get_base(instance->back_nav_bar), 14);
+        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 0);
+
+        instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
+        flex_layout_set_child_widget_grow(
+            instance->back_container, instance->back_scene_window, 1);
+    });
+
+    scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdStart);
+
+    if(instance->launching_application) {
+        scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdMain);
+    }
+
+    return instance;
 }
 
-static void apps_menu_free(AppsMenu* app) {
+static void apps_menu_free(AppsMenu* instance) {
     FuriThread* thread = furi_thread_get_current();
-    scene_manager_free(app->scene_manager);
+    scene_manager_free(instance->scene_manager);
 
-    with_gui(app->gui, {
-        GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, apps_menu_gui_input_callback);
 
-        widget_free(app->front_scene_window);
-        flex_layout_free(app->back_container);
+        widget_free(instance->front_scene_window);
+        flex_layout_free(instance->back_container);
     });
+
+    furi_string_free(instance->settings.active_application);
 
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_GUI);
 
-    furi_event_loop_unsubscribe(app->event_loop, app->input_queue);
-    furi_event_loop_unsubscribe(app->event_loop, app->event_queue);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
 
     furi_thread_set_signal_callback(thread, NULL, NULL);
-    furi_message_queue_free(app->input_queue);
-    furi_message_queue_free(app->event_queue);
-    furi_event_loop_free(app->event_loop);
+    furi_message_queue_free(instance->input_queue);
+    furi_message_queue_free(instance->event_queue);
+    furi_event_loop_free(instance->event_loop);
 
-    free(app);
+    free(instance);
 }
 
 void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
@@ -167,12 +188,15 @@ void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
     furi_check(furi_message_queue_put(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
-int32_t apps_menu_app(void* arg) {
-    UNUSED(arg);
+int32_t apps_menu_app(void* argument) {
+    UNUSED(argument);
 
-    AppsMenu* app = apps_menu_alloc(arg);
-    furi_event_loop_run(app->event_loop);
-    apps_menu_free(app);
+    AppsMenu* instance = apps_menu_alloc(argument);
+
+    if(instance) {
+        furi_event_loop_run(instance->event_loop);
+        apps_menu_free(instance);
+    }
 
     return 0;
 }

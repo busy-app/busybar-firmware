@@ -1,16 +1,18 @@
 #include "../busy_i.h"
 
+#include <furi_hal_nvm.h>
+
 #include <gui/modules/var_item_list.h>
 
 typedef enum {
-    // Timer Mode is not included because it is always shown
+    VarItemListIdMode,
     VarItemListIdTime,
     VarItemListIdWork,
     VarItemListIdRest,
     VarItemListIdCycles,
     VarItemListIdAutostart,
     VarItemListIdShowWork,
-    // Demo Mode is not included because it is always shown
+    VarItemListIdDemoMode,
     VarItemListIdMax,
 } VarItemListId;
 
@@ -21,41 +23,74 @@ typedef struct {
 
 typedef struct {
     VarItemListContainer containers[GuiDisplayIdMax];
-    BusyTimerConfig timer_config;
-    BusySettings* settings;
 } BusySceneSetupTimer;
+
+static void busy_scene_setup_timer_set_item_defaults(const BusySceneSetupTimer* data) {
+    static const int32_t default_values_table[VarItemListIdMax] = {
+        [VarItemListIdTime] = BUSY_TIMER_TIME_DEFAULT_MN,
+        [VarItemListIdWork] = BUSY_TIMER_WORK_TIME_DEFAULT_MN,
+        [VarItemListIdRest] = BUSY_TIMER_REST_TIME_DEFAULT_MN,
+        [VarItemListIdCycles] = BUSY_TIMER_CYCLE_COUNT_DEFAULT,
+        [VarItemListIdAutostart] = BUSY_TIMER_ENABLE_AUTOSTART_DEFAULT,
+        [VarItemListIdShowWork] = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+    };
+
+    for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
+        const VarItemListContainer* container = &data->containers[display_id];
+        VarItem* const* items = container->items;
+
+        // NOTE: Starting from the second element
+        for(VarItemListId item_id = 1; item_id < VarItemListIdMax; ++item_id) {
+            var_item_set_value(items[item_id], default_values_table[item_id]);
+        }
+    }
+}
 
 static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
     // Which items to show w/ respect to the current timer mode
     static const bool is_shown_table[BusyTimerModeMax][VarItemListIdMax] = {
         [BusyTimerModeInfinite] =
             {
+                [VarItemListIdMode] = true,
                 [VarItemListIdShowWork] = true,
+                [VarItemListIdDemoMode] = true,
             },
         [BusyTimerModeSimple] =
             {
+                [VarItemListIdMode] = true,
                 [VarItemListIdTime] = true,
                 [VarItemListIdShowWork] = true,
+                [VarItemListIdDemoMode] = true,
             },
         [BusyTimerModeInterval] =
             {
+                [VarItemListIdMode] = true,
                 [VarItemListIdWork] = true,
                 [VarItemListIdRest] = true,
                 [VarItemListIdCycles] = true,
                 [VarItemListIdAutostart] = true,
                 [VarItemListIdShowWork] = true,
+                [VarItemListIdDemoMode] = true,
             },
     };
 
-    const BusyTimerMode timer_mode = data->timer_config.mode;
+    const VarItemListContainer* containers = data->containers;
+
+    const VarItem* mode_item = containers[GuiDisplayIdFront].items[VarItemListIdMode];
+    const BusyTimerMode timer_mode = var_item_get_value(mode_item);
     const bool* const is_shown_in_mode = is_shown_table[timer_mode];
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
-        VarItemListContainer* container = &data->containers[display_id];
-        VarItem** items = container->items;
+        const VarItemListContainer* container = &containers[display_id];
+        VarItem* const* items = container->items;
 
         for(VarItemListId item_id = 0; item_id < VarItemListIdMax; ++item_id) {
-            widget_set_visible((Widget*)items[item_id], is_shown_in_mode[item_id]);
+            VarItem* item = items[item_id];
+            widget_set_visible((Widget*)item, is_shown_in_mode[item_id]);
+        }
+
+        if(!furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+            widget_set_visible((Widget*)items[VarItemListIdDemoMode], false);
         }
     }
 }
@@ -65,65 +100,8 @@ static void busy_scene_setup_timer_mode_changed_callback(VarItem* item, void* co
     furi_assert(context);
 
     BusySceneSetupTimer* data = context;
-    data->timer_config.mode = var_item_get_value(item);
-
     busy_scene_setup_timer_filter_items(data);
-}
-
-static void busy_scene_setup_timer_time_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySceneSetupTimer* data = context;
-    data->timer_config.time_mn = var_item_get_value(item);
-}
-
-static void busy_scene_setup_timer_show_work_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySceneSetupTimer* data = context;
-    data->settings->is_show_work_only_enabled = var_item_get_value(item);
-}
-
-static void busy_scene_setup_timer_work_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySceneSetupTimer* data = context;
-    data->timer_config.work_time_mn = var_item_get_value(item);
-}
-
-static void busy_scene_setup_timer_rest_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySceneSetupTimer* data = context;
-    data->timer_config.rest_time_mn = var_item_get_value(item);
-}
-
-static void busy_scene_setup_timer_cycles_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySceneSetupTimer* data = context;
-    data->timer_config.cycle_count = var_item_get_value(item);
-}
-
-static void busy_scene_setup_timer_autostart_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySceneSetupTimer* data = context;
-    data->timer_config.enable_autostart = var_item_get_value(item);
-}
-
-static void busy_scene_setup_timer_demo_mode_changed_callback(VarItem* item, void* context) {
-    furi_assert(item);
-    furi_assert(context);
-
-    BusySceneSetupTimer* data = context;
-    data->timer_config.enable_demo_mode = var_item_get_value(item);
+    busy_scene_setup_timer_set_item_defaults(data);
 }
 
 static void
@@ -131,10 +109,10 @@ static void
     const bool set_cb = (display_id == GuiDisplayIdFront);
 
     VarItemListContainer* container = &data->containers[display_id];
+    VarItem** items = container->items;
     VarItemListId item_id = 0;
-    VarItem* item;
 
-    item = var_item_list_add_selector(
+    items[item_id++] = var_item_list_add_selector(
         container->list,
         "Mode",
         NULL,
@@ -143,92 +121,102 @@ static void
         set_cb ? busy_scene_setup_timer_mode_changed_callback : NULL,
         data);
 
-    var_item_set_value(item, data->timer_config.mode);
-
-    // IMPORTANT: NOT storing the first item because it is always shown
-
-    item = var_item_list_add_timebox(
+    items[item_id++] = var_item_list_add_timebox(
         container->list,
         "Time",
         BUSY_TIMER_TIME_MIN_MN,
         BUSY_TIMER_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
-        set_cb ? busy_scene_setup_timer_time_changed_callback : NULL,
-        data);
+        NULL,
+        NULL);
 
-    var_item_set_value(item, data->timer_config.time_mn);
-
-    container->items[item_id++] = item;
-
-    item = var_item_list_add_timebox(
+    items[item_id++] = var_item_list_add_timebox(
         container->list,
         "Work",
         BUSY_TIMER_WORK_TIME_MIN_MN,
         BUSY_TIMER_WORK_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
-        set_cb ? busy_scene_setup_timer_work_changed_callback : NULL,
-        data);
+        NULL,
+        NULL);
 
-    var_item_set_value(item, data->timer_config.work_time_mn);
-
-    container->items[item_id++] = item;
-
-    item = var_item_list_add_timebox(
+    items[item_id++] = var_item_list_add_timebox(
         container->list,
         "Rest",
         BUSY_TIMER_REST_TIME_MIN_MN,
         BUSY_TIMER_REST_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
-        set_cb ? busy_scene_setup_timer_rest_changed_callback : NULL,
-        data);
+        NULL,
+        NULL);
 
-    var_item_set_value(item, data->timer_config.rest_time_mn);
-
-    container->items[item_id++] = item;
-
-    item = var_item_list_add_spinbox(
+    items[item_id++] = var_item_list_add_spinbox(
         container->list,
         "Cycles",
         NULL,
         BUSY_TIMER_CYCLE_COUNT_MIN,
         BUSY_TIMER_CYCLE_COUNT_MAX,
         BUSY_TIMER_CYCLE_INCREMENT,
-        set_cb ? busy_scene_setup_timer_cycles_changed_callback : NULL,
-        data);
+        NULL,
+        NULL);
 
-    var_item_set_value(item, data->timer_config.cycle_count);
+    items[item_id++] = var_item_list_add_switch(container->list, "Autostart", NULL, NULL);
 
-    container->items[item_id++] = item;
+    items[item_id++] =
+        var_item_list_add_switch(container->list, "Show work\nphase only", NULL, NULL);
 
-    item = var_item_list_add_switch(
-        container->list,
-        "Autostart",
-        set_cb ? busy_scene_setup_timer_autostart_changed_callback : NULL,
-        data);
+    items[item_id++] = var_item_list_add_switch(container->list, "Demo mode", NULL, NULL);
+}
 
-    var_item_set_value(item, data->timer_config.enable_autostart);
+static void busy_scene_setup_init_var_item_values(
+    const BusySceneSetupTimer* data,
+    GuiDisplayId display_id,
+    const BusyTimerPreset* timer_preset) {
+    const VarItemListContainer* container = &data->containers[display_id];
+    VarItem* const* items = container->items;
 
-    container->items[item_id++] = item;
+    const BusyAppConfig* app_config = &timer_preset->app_config;
+    const BusyTimerConfig* timer_config = &timer_preset->timer_config;
 
-    item = var_item_list_add_switch(
-        container->list,
-        "Show work\nphase only",
-        set_cb ? busy_scene_setup_timer_show_work_changed_callback : NULL,
-        data);
+    var_item_set_value(items[VarItemListIdMode], timer_config->mode);
 
-    var_item_set_value(item, data->settings->is_show_work_only_enabled);
+    if(timer_config->mode == BusyTimerModeSimple) {
+        const BusyTimerSimpleConfig* simple_config = &timer_config->simple;
+        var_item_set_value(items[VarItemListIdTime], MS_TO_M(simple_config->total_time_ms));
 
-    container->items[item_id++] = item;
+    } else if(timer_config->mode == BusyTimerModeInterval) {
+        const BusyTimerIntervalConfig* interval_config = &timer_config->interval;
+        var_item_set_value(items[VarItemListIdWork], MS_TO_M(interval_config->work_time_ms));
+        var_item_set_value(items[VarItemListIdRest], MS_TO_M(interval_config->rest_time_ms));
+        var_item_set_value(items[VarItemListIdCycles], interval_config->cycles_count);
+        var_item_set_value(items[VarItemListIdAutostart], interval_config->is_autostart_enabled);
+    }
 
-    item = var_item_list_add_switch(
-        container->list,
-        "Demo mode",
-        set_cb ? busy_scene_setup_timer_demo_mode_changed_callback : NULL,
-        data);
+    var_item_set_value(items[VarItemListIdShowWork], app_config->is_show_work_only_enabled);
+    var_item_set_value(items[VarItemListIdDemoMode], timer_preset->is_demo_mode_enabled);
+}
 
-    var_item_set_value(item, data->timer_config.enable_demo_mode);
+static void
+    busy_scene_setup_get_var_item_values(BusySceneSetupTimer* data, BusyTimerPreset* timer_preset) {
+    VarItem* const* items = data->containers[GuiDisplayIdFront].items;
 
-    // IMPORTANT: NOT storing the last item because it is always shown
+    BusyAppConfig* app_config = &timer_preset->app_config;
+    BusyTimerConfig* timer_config = &timer_preset->timer_config;
+
+    timer_config->mode = var_item_get_value(items[VarItemListIdMode]);
+
+    if(timer_config->mode == BusyTimerModeSimple) {
+        BusyTimerSimpleConfig* simple_config = &timer_config->simple;
+        simple_config->total_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdTime]));
+
+    } else if(timer_config->mode == BusyTimerModeInterval) {
+        BusyTimerIntervalConfig* interval_config = &timer_config->interval;
+        interval_config->work_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdWork]));
+        interval_config->rest_time_ms = M_TO_MS(var_item_get_value(items[VarItemListIdRest]));
+        interval_config->cycles_count = var_item_get_value(items[VarItemListIdCycles]);
+        interval_config->is_autostart_enabled = var_item_get_value(items[VarItemListIdAutostart]);
+    }
+
+    app_config->is_show_work_only_enabled = var_item_get_value(items[VarItemListIdShowWork]);
+    timer_preset->is_demo_mode_enabled = var_item_get_value(items[VarItemListIdDemoMode]);
 }
 
 static void busy_scene_setup_timer_on_enter(void* context) {
@@ -238,9 +226,8 @@ static void busy_scene_setup_timer_on_enter(void* context) {
     BusySceneSetupTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
-    busy_timer_get_config(instance->busy_timer, &data->timer_config);
-
-    data->settings = &instance->settings;
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
 
     with_gui(instance->gui, {
         data->containers[GuiDisplayIdFront].list = var_item_list_alloc(instance->front_window);
@@ -248,6 +235,7 @@ static void busy_scene_setup_timer_on_enter(void* context) {
 
         for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
             busy_scene_setup_fill_var_item_list(data, id);
+            busy_scene_setup_init_var_item_values(data, id, &timer_preset);
         }
 
         busy_scene_setup_timer_filter_items(data);
@@ -262,9 +250,11 @@ static void busy_scene_setup_timer_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
     if(!instance->show_timer_requested) {
-        // Do not save settings if timer was launched from another device while this scene was active
-        busy_timer_set_config(instance->busy_timer, &data->timer_config);
-        busy_save_settings(instance);
+        // NOTE: Not saving timer preset if launched via snapshot to avoid deadlocks
+        BusyTimerPreset timer_preset;
+        busy_get_timer_preset(instance, &timer_preset);
+        busy_scene_setup_get_var_item_values(data, &timer_preset);
+        busy_set_timer_preset(instance, &timer_preset);
     }
 
     with_gui(instance->gui, {

@@ -5,8 +5,6 @@
 #include <gui/modules/title_card.h>
 #include <gui/modules/anim_title_card.h>
 
-#include <lvgl.h>
-
 #define STANDBY_ANIM_INITIAL_DELAY_MS 1000
 #define STANDBY_ANIM_DELAY_MS         5000
 
