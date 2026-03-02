@@ -26,6 +26,7 @@ typedef enum {
     SettingProviderSettingTypeFloat, ///< Floating-point value with validation
     SettingProviderSettingTypeString, ///< C-string (char array) with validation
     SettingProviderSettingTypeCustom, ///< Custom type with serialize/deserialize
+    SettingProviderSettingTypeEnum,
     SettingProviderSettingTypeStruct, ///< Nested structure
 
     SettingProviderSettingTypesCount ///< Total number of setting types
@@ -125,6 +126,12 @@ typedef struct {
     const void* default_value; ///< Pointer to default value buffer
     size_t default_value_size; ///< Size of the default value type in bytes
 } SettingProviderCustomInterface;
+
+typedef struct {
+    const char* const* string_map;
+    int string_map_length;
+    int default_value;
+} SettingProviderEnumInterface;
 
 /**
  * @brief Interface for nested structure settings

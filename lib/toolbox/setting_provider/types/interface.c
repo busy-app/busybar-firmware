@@ -4,6 +4,7 @@
 #include "type_float.h"
 #include "type_string.h"
 #include "type_custom.h"
+#include "type_enum.h"
 #include "type_struct.h"
 
 #define IS_VALID_SETTING_TYPE(type) ((type) < SettingProviderSettingTypesCount)
@@ -25,6 +26,7 @@ static const SettingTypeActions* const setting_type_actions[] = {
     [SettingProviderSettingTypeFloat] = &SETTING_TYPE_ACTIONS(type_float),
     [SettingProviderSettingTypeString] = &SETTING_TYPE_ACTIONS(type_string),
     [SettingProviderSettingTypeCustom] = &SETTING_TYPE_ACTIONS(type_custom),
+    [SettingProviderSettingTypeEnum] = &SETTING_TYPE_ACTIONS(type_enum),
     [SettingProviderSettingTypeStruct] = &SETTING_TYPE_ACTIONS(type_struct),
 };
 
