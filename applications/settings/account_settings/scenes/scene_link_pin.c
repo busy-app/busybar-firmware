@@ -118,6 +118,10 @@ static bool account_scene_link_pin_on_event(const SceneManagerEvent* event, void
             scene_manager_replace_current_scene(instance->scene_manager, SceneIdConnecting);
             consumed = true;
             break;
+        case AppEventWifiDisconnected:
+            desktop_replace_current_app(instance->desktop, "wifi_settings", NULL);
+            consumed = true;
+            break;
 
         default:
             break;

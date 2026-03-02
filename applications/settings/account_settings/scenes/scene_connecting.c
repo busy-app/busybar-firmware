@@ -55,6 +55,10 @@ static bool account_scene_connecting_on_event(const SceneManagerEvent* event, vo
             }
             consumed = true;
             break;
+        case AppEventWifiDisconnected:
+            desktop_replace_current_app(instance->desktop, "wifi_settings", NULL);
+            consumed = true;
+            break;
         default:
             break;
         }

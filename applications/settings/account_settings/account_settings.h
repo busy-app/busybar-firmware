@@ -34,6 +34,7 @@ typedef enum {
     AppEventAccountLinkPinTimeout,
     AppEventAccountLinkDone,
     AppEventAccountUnlinked,
+    AppEventWifiDisconnected,
     AppEventSceneEventsStart,
 } AppEvent;
 
@@ -60,6 +61,7 @@ typedef struct {
     NavBar* back_nav_bar;
 
     AccountModel* model;
+    FuriStateSub* wifi_state_sub;
 
     char link_pin[ACCOUNT_MODEL_LINK_PIN_LEN + 1];
     time_t pin_valid_untill;

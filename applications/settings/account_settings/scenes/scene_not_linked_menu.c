@@ -74,6 +74,10 @@ static bool account_scene_not_linked_menu_on_event(const SceneManagerEvent* even
             scene_manager_replace_current_scene(instance->scene_manager, SceneIdConnecting);
             consumed = true;
             break;
+        case AppEventWifiDisconnected:
+            desktop_replace_current_app(instance->desktop, "wifi_settings", NULL);
+            consumed = true;
+            break;
         default:
             break;
         }
