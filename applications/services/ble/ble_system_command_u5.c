@@ -178,7 +178,7 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     BLE_LOG_D("BleCommandEnable response");
     Ble* instance = context;
 
-    if(frame->header.result) {
+    if(frame->header.result && frame->header.data_size == sizeof(BleServiceStatus)) {
         BleServiceStatus* resp_status = (BleServiceStatus*)frame->data;
         instance->status = *resp_status;
         ble_save_enabled_state(true);
