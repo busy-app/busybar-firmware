@@ -5,6 +5,7 @@
 #include "type_string.h"
 #include "type_custom.h"
 #include "type_enum.h"
+#include "type_union.h"
 #include "type_struct.h"
 
 #define IS_VALID_SETTING_TYPE(type) ((type) < SettingProviderSettingTypesCount)
@@ -27,6 +28,7 @@ static const SettingTypeActions* const setting_type_actions[] = {
     [SettingProviderSettingTypeString] = &SETTING_TYPE_ACTIONS(type_string),
     [SettingProviderSettingTypeCustom] = &SETTING_TYPE_ACTIONS(type_custom),
     [SettingProviderSettingTypeEnum] = &SETTING_TYPE_ACTIONS(type_enum),
+    [SettingProviderSettingTypeUnion] = &SETTING_TYPE_ACTIONS(type_union),
     [SettingProviderSettingTypeStruct] = &SETTING_TYPE_ACTIONS(type_struct),
 };
 
@@ -39,7 +41,9 @@ void setting_provider_internal_reset(
     furi_check(setting);
     furi_check(setting->interface);
     furi_check(IS_VALID_SETTING_TYPE(setting->type));
-    furi_check(setting->name || setting->type == SettingProviderSettingTypeStruct);
+    furi_check(
+        setting->name || setting->type == SettingProviderSettingTypeStruct ||
+        setting->type == SettingProviderSettingTypeEnum);
 
     const SettingTypeActions* type_actions = setting_type_actions[setting->type];
     type_actions->reset(json_node, setting, value ? value + setting->field_offset : NULL);
@@ -52,7 +56,9 @@ bool setting_provider_internal_load(
     furi_check(setting);
     furi_check(setting->interface);
     furi_check(IS_VALID_SETTING_TYPE(setting->type));
-    furi_check(setting->name || setting->type == SettingProviderSettingTypeStruct);
+    furi_check(
+        setting->name || setting->type == SettingProviderSettingTypeStruct ||
+        setting->type == SettingProviderSettingTypeEnum);
 
     const SettingTypeActions* type_actions = setting_type_actions[setting->type];
     void* _value = value + setting->field_offset;
@@ -68,7 +74,9 @@ bool setting_provider_internal_save(
     furi_check(setting);
     furi_check(setting->interface);
     furi_check(IS_VALID_SETTING_TYPE(setting->type));
-    furi_check(setting->name || setting->type == SettingProviderSettingTypeStruct);
+    furi_check(
+        setting->name || setting->type == SettingProviderSettingTypeStruct ||
+        setting->type == SettingProviderSettingTypeEnum);
 
     const SettingTypeActions* type_actions = setting_type_actions[setting->type];
     return type_actions->save(json_node, setting, value + setting->field_offset);

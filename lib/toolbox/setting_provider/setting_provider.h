@@ -27,6 +27,7 @@ typedef enum {
     SettingProviderSettingTypeString, ///< C-string (char array) with validation
     SettingProviderSettingTypeCustom, ///< Custom type with serialize/deserialize
     SettingProviderSettingTypeEnum,
+    SettingProviderSettingTypeUnion,
     SettingProviderSettingTypeStruct, ///< Nested structure
 
     SettingProviderSettingTypesCount ///< Total number of setting types
@@ -132,6 +133,11 @@ typedef struct {
     int string_map_length;
     int default_value;
 } SettingProviderEnumInterface;
+
+typedef struct {
+    const SettingProviderSetting* tag_setting;
+    const SettingProviderSetting* inner_settings;
+} SettingProviderUnionInterface;
 
 /**
  * @brief Interface for nested structure settings
