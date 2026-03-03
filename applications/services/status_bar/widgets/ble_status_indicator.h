@@ -9,7 +9,7 @@ extern "C" {
 typedef enum {
     BleStatusIndicatorStateUnknown,
     BleStatusIndicatorStateDisconnected,
-    BleStatusIndicatorStateConnecting,
+    BleStatusIndicatorStateConnectable,
     BleStatusIndicatorStateConnected,
     BleStatusIndicatorStateMax,
 } BleStatusIndicatorState;
@@ -22,7 +22,7 @@ void ble_status_indicator_free(BleStatusIndicator* instance);
 
 Widget* ble_status_indicator_get_base(BleStatusIndicator* instance);
 
-void Ble_status_indicator_set_state(BleStatusIndicator* instance, BleStatusIndicatorState state);
+void ble_status_indicator_set_state(BleStatusIndicator* instance, BleStatusIndicatorState state);
 
 #ifdef __cplusplus
 }

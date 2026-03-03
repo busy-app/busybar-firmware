@@ -30,7 +30,7 @@ typedef struct {
 } StatusBarWifiEvent;
 
 typedef struct {
-    BleStatus status;
+    BleState state;
 } StatusBarBleEvent;
 
 typedef struct {
@@ -86,13 +86,13 @@ static void wifi_state_callback(const void* state, void* context) {
 }
 
 static void ble_pubsub_callback(const void* message, void* context) {
-    const BleStatus* status = message;
+    const BleState* state = message;
 
     const StatusBarEvent event = {
         .type = StatusBarEventTypeBle,
         .ble =
             {
-                .status = *status,
+                .state = *state,
             },
     };
 
@@ -209,16 +209,17 @@ static void status_bar_process_wifi_event(StatusBar* instance, const StatusBarWi
 static void status_bar_process_ble_event(StatusBar* instance, const StatusBarBleEvent* event) {
     BleStatusIndicatorState indicator_state = BleStatusIndicatorStateUnknown;
 
-    if(event->status.state == BleServiceStateAdvertising) {
-        indicator_state = BleStatusIndicatorStateConnecting;
-    } else if(event->status.state == BleServiceStateConnected) {
+    if(event->state.status == BleServiceStatusAdvertising ||
+       event->state.status == BleServiceStatusConnectable) {
+        indicator_state = BleStatusIndicatorStateConnectable;
+    } else if(event->state.status == BleServiceStatusConnected) {
         indicator_state = BleStatusIndicatorStateConnected;
-    } else if(event->status.state == BleServiceStateError) {
+    } else if(event->state.status == BleServiceStatusError) {
         indicator_state = BleStatusIndicatorStateDisconnected;
     }
 
     with_gui(instance->gui, {
-        Ble_status_indicator_set_state(instance->ble_status_indicator, indicator_state);
+        ble_status_indicator_set_state(instance->ble_status_indicator, indicator_state);
     });
 }
 

@@ -47,14 +47,14 @@ Widget* ble_status_indicator_get_base(BleStatusIndicator* instance) {
     return (Widget*)instance;
 }
 
-void Ble_status_indicator_set_state(BleStatusIndicator* instance, BleStatusIndicatorState state) {
+void ble_status_indicator_set_state(BleStatusIndicator* instance, BleStatusIndicatorState state) {
     furi_assert(instance);
     furi_assert(state < BleStatusIndicatorStateMax);
 
     if(state != instance->state) {
         if(state == BleStatusIndicatorStateDisconnected) {
             lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_disconnected_8x8.bin"));
-        } else if(state == BleStatusIndicatorStateConnecting) {
+        } else if(state == BleStatusIndicatorStateConnectable) {
             lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_connecting_8x8.bin"));
         } else if(state == BleStatusIndicatorStateConnected) {
             lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_8x8.bin"));
