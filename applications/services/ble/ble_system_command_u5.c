@@ -250,7 +250,6 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
         }
 
         if(instance->status == BleServiceStatusError) {
-            instance->status = BleServiceStatusError;
             BLE_LOG_W("Local service error");
             break;
         }
@@ -286,7 +285,6 @@ static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void*
         }
 
         if(instance->status == BleServiceStatusError) {
-            instance->status = BleServiceStatusError;
             BLE_LOG_W("Local service error");
             break;
         }
