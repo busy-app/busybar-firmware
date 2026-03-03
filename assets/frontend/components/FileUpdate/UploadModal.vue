@@ -78,7 +78,7 @@ const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
 
 const fwVersionPolifilled = computed(() => {
-  const system = deviceStore.deviceStatus?.system;
-  return system?.version === 'unknown' ? `${system?.branch} ${system?.commit_hash}` : system?.version;
+  const firmware = deviceStore.deviceStatus?.firmware;
+  return firmware?.version === 'unknown' ? `${firmware?.branch} ${firmware?.commit_hash}` : firmware?.version;
 });
 </script>

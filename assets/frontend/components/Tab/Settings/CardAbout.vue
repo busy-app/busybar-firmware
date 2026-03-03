@@ -15,17 +15,17 @@
       <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
         <div
           v-for="[property, value] in Object.entries({
-            'Serial number': system?.serial_number || 'Unknown',
+            'Serial number': device?.serial_number || 'Unknown',
             'Front display resolution': '72×16 (LED)',
-            'Mac address [Bluetooth]': 'Unknown',
+            'Mac address [Bluetooth]': device?.ble_mac || 'Unknown',
             'Main display refresh rate': '60 Hz',
-            'Mac address [Wi-Fi]': 'Unknown',
+            'Mac address [Wi-Fi]': device?.wifi_mac || 'Unknown',
             'Back display resolution': '160×80 (OLED)',
-            'Mac address [USB]': 'Unknown',
+            'Mac address [USB]': device?.usb_mac || 'Unknown',
             'Central MCU': 'STM32U5M',
-            'Hardware version': 'Unknown',
+            'Hardware version': device?.otp_model || 'Unknown',
             'RAM size': '2.5 MB',
-            'Production date': 'Unknown'
+            'Production date': productionDate || 'Unknown'
           })"
           :key="property"
           class="flex gap-2"
@@ -47,12 +47,12 @@
       <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
         <div
           v-for="[property, value] in Object.entries({
-            'Version': system?.version,
-            'Build date': system?.build_date,
-            'Branch': system?.branch,
+            'Version': firmware?.version,
+            'Build date': firmware?.build_date,
+            'Branch': firmware?.branch,
             'API version': deviceStore.apiVersion?.api_semver || 'Unknown',
-            'Commit hash': system?.commit_hash,
-            'Uptime': system?.uptime ? system.uptime.slice(0, system.uptime.lastIndexOf(' ')) : 'Unknown'
+            'Commit hash': firmware?.commit_hash,
+            'Uptime': system?.uptime ? system?.uptime.slice(0, system?.uptime.lastIndexOf(' ')) : 'Unknown'
           })"
           :key="property"
           class="flex gap-2"
@@ -97,7 +97,19 @@
 const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
 
+const firmware = computed(() => deviceStore.deviceStatus?.firmware);
 const system = computed(() => deviceStore.deviceStatus?.system);
+const device = computed(() => deviceStore.deviceStatus?.device);
+
+const productionDate = computed(() => {
+  const timestamp = device.value?.otp_timestamp;
+  if (!timestamp) {
+    return undefined;
+  }
+
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+});
 
 async function init () {
   await deviceStore.fetchDeviceStatus();

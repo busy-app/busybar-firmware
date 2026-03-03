@@ -48,11 +48,11 @@
     <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
       <div
         v-for="[property, value] in Object.entries({
-          'Version': system?.version,
-          'Build date': system?.build_date,
-          'Branch': system?.branch,
+          'Version': firmware?.version,
+          'Build date': firmware?.build_date,
+          'Branch': firmware?.branch,
           'API version': deviceStore.apiVersion?.api_semver || 'Unknown',
-          'Commit hash': system?.commit_hash,
+          'Commit hash': firmware?.commit_hash,
           'Uptime': system?.uptime ? system.uptime.slice(0, system.uptime.lastIndexOf(' ')) : 'Unknown'
         })"
         :key="property"
@@ -71,7 +71,8 @@ const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 
 const system = computed(() => deviceStore.deviceStatus?.system);
-const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
+const firmware = computed(() => deviceStore.deviceStatus?.firmware);
+const fwVersionPolifilled = computed(() => firmware.value?.version === 'unknown' ? `${firmware.value.branch} ${firmware.value.commit_hash}` : firmware.value?.version);
 
 async function initFirmwareUpdateFromFile () {
   await deviceStore.fetchDeviceStatus();
