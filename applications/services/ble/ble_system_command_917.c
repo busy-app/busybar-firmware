@@ -21,24 +21,24 @@ static void
     furi_semaphore_acquire(instance->mailbox_lock, FuriWaitForever);
 
     if(connected) {
-        instance->state = BleServiceStatusConnected;
+        instance->status = BleServiceStatusConnected;
     } else {
         const bool paired = ble_worker_pairing_exists();
-        instance->state = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
+        instance->status = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
     }
 
     BleIntercomFrameGeneric* frame = &instance->mailbox;
     frame->header.frame_type = BleIntercomFrameTypeRequest;
     frame->header.command = BleCommandSetStatus;
     frame->header.source = BleIntercomFrameSourceSystem;
-    frame->header.data_size = sizeof(BleStatus);
+    frame->header.data_size = sizeof(BleState);
     frame->header.result = true;
 
-    BleStatus* status = (BleStatus*)frame->data;
-    status->state = instance->state;
+    BleState* state = (BleState*)frame->data;
+    state->status = instance->status;
 
     memcpy(
-        status->remote_device_address, remote_dev_address, BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
+        state->remote_device_address, remote_dev_address, BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
     memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_STRING_SIZE);
 
     ble_command_request_process(frame, instance);
@@ -58,7 +58,7 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
     }
 
     if(total_ready == BLE_SERVICES_COUNT) {
-        instance->state = BleServiceStatusReady;
+        instance->status = BleServiceStatusReady;
         ble_set_service_post_process_callback(instance, NULL);
 #ifdef BLE_DEBUG_PRINT_SERVICE_DATA_AFTER_INIT
         ble_print_service_hierarchy();
@@ -90,7 +90,7 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     ble_worker_start();
 
     const bool paired = ble_worker_pairing_exists();
-    instance->state = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
+    instance->status = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
 
     frame->header.data_size = 0;
     frame->header.result = true;
@@ -111,7 +111,7 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
 
     ble_worker_stop();
 
-    instance->state = BleServiceStatusReady;
+    instance->status = BleServiceStatusReady;
     frame->header.data_size = 0;
     frame->header.result = true;
 
@@ -129,12 +129,12 @@ static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void*
     BLE_LOG_D("BleCommandGetStatus request");
     Ble* instance = context;
 
-    size_t response_size = sizeof(BleStatus);
+    size_t response_size = sizeof(BleState);
     frame->header.data_size = response_size;
     frame->header.result = true;
 
-    BleStatus* response = (BleStatus*)frame->data;
-    response->state = instance->state;
+    BleState* response = (BleState*)frame->data;
+    response->status = instance->status;
 
     memcpy(
         response->remote_device_address,

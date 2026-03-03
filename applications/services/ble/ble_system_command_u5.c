@@ -98,7 +98,7 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
     }
 
     if(total_ready == BLE_SERVICES_COUNT) {
-        instance->state = BleServiceStatusReady;
+        instance->status = BleServiceStatusReady;
         instance->current_command->header.result = true;
         ble_subscribe_on_name_change(instance);
 
@@ -114,7 +114,7 @@ static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* conte
     BLE_LOG_D("BleCommandInit request");
 
     Ble* instance = context;
-    const BleServiceStatus state = instance->state;
+    const BleServiceStatus state = instance->status;
 
     ///TODO: replace this with some preprocess function which will check if command is allowed in this state
     bool result = false;
@@ -152,7 +152,7 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
 static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandEnable request");
     Ble* instance = context;
-    const BleServiceStatus state = instance->state;
+    const BleServiceStatus state = instance->status;
 
     ///TODO: replace this with some preprocess function which will check if command is allowed in this state
     bool result = false;
@@ -177,7 +177,7 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     Ble* instance = context;
 
     instance->current_command->header.result = frame->header.result;
-    instance->state = frame->header.result ? BleServiceStatusAdvertising : BleServiceStatusError;
+    instance->status = frame->header.result ? BleServiceStatusAdvertising : BleServiceStatusError;
 
     ble_save_enabled_state(true);
 
@@ -195,7 +195,7 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
 static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandDisable request");
     Ble* instance = context;
-    const BleServiceStatus state = instance->state;
+    const BleServiceStatus state = instance->status;
 
     ///TODO: replace this with some preprocess function which will check if command is allowed in this state
     bool result = false;
@@ -217,7 +217,7 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     Ble* instance = context;
 
     instance->current_command->header.result = frame->header.result;
-    instance->state = frame->header.result ? BleServiceStatusReady : BleServiceStatusError;
+    instance->status = frame->header.result ? BleServiceStatusReady : BleServiceStatusError;
 
     ble_save_enabled_state(false);
 
@@ -236,23 +236,23 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
     BLE_LOG_D("BleCommandGetStatus response");
     Ble* instance = context;
 
-    const BleStatus* response = (BleStatus*)frame->data;
+    const BleState* response = (BleState*)frame->data;
     bool result = false;
     do {
         if(!frame->header.result) {
-            instance->state = BleServiceStatusError;
+            instance->status = BleServiceStatusError;
             BLE_LOG_W("Failed to get state from remote");
             break;
         }
 
-        if(instance->state == BleServiceStatusError) {
-            instance->state = BleServiceStatusError;
+        if(instance->status == BleServiceStatusError) {
+            instance->status = BleServiceStatusError;
             BLE_LOG_W("Local service error");
             break;
         }
 
-        if(response->state == BleServiceStatusError) {
-            instance->state = BleServiceStatusError;
+        if(response->status == BleServiceStatusError) {
+            instance->status = BleServiceStatusError;
             BLE_LOG_W("Remote service error");
             break;
         }
@@ -261,7 +261,7 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
     } while(false);
 
     instance->current_command->header.result = result;
-    memcpy(instance->current_command->data, response, sizeof(BleStatus));
+    memcpy(instance->current_command->data, response, sizeof(BleState));
 
     api_lock_unlock(instance->current_command_api_lock);
     return true;
@@ -272,23 +272,23 @@ static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void*
 
     Ble* instance = context;
 
-    const BleStatus* response = (BleStatus*)frame->data;
+    const BleState* response = (BleState*)frame->data;
     bool result = false;
     do {
         if(!frame->header.result) {
-            instance->state = BleServiceStatusError;
+            instance->status = BleServiceStatusError;
             BLE_LOG_W("Failed to get state from remote");
             break;
         }
 
-        if(instance->state == BleServiceStatusError) {
-            instance->state = BleServiceStatusError;
+        if(instance->status == BleServiceStatusError) {
+            instance->status = BleServiceStatusError;
             BLE_LOG_W("Local service error");
             break;
         }
 
-        if(response->state == BleServiceStatusError) {
-            instance->state = BleServiceStatusError;
+        if(response->status == BleServiceStatusError) {
+            instance->status = BleServiceStatusError;
             BLE_LOG_W("Remote service error");
             break;
         }

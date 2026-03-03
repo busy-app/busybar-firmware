@@ -31,13 +31,13 @@ typedef enum {
 } BleUartChannel;
 
 typedef struct {
-    BleServiceStatus state;
+    BleServiceStatus status;
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
-} BleStatus;
+} BleState;
 
 typedef struct Ble Ble;
 
-bool ble_get_status(Ble* ble, BleStatus* const output);
+bool ble_get_state(Ble* ble, BleState* const output);
 
 bool ble_start(Ble* ble);
 

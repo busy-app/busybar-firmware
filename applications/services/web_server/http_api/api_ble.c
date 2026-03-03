@@ -8,7 +8,7 @@ typedef struct {
     HttpHandlersList_t handlers;
 } ApiBleCtx;
 
-const char* ble_state_names[BleServiceStatusCount] = {
+const char* ble_status_names[BleServiceStatusCount] = {
     [BleServiceStatusReset] = "reset",
     [BleServiceStatusInitialization] = "initialization",
     [BleServiceStatusReady] = "disabled",
@@ -76,9 +76,9 @@ static bool api_ble_get_state_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    BleStatus status = {0};
+    BleState state = {0};
     Ble* ble = furi_record_open(RECORD_BLE);
-    bool result = ble_get_status(ble, &status);
+    bool result = ble_get_state(ble, &state);
     furi_record_close(RECORD_BLE);
 
     do {
@@ -87,17 +87,16 @@ static bool api_ble_get_state_callback(
             break;
         }
 
-        if(status.state == BleServiceStatusError) {
-            MG_REPLY_ERROR(conn, 400, ble_state_names[status.state]);
+        if(state.status == BleServiceStatusError) {
+            MG_REPLY_ERROR(conn, 400, ble_status_names[state.status]);
             break;
         }
 
         cJSON* response = cJSON_CreateObject();
 
-        cJSON_AddStringToObject(response, "state", ble_state_names[status.state]);
-        if(status.state == BleServiceStatusConnected) {
-            cJSON_AddStringToObject(
-                response, "address", (const char*)status.remote_device_address);
+        cJSON_AddStringToObject(response, "status", ble_status_names[state.status]);
+        if(state.status == BleServiceStatusConnected) {
+            cJSON_AddStringToObject(response, "address", (const char*)state.remote_device_address);
         }
 
         char* buf = cJSON_Print(response);
