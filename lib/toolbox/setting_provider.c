@@ -471,6 +471,79 @@ static bool setting_save_furi_string(
     return is_valid;
 }
 
+static void setting_reset_enum(
+    SettingProvider* provider,
+    cJSON* json_node,
+    const SettingProviderSetting* setting,
+    void* value) {
+    const SettingProviderEnumInterface* interface = setting->interface;
+
+    const char* default_value_name = interface->names[interface->default_value];
+
+    FURI_LOG_D(TAG, "Loading default for \"%s\": \"%s\"", setting->name, default_value_name);
+
+    json_write_string(json_node, setting->name, default_value_name);
+    provider->is_write_pending = true;
+
+    if(value) *(int*)value = interface->default_value;
+}
+
+static bool find_enum_variant(
+    const SettingProviderEnumInterface* interface,
+    const FuriString* value,
+    int* result) {
+    for(int i = 0; i != interface->count; ++i) {
+        if(furi_string_cmp(value, interface->names[i]) == 0) {
+            *result = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+static void setting_load_enum(
+    SettingProvider* provider,
+    cJSON* json_node,
+    const SettingProviderSetting* setting,
+    void* value) {
+    const SettingProviderEnumInterface* interface = setting->interface;
+
+    FuriString* read_value = furi_string_alloc();
+    do {
+        int parsed_value = interface->default_value;
+        if(!json_read_string(json_node, setting->name, read_value)) {
+            FURI_LOG_W(TAG, "Failed to load \"%s\" as string...", setting->name);
+        } else if(!find_enum_variant(interface, read_value, &parsed_value)) {
+            FURI_LOG_W(
+                TAG,
+                "Invalid \"%s\" value: \"%s\"...",
+                setting->name,
+                furi_string_get_cstr(read_value));
+        } else {
+            *(int*)value = parsed_value;
+            break;
+        }
+
+        setting_reset_enum(provider, json_node, setting, value);
+    } while(false);
+    furi_string_free(read_value);
+}
+
+static bool setting_save_enum(
+    SettingProvider* provider,
+    cJSON* json_node,
+    const SettingProviderSetting* setting,
+    const void* value) {
+    const SettingProviderEnumInterface* interface = setting->interface;
+
+    int _value = *(const int*)value;
+
+    json_write_string(json_node, setting->name, interface->names[_value]);
+    provider->is_write_pending = true;
+
+    return true;
+}
+
 static void setting_reset_custom(
     SettingProvider* provider,
     cJSON* json_node,
@@ -955,6 +1028,12 @@ static const SettingTypeActions setting_type_actions[] = {
             .reset = setting_reset_furi_string,
             .load = setting_load_furi_string,
             .save = setting_save_furi_string,
+        },
+    [SettingProviderSettingTypeEnum] =
+        {
+            .reset = setting_reset_enum,
+            .load = setting_load_enum,
+            .save = setting_save_enum,
         },
     [SettingProviderSettingTypeCustom] =
         {

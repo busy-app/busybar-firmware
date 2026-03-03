@@ -5,22 +5,16 @@
 #define TAG "BleBatteryU5"
 
 typedef struct {
-    PowerEventType event_type;
     FuriPubSubSubscription* pubsub_subscription;
     uint8_t prev_charge;
     BatteryStatusInfo prev_status;
 } BleBatteryServiceContext;
 
 static void ble_power_pubsub_message_callback(const void* message, void* context) {
-    BleServiceObject* instance = context;
-    const PowerEvent* event = message;
+    UNUSED(message);
 
-    if(ble_service_lock(instance)) {
-        BleBatteryServiceContext* ctx = instance->context;
-        ctx->event_type = event->type;
-        ble_service_enqueue_run(instance);
-        ble_service_unlock(instance);
-    }
+    BleServiceObject* instance = context;
+    ble_service_enqueue_run(instance);
 }
 
 static void ble_service_battery_update(BleServiceObject* instance) {
@@ -38,8 +32,7 @@ static void ble_service_battery_update(BleServiceObject* instance) {
 
     BatteryStatusInfo battery_status = {0};
     battery_status.flags = 0;
-    battery_status.state.fields.battery_present =
-        (ctx->event_type == PowerEventBatteryNotPresent) ? 0 : 1;
+    battery_status.state.fields.battery_present = 1;
     battery_status.state.fields.wired_source_present = info.is_charging;
     battery_status.state.fields.wireless_source_present = 0;
     battery_status.state.fields.battery_charge_state = info.is_charging ? 1 : 2;

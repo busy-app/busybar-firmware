@@ -13,11 +13,11 @@ extern "C" {
 #define BACK_DISPLAY_W (160)
 #define BACK_DISPLAY_H (80)
 
-#define BACK_DISPLAY_BRIGHTNESS_MIN  (0)
-#define BACK_DISPLAY_BRIGHTNESS_MAX  (100)
-#define BACK_DISPLAY_BRIGHTNESS_AUTO (255)
-
 typedef struct BackDisplaySrv BackDisplaySrv;
+
+typedef struct BackDisplayContrast {
+    uint8_t val;
+} BackDisplayContrast;
 
 /**
  * @brief Draw the back display data.
@@ -46,22 +46,12 @@ void back_display_draw(BackDisplaySrv* instance, const uint8_t* data);
 void back_display_sleep_mode(BackDisplaySrv* instance, bool sleep);
 
 /**
- * @brief Set the back display brightness 
+ * @brief Set the back display contrast
  * 
- * @param instance Pointer to the FrontDisplaySrv instance
- * @param brightness Brightness value (BACK_DISPLAY_BRIGHTNESS_MIN to BACK_DISPLAY_BRIGHTNESS_MAX),
- *                   or BACK_DISPLAY_BRIGHTNESS_AUTO for automatic brightness adjustment
+ * @param instance back display service instance
+ * @param contrast contrast value
  */
-void back_display_set_brightness(BackDisplaySrv* instance, uint8_t brightness);
-
-/**
- * @brief Get the back display brightness 
- * 
- * @param instance Pointer to the FrontDisplaySrv instance
- * @return Brightness value (BACK_DISPLAY_BRIGHTNESS_MIN to BACK_DISPLAY_BRIGHTNESS_MAX),
- *                   or BACK_DISPLAY_BRIGHTNESS_AUTO if automatic brightness is enabled
- */
-uint8_t back_display_get_brightness(BackDisplaySrv* instance);
+void back_display_set_contrast(BackDisplaySrv* instance, BackDisplayContrast contrast);
 
 /**
  * @brief Get the width of the back display.

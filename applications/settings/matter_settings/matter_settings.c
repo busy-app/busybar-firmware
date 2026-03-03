@@ -1,4 +1,4 @@
-#include "matter_settings.h"
+#include "matter_settings_i.h"
 #include "scenes/matter_scenes.h"
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
@@ -57,7 +57,7 @@ static void matter_settings_event_queue_callback(FuriEventLoopObject* object, vo
             scene_manager_replace_current_scene(instance->scene_manager, event_to_scene[event]);
 
         } else if(event == AppEventRequiredWifiNotAvailable) {
-            scene_manager_next_scene(instance->scene_manager, SceneIdConnectWifi);
+            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
 
         } else {
             scene_manager_handle_custom_event(instance->scene_manager, event);

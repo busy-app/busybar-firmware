@@ -1,20 +1,11 @@
 #include <furi.h>
 #include <furi_hal_resources.h>
 #include <ssd1320/ssd1320.h>
-#include <light_sensor/light_sensor.h>
 #include "back_display.h"
-#include <storage/storage.h>
-#include <json_helper.h>
 
 #define TAG "BackDisplaySrv"
 
-#define DISPLAY_CONFIG_FILE APP_DATA_PATH("config.json")
-
-// Contrast curve parameters
-#define CONTRAST_CURVE_BASE        (1.324264735f)
-#define CONTRAST_CURVE_COEFFICIENT (7.143377489f)
-#define CONTRAST_MIN_VALUE         (SSD1320_CONTRAST_MIN)
-#define CONTRAST_MAX_VALUE         (118)
+#define CONTRAST_DEFAULT 25
 
 // #define BACK_DISPLAY_DEBUG_ENABLE
 
@@ -27,8 +18,7 @@
 typedef enum {
     BackDisplayEventDraw = 1 << 0,
     BackDisplayEventTearing = 1 << 1,
-    BackDisplayEventLightLevelUpdate = 1 << 2,
-    BackDisplayEventSaveConfig = 1 << 3,
+    BackDisplayEventUpdateContrast = 1 << 2,
     BackDisplayEventUpdateSleep = 1 << 4,
 } BackDisplayEvent;
 
@@ -42,68 +32,13 @@ struct BackDisplaySrv {
 
     bool dirty;
 
-    FuriPubSub* light_sensor_events;
-
     FuriMutex* property_mutex;
     uint8_t sensor_contrast;
-    int brightness_override;
     size_t sleep_holders;
 };
 
-static uint8_t back_display_sensor_level_to_contrast(uint8_t level) {
-    if(level > LIGHT_SENSOR_LIGHT_LEVEL_MAX) {
-        level = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
-    }
-
-    float normalized_level = (float)level / LIGHT_SENSOR_LIGHT_LEVEL_MAX;
-
-    // Apply the curve: y = CONTRAST_CURVE_COEFFICIENT * (CONTRAST_CURVE_BASE ^ (normalized_level * LIGHT_SENSOR_LIGHT_LEVEL_MAX))
-    uint8_t result =
-        (uint8_t)(CONTRAST_CURVE_COEFFICIENT *
-                  powf(CONTRAST_CURVE_BASE, normalized_level * LIGHT_SENSOR_LIGHT_LEVEL_MAX));
-
-    if(result < CONTRAST_MIN_VALUE) {
-        result = CONTRAST_MIN_VALUE;
-    } else if(result > CONTRAST_MAX_VALUE) {
-        result = CONTRAST_MAX_VALUE;
-    }
-
-    return result;
-}
-
-static uint8_t back_display_brightness_to_contrast(uint8_t brightness) {
-    if(brightness > BACK_DISPLAY_BRIGHTNESS_MAX) {
-        brightness = BACK_DISPLAY_BRIGHTNESS_MAX;
-    }
-    return (brightness * (CONTRAST_MAX_VALUE - CONTRAST_MIN_VALUE)) / BACK_DISPLAY_BRIGHTNESS_MAX +
-           SSD1320_CONTRAST_MIN;
-}
-
-static void back_display_update_brightness(BackDisplaySrv* instance) {
-    uint8_t contrast_level = instance->sensor_contrast;
-    if(instance->brightness_override != BACK_DISPLAY_BRIGHTNESS_AUTO) {
-        contrast_level = back_display_brightness_to_contrast(instance->brightness_override);
-    }
-
-    ssd1320_set_contrast(contrast_level);
-}
-
-static void back_display_light_sensor_event(const void* message, void* context) {
-    UNUSED(message);
-    furi_assert(context);
-
-    BackDisplaySrv* instance = context;
-
-    const LightSensorEvent* event = message;
-    if(event->type != LightSensorEventTypeLightLevelChanged) {
-        return;
-    }
-
-    furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
-    instance->sensor_contrast = back_display_sensor_level_to_contrast(event->light_level);
-    furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
-
-    furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventLightLevelUpdate);
+static void back_display_update_contrast(BackDisplaySrv* instance) {
+    ssd1320_set_contrast(instance->sensor_contrast);
 }
 
 static void back_display_event_callback(uint32_t events, void* context) {
@@ -133,17 +68,12 @@ static void back_display_event_callback(uint32_t events, void* context) {
 
     furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
 
-    if(events & BackDisplayEventLightLevelUpdate) {
-        back_display_update_brightness(instance);
+    if(events & BackDisplayEventUpdateContrast) {
+        back_display_update_contrast(instance);
     }
 
     if(events & BackDisplayEventUpdateSleep) {
         ssd1320_sleep_mode(instance->sleep_holders > 0);
-    }
-
-    if(events & BackDisplayEventSaveConfig) {
-        json_config_write_single_int(
-            DISPLAY_CONFIG_FILE, "brightness", instance->brightness_override);
     }
 
     furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
@@ -169,25 +99,13 @@ static BackDisplaySrv* back_display_alloc(void) {
 
     instance->property_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
-    int default_brightness = BACK_DISPLAY_BRIGHTNESS_AUTO;
-    json_config_read_single_int(
-        DISPLAY_CONFIG_FILE, "brightness", &instance->brightness_override, &default_brightness);
-
-    instance->sensor_contrast = back_display_sensor_level_to_contrast(0);
-
-#if defined(SRV_LIGHT_SENSOR)
-    instance->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
-    furi_pubsub_subscribe(
-        instance->light_sensor_events, back_display_light_sensor_event, instance);
-#else
-    UNUSED(back_display_light_sensor_event);
-#endif
+    instance->sensor_contrast = CONTRAST_DEFAULT;
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, back_display_event_callback, instance);
 
     ssd1320_init();
-    back_display_update_brightness(instance);
+    back_display_update_contrast(instance);
 
     furi_hal_gpio_init_simple(&gpio_back_display_fr, GpioModeInterruptRise);
     furi_hal_gpio_add_int_callback(&gpio_back_display_fr, back_display_tearing_callback, instance);
@@ -228,24 +146,17 @@ void back_display_sleep_mode(BackDisplaySrv* instance, bool sleep) {
     }
     furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
 
-    furi_event_loop_set_custom_event(
-        instance->event_loop, BackDisplayEventUpdateSleep | BackDisplayEventSaveConfig);
+    furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventUpdateSleep);
 }
 
-void back_display_set_brightness(BackDisplaySrv* instance, uint8_t brightness) {
+void back_display_set_contrast(BackDisplaySrv* instance, BackDisplayContrast contrast) {
     furi_check(instance);
 
     furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
-    instance->brightness_override = brightness;
+    instance->sensor_contrast = contrast.val;
     furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
 
-    furi_event_loop_set_custom_event(
-        instance->event_loop, BackDisplayEventLightLevelUpdate | BackDisplayEventSaveConfig);
-}
-
-uint8_t back_display_get_brightness(BackDisplaySrv* instance) {
-    furi_check(instance);
-    return instance->brightness_override;
+    furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventUpdateContrast);
 }
 
 size_t back_display_get_width(void) {

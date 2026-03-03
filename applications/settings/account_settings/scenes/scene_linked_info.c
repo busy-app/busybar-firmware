@@ -1,4 +1,4 @@
-#include "../account_settings.h"
+#include "../account_settings_i.h"
 #include <settings_helpers/gui_params.h>
 #include "../widgets/account_info_view.h"
 
