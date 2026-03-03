@@ -35,12 +35,16 @@ typedef enum {
     LightSensorEventTypeLightLevelChanged, /**< Light level changed event */
 } LightSensorEventType;
 
+typedef struct LightSensorLevel {
+    uint8_t val;
+} LightSensorLevel;
+
 /**
  * @brief Light sensor event structure.
 */
 typedef struct {
     LightSensorEventType type; /**< Type of the event */
-    uint8_t light_level; /**< Current light level */
+    LightSensorLevel light_level; /**< Current light level */
 } LightSensorEvent;
 
 /**
@@ -65,7 +69,7 @@ float light_sensor_get_lux_instant(void);
  *
  * @return Current light level.
  */
-uint8_t light_sensor_get_light_level(void);
+LightSensorLevel light_sensor_get_light_level(void);
 
 /**
  * @brief Get the raw light sensor value.

@@ -15,7 +15,7 @@ typedef enum {
 typedef struct {
     LightSensorTestAppEventType type;
     union {
-        uint8_t light_level;
+        LightSensorLevel light_level;
     };
 } LightSensorTestAppEvent;
 
@@ -39,5 +39,5 @@ typedef struct {
     uint16_t raw_840nm;
     float lux_instant;
     float lux_mean;
-    uint8_t light_level;
+    LightSensorLevel light_level;
 } LightSensorTestApp;
