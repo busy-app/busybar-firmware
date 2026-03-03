@@ -178,7 +178,7 @@ static void this_setup_app_descriptor(SettingsAppDescriptor* descriptor) {
     furi_string_set_str(descriptor->front_title, "Firmware");
     furi_string_set_str(descriptor->back_title, "Firmware");
     furi_string_set_str(descriptor->front_icon, THIS_IMG_PATH("microchip_front_8x8.bin"));
-    furi_string_set_str(descriptor->back_icon, THIS_IMG_PATH("microchip_back_12x12.bin"));
+    furi_string_set_str(descriptor->back_icon, THIS_IMG_PATH("microchip_back_11x11.bin"));
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
     UpdaterCheckState updater_check_state;
