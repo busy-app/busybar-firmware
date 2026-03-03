@@ -75,8 +75,8 @@ static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
         intercom_channel_call_callback(channel, rx_frame);
 
     } else {
-        // TODO: Better error handling
-        // intercom_error_handler(IntercomErrorFraming, instance);
+        intercom_set_status(instance, IntercomStatusErrorFraming);
+        // TODO: gracefully stop/suspend the thread
     }
 }
 

@@ -33,7 +33,7 @@
 #define INTERCOM_MAGIC_DELAY (100UL)
 
 typedef enum {
-    IntercomCustomEventSyncRequested = 1UL << 0,
+    IntercomCustomEventStatusChanged = 1UL << 0,
     IntercomCustomEventFrameSent = 1UL << 1,
     IntercomCustomEventDataAvailable = 1UL << 2,
 } IntercomCustomEvent;
@@ -57,14 +57,15 @@ struct Intercom {
     FuriSemaphore* tx_semaphore;
     FuriEventLoopTimer* tx_timer;
     FuriHalSerialHandle* serial;
-    FuriPubSub* pubsub;
+    FuriState* state;
     IntercomChannel channels[IntercomChannelIdMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
-    _Atomic bool is_in_sync;
 };
 
 // intercom.c:
+
+void intercom_set_status(Intercom* instance, IntercomStatus new_status);
 
 size_t intercom_tx_internal(
     Intercom* instance,

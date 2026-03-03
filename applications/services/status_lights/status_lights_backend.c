@@ -22,7 +22,6 @@ struct StatusLights {
     FuriMessageQueue* command_queue;
     FuriEventLoopTimer* timer;
     Intercom* intercom;
-    IntercomChannel* intercom_ch;
 
     StatusLightsGenericPreset* preset_instance;
     const StatusLightsPresetBase* preset_api;
@@ -96,17 +95,16 @@ static void status_lights_intercom_rx_callback(const void* data, size_t data_siz
         furi_message_queue_put(instance->command_queue, data, FuriWaitForever) == FuriStatusOk);
 }
 
-static void status_lights_intercom_events_callback(const void* message, void* context) {
+static void status_lights_intercom_state_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    const IntercomEvent* event = message;
     StatusLights* instance = context;
 
-    if(event->type == IntercomEventTypeSyncStateChanged) {
-        if(event->is_in_sync) {
-            furi_event_loop_set_custom_event(instance->event_loop, StatusLightsEventSyncDone);
-        }
+    const IntercomStatus intercom_status = *(IntercomStatus*)message;
+
+    if(intercom_status == IntercomStatusOk) {
+        furi_event_loop_set_custom_event(instance->event_loop, StatusLightsEventSyncDone);
     }
 }
 
@@ -115,11 +113,13 @@ static void status_lights_event_callback(uint32_t events, void* context) {
     StatusLights* instance = context;
 
     if(events & StatusLightsEventSyncDone) {
-        instance->intercom_ch = intercom_channel_open(
+        IntercomChannel* intercom_ch = intercom_channel_open(
             instance->intercom,
             IntercomChannelIdStatusLights,
             status_lights_intercom_rx_callback,
             instance);
+        // Not sending anything to the channel
+        UNUSED(intercom_ch);
     }
 }
 
@@ -143,16 +143,9 @@ static StatusLights* status_lights_alloc() {
         instance->event_loop, status_lights_run_pattern, FuriEventLoopTimerTypePeriodic, instance);
 
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-    if(intercom_is_in_sync(instance->intercom)) {
-        instance->intercom_ch = intercom_channel_open(
-            instance->intercom,
-            IntercomChannelIdStatusLights,
-            status_lights_intercom_rx_callback,
-            instance);
-    } else {
-        FuriPubSub* intercom_events = intercom_get_pubsub(instance->intercom);
-        furi_pubsub_subscribe(intercom_events, status_lights_intercom_events_callback, instance);
-    }
+
+    FuriState* intercom_state = intercom_get_state(instance->intercom);
+    furi_state_subscribe(intercom_state, status_lights_intercom_state_callback, instance);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 

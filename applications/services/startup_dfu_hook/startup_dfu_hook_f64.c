@@ -31,10 +31,9 @@ typedef struct {
     StatusLights* status_lights;
 
     FuriPubSub* input_events;
-    FuriPubSub* intercom_events;
 
     FuriPubSubSubscription* input_events_subscription;
-    FuriPubSubSubscription* intercom_events_subscription;
+    FuriStateSub* intercom_state_subscription;
 } StartupDfuHook;
 
 static void startup_dfu_hook_input_events_callback(const void* message, void* context) {
@@ -42,7 +41,7 @@ static void startup_dfu_hook_input_events_callback(const void* message, void* co
     furi_assert(context);
 
     const InputCommonEvent* event = message;
-    FuriThreadId* thread_id = context;
+    FuriThreadId thread_id = context;
 
     if(event->device == InputDeviceButton) {
         if(event->button_event.button == InputButtonStart &&
@@ -52,17 +51,16 @@ static void startup_dfu_hook_input_events_callback(const void* message, void* co
     }
 }
 
-static void startup_dfu_hook_intercom_events_callback(const void* message, void* context) {
+static void startup_dfu_hook_intercom_state_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    const IntercomEvent* event = message;
-    FuriThreadId* thread_id = context;
+    FuriThreadId thread_id = context;
 
-    if(event->type == IntercomEventTypeSyncStateChanged) {
-        if(event->is_in_sync) {
-            furi_thread_flags_set(thread_id, StartupDfuHookFlagIntercomSync);
-        }
+    const IntercomStatus intercom_status = *(IntercomStatus*)message;
+
+    if(intercom_status == IntercomStatusOk) {
+        furi_thread_flags_set(thread_id, StartupDfuHookFlagIntercomSync);
     }
 }
 
@@ -123,16 +121,14 @@ static void startup_dfu_hook_construct(StartupDfuHook* instance) {
         startup_dfu_hook_input_events_callback,
         furi_thread_get_current_id());
 
-    instance->intercom_events = intercom_get_pubsub(instance->intercom);
-    instance->intercom_events_subscription = furi_pubsub_subscribe(
-        instance->intercom_events,
-        startup_dfu_hook_intercom_events_callback,
-        furi_thread_get_current_id());
+    FuriState* intercom_state = intercom_get_state(instance->intercom);
+    instance->intercom_state_subscription = furi_state_subscribe(
+        intercom_state, startup_dfu_hook_intercom_state_callback, furi_thread_get_current_id());
 }
 
 static void startup_dfu_hook_teardown(StartupDfuHook* instance) {
     furi_pubsub_unsubscribe(instance->input_events, instance->input_events_subscription);
-    furi_pubsub_unsubscribe(instance->intercom_events, instance->intercom_events_subscription);
+    furi_state_unsubscribe(instance->intercom_state_subscription);
 
     furi_record_close(RECORD_INPUT);
     furi_record_close(RECORD_INPUT_EVENTS);
@@ -143,10 +139,7 @@ static void startup_dfu_hook_teardown(StartupDfuHook* instance) {
 static bool startup_dfu_hook_should_run(const StartupDfuHook* instance) {
     // TODO [FW-503]: use furi_state
     const InputAbsoluteState input_state = input_get_absolute_state(instance->input);
-    // TODO: Use furi_state for Intercom state and events as well
-    const bool is_intercom_in_sync = intercom_is_in_sync(instance->intercom);
-
-    return (input_state.buttons & InputButtonMaskStart) && (!is_intercom_in_sync);
+    return (input_state.buttons & InputButtonMaskStart);
 }
 
 void startup_dfu_hook_on_system_start(void) {

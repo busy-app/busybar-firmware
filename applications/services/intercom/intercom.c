@@ -8,6 +8,7 @@ static void intercom_serial_tx_callback(
     FuriHalSerialTxEvent event,
     void* context) {
     UNUSED(handle);
+    furi_assert(context);
 
     Intercom* instance = context;
 
@@ -16,105 +17,89 @@ static void intercom_serial_tx_callback(
     }
 }
 
-static void intercom_publish_sync_state_change(Intercom* instance, bool is_in_sync) {
-    /* Repetitive desyncs are useless, while resyncs can be used in some contexts. */
-    if(is_in_sync || instance->is_in_sync) {
-        IntercomEvent pubsub_message = {
-            .type = IntercomEventTypeSyncStateChanged,
-            .is_in_sync = is_in_sync,
-        };
-        furi_pubsub_publish(instance->pubsub, &pubsub_message);
-        instance->is_in_sync = is_in_sync;
-    }
-}
-
-static void intercom_unrecoverable_error(Intercom* instance, const char* message) {
-    while(true) {
-        IntercomEvent pubsub_message = {
-            .type = IntercomEventTypeError,
-            .message = message,
-        };
-
-        furi_pubsub_publish(instance->pubsub, &pubsub_message);
-        FURI_LOG_E(TAG, message);
-        furi_delay_ms(5000);
-    }
-}
-
-static void intercom_error_handler(IntercomError error, void* context) {
-#if defined(FURI_RAM_EXEC)
-    FURI_LOG_E(TAG, "Intercom error: %d", error);
-    return;
-#endif
-
+static void intercom_state_callback(const void* item, void* context) {
+    UNUSED(item);
     furi_assert(context);
-    Intercom* instance = context;
 
-    if(error == IntercomErrorSync) {
-        intercom_publish_sync_state_change(instance, false);
-        intercom_unrecoverable_error(instance, "Externally requested sync failed");
-    } else if(error == IntercomErrorFraming) {
-        intercom_dump_frame(&instance->rx_frame);
-        intercom_publish_sync_state_change(instance, false);
-        intercom_unrecoverable_error(instance, "Corrupted frame received");
-    } else if(error == IntercomErrorTransmit) {
-        intercom_publish_sync_state_change(instance, false);
-        intercom_unrecoverable_error(instance, "Other side has died");
-    } else {
-        intercom_publish_sync_state_change(instance, false);
-        intercom_unrecoverable_error(instance, "Unknown error");
-    }
+    Intercom* instance = context;
+    furi_event_loop_set_custom_event(instance->event_loop, IntercomCustomEventStatusChanged);
 }
 
-static bool intercom_do_sync(Intercom* instance) {
-    INTERCOM_LOG_D("Sync started");
-
+static void intercom_startup_sequence(Intercom* instance) {
     intercom_reset_other_side();
 
-    const bool sync_success = intercom_sync_serial(instance->serial);
+    IntercomStatus status;
 
-    if(sync_success) {
-        furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
-        // TODO: find proper enterprise delay value
-        furi_delay_ms(INTERCOM_MAGIC_DELAY);
-
+    if(intercom_sync_serial(instance->serial)) {
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
-        intercom_publish_sync_state_change(instance, true);
-
+        status = IntercomStatusOk;
     } else {
-        intercom_error_handler(IntercomErrorSync, instance);
+        status = IntercomStatusErrorSync;
     }
 
-    return sync_success;
+    intercom_set_status(instance, status);
 }
 
-static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
-    IntercomFrame* tx_frame = &instance->tx_frame;
-
-    furi_event_loop_timer_start(instance->tx_timer, INTERCOM_TX_TIMEOUT_MS);
-    furi_hal_serial_dma_tx(instance->serial, (void*)tx_frame, sizeof(IntercomFrame));
+static void intercom_unrecoverable_error(void) {
+    FURI_LOG_E(TAG, "Unrecoverable error encountered. Suspending service...");
+    furi_thread_suspend(furi_thread_get_current_id());
 }
 
-static FURI_ALWAYS_INLINE void intercom_process_tx_data_event(Intercom* instance) {
-    intercom_send_tx_frame(instance);
+static FURI_ALWAYS_INLINE void intercom_process_status_changed_event(Intercom* instance) {
+    IntercomStatus status;
+    furi_state_get(instance->state, &status);
+
+    if(status == IntercomStatusUnknown) {
+        intercom_startup_sequence(instance);
+
+    } else if(status == IntercomStatusOk) {
+        intercom_start_rx_thread(instance);
+
+    } else if(status == IntercomStatusErrorSync) {
+        FURI_LOG_E(TAG, "Failed to sync with the other side");
+        intercom_unrecoverable_error();
+
+    } else if(status == IntercomStatusErrorFraming) {
+        FURI_LOG_E(TAG, "Corrupt frame received");
+        intercom_dump_frame(&instance->rx_frame);
+        intercom_unrecoverable_error();
+
+    } else if(status == IntercomStatusErrorTimeout) {
+        FURI_LOG_E(TAG, "Other side is not responding");
+        intercom_unrecoverable_error();
+
+    } else {
+        furi_crash("Invalid IntercomStatus value");
+    }
 }
 
-static FURI_ALWAYS_INLINE void intercom_process_tx_frame_event(Intercom* instance) {
+static FURI_ALWAYS_INLINE void intercom_process_tx_frame_sent_event(Intercom* instance) {
     furi_event_loop_timer_stop(instance->tx_timer);
     furi_semaphore_release(instance->tx_semaphore);
 
     INTERCOM_LOG_D("Frame transmit complete");
 }
 
+static FURI_ALWAYS_INLINE void intercom_process_tx_data_available_event(Intercom* instance) {
+    IntercomFrame* tx_frame = &instance->tx_frame;
+
+    furi_event_loop_timer_start(instance->tx_timer, INTERCOM_TX_TIMEOUT_MS);
+    furi_hal_serial_dma_tx(instance->serial, (void*)tx_frame, sizeof(IntercomFrame));
+}
+
 static void intercom_custom_event_callback(uint32_t events, void* context) {
     Intercom* instance = context;
+    if(events & IntercomCustomEventStatusChanged) {
+        INTERCOM_LOG_D("IntercomCustomEventStatusChanged");
+        intercom_process_status_changed_event(instance);
+    }
     if(events & IntercomCustomEventFrameSent) {
         INTERCOM_LOG_D("IntercomCustomEventFrameSent");
-        intercom_process_tx_frame_event(instance);
+        intercom_process_tx_frame_sent_event(instance);
     }
     if(events & IntercomCustomEventDataAvailable) {
         INTERCOM_LOG_D("IntercomCustomEventDataAvailable");
-        intercom_process_tx_data_event(instance);
+        intercom_process_tx_data_available_event(instance);
     }
 }
 
@@ -122,7 +107,7 @@ static void intercom_tx_timer_callback(void* context) {
     furi_assert(context);
 
     Intercom* instance = context;
-    intercom_error_handler(IntercomErrorTransmit, instance);
+    intercom_set_status(instance, IntercomStatusErrorTimeout);
 }
 
 static void intercom_init_channels(Intercom* instance) {
@@ -139,7 +124,7 @@ static Intercom* intercom_alloc(void) {
     instance->tx_timer = furi_event_loop_timer_alloc(
         instance->event_loop, intercom_tx_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->serial = furi_hal_serial_control_acquire(INTERCOM_SERIAL);
-    instance->pubsub = furi_pubsub_alloc();
+    instance->state = furi_state_alloc(sizeof(IntercomStatus));
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, intercom_custom_event_callback, instance);
@@ -150,17 +135,20 @@ static Intercom* intercom_alloc(void) {
 
     intercom_init_channels(instance);
 
+    intercom_set_status(instance, IntercomStatusUnknown);
+    furi_state_subscribe(instance->state, intercom_state_callback, instance);
+
     // dont't hold up the rest of the system
     furi_record_create(RECORD_INTERCOM, instance);
-
-    if(intercom_do_sync(instance)) {
-        intercom_start_rx_thread(instance);
-    }
 
     return instance;
 }
 
 // Private API
+
+void intercom_set_status(Intercom* instance, IntercomStatus new_status) {
+    with_furi_state(instance->state, IntercomStatus * status, { *status = new_status; });
+}
 
 size_t intercom_tx_internal(
     Intercom* instance,
@@ -236,14 +224,9 @@ IntercomChannel* intercom_channel_open(
     return channel;
 }
 
-FuriPubSub* intercom_get_pubsub(Intercom* instance) {
+FuriState* intercom_get_state(const Intercom* instance) {
     furi_check(instance);
-    return instance->pubsub;
-}
-
-bool intercom_is_in_sync(Intercom* instance) {
-    furi_check(instance);
-    return instance->is_in_sync;
+    return instance->state;
 }
 
 // Service thread
