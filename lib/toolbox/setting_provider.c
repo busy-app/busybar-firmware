@@ -508,8 +508,8 @@ static void setting_load_enum(
     void* value) {
     const SettingProviderEnumInterface* interface = setting->interface;
 
+    FuriString* read_value = furi_string_alloc();
     do {
-        FuriString* read_value = furi_string_alloc();
         int parsed_value = interface->default_value;
         if(!json_read_string(json_node, setting->name, read_value)) {
             FURI_LOG_W(TAG, "Failed to load \"%s\" as string...", setting->name);
@@ -526,6 +526,7 @@ static void setting_load_enum(
 
         setting_reset_enum(provider, json_node, setting, value);
     } while(false);
+    furi_string_free(read_value);
 }
 
 static bool setting_save_enum(

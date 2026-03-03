@@ -169,6 +169,8 @@ static BrightnessControl* brightness_control_alloc(void) {
     instance->last_light_sensor_level = light_sensor_get_light_level();
 #else
     UNUSED(light_sensor_event);
+    instance->last_light_sensor_level = 0;
+    instance->light_sensor_events = NULL;
 #endif
 
     instance->setting_provider = setting_provider_alloc(

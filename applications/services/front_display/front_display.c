@@ -29,7 +29,6 @@
 #endif
 
 struct FrontDisplaySrv {
-    uint32_t sensor_level;
     Power* power;
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* transition_timer;
@@ -298,7 +297,6 @@ static FrontDisplaySrv* front_display_alloc(void) {
     FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
 
     instance->brightness_override = FRONT_DISPLAY_BRIGHTNESS_MAX;
-    instance->sensor_level = 0;
 
     instance->event_loop = furi_event_loop_alloc();
     instance->transition_timer = furi_event_loop_timer_alloc(

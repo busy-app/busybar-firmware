@@ -48,8 +48,8 @@ void back_display_sleep_mode(BackDisplaySrv* instance, bool sleep);
 /**
  * @brief Set the back display contrast
  * 
- * @param instance Pointer to the FrontDisplaySrv instance
- * @param contrast Contrast value
+ * @param instance back display service instance
+ * @param contrast contrast value
  */
 void back_display_set_contrast(BackDisplaySrv* instance, BackDisplayContrast contrast);
 

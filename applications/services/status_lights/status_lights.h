@@ -34,8 +34,7 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
  * @brief Set the status lights brightness
  *
  * @param instance Pointer to the StatusLights instance
- * @param brightness Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX),
- * or STATUS_LIGHTS_BRIGHTNESS_AUTO to enable automatic brightness
+ * @param brightness Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX)
  */
 void status_lights_set_brightness(StatusLights* instance, StatusLightsBrightness brightness);
 
@@ -43,8 +42,7 @@ void status_lights_set_brightness(StatusLights* instance, StatusLightsBrightness
  * @brief Get the status lights brightness
  *
  * @param instance Pointer to the StatusLights instance
- * @return Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX),
- * or STATUS_LIGHTS_BRIGHTNESS_AUTO if automatic brightness is enabled
+ * @return Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX)
  */
 StatusLightsBrightness status_lights_get_brightness(StatusLights* instance);
 

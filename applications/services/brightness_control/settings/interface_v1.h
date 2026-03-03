@@ -6,7 +6,7 @@ typedef enum {
     BrightnessSettingIdxBrightness,
 
     BrightnessSettingIdxCount
-} SntpSettingV1Idx;
+} BrightnessSettingV1Idx;
 
 typedef struct {
     BrightnessControlBrightnessMode mode;
