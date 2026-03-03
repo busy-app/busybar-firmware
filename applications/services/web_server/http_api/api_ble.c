@@ -13,7 +13,7 @@ const char* ble_status_names[BleServiceStatusCount] = {
     [BleServiceStatusInitialization] = "initialization",
     [BleServiceStatusReady] = "disabled",
     [BleServiceStatusAdvertising] = "enabled",
-    [BleServiceStatusConnecting] = "connecting",
+    [BleServiceStatusConnectable] = "connectable",
     [BleServiceStatusConnected] = "connected",
     [BleServiceStatusError] = "internal error",
 };

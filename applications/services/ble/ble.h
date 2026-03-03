@@ -16,7 +16,7 @@ typedef enum {
     U5 also sends init data to 917 to help him create its services */
     BleServiceStatusReady, /*All init sequences are done. All inner services configured, and both u5 and 917 ready to work. But ble still disabled*/
     BleServiceStatusAdvertising, /*Ble enabled, device not paired and is visible to all.*/
-    BleServiceStatusConnecting, /*Ble enabled, device is paired and waits for remote device to connect.*/
+    BleServiceStatusConnectable, /*Ble enabled, device is paired and waits for remote device to connect.*/
     BleServiceStatusConnected, /*Remote device connected to bsb over ble*/
     BleServiceStatusError, /*Error occured.*/
 

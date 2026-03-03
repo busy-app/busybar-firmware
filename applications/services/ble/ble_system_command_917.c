@@ -24,7 +24,7 @@ static void
         instance->status = BleServiceStatusConnected;
     } else {
         const bool paired = ble_worker_pairing_exists();
-        instance->status = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
+        instance->status = paired ? BleServiceStatusConnectable : BleServiceStatusAdvertising;
     }
 
     BleIntercomFrameGeneric* frame = &instance->mailbox;
@@ -90,7 +90,7 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     ble_worker_start();
 
     const bool paired = ble_worker_pairing_exists();
-    instance->status = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
+    instance->status = paired ? BleServiceStatusConnectable : BleServiceStatusAdvertising;
 
     frame->header.data_size = 0;
     frame->header.result = true;

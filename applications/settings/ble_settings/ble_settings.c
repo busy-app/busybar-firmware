@@ -152,7 +152,7 @@ static void ble_settings_set_icon_by_status(
     } else if(status == BleServiceStatusAdvertising) {
         icon.front = "ble_front_8x8.bin";
         icon.back = "ble_back_12x12.bin";
-    } else if(status == BleServiceStatusConnecting) {
+    } else if(status == BleServiceStatusConnectable) {
         icon.front = "ble_front_paired_8x8.bin";
         icon.back = "ble_back_pairing_12x12.bin";
     } else if(status == BleServiceStatusConnected) {
