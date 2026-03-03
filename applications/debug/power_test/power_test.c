@@ -6,7 +6,7 @@
 #include <gui/modules/label.h>
 #include <gui/modules/canvas.h>
 #include <power/power_service/power.h>
-#include <front_display/front_display.h>
+#include <brightness_control/brightness_control.h>
 
 #define TAG "PowerTest"
 
@@ -101,9 +101,10 @@ static void power_test_canvas_enter(PowerTest* instance) {
         canvas_fill(instance->canvas_front);
     });
 
-    FrontDisplaySrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
-    front_display_set_brightness(srv, FRONT_DISPLAY_BRIGHTNESS_MAX);
-    furi_record_close(RECORD_FRONT_DISPLAY);
+    BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
+    brightness_control_set_brightness_override(
+        srv, BrightnessControlModuleFrontDisplay, BRIGHTNESS_MAX);
+    furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 }
 
 static void power_test_canvas_exit(PowerTest* instance) {
@@ -114,9 +115,9 @@ static void power_test_canvas_exit(PowerTest* instance) {
         instance->canvas_front = NULL;
     });
 
-    FrontDisplaySrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
-    front_display_set_brightness(srv, FRONT_DISPLAY_BRIGHTNESS_AUTO);
-    furi_record_close(RECORD_FRONT_DISPLAY);
+    BrightnessControl* srv = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
+    brightness_control_reset_brightness_override(srv, BrightnessControlModuleFrontDisplay);
+    furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 }
 
 static void power_test_info_update(PowerTest* instance) {

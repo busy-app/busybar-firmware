@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 9.0.0
+  version: 10.0.0
   contact:
     name: tbd
 
@@ -2499,7 +2499,7 @@ components:
     BleStatusResponse:
       type: object
       properties:
-        state:
+        status:
           type: string
           enum:
             [
@@ -2507,6 +2507,7 @@ components:
               "initialization",
               "disabled",
               "enabled",
+              "connectable",
               "connected",
               "internal error",
             ]
@@ -2514,10 +2515,8 @@ components:
         address:
           type: string
           example: 50:DA:D6:FE:DD:A9
-        pairing:
-          type: string
-          enum: ["unknown", "not paired", "paired"]
-          example: paired
+      required:
+        - status
 
     BusySnapshot:
       type: object

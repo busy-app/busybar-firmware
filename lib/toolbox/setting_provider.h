@@ -27,6 +27,7 @@ typedef enum {
     SettingProviderSettingTypeFloat, ///< Floating-point value with validation
     SettingProviderSettingTypeString, ///< C-string (char array) with validation
     SettingProviderSettingTypeFuriString, ///< FuriString value with validation
+    SettingProviderSettingTypeEnum, ///< Enumeration represented as a string
     SettingProviderSettingTypeCustom, ///< Custom type with serialize/deserialize
     /* TODO: SettingProviderSettingTypeArray */
     /* TODO: SettingProviderSettingTypeRaw */
@@ -99,6 +100,17 @@ typedef struct {
      */
     bool (*is_valid_callback)(const SettingProviderSetting* setting, const FuriString* value);
 } SettingProviderFuriStringInterface;
+
+/**
+ * @brief Interface for Enum settings
+ */
+typedef struct {
+    int default_value; ///< Default value to use when loading fails or validation fails
+
+    int count; ///< Enumeration variants count
+
+    const char* const* names; ///< Array of strings representing each enum variant.
+} SettingProviderEnumInterface;
 
 /**
  * @brief Interface for custom type settings
