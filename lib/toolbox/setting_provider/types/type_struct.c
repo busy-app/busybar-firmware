@@ -27,8 +27,12 @@ SETTING_SAVE_DECLARATION(type_struct, json_node, setting, value) {
     if(setting->name) {
         json_write_object(json_node, setting->name, _json_node);
     } else {
-        cJSON_Delete(json_node->child);
-        json_node->child = _json_node->child;
+        for(cJSON* json_item = _json_node->child; json_item;) {
+            cJSON* next_json_item = json_item->next;
+            json_write_object(json_node, json_item->string, json_item);
+            json_item = next_json_item;
+        }
+
         cJSON_free(_json_node);
     }
 
