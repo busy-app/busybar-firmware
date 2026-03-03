@@ -150,9 +150,11 @@ static void ble_settings_set_icon_by_status(
         icon.front = "ble_front_gray_8x8.bin";
         icon.back = "ble_back_12x12.bin";
     } else if(status->state == BleServiceStateAdvertising) {
-        const bool paired = status->pairing == BlePairingStatePaired;
-        icon.front = paired ? "ble_front_paired_8x8.bin" : "ble_front_8x8.bin";
-        icon.back = paired ? "ble_back_pairing_12x12.bin" : "ble_back_12x12.bin";
+        icon.front = "ble_front_8x8.bin";
+        icon.back = "ble_back_12x12.bin";
+    } else if(status->state == BleServiceStateConnecting) {
+        icon.front = "ble_front_paired_8x8.bin";
+        icon.back = "ble_back_pairing_12x12.bin";
     } else if(status->state == BleServiceStateConnected) {
         icon.front = "ble_front_checkmark_8x8.bin";
         icon.back = "ble_back_paired_11x11.bin";

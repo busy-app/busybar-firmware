@@ -13,14 +13,9 @@ const char* ble_state_names[BleServiceStateCount] = {
     [BleServiceStateInitialization] = "initialization",
     [BleServiceStateReady] = "disabled",
     [BleServiceStateAdvertising] = "enabled",
+    [BleServiceStateConnecting] = "connecting",
     [BleServiceStateConnected] = "connected",
     [BleServiceStateError] = "internal error",
-};
-
-const char* ble_pairing_state_names[BlePairingStateCount] = {
-    [BlePairingStateUnkown] = "unknown",
-    [BlePairingStateNotPaired] = "not paired",
-    [BlePairingStatePaired] = "paired",
 };
 
 static bool api_ble_enable_callback(
@@ -104,7 +99,6 @@ static bool api_ble_get_state_callback(
             cJSON_AddStringToObject(
                 response, "address", (const char*)status.remote_device_address);
         }
-        cJSON_AddStringToObject(response, "pairing", ble_pairing_state_names[status.pairing]);
 
         char* buf = cJSON_Print(response);
         furi_check(buf);

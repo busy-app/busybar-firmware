@@ -103,7 +103,9 @@ void ble_model_get_status(BleModel* model, BleStatus* output) {
 bool ble_model_is_device_paired(BleModel* model) {
     furi_assert(model);
     furi_mutex_acquire(model->lock, FuriWaitForever);
-    bool result = model->status.pairing == BlePairingStatePaired;
+    bool result =
+        (model->status.state == BleServiceStateConnected ||
+         model->status.state == BleServiceStateConnecting);
     furi_mutex_release(model->lock);
     return result;
 }

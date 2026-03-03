@@ -15,20 +15,13 @@ typedef enum {
     BleServiceStateInitialization, /* Service performs initialization sequence for all inner ble services.
     U5 also sends init data to 917 to help him create its services */
     BleServiceStateReady, /*All init sequences are done. All inner services configured, and both u5 and 917 ready to work. But ble still disabled*/
-    BleServiceStateAdvertising, /*User enabled ble, device start advertising.*/
+    BleServiceStateAdvertising, /*Ble enabled, device not paired and is visible to all.*/
+    BleServiceStateConnecting, /*Ble enabled, device is paired and waits for remote device to connect.*/
     BleServiceStateConnected, /*Remote device connected to bsb over ble*/
     BleServiceStateError, /*Error occured.*/
 
     BleServiceStateCount, /*Total amount of states. Used in some cyclic operations*/
 } BleServiceState;
-
-typedef enum {
-    BlePairingStateUnkown,
-    BlePairingStateNotPaired,
-    BlePairingStatePaired,
-
-    BlePairingStateCount
-} BlePairingState;
 
 typedef enum {
     BleUartChannelNordic,
@@ -39,7 +32,6 @@ typedef enum {
 
 typedef struct {
     BleServiceState state;
-    BlePairingState pairing;
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 } BleStatus;
 

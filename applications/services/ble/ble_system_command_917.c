@@ -20,7 +20,12 @@ static void
     furi_mutex_acquire(instance->ble_lock, FuriWaitForever);
     furi_semaphore_acquire(instance->mailbox_lock, FuriWaitForever);
 
-    instance->state = connected ? BleServiceStateConnected : BleServiceStateAdvertising;
+    if(connected) {
+        instance->state = BleServiceStateConnected;
+    } else {
+        const bool paired = ble_worker_pairing_exists();
+        instance->state = paired ? BleServiceStateConnecting : BleServiceStateAdvertising;
+    }
 
     BleIntercomFrameGeneric* frame = &instance->mailbox;
     frame->header.frame_type = BleIntercomFrameTypeRequest;
@@ -31,8 +36,7 @@ static void
 
     BleStatus* status = (BleStatus*)frame->data;
     status->state = instance->state;
-    status->pairing = ble_worker_pairing_exists() ? BlePairingStatePaired :
-                                                    BlePairingStateNotPaired;
+
     memcpy(
         status->remote_device_address, remote_dev_address, BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
     memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_STRING_SIZE);
@@ -85,7 +89,9 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
 
     ble_worker_start();
 
-    instance->state = BleServiceStateAdvertising;
+    const bool paired = ble_worker_pairing_exists();
+    instance->state = paired ? BleServiceStateConnecting : BleServiceStateAdvertising;
+
     frame->header.data_size = 0;
     frame->header.result = true;
 
@@ -129,12 +135,6 @@ static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void*
 
     BleStatus* response = (BleStatus*)frame->data;
     response->state = instance->state;
-    if(instance->state != BleServiceStateReset) {
-        response->pairing = ble_worker_pairing_exists() ? BlePairingStatePaired :
-                                                          BlePairingStateNotPaired;
-    } else {
-        response->pairing = BlePairingStateUnkown;
-    }
 
     memcpy(
         response->remote_device_address,
