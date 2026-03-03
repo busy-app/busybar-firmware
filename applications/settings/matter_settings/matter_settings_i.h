@@ -20,6 +20,8 @@
 #include "scenes/matter_scenes.h"
 #include "helpers/wifi_poller.h"
 
+#include "../wifi_settings/wifi_settings.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
