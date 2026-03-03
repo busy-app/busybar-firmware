@@ -122,7 +122,7 @@ static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* conte
         result = ble_command_request_process(frame, context);
     } else if(
         state == BleServiceStatusReady || state == BleServiceStatusAdvertising ||
-        state == BleServiceStatusConnected) {
+        state == BleServiceStatusConnected || state == BleServiceStatusConnectable) {
         instance->current_command->header.result = true;
         api_lock_unlock(instance->current_command_api_lock);
     } else if(state == BleServiceStatusError) {
@@ -158,7 +158,9 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     bool result = false;
     if(state == BleServiceStatusReady) {
         result = ble_command_request_process(frame, context);
-    } else if(state == BleServiceStatusAdvertising || state == BleServiceStatusConnected) {
+    } else if(
+        state == BleServiceStatusAdvertising || state == BleServiceStatusConnected ||
+        state == BleServiceStatusConnectable) {
         instance->current_command->header.result = true;
         api_lock_unlock(instance->current_command_api_lock);
     } else if(state == BleServiceStatusError) {
