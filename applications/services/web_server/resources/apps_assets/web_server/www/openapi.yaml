@@ -2515,6 +2515,8 @@ components:
         address:
           type: string
           example: 50:DA:D6:FE:DD:A9
+      required:
+        - status
 
     BusySnapshot:
       type: object
