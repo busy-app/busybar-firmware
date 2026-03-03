@@ -87,7 +87,7 @@
           </template>
         </UInput>
 
-        <div class="absolute text-sm top-1.5 left-[36px]">
+        <div class="absolute text-sm top-1.5 left-9">
           <span>/</span><span
             class="cursor-pointer hover:underline mr-[0.5px]"
             @click="list('/ext')"
