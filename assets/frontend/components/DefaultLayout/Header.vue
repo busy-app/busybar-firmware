@@ -13,7 +13,7 @@
       <div
         v-if="power"
         data-id="layout-default-header-power"
-        class="flex items-center gap-1.5"
+        class="hidden md:flex items-center gap-1.5"
       >
         <div class="relative flex">
           <BatteryIndicator
