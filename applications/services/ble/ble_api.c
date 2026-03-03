@@ -78,7 +78,7 @@ bool ble_forget(Ble* ble) {
         BleStatus status = {0};
         if(!ble_get_status(ble, &status)) break;
 
-        if(status.state != BleServiceStateError && status.state != BleServiceStateReset) {
+        if(status.state != BleServiceStatusError && status.state != BleServiceStatusReset) {
             ble_send_message(ble, BleCommandForgetPairing, NULL, 0, &result);
         }
     } while(false);

@@ -11,17 +11,17 @@
 #define BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE (18)
 
 typedef enum {
-    BleServiceStateReset, /*Service was just created. Will move to BleServiceStateInitialization when it will create all inner objects*/
-    BleServiceStateInitialization, /* Service performs initialization sequence for all inner ble services.
+    BleServiceStatusReset, /*Service was just created. Will move to BleServiceStatusInitialization when it will create all inner objects*/
+    BleServiceStatusInitialization, /* Service performs initialization sequence for all inner ble services.
     U5 also sends init data to 917 to help him create its services */
-    BleServiceStateReady, /*All init sequences are done. All inner services configured, and both u5 and 917 ready to work. But ble still disabled*/
-    BleServiceStateAdvertising, /*Ble enabled, device not paired and is visible to all.*/
-    BleServiceStateConnecting, /*Ble enabled, device is paired and waits for remote device to connect.*/
-    BleServiceStateConnected, /*Remote device connected to bsb over ble*/
-    BleServiceStateError, /*Error occured.*/
+    BleServiceStatusReady, /*All init sequences are done. All inner services configured, and both u5 and 917 ready to work. But ble still disabled*/
+    BleServiceStatusAdvertising, /*Ble enabled, device not paired and is visible to all.*/
+    BleServiceStatusConnecting, /*Ble enabled, device is paired and waits for remote device to connect.*/
+    BleServiceStatusConnected, /*Remote device connected to bsb over ble*/
+    BleServiceStatusError, /*Error occured.*/
 
-    BleServiceStateCount, /*Total amount of states. Used in some cyclic operations*/
-} BleServiceState;
+    BleServiceStatusCount, /*Total amount of states. Used in some cyclic operations*/
+} BleServiceStatus;
 
 typedef enum {
     BleUartChannelNordic,
@@ -31,7 +31,7 @@ typedef enum {
 } BleUartChannel;
 
 typedef struct {
-    BleServiceState state;
+    BleServiceStatus state;
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 } BleStatus;
 

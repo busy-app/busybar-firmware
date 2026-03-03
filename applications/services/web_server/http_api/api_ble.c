@@ -8,14 +8,14 @@ typedef struct {
     HttpHandlersList_t handlers;
 } ApiBleCtx;
 
-const char* ble_state_names[BleServiceStateCount] = {
-    [BleServiceStateReset] = "reset",
-    [BleServiceStateInitialization] = "initialization",
-    [BleServiceStateReady] = "disabled",
-    [BleServiceStateAdvertising] = "enabled",
-    [BleServiceStateConnecting] = "connecting",
-    [BleServiceStateConnected] = "connected",
-    [BleServiceStateError] = "internal error",
+const char* ble_state_names[BleServiceStatusCount] = {
+    [BleServiceStatusReset] = "reset",
+    [BleServiceStatusInitialization] = "initialization",
+    [BleServiceStatusReady] = "disabled",
+    [BleServiceStatusAdvertising] = "enabled",
+    [BleServiceStatusConnecting] = "connecting",
+    [BleServiceStatusConnected] = "connected",
+    [BleServiceStatusError] = "internal error",
 };
 
 static bool api_ble_enable_callback(
@@ -87,7 +87,7 @@ static bool api_ble_get_state_callback(
             break;
         }
 
-        if(status.state == BleServiceStateError) {
+        if(status.state == BleServiceStatusError) {
             MG_REPLY_ERROR(conn, 400, ble_state_names[status.state]);
             break;
         }
@@ -95,7 +95,7 @@ static bool api_ble_get_state_callback(
         cJSON* response = cJSON_CreateObject();
 
         cJSON_AddStringToObject(response, "state", ble_state_names[status.state]);
-        if(status.state == BleServiceStateConnected) {
+        if(status.state == BleServiceStatusConnected) {
             cJSON_AddStringToObject(
                 response, "address", (const char*)status.remote_device_address);
         }

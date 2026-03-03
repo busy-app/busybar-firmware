@@ -32,7 +32,7 @@ typedef void (
     *BleServicePostProcessCallback)(BleServiceObject* service, bool result, void* extra_context);
 
 struct Ble {
-    BleServiceState state;
+    BleServiceStatus state;
     FuriMutex* ble_lock;
     FuriSemaphore* mailbox_lock;
     BleIntercomFrameGeneric mailbox;

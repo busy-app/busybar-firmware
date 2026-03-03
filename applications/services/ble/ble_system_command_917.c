@@ -21,10 +21,10 @@ static void
     furi_semaphore_acquire(instance->mailbox_lock, FuriWaitForever);
 
     if(connected) {
-        instance->state = BleServiceStateConnected;
+        instance->state = BleServiceStatusConnected;
     } else {
         const bool paired = ble_worker_pairing_exists();
-        instance->state = paired ? BleServiceStateConnecting : BleServiceStateAdvertising;
+        instance->state = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
     }
 
     BleIntercomFrameGeneric* frame = &instance->mailbox;
@@ -58,7 +58,7 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
     }
 
     if(total_ready == BLE_SERVICES_COUNT) {
-        instance->state = BleServiceStateReady;
+        instance->state = BleServiceStatusReady;
         ble_set_service_post_process_callback(instance, NULL);
 #ifdef BLE_DEBUG_PRINT_SERVICE_DATA_AFTER_INIT
         ble_print_service_hierarchy();
@@ -90,7 +90,7 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     ble_worker_start();
 
     const bool paired = ble_worker_pairing_exists();
-    instance->state = paired ? BleServiceStateConnecting : BleServiceStateAdvertising;
+    instance->state = paired ? BleServiceStatusConnecting : BleServiceStatusAdvertising;
 
     frame->header.data_size = 0;
     frame->header.result = true;
@@ -111,7 +111,7 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
 
     ble_worker_stop();
 
-    instance->state = BleServiceStateReady;
+    instance->state = BleServiceStatusReady;
     frame->header.data_size = 0;
     frame->header.result = true;
 

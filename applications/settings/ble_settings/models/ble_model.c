@@ -104,8 +104,8 @@ bool ble_model_is_device_paired(BleModel* model) {
     furi_assert(model);
     furi_mutex_acquire(model->lock, FuriWaitForever);
     bool result =
-        (model->status.state == BleServiceStateConnected ||
-         model->status.state == BleServiceStateConnecting);
+        (model->status.state == BleServiceStatusConnected ||
+         model->status.state == BleServiceStatusConnecting);
     furi_mutex_release(model->lock);
     return result;
 }
