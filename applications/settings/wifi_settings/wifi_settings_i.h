@@ -1,5 +1,5 @@
 /**
- * @brief Account settings app
+ * @brief Wifi settings app
  */
 
 #pragma once
@@ -18,10 +18,9 @@
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
 
-#include "scenes/account_scenes.h"
-#include "models/account_model.h"
-
-#include <time.h>
+#include "wifi_settings.h"
+#include "scenes/wifi_scenes.h"
+#include "models/wifi_model.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,15 +28,11 @@ extern "C" {
 
 typedef enum {
     AppEventAboutToExit,
-    AppEventAccountStateChange,
-    AppEventAccountLinkPin,
-    AppEventAccountLinkPinTimeout,
-    AppEventAccountLinkDone,
-    AppEventAccountUnlinked,
+    AppEventWifiStateChange,
     AppEventSceneEventsStart,
 } AppEvent;
 
-#define THIS_SETTINGS_APP "account_settings"
+#define THIS_SETTINGS_APP WIFI_SETTINGS_APP
 #define ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_SETTINGS_APP) "/" path
 #define IMG_PATH(path)    ASSETS_PATH("images") "/" path
 
@@ -59,15 +54,10 @@ typedef struct {
 
     NavBar* back_nav_bar;
 
-    AccountModel* model;
+    WifiModel* model;
+} WifiSettings;
 
-    char link_pin[ACCOUNT_MODEL_LINK_PIN_LEN + 1];
-    time_t pin_valid_untill;
-} AccountSettings;
-
-void account_settings_send_custom_event(AccountSettings* instance, uint32_t event);
-
-void account_settings_get_short_email(AccountSettings* instance, FuriString* mail_str);
+void wifi_settings_send_custom_event(WifiSettings* instance, uint32_t event);
 
 #ifdef __cplusplus
 }
