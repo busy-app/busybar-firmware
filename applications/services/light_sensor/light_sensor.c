@@ -56,7 +56,7 @@ static void light_sensor_timer_callback(void* context) {
             instance->light_level);
         LightSensorEvent event = {
             .type = LightSensorEventTypeLightLevelChanged,
-            .light_level = instance->light_level,
+            .light_level = {instance->light_level},
         };
 
         furi_pubsub_publish(instance->pubsub, &event);
@@ -125,10 +125,10 @@ float light_sensor_get_lux_instant(void) {
     return light_sensor_data_get_lux_instant(light_sensor->data);
 }
 
-uint8_t light_sensor_get_light_level(void) {
+LightSensorLevel light_sensor_get_light_level(void) {
     furi_check(light_sensor);
 
-    return light_sensor_data_get_light_level(light_sensor->data);
+    return (LightSensorLevel){light_sensor_data_get_light_level(light_sensor->data)};
 }
 
 bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* raw) {

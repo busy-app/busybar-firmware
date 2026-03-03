@@ -1,4 +1,4 @@
-#include "account_settings.h"
+#include "account_settings_i.h"
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 #include <wifi/wifi.h>
@@ -120,6 +120,18 @@ static void account_settings_account_event_callback(
         furi_message_queue_put(instance->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
 }
 
+static void wifi_event_callback(const void* state, void* context) {
+    AccountSettings* instance = context;
+    furi_assert(instance);
+
+    const WifiInfo* info = state;
+    if(info->state == WifiStateDisconnected) {
+        AccountSettingsEvent evt = {.event = AppEventWifiDisconnected};
+        furi_check(
+            furi_message_queue_put(instance->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
+    }
+}
+
 static AccountSettings* account_settings_alloc() {
     AccountSettings* instance = malloc(sizeof(AccountSettings));
     instance->event_loop = furi_event_loop_alloc();
@@ -172,15 +184,18 @@ static AccountSettings* account_settings_alloc() {
     account_model_set_event_callback(
         instance->model, account_settings_account_event_callback, instance);
 
+    WifiInfo wifi_info;
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    wifi_get_info(wifi, &wifi_info);
+    instance->wifi_state_sub =
+        furi_state_subscribe(wifi_get_state(wifi), wifi_event_callback, instance);
+    furi_record_close(RECORD_WIFI);
+
     if(account_model_is_linked(instance->model)) {
         scene_manager_next_scene(instance->scene_manager, SceneIdLinkedInfo);
     } else {
-        // TODO: Use wifi model?
-        WifiInfo wifi_info;
-        wifi_get_info(furi_record_open(RECORD_WIFI), &wifi_info);
-        furi_record_close(RECORD_WIFI);
         if(wifi_info.state == WifiStateDisconnected) {
-            scene_manager_next_scene(instance->scene_manager, SceneIdNoWifi);
+            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
         } else {
             AccountModelState state = account_model_get_state(instance->model);
             if(state == AccountModelStateConnectedNotLinked) {
@@ -208,6 +223,7 @@ static void account_settings_free(AccountSettings* instance) {
     });
 
     account_model_free(instance->model);
+    furi_state_unsubscribe(instance->wifi_state_sub);
 
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_GUI);

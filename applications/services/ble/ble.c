@@ -28,7 +28,7 @@ static void
         furi_string_free(buf);
 
         BLE_LOG_W("Error: %s", furi_string_get_cstr(instance->error));
-        instance->state = BleServiceStateError;
+        instance->status = BleServiceStatusError;
 
         if(api_lock_is_locked(instance->current_command_api_lock)) {
             instance->current_command->header.result = false;
@@ -113,7 +113,7 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
 
 static Ble* ble_alloc() {
     Ble* instance = malloc(sizeof(Ble));
-    instance->state = BleServiceStateReset;
+    instance->status = BleServiceStatusReset;
     instance->event_loop = furi_event_loop_alloc();
     instance->mailbox_lock = furi_semaphore_alloc(1, 1);
     instance->ble_lock = furi_mutex_alloc(FuriMutexTypeNormal);

@@ -644,6 +644,84 @@ MU_TEST(setting_provider_test_furi_string_validation) {
     }
 }
 
+typedef enum {
+    TestEnumHello,
+    TestEnumWorld,
+    TestEnumDefault,
+
+    TestEnumCount
+} TestEnum;
+
+static const char* const test_enum_names[TestEnumCount] = {
+    [TestEnumHello] = "hello",
+    [TestEnumWorld] = "world",
+    [TestEnumDefault] = "default",
+};
+
+/* test enum operations */
+MU_TEST(setting_provider_test_enum) {
+    setting_provider_open(provider);
+
+    {
+        const SettingProviderSetting setting = {
+            .name = "test_enum_default",
+            .interface =
+                &(const SettingProviderEnumInterface){
+                    .default_value = TestEnumDefault,
+                    .count = TestEnumCount,
+                    .names = test_enum_names,
+                },
+            .context = NULL,
+            .field_offset = 0,
+            .type = SettingProviderSettingTypeEnum,
+        };
+        int value = TestEnumWorld;
+        setting_provider_load(provider, &setting, &value);
+        mu_assert_int_eq(TestEnumDefault, value);
+    }
+
+    {
+        const SettingProviderSetting setting = {
+            .name = "test_enum_saved",
+            .interface =
+                &(const SettingProviderEnumInterface){
+                    .default_value = TestEnumDefault,
+                    .count = TestEnumCount,
+                    .names = test_enum_names,
+                },
+            .context = NULL,
+            .field_offset = 0,
+            .type = SettingProviderSettingTypeEnum,
+        };
+        int value = TestEnumWorld;
+        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save enum");
+
+        value = TestEnumCount;
+        setting_provider_load(provider, &setting, &value);
+        mu_assert_int_eq(TestEnumWorld, value);
+    }
+
+    {
+        const SettingProviderSetting setting = {
+            .name = "test_enum_reset",
+            .interface =
+                &(const SettingProviderEnumInterface){
+                    .default_value = TestEnumDefault,
+                    .count = TestEnumCount,
+                    .names = test_enum_names,
+                },
+            .context = NULL,
+            .field_offset = 0,
+            .type = SettingProviderSettingTypeEnum,
+        };
+        int value = TestEnumHello;
+        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save enum");
+
+        setting_provider_reset(provider, &setting, &value);
+        mu_assert_int_eq(TestEnumDefault, value);
+    }
+}
+
 /* test custom type (RGB color) */
 MU_TEST(setting_provider_test_custom) {
     setting_provider_open(provider);
@@ -899,6 +977,7 @@ MU_TEST_SUITE(setting_provider_test_suite) {
     MU_RUN_TEST(setting_provider_test_string_validation);
     MU_RUN_TEST(setting_provider_test_furi_string);
     MU_RUN_TEST(setting_provider_test_furi_string_validation);
+    MU_RUN_TEST(setting_provider_test_enum);
     MU_RUN_TEST(setting_provider_test_custom);
     MU_RUN_TEST(setting_provider_test_structure);
     MU_RUN_TEST(setting_provider_test_drop);
