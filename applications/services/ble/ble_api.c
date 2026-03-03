@@ -42,12 +42,12 @@ static void ble_send_message(
     furi_mutex_release(instance->current_command_lock);
 }
 
-bool ble_get_status(Ble* ble, BleStatus* const output) {
+bool ble_get_state(Ble* ble, BleState* const output) {
     furi_assert(ble);
     furi_assert(output);
 
     bool result = false;
-    ble_send_message(ble, BleCommandGetStatus, output, sizeof(BleStatus), &result);
+    ble_send_message(ble, BleCommandGetStatus, output, sizeof(BleState), &result);
 
     return result;
 }
@@ -75,10 +75,10 @@ bool ble_forget(Ble* ble) {
 
     bool result = false;
     do {
-        BleStatus status = {0};
-        if(!ble_get_status(ble, &status)) break;
+        BleState state = {0};
+        if(!ble_get_state(ble, &state)) break;
 
-        if(status.state != BleServiceStateError && status.state != BleServiceStateReset) {
+        if(state.status != BleServiceStatusError && state.status != BleServiceStatusReset) {
             ble_send_message(ble, BleCommandForgetPairing, NULL, 0, &result);
         }
     } while(false);

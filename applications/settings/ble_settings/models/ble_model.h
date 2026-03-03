@@ -23,7 +23,7 @@ BleModel* ble_model_alloc(void);
 
 void ble_model_free(BleModel* model);
 
-void ble_model_get_status(BleModel* model, BleStatus* output);
+void ble_model_get_state(BleModel* model, BleState* output);
 
 void ble_model_get_name(BleModel* model, FuriString* name);
 
