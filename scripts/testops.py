@@ -363,10 +363,14 @@ class OpenOCDReset:
         """
         self._logger.info("Resetting device via OpenOCD...")
 
+        lock_file = os.environ.get("OPENOCD_LOCK_FILE")
+        lock_prefix = f"flock --timeout 120 {lock_file} " if lock_file else ""
+
         serial_opt = f'-c "adapter serial {self.serial}" ' if self.serial else ""
         reset_cmd = (
             f"cd {self.firmware_dir} && "
             f"source {self.toolchain_env} && "
+            f"{lock_prefix}"
             f"openocd "
             f"-f {self.interface} "
             f'-c "transport select swd" '
@@ -881,7 +885,6 @@ class BusyBarTestOps:
         )
         p_wait.set_defaults(func=self._cmd_wait)
 
-        # get-version
         p_ver = subparsers.add_parser(
             "get-version",
             help="Get firmware version from device via telnet",
