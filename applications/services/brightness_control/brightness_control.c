@@ -169,7 +169,7 @@ static BrightnessControl* brightness_control_alloc(void) {
     instance->last_light_sensor_level = light_sensor_get_light_level();
 #else
     UNUSED(light_sensor_event);
-    instance->last_light_sensor_level = 0;
+    instance->last_light_sensor_level = (LightSensorLevel){0};
     instance->light_sensor_events = NULL;
 #endif
 
@@ -224,7 +224,11 @@ static void load_config(BrightnessControl* instance) {
     setting_provider_load(instance->setting_provider, &BRIGHTNESS_SETTINGS_ROOT, &settings);
     setting_provider_close(instance->setting_provider);
 
+#if defined(SRV_LIGHT_SENSOR)
     instance->is_auto = settings.mode == BrightnessControlBrightnessModeAuto;
+#else
+    instance->is_auto = false;
+#endif
     instance->manual_brightness = brightness_conv_int_to_user_clamped(settings.brightness);
 }
 
@@ -241,11 +245,15 @@ static void save_config(const BrightnessControl* instance) {
 }
 
 static InternalBrightness get_effective_brightness(const BrightnessControl* instance) {
+#if defined(SRV_LIGHT_SENSOR)
     if(instance->is_auto) {
         return brightness_conv_light_sensor_to_internal(instance->last_light_sensor_level);
     } else {
         return brightness_conv_user_to_internal(instance->manual_brightness);
     }
+#else
+    return brightness_conv_user_to_internal(instance->manual_brightness);
+#endif
 }
 
 static InternalBrightness apply_override(
