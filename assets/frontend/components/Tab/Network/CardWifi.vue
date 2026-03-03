@@ -573,7 +573,8 @@ const networkContent = computed(() => [
     {
       title: 'IP address',
       value: wifiStore.wifi?.ip_config?.address,
-      loading: !wifiStore.wifi
+      loading: !wifiStore.wifi,
+      class: 'overflow-visible whitespace-normal break-all'
     },
     {
       title: 'Channel',
@@ -590,7 +591,8 @@ const networkContent = computed(() => [
     {
       title: 'BSSID',
       value: wifiStore.wifi?.bssid,
-      loading: !wifiStore.wifi
+      loading: !wifiStore.wifi,
+      class: 'overflow-visible whitespace-normal break-all'
     },
     {
       title: 'Signal strength',

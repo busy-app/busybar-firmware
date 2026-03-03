@@ -63,23 +63,25 @@ const generalContent = computed(() => [
       title: 'Serial number',
       value: device.value?.serial_number,
       loading: !device.value,
-      // never truncate serial number
       class: 'overflow-visible whitespace-normal break-all'
     },
     {
       title: 'Mac address [Bluetooth]',
       value: device.value?.ble_mac,
-      loading: !device.value
+      loading: !device.value,
+      class: 'overflow-visible whitespace-normal break-all'
     },
     {
       title: 'Mac address [Wi-Fi]',
       value: device.value?.wifi_mac,
-      loading: !device.value
+      loading: !device.value,
+      class: 'overflow-visible whitespace-normal break-all'
     },
     {
       title: 'Mac address [USB]',
       value: device.value?.usb_mac,
-      loading: !device.value
+      loading: !device.value,
+      class: 'overflow-visible whitespace-normal break-all'
     },
     {
       title: 'Hardware version',
@@ -171,7 +173,8 @@ const networkContent = computed(() => {
         {
           title: 'IP address',
           value: wifiStore.wifi?.ip_config?.address,
-          loading: !wifiStore.wifi
+          loading: !wifiStore.wifi,
+          class: 'overflow-visible whitespace-normal break-all'
         },
         {
           title: 'Channel',
@@ -188,7 +191,8 @@ const networkContent = computed(() => {
         {
           title: 'BSSID',
           value: wifiStore.wifi?.bssid,
-          loading: !wifiStore.wifi
+          loading: !wifiStore.wifi,
+          class: 'overflow-visible whitespace-normal break-all'
         },
         {
           title: 'Signal strength',
