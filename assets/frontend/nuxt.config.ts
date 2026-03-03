@@ -34,6 +34,9 @@ export default defineNuxtConfig({
     colorMode: true,
     fonts: false
   },
+  colorMode: {
+    preference: 'dark'
+  },
   runtimeConfig: {
     public: {
       barUrl: '',
