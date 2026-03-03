@@ -12,7 +12,7 @@ SETTING_SAVE_DECLARATION(type_struct, json_node, setting, value) {
     furi_check(interface->inner_settings || interface->inner_settings_count == 0);
 
     if(!is_value_valid(setting, value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" save attempt.", setting->name ?: "<anonymous>");
+        FURI_LOG_W(TAG, "Invalid \"%s\" struct save attempt.", setting->name ?: "<anonymous>");
         return false;
     }
 
@@ -43,7 +43,7 @@ SETTING_LOAD_DECLARATION(type_struct, json_node, setting, value) {
     cJSON* inner_json_node;
     if(setting->name) {
         if(!json_read_object(json_node, setting->name, &inner_json_node)) {
-            FURI_LOG_W(TAG, "Failed to load \"%s\" as structure.", setting->name ?: "<anonymous>");
+            FURI_LOG_W(TAG, "Failed to load \"%s\" as struct.", setting->name ?: "<anonymous>");
             return false;
         }
     } else {
@@ -55,7 +55,7 @@ SETTING_LOAD_DECLARATION(type_struct, json_node, setting, value) {
     }
 
     if(!is_value_valid(setting, value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" value.", setting->name ?: "<anonymous>");
+        FURI_LOG_W(TAG, "Invalid \"%s\" struct value.", setting->name ?: "<anonymous>");
         return false;
     }
 
@@ -67,7 +67,7 @@ SETTING_RESET_DECLARATION(type_struct, json_node, setting, value) {
 
     furi_check(interface->inner_settings || interface->inner_settings_count == 0);
 
-    FURI_LOG_D(TAG, "Loading default for \"%s\"...", setting->name ?: "<anonymous>");
+    FURI_LOG_D(TAG, "Loading default for \"%s\" struct...", setting->name ?: "<anonymous>");
 
     cJSON* inner_json_node;
     if(setting->name) {

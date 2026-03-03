@@ -11,7 +11,7 @@ SETTING_SAVE_DECLARATION(type_custom, json_node, setting, value) {
 
     do {
         if(!interface->serialize_callback(setting, _value, value)) {
-            FURI_LOG_W(TAG, "Invalid \"%s\" value save attempt.", setting->name);
+            FURI_LOG_W(TAG, "Invalid \"%s\" custom value save attempt.", setting->name);
             break;
         }
 
@@ -38,7 +38,7 @@ SETTING_LOAD_DECLARATION(type_custom, json_node, setting, value) {
         }
 
         if(!interface->deserialize_callback(setting, value, _value)) {
-            FURI_LOG_W(TAG, "Invalid \"%s\" value.", setting->name);
+            FURI_LOG_W(TAG, "Invalid \"%s\" custom value.", setting->name);
             break;
         }
 
@@ -60,7 +60,10 @@ SETTING_RESET_DECLARATION(type_custom, json_node, setting, value) {
     interface->serialize_callback(setting, _value, interface->default_value);
 
     FURI_LOG_D(
-        TAG, "Loading default for \"%s\": \"%s\"...", setting->name, furi_string_get_cstr(_value));
+        TAG,
+        "Loading default for \"%s\" custom: \"%s\"...",
+        setting->name,
+        furi_string_get_cstr(_value));
 
     json_write_string(json_node, setting->name, furi_string_get_cstr(_value));
     furi_string_free(_value);

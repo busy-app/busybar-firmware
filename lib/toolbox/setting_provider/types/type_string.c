@@ -10,7 +10,8 @@ static inline bool is_value_valid(const SettingProviderSetting* setting, const c
 SETTING_SAVE_DECLARATION(type_string, json_node, setting, value) {
     const char* _value = value;
     if(!is_value_valid(setting, _value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" save attempt with value: \"%s\".", setting->name, _value);
+        FURI_LOG_W(
+            TAG, "Invalid \"%s\" string save attempt with value: \"%s\".", setting->name, _value);
         return false;
     }
 
@@ -32,7 +33,7 @@ SETTING_LOAD_DECLARATION(type_string, json_node, setting, value) {
 
         const char* _value = furi_string_get_cstr(value_buffer);
         if(!is_value_valid(setting, _value)) {
-            FURI_LOG_W(TAG, "Invalid \"%s\" value: \"%s\".", setting->name, _value);
+            FURI_LOG_W(TAG, "Invalid \"%s\" string value: \"%s\".", setting->name, _value);
             break;
         }
 
@@ -51,7 +52,10 @@ SETTING_RESET_DECLARATION(type_string, json_node, setting, value) {
     furi_check(strlen(interface->default_value) < interface->max_size);
 
     FURI_LOG_D(
-        TAG, "Loading default for \"%s\": \"%s\"...", setting->name, interface->default_value);
+        TAG,
+        "Loading default for \"%s\" string: \"%s\"...",
+        setting->name,
+        interface->default_value);
 
     json_write_string(json_node, setting->name, interface->default_value);
     if(value) strncpy(value, interface->default_value, interface->max_size);

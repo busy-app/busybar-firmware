@@ -25,7 +25,7 @@ SETTING_RESET_DECLARATION(type_bool, json_node, setting, value) {
 
     FURI_LOG_D(
         TAG,
-        "Loading default for \"%s\": \"%s\"...",
+        "Loading default for \"%s\" bool: \"%s\"...",
         setting->name,
         interface->default_value ? "true" : "false");
 

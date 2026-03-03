@@ -10,7 +10,8 @@ SETTING_SAVE_DECLARATION(type_int, json_node, setting, value) {
     int _value;
     memcpy(&_value, value, sizeof(_value));
     if(!is_value_valid(setting, _value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" save attempt with value: \"%d\".", setting->name, _value);
+        FURI_LOG_W(
+            TAG, "Invalid \"%s\" int save attempt with value: \"%d\".", setting->name, _value);
         return false;
     }
 
@@ -26,7 +27,7 @@ SETTING_LOAD_DECLARATION(type_int, json_node, setting, value) {
     }
 
     if(!is_value_valid(setting, _value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" value: \"%d\".", setting->name, _value);
+        FURI_LOG_W(TAG, "Invalid \"%s\" int value: \"%d\".", setting->name, _value);
         return false;
     }
 
@@ -38,7 +39,7 @@ SETTING_RESET_DECLARATION(type_int, json_node, setting, value) {
     const SettingProviderIntInterface* interface = setting->interface;
 
     FURI_LOG_D(
-        TAG, "Loading default for \"%s\": \"%d\"...", setting->name, interface->default_value);
+        TAG, "Loading default for \"%s\" int: \"%d\"...", setting->name, interface->default_value);
 
     json_write_int(json_node, setting->name, interface->default_value);
     if(value) memcpy(value, &interface->default_value, sizeof(interface->default_value));

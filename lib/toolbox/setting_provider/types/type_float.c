@@ -10,7 +10,12 @@ SETTING_SAVE_DECLARATION(type_float, json_node, setting, value) {
     float _value;
     memcpy(&_value, value, sizeof(_value));
     if(!is_value_valid(setting, _value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" save attempt with value: \"%f\".", setting->name, _value);
+        FURI_LOG_W(
+            TAG,
+            "Invalid \"%s\" float save attempt with value: \"%.2f\".",
+            setting->name,
+            (double)_value);
+
         return false;
     }
 
@@ -26,7 +31,7 @@ SETTING_LOAD_DECLARATION(type_float, json_node, setting, value) {
     }
 
     if(!is_value_valid(setting, _value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" value: \"%f\".", setting->name, _value);
+        FURI_LOG_W(TAG, "Invalid \"%s\" float value: \"%.2f\".", setting->name, (double)_value);
         return false;
     }
 
@@ -38,7 +43,10 @@ SETTING_RESET_DECLARATION(type_float, json_node, setting, value) {
     const SettingProviderFloatInterface* interface = setting->interface;
 
     FURI_LOG_D(
-        TAG, "Loading default for \"%s\": \"%f\"...", setting->name, interface->default_value);
+        TAG,
+        "Loading default for \"%s\" float: \"%.2f\"...",
+        setting->name,
+        (double)interface->default_value);
 
     json_write_float(json_node, setting->name, interface->default_value);
     if(value) memcpy(value, &interface->default_value, sizeof(interface->default_value));
