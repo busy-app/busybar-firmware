@@ -1,4 +1,4 @@
-#include "account_settings.h"
+#include "account_settings_i.h"
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 #include <wifi/wifi.h>
@@ -195,7 +195,7 @@ static AccountSettings* account_settings_alloc() {
         scene_manager_next_scene(instance->scene_manager, SceneIdLinkedInfo);
     } else {
         if(wifi_info.state == WifiStateDisconnected) {
-            desktop_replace_current_app(instance->desktop, "wifi_settings", NULL);
+            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
         } else {
             AccountModelState state = account_model_get_state(instance->model);
             if(state == AccountModelStateConnectedNotLinked) {

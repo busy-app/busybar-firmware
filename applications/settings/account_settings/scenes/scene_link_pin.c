@@ -1,4 +1,4 @@
-#include "../account_settings.h"
+#include "../account_settings_i.h"
 #include <settings_helpers/gui_params.h>
 #include "../widgets/link_pin_view.h"
 
@@ -119,7 +119,7 @@ static bool account_scene_link_pin_on_event(const SceneManagerEvent* event, void
             consumed = true;
             break;
         case AppEventWifiDisconnected:
-            desktop_replace_current_app(instance->desktop, "wifi_settings", NULL);
+            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
             consumed = true;
             break;
 

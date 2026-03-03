@@ -1,4 +1,4 @@
-#include "../wifi_settings.h"
+#include "../wifi_settings_i.h"
 #include "../widgets/wifi_info_view.h"
 #include <settings_helpers/gui_params.h>
 

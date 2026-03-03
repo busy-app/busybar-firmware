@@ -1,4 +1,4 @@
-#include "../account_settings.h"
+#include "../account_settings_i.h"
 #include <settings_helpers/gui_params.h>
 
 #include <gui/modules/var_item_list.h>
@@ -75,7 +75,7 @@ static bool account_scene_not_linked_menu_on_event(const SceneManagerEvent* even
             consumed = true;
             break;
         case AppEventWifiDisconnected:
-            desktop_replace_current_app(instance->desktop, "wifi_settings", NULL);
+            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
             consumed = true;
             break;
         default:
