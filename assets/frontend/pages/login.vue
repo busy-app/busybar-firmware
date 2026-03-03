@@ -3,8 +3,7 @@
     data-id="page-login"
     class="w-full min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center gap-6"
   >
-    <template v-if="!initialLoading">
-      <template v-if="deviceStore.httpAPIAccess?.mode === 'disabled'">
+    <template v-if="deviceStore.httpAPIAccess?.mode === 'disabled'">
         <LockedLayoutApiDisabled />
       </template>
       <template v-else>
@@ -69,7 +68,6 @@
           />
         </div>
       </template>
-    </template>
 
     <UModal
       v-model:open="forgotPasswordModal"
@@ -130,7 +128,6 @@ const pms = usePasswordModalStore();
 const deviceStore = useDeviceStore();
 const apiStore = useApiStore();
 
-const initialLoading = ref(true);
 const loading = ref(false);
 
 const forgotPasswordModal = ref(false);
@@ -157,27 +154,4 @@ async function attemptUnlock () {
   }
   loading.value = false;
 }
-
-async function init () {
-  if (apiStore.apiKey) {
-    deviceStore.busyBar.setApiKey(apiStore.apiKey);
-  }
-
-  try {
-    await deviceStore.fetchDeviceName(true);
-    await navigateTo('/');
-  } catch {
-    // if access.mode is 'disabled', don't ask for password
-    await deviceStore.fetchHttpAPIAccess();
-  }
-  setTimeout(() => {
-    initialLoading.value = false;
-  }, 500);
-}
-
-onMounted(async () => {
-  await init();
-  window.addEventListener('device-reconnected', init);
-});
-onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>
