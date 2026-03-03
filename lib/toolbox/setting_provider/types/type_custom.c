@@ -57,7 +57,7 @@ SETTING_RESET_DECLARATION(type_custom, json_node, setting, value) {
     furi_check(interface->default_value_size > 0);
 
     FuriString* _value = furi_string_alloc();
-    interface->serialize_callback(setting, _value, interface->default_value);
+    furi_check(interface->serialize_callback(setting, _value, interface->default_value));
 
     FURI_LOG_D(
         TAG,
