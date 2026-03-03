@@ -5,12 +5,7 @@
   >
     <template v-if="!initialLoading">
       <template v-if="deviceStore.httpAPIAccess?.mode === 'disabled'">
-        <div class="text-xl font-medium">HTTP API disabled over Wi-Fi</div>
-
-        <img
-          src="~/assets/images/locked-bar.png"
-          class="w-[300px] my-4"
-        >
+        <LockedLayoutApiDisabled />
       </template>
       <template v-else>
         <div class="text-xl font-medium">Virtual LAN is locked</div>
