@@ -92,7 +92,9 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     const bool paired = ble_worker_pairing_exists();
     instance->status = paired ? BleServiceStatusConnectable : BleServiceStatusAdvertising;
 
-    frame->header.data_size = 0;
+    frame->header.data_size = sizeof(BleServiceStatus);
+    BleServiceStatus* resp_status = (BleServiceStatus*)frame->data;
+    *resp_status = instance->status;
     frame->header.result = true;
 
     return ble_command_response_process(frame, context);

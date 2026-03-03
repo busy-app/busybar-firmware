@@ -176,10 +176,12 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     BLE_LOG_D("BleCommandEnable response");
     Ble* instance = context;
 
+    if(frame->header.result) {
+        BleServiceStatus* resp_status = (BleServiceStatus*)frame->data;
+        instance->status = *resp_status;
+        ble_save_enabled_state(true);
+    }
     instance->current_command->header.result = frame->header.result;
-    instance->status = frame->header.result ? BleServiceStatusAdvertising : BleServiceStatusError;
-
-    ble_save_enabled_state(true);
 
     const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_command_lock);
     const FuriThreadId current_id = furi_thread_get_current_id();
