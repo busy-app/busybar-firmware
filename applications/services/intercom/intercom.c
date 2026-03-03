@@ -26,9 +26,9 @@ static void intercom_state_callback(const void* item, void* context) {
 }
 
 static void intercom_startup_sequence(Intercom* instance) {
-    intercom_reset_other_side();
-
     IntercomStatus status;
+
+    intercom_reset_other_side();
 
     if(intercom_sync_serial(instance->serial)) {
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);

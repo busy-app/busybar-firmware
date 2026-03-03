@@ -16,11 +16,11 @@
 #define INTERCOM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
 #else
 #define INTERCOM_LOG_D(...)
-#endif
+#endif // INTERCOM_DEBUG
 
 #ifndef INTERCOM_BAUD_RATE
 #define INTERCOM_BAUD_RATE (11250000UL)
-#endif
+#endif // INTERCOM_BAUD_RATE
 
 #if defined(BSB_MCU_U5)
 #define INTERCOM_SERIAL FuriHalSerialIdUsart1
@@ -28,9 +28,7 @@
 #define INTERCOM_SERIAL FuriHalSerialIdUsart0
 #else
 #error "Unsupported MCU"
-#endif
-
-#define INTERCOM_MAGIC_DELAY (100UL)
+#endif // BSB_MCU_U5
 
 typedef enum {
     IntercomCustomEventStatusChanged = 1UL << 0,

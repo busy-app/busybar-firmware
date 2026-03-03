@@ -1,6 +1,5 @@
 #include "intercom_i.h"
 
-#include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
 
 size_t intercom_build_frame(
@@ -44,8 +43,6 @@ void intercom_dump_frame(const IntercomFrame* frame) {
 // TODO: Move this to a startup hook?
 void intercom_reset_other_side(void) {
 #if defined(BSB_MCU_U5)
-    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
-        furi_hal_power_reset_917(false);
-    }
+    furi_hal_power_reset_917(false);
 #endif
 }
