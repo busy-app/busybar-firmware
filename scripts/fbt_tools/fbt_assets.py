@@ -28,8 +28,7 @@ def _proto_emitter(target, source, env):
     for src in source:
         rel_path = os.path.relpath(str(src), common_path)
         basename = os.path.splitext(rel_path)[0]
-        target.append(env.File(f"compiled/{basename}.pb.c"))
-        target.append(env.File(f"compiled/{basename}.pb.h"))
+        target.append(env.File(f"{basename}.pb.c"))
     return target, source
 
 def _proto_action(target, source, env):

@@ -1,6 +1,7 @@
 #include "state_publisher.h"
 #include <furi/furi.h>
 #include <brightness_control/brightness_control.h>
+#include <state.pb.h>
 
 #define TAG "StPubSrv"
 

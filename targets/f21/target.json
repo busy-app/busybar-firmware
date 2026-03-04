@@ -126,13 +126,14 @@
         "version",
         "internal_assets",
         "ext_applications",
+        "nanopb",
+        "proto",
         "firmware_applications_u5",
         "lvgl_addons",
         "cli",
         "containers",
         "anim_file",
-        "utz",
-        "nanopb"
+        "utz"
     ],
     "fw_modules": [
         "fw_elf",
@@ -141,8 +142,7 @@
         "sdk_extapps",
         "bsb_assets",
         "bsb_assets_bkp",
-        "link_builddir",
-        "proto"
+        "link_builddir"
     ],
     "dist_modules": [
         "elf_flash",

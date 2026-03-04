@@ -31,6 +31,7 @@ for libname in [
     "anim_file",
     "zlib",
     "utz",
+    "proto",
     ## SI917
     "sl_glue",
     "simplicity_sdk",

@@ -1,5 +1,5 @@
-Import("FW_ENV")
-fwenv = FW_ENV
+Import("env")
+fwenv = env
 
 from SCons.Util import splitext
 from fbt.util import GLOB_FILE_EXCLUSION
@@ -12,7 +12,11 @@ proto = proto_env.ProtoBuilder(proto_env["PROTO_BUILD_DIR"], proto_src)
 proto_env.Depends(proto, proto_options)
 Precious(proto)
 
+fwenv.AppendUnique(CPPPATH=[proto_env.Dir("$PROTO_BUILD_DIR")])
+
 proto_lib = proto_env.StaticLibrary("${FW_LIB_NAME}", proto)
 proto_env.Install("${LIB_DIST_DIR}", proto_lib)
 
 Alias("proto", proto_lib)
+
+Return("proto_lib")
