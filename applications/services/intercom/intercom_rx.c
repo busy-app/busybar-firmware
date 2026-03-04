@@ -64,6 +64,18 @@ static void intercom_serial_rx_callback(
     }
 }
 
+static void intercom_rx_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    const FuriThreadId rx_thread = context;
+    const IntercomStatus status = *(IntercomStatus*)context;
+
+    if(status != IntercomStatusOk) {
+        furi_thread_suspend(rx_thread);
+    }
+}
+
 static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
     INTERCOM_LOG_D("Frame received");
 
@@ -76,7 +88,6 @@ static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
 
     } else {
         intercom_set_status(instance, IntercomStatusErrorFraming);
-        // TODO: gracefully stop/suspend the thread
     }
 }
 
@@ -116,5 +127,8 @@ static int32_t intercom_rx_thread(void* arg) {
 void intercom_start_rx_thread(Intercom* instance) {
     FuriThread* rx_thread = furi_thread_alloc_service(
         TAG, INTERCOM_RX_THREAD_STACK_SIZE, intercom_rx_thread, instance);
+
+    furi_state_subscribe(instance->state, intercom_rx_state_callback, rx_thread);
+
     furi_thread_start(rx_thread);
 }
