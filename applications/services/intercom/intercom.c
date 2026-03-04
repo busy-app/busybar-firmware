@@ -184,7 +184,6 @@ size_t
     }
 
     Intercom* instance = channel->intercom;
-    // TODO: Store channel id within the channel?
     const IntercomChannelId channel_id = channel - instance->channels;
 
     size_t sent_data_size = 0;

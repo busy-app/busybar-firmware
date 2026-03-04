@@ -100,7 +100,6 @@ void intercom_channel_set_callback(
     IntercomRxCallback callback,
     void* context) {
     furi_assert(channel);
-    if(context) furi_assert(callback);
 
     channel->rx_callback = callback;
     channel->callback_context = context;
