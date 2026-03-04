@@ -1,6 +1,6 @@
 import itertools
 
-from fbt.appmanifest import FlipperApplication, MAX_APP_PRIORITY
+from fbt.appmanifest import FlipperApplication
 from SCons.Node import FS
 
 Import("env")
@@ -70,7 +70,6 @@ apps_c = libenv.TempliteFile(
     SUBST_DICT={
         "autorun_app_name": fwenv.subst("$LOADER_AUTOSTART"),
         "buildset": fwenv["APPBUILD"],
-        "MAX_APP_PRIORITY": MAX_APP_PRIORITY,
     },
 )
 Depends(apps_c, [Value(fwenv["APPS"])])

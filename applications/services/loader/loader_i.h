@@ -7,7 +7,6 @@ typedef struct {
     char* args;
     FuriThread* thread;
     bool insomniac;
-    const FlipperInternalApplication* descriptor;
 } LoaderAppData;
 
 struct Loader {
@@ -24,7 +23,7 @@ typedef enum {
     LoaderMessageTypeLock,
     LoaderMessageTypeUnlock,
     LoaderMessageTypeIsLocked,
-    LoaderMessageTypeGetApplicationInfo,
+    LoaderMessageTypeGetApplicationName,
     LoaderMessageTypeSendCustomSignal,
     LoaderMessageTypeMax,
 } LoaderMessageType;
@@ -55,10 +54,7 @@ typedef struct {
     union {
         LoaderMessageStartByName start;
         LoaderMessageLoaderSendCustomSignal custom_signal;
-        struct {
-            FuriString* name;
-            const FlipperInternalApplication** descriptor;
-        } app_info;
+        FuriString* application_name;
     };
 
     union {
