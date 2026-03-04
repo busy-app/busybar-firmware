@@ -8,7 +8,7 @@
 #include <furi_hal_serial.h>
 #include <furi_hal_serial_control.h>
 
-#define INTERCOM_TX_TIMEOUT_MS                 (1000UL)
+#define INTERCOM_TX_TIMEOUT_MS (1000UL)
 
 #ifdef INTERCOM_DEBUG
 #define INTERCOM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
