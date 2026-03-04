@@ -69,7 +69,7 @@ static void intercom_rx_state_callback(const void* item, void* context) {
     furi_assert(context);
 
     const FuriThreadId rx_thread = context;
-    const IntercomStatus status = *(IntercomStatus*)context;
+    const IntercomStatus status = *(IntercomStatus*)item;
 
     if(status != IntercomStatusOk) {
         furi_thread_suspend(rx_thread);
