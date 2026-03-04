@@ -9,4 +9,5 @@ App(
     cdefines=["APP_BUSY"],
     targets=["f20", "f21", "f22"],
     resources="resources",
+    priority=100,
 )

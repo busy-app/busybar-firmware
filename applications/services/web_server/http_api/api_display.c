@@ -16,8 +16,7 @@
 #define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
 #define DISPLAY_BUILTIN_ANIM_FORMATTER   EXT_PATH("apps_assets/%s/animations/%s.anim")
 
-#define BUILTIN_APP_PRIORITY     5
-#define DEFAULT_ELEMENT_PRIORITY 6
+#define DEFAULT_ELEMENT_PRIORITY ((FLIPPER_MAX_APP_PRIORITY / 2) + 1)
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
@@ -348,14 +347,16 @@ static int api_display_active_priority(void) {
         bool canvas_running = furi_record_exists(RECORD_CANVAS);
         if(canvas_running) {
             CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-            priority = MAX(priority, canvas_active_priority(canvas));
+            priority = canvas_active_priority(canvas);
             furi_record_close(RECORD_CANVAS);
+            break;
         }
 
-        if(!loader_get_application_name(loader, app_name)) break;
-        if(furi_string_search_str(app_name, "Settings") != FURI_STRING_FAILURE) break;
-        if(furi_string_cmp_str(app_name, "Software Power Off") == 0) break;
-        priority = MAX(priority, BUILTIN_APP_PRIORITY);
+        const FlipperInternalApplication* running_app;
+        if((running_app = loader_get_application_descriptor(loader))) {
+            priority = running_app->priority;
+            break;
+        }
     } while(0);
 
     furi_string_free(app_name);
@@ -389,7 +390,7 @@ static bool api_display_draw_callback(
             priority = json_num;
         }
         if(priority <= 0) break;
-        if(priority > 10) break;
+        if((size_t)priority > FLIPPER_MAX_APP_PRIORITY) break;
 
         struct mg_str elements_obj = mg_json_get_tok(msg->body, "$.elements");
         if(!elements_obj.buf) break;
@@ -410,7 +411,7 @@ static bool api_display_draw_callback(
         }
 
         int active_priority = api_display_active_priority();
-        if(priority < active_priority) {
+        if(priority <= active_priority) {
             MG_REPLY_ERROR(conn, 409, "Not drawn due to low priority");
             break;
         }

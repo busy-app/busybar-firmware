@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 10.0.0
+  version: 10.1.0
   contact:
     name: tbd
 
@@ -1965,8 +1965,8 @@ components:
           example: "my_app"
         priority:
           type: integer
-          description: Draw requests with a lower priority than the currently active draw request will be ignored. Value is 1 through 10, inclusive, higher number means higher priority. Any built-in app is treated as priority level 5.
-          default: 6
+          description: Draw requests with a lower priority than the currently active draw request will be ignored. Value is 1 through 100, inclusive, higher number means higher priority. Any built-in app is treated as priority level 50, some apps are 100.
+          default: 51
         elements:
           type: array
           items:

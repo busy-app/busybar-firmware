@@ -4,4 +4,5 @@
         .appid = "{{ app.appid }}",
         .stack_size = {{ app.stack_size }},
         .flags = {{ '|'.join(f"FlipperInternalApplicationFlag{flag}" for flag in app.flags) }},
+        .priority = {{ app.priority }},
     }

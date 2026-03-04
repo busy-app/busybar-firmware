@@ -112,9 +112,13 @@ bool loader_get_application_name(Loader* loader, FuriString* name) {
     LoaderMessageBoolResult result;
 
     LoaderMessage message = {
-        .type = LoaderMessageTypeGetApplicationName,
+        .type = LoaderMessageTypeGetApplicationInfo,
         .api_lock = api_lock_alloc_locked(),
-        .application_name = name,
+        .app_info =
+            {
+                .name = name,
+                .descriptor = NULL,
+            },
         .bool_value = &result,
     };
 
@@ -122,6 +126,29 @@ bool loader_get_application_name(Loader* loader, FuriString* name) {
     api_lock_wait_unlock_and_free(message.api_lock);
 
     return result.value;
+}
+
+const FlipperInternalApplication* loader_get_application_descriptor(Loader* loader) {
+    furi_check(loader);
+
+    LoaderMessageBoolResult result;
+    const FlipperInternalApplication* descriptor;
+
+    LoaderMessage message = {
+        .type = LoaderMessageTypeGetApplicationInfo,
+        .api_lock = api_lock_alloc_locked(),
+        .app_info =
+            {
+                .name = NULL,
+                .descriptor = &descriptor,
+            },
+        .bool_value = &result,
+    };
+
+    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
+    api_lock_wait_unlock_and_free(message.api_lock);
+
+    return descriptor;
 }
 
 bool loader_send_signal(Loader* loader, uint32_t signal, void* arg) {
@@ -244,6 +271,7 @@ static void loader_start_internal_app(
         furi_thread_alloc_ex(app->name, app->stack_size, app->app, loader->app.args);
     furi_thread_set_appid(loader->app.thread, app->appid);
 
+    loader->app.descriptor = app;
     loader_start_app_thread(loader, app->flags);
 }
 
@@ -402,13 +430,23 @@ static bool loader_is_application_running(Loader* loader) {
     return app_thread && (app_thread != (FuriThread*)LOADER_MAGIC_THREAD_VALUE);
 }
 
-static void loader_do_get_application_name(Loader* loader, const LoaderMessage* message) {
-    message->bool_value->value = false;
+static void loader_do_get_application_info(Loader* loader, const LoaderMessage* message) {
     if(loader_is_application_running(loader)) {
-        furi_string_set(
-            message->application_name,
-            furi_thread_get_name(furi_thread_get_id(loader->app.thread)));
+        if(message->app_info.name) {
+            furi_string_set(
+                message->app_info.name,
+                furi_thread_get_name(furi_thread_get_id(loader->app.thread)));
+        }
+        if(message->app_info.descriptor) {
+            *message->app_info.descriptor = loader->app.descriptor;
+        }
         message->bool_value->value = true;
+
+    } else {
+        if(message->app_info.descriptor) {
+            *message->app_info.descriptor = NULL;
+        }
+        message->bool_value->value = false;
     }
 }
 
@@ -520,6 +558,6 @@ static const LoaderMessageHandler loader_handlers[LoaderMessageTypeMax] = {
     [LoaderMessageTypeLock] = loader_lock_handler,
     [LoaderMessageTypeUnlock] = loader_unlock_handler,
     [LoaderMessageTypeIsLocked] = loader_is_locked_handler,
-    [LoaderMessageTypeGetApplicationName] = loader_do_get_application_name,
+    [LoaderMessageTypeGetApplicationInfo] = loader_do_get_application_info,
     [LoaderMessageTypeSendCustomSignal] = loader_do_send_custom_signal,
 };

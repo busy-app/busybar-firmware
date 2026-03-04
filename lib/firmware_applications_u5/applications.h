@@ -21,6 +21,7 @@ typedef struct {
     const char* appid;
     const size_t stack_size;
     const FlipperInternalApplicationFlag flags;
+    const size_t priority;
 } FlipperInternalApplication;
 
 typedef struct {
@@ -88,3 +89,5 @@ extern const size_t FLIPPER_EXTERNAL_APPS_COUNT;
  */
 extern const FlipperInternalCommandApplication FLIPPER_CLI_COMMANDS[];
 extern const size_t FLIPPER_CLI_COMMANDS_COUNT;
+
+extern const size_t FLIPPER_MAX_APP_PRIORITY;

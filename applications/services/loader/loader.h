@@ -1,5 +1,6 @@
 #pragma once
 #include <furi.h>
+#include <applications.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,6 +83,15 @@ FuriPubSub* loader_get_pubsub(Loader* instance);
  * @return true if it was possible to get an application name, false otherwise
  */
 bool loader_get_application_name(Loader* instance, FuriString* name);
+
+/**
+ * @brief Get the descriptor of the currently running application
+ * 
+ * @param[in] instance pointer to the loader instance
+ * 
+ * @return pointer to the descriptor. `NULL` if it wasn't possible to get this information
+ */
+const FlipperInternalApplication* loader_get_application_descriptor(Loader* instance);
 
 /**
  * @brief Send a signal to the currently running application
