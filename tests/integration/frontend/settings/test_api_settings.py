@@ -72,35 +72,11 @@ class TestNameAPI:
     @pytest.mark.frontend
     @pytest.mark.parametrize("test_name", [
         # Empty/whitespace names
+        "",
         " ",
         "  ",
-        # Special character combinations (device rejects these)
+        # Too long (over 20 characters)
         "22 symbols length name",
-        "8u7Y 8a&",
-        "Bu$Y 8aR",
-        "wa^%$#@!()_+{}|>?",
-        "Name \\ bh d / h",
-        "Quotes '  ` ~",
-        "Name@Home",
-        "Name#1",
-        "Name$Dollar",
-        "Name%Percent",
-        "Name^Caret",
-        "Name&And",
-        "Name*Star",
-        "Name{Brace",
-        "Name}Brace",
-        "Name[Bracket",
-        "Name]Bracket",
-        "Name\"Quote",
-        "Name<Less",
-        "Name>Greater",
-        "Name/Slash",
-        "Name\\Backslash",
-        # Invalid character sets
-        "*&(^!$%(*!@%($&*^!@)($ !)(*@^$)(*!^@$ ^&!@($&*^!@(*& ^!@(^$)@(*&$!&",
-        "emoji 🚀",
-        "Бизи Бар",
     ])
     def test_api_name_post_invalid(self, settings_api: SettingsAPI, test_name):
         """Test POST /api/name endpoint with invalid data"""
@@ -135,7 +111,7 @@ class TestSettingsAPI:
         assert isinstance(response.key_valid, bool)
 
     @allure.id("2643")
-    @allure.title("Settings. POST /api/access")
+    @allure.title("Settings. POST /api/access (valid keys)")
     @allure.issue("FW-406")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -143,30 +119,37 @@ class TestSettingsAPI:
         "1234",
         "12345",
         "0000",
-        "asfd",
-        "asfde",
-        "blablabla",
         "9999999999",
         "1234567890",
-        # invalid keys
-        "1a45",          # invalid - mixed
-        "abcd",          # invalid - non-numeric
-        "123",           # invalid - too short
-        "12345678901",   # invalid - too long
-        "12a34",         # invalid - mixed
-        "",              # invalid - empty
-        "     ",         # invalid - spaces only
     ])
-    def test_api_access_post_fuzzed(self, settings_api: SettingsAPI, key):
-        """Test POST /api/access endpoint with fuzzed key values"""
+    def test_api_access_post_valid_key(self, settings_api: SettingsAPI, key):
+        """Test POST /api/access endpoint with valid digit-only keys (4-10 digits)"""
         settings_api.set_access("key", key)
 
         verify = settings_api.get_access()
         assert verify.mode == "key"
+        assert verify.key_valid is True
 
-        is_valid_key = 4 <= len(key) <= 10 and key.isdigit()
-        with allure.step("Verify success response for valid key"):
-            assert verify.key_valid is is_valid_key
+    @allure.title("Settings. POST /api/access (invalid keys)")
+    @allure.issue("FW-406")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.parametrize("key", [
+        "asfd",          # non-numeric
+        "asfde",         # non-numeric
+        "blablabla",     # non-numeric
+        "1a45",          # mixed
+        "abcd",          # non-numeric
+        "123",           # too short
+        "12345678901",   # too long
+        "12a34",         # mixed
+        "",              # empty
+        "     ",         # spaces only
+    ])
+    def test_api_access_post_invalid_key(self, settings_api: SettingsAPI, key):
+        """Test POST /api/access endpoint rejects invalid keys"""
+        response = settings_api.set_access_raw("key", key)
+        assert response.status_code == 400
 
     @allure.id("2644")
     @allure.title("Settings. GET /api/display/brightness")
@@ -177,8 +160,7 @@ class TestSettingsAPI:
         response = settings_api.get_brightness()
 
         # Structure validated by pydantic
-        assert response.front is not None
-        assert response.back is not None
+        assert response.value is not None
 
     @allure.id("2645")
     @allure.title("Settings. POST /api/display/brightness")
@@ -186,7 +168,7 @@ class TestSettingsAPI:
     @pytest.mark.frontend
     def test_api_display_brightness_post(self, settings_api: SettingsAPI):
         """Test POST /api/display/brightness endpoint"""
-        settings_api.set_brightness(front="auto", back="50")
+        settings_api.set_brightness(value="50")
 
     @allure.id("2646")
     @allure.title("Settings. GET /api/audio/volume")

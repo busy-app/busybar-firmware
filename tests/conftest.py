@@ -21,7 +21,8 @@ from utils.device_flasher import DeviceFlasher
 # API client imports
 from clients.api import (
     SystemAPI, WifiAPI, StorageAPI, AssetsAPI, AccountAPI,
-    BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI
+    BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI,
+    BusyAPI, MatterAPI
 )
 from config.config import Config
 
@@ -655,6 +656,18 @@ def streaming_api(api_factory):
 def update_api(api_factory):
     """Update API client fixture."""
     return api_factory(UpdateAPI)
+
+
+@pytest.fixture
+def busy_api(api_factory):
+    """Busy Timer API client fixture."""
+    return api_factory(BusyAPI)
+
+
+@pytest.fixture
+def matter_api(api_factory):
+    """Matter API client fixture."""
+    return api_factory(MatterAPI)
 
 
 @pytest.fixture

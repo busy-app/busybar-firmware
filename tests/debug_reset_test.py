@@ -12,6 +12,7 @@ This script will:
 """
 
 import logging
+import os
 import socket
 import subprocess
 import sys
@@ -181,9 +182,15 @@ class ResetDebugger:
         """
         logger.info("Executing OpenOCD reset...")
 
+        lock_path = Config.OPENOCD_LOCK_PATH
+        flock_prefix = ""
+        if lock_path and os.path.isdir(os.path.dirname(lock_path)):
+            flock_prefix = f"flock --timeout 130 {lock_path} "
+
         reset_cmd = (
             f"cd {self.firmware_dir} && "
             f"source {self.toolchain_env} && "
+            f"{flock_prefix}"
             f"openocd "
             f"-f {self.openocd_interface} "
             f'-c "transport select swd" '
@@ -201,7 +208,7 @@ class ResetDebugger:
                 executable="/bin/bash",
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=160,
                 cwd=self.firmware_dir,
             )
             elapsed = time.time() - start
@@ -224,7 +231,7 @@ class ResetDebugger:
             return success, result.stdout, result.stderr
 
         except subprocess.TimeoutExpired:
-            logger.error("OpenOCD reset TIMEOUT (30s)")
+            logger.error("OpenOCD reset TIMEOUT (160s)")
             return False, "", "timeout"
         except Exception as e:
             logger.error(f"OpenOCD reset EXCEPTION: {e}")

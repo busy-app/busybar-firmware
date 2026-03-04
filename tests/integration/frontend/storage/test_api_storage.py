@@ -83,6 +83,47 @@ class TestStorageAPI:
             remove_response = storage_api.remove_raw(test_file)
             assert remove_response.status_code == 200
 
+    @allure.title("POST /api/storage/rename")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_rename(self, storage_api: StorageAPI):
+        """Test POST /api/storage/rename endpoint"""
+        original_path = f"/ext/test_rename_src_{int(time.time())}.txt"
+        new_path = f"/ext/test_rename_dst_{int(time.time())}.txt"
+        test_content = b"Rename test content"
+
+        try:
+            with allure.step(f"Write source file: {original_path}"):
+                write_response = storage_api.write(original_path, test_content)
+                assert write_response.status_code == 200
+
+            with allure.step(f"Rename {original_path} -> {new_path}"):
+                storage_api.rename(original_path, new_path)
+
+            with allure.step("Verify renamed file is readable"):
+                read_response = storage_api.read(new_path)
+                assert read_response.status_code == 200
+                assert read_response.content == test_content
+
+            with allure.step("Verify original file no longer exists"):
+                read_original = storage_api.read(original_path)
+                assert read_original.status_code == 400
+
+        finally:
+            storage_api.remove_raw(original_path)
+            storage_api.remove_raw(new_path)
+
+    @allure.title("POST /api/storage/rename (non-existent source)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_rename_nonexistent(self, storage_api: StorageAPI):
+        """Test POST /api/storage/rename with non-existent source returns error"""
+        response = storage_api.rename_raw(
+            "/ext/nonexistent_file.txt",
+            "/ext/new_name.txt",
+        )
+        assert response.status_code == 400
+
     @allure.id("2675")
     @allure.title("POST /api/storage/write (file size limits)")
     @pytest.mark.api

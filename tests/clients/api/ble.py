@@ -24,12 +24,11 @@ from .base import BaseAPI
 class BleStatusResponse(BaseModel):
     """Response from GET /api/ble/status."""
 
-    state: Literal[
+    status: Literal[
         "reset", "initialization", "disabled",
-        "enabled", "connected", "internal error"
+        "enabled", "connectable", "connected", "internal error"
     ]
-    pairing: Literal["unknown", "not paired", "paired"]
-    address: str | None = None  # Only present when BLE is enabled/connected
+    address: str | None = None
 
 
 # === API Client ===
@@ -52,11 +51,11 @@ class BleAPI(BaseAPI):
 
     def enable(self) -> requests.Response:
         """Enable BLE."""
-        return self.post_raw("/api/ble/enable")
+        return self.post_raw("/api/ble/enable", data=b"")
 
     def disable(self) -> requests.Response:
         """Disable BLE."""
-        return self.post_raw("/api/ble/disable")
+        return self.post_raw("/api/ble/disable", data=b"")
 
     def remove_pairing(self) -> requests.Response:
         """Remove BLE pairing. May return 200 or 503."""
