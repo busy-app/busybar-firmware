@@ -608,8 +608,7 @@ static void ble_hw_config() {
     //! Set local name
     status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
     if(status != RSI_SUCCESS) {
-        BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
-        furi_crash();
+        BLE_LOG_W("Failed to set default local name, error code : 0x%08lx", status);
     }
 
     ble_advertise_print_data(ble_worker_instance->advertise);
@@ -1245,6 +1244,11 @@ void ble_worker_set_name(const char* new_name) {
     }
 
     ble_advertise_set_name(ble_worker_instance->advertise, new_name);
+
+    sl_status_t status = rsi_bt_set_local_name((const uint8_t*)new_name);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
+    }
 
     if(ble_worker_instance->state == BleWorkerStateAdvertising) {
         ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);

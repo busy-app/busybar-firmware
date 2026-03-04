@@ -1,5 +1,5 @@
 #include "wifi_state_view.h"
-#include "../wifi_settings.h"
+#include "../wifi_settings_i.h"
 #include <storage/storage.h>
 #include <gui/widget_i.h>
 

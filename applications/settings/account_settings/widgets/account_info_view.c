@@ -1,7 +1,7 @@
 #include "account_info_view.h"
 #include <storage/storage.h>
 #include <gui/widget_i.h>
-#include "../account_settings.h"
+#include "../account_settings_i.h"
 
 #define ACCOUNT_INFO_BACK_CLASS  (&account_info_view_back_lvgl_class)
 #define ACCOUNT_INFO_FRONT_CLASS (&account_info_view_front_lvgl_class)

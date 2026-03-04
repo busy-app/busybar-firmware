@@ -13,7 +13,7 @@
       <div
         v-if="power"
         data-id="layout-default-header-power"
-        class="flex items-center gap-1.5"
+        class="hidden md:flex items-center gap-1.5"
       >
         <div class="relative flex">
           <BatteryIndicator
@@ -29,7 +29,7 @@
         size="md"
         variant="ghost"
         color="neutral"
-        class="group hidden md:flex items-center text-base gap-2 px-1 py-0.5 rounded-md"
+        class="group hidden xl:flex items-center text-base gap-2 px-1 py-0.5 rounded-md"
         icon-class="opacity-0 transition-opacity group-hover:opacity-100"
       >
         <div
@@ -54,6 +54,24 @@
           <div class="ml-1 opacity-0 transition-opacity group-hover:opacity-100">{{ urlHost }}</div>
         </div>
       </CopyButton>
+
+      <!-- Show connection as static string between lg and xl screens -->
+      <div class="hidden lg:flex xl:hidden items-center text-base gap-2 px-1">
+        <template v-if="deviceStore.isConnected">
+          <UIcon
+            :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb-alt' : 'i-bi-wifi-4'"
+            class="size-5"
+          />
+          Connected
+        </template>
+        <template v-else>
+          <UIcon
+            name="i-bi-alert"
+            class="size-5 text-warning"
+          />
+          Disconnected
+        </template>
+      </div>
     </div>
 
     <div class="absolute left-1/2 -translate-x-1/2">

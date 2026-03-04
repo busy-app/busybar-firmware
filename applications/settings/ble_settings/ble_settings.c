@@ -142,20 +142,22 @@ static void ble_settings_free(BleSettings* instance) {
 
 static void ble_settings_set_icon_by_status(
     SettingsAppDescriptor* const descriptor,
-    const BleStatus* const status) {
+    const BleServiceStatus status) {
     struct {
         const char* front;
         const char* back;
     } icon;
 
-    if(status->state == BleServiceStateReady) {
+    if(status == BleServiceStatusReady) {
         icon.front = "ble_front_gray_8x8.bin";
         icon.back = "ble_back_11x11.bin";
-    } else if(status->state == BleServiceStateAdvertising) {
-        const bool paired = status->pairing == BlePairingStatePaired;
-        icon.front = paired ? "ble_front_paired_8x8.bin" : "ble_front_8x8.bin";
-        icon.back = paired ? "ble_back_pairing_11x11.bin" : "ble_back_11x11.bin";
-    } else if(status->state == BleServiceStateConnected) {
+    } else if(status == BleServiceStatusAdvertising) {
+        icon.front = "ble_front_8x8.bin";
+        icon.back = "ble_back_11x11.bin";
+    } else if(status == BleServiceStatusConnectable) {
+        icon.front = "ble_front_paired_8x8.bin";
+        icon.back = "ble_back_pairing_11x11.bin";
+    } else if(status == BleServiceStatusConnected) {
         icon.front = "ble_front_checkmark_8x8.bin";
         icon.back = "ble_back_paired_11x11.bin";
     } else {
@@ -175,9 +177,9 @@ int32_t ble_settings_entry(void* arg) {
         furi_string_set_str(descriptor->back_title, "Bluetooth");
 
         BleModel* model = ble_model_alloc();
-        BleStatus status = {0};
-        ble_model_get_status(model, &status);
-        ble_settings_set_icon_by_status(descriptor, &status);
+        BleState state = {0};
+        ble_model_get_state(model, &state);
+        ble_settings_set_icon_by_status(descriptor, state.status);
         ble_model_free(model);
 
         return 0;

@@ -87,7 +87,7 @@
           </template>
         </UInput>
 
-        <div class="absolute text-sm top-1.5 left-[36px]">
+        <div class="absolute text-sm top-1.5 left-9">
           <span>/</span><span
             class="cursor-pointer hover:underline mr-[0.5px]"
             @click="list('/ext')"
@@ -429,7 +429,7 @@ async function onInputMenuModelUpdate (newValue: string) {
   }
   console.log([dir, filter]);
 
-  const options = await deviceStore.busyBar.StorageListGet({ path: `/ext${dir}` })
+  const options = await deviceStore.busyBar.StorageListGet({ path: `/ext${dir}`, timeout: 10000 })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
@@ -482,7 +482,7 @@ const selectStartIndex = ref(-1);
 async function list (path: string) {
   selectedItems.value.clear();
   loading.value.list = true;
-  await deviceStore.busyBar.StorageListGet({ path })
+  await deviceStore.busyBar.StorageListGet({ path, timeout: 10000 })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
@@ -521,7 +521,7 @@ async function read (fileName: string) {
   loading.value.read = true;
 
   const path = `${currentPath.value}/${fileName}`;
-  const file = await deviceStore.busyBar.StorageRead({ path })
+  const file = await deviceStore.busyBar.StorageRead({ path, timeout: 0 })
     .catch(async error => {
       await handleHTTPError(error, `Couldn't read file ${path}`, false, 0);
       return null;
@@ -736,7 +736,7 @@ async function remove () {
     const items = new Set(selectedItems.value);
     for (const name of items) {
       const fullPath = `${currentPath.value}/${name}`;
-      await deviceStore.busyBar.StorageRemove({ path: fullPath })
+      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 10000 })
         .catch(async error => {
           await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
         });
@@ -762,7 +762,7 @@ async function remove () {
 
   loading.value.remove = true;
 
-  await deviceStore.busyBar.StorageRemove({ path: fullPath })
+  await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 10000 })
     .then(() => {
       itemToDelete.value = null;
       showDeleteModal.value = false;
@@ -821,7 +821,8 @@ async function uploadFiles () {
       file.status = 'uploading';
       await deviceStore.busyBar.StorageWrite({
         path: `${_currentPath}/${file.blob.name}`,
-        file: file.blob
+        file: file.blob,
+        timeout: 0
       });
       file.status = 'success';
     } catch (error) {
@@ -882,7 +883,7 @@ async function mkdir () {
   loading.value.mkdir = true;
 
   const fullPath = `${currentPath.value}/${mkdirNameModel.value}`;
-  await deviceStore.busyBar.StorageMkdir({ path: fullPath })
+  await deviceStore.busyBar.StorageMkdir({ path: fullPath, timeout: 10000 })
     .then(() => {
       showMkdirModal.value = false;
     })

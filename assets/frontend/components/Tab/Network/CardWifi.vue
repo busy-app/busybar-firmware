@@ -148,25 +148,10 @@
         Unable to get IP address
       </div>
     </div>
-    <div
+    <ContentList
       v-if="connected"
-      class="grid sm:grid-cols-2 gap-y-3 gap-x-1"
-    >
-      <div
-        v-for="[property, value] in Object.entries({
-          'Name': wifiStore.wifi?.ssid,
-          'Signal strength': wifiStore.wifi?.rssi ? `${wifiStore.wifi.rssi} dBm` : 'Unknown',
-          'Channel': wifiStore.wifi?.channel || 'Unknown',
-          'BSSID': wifiStore.wifi?.bssid || 'Unknown',
-          'Security': wifiStore.wifi?.security || 'Open'
-        })"
-        :key="property"
-        class="flex gap-2"
-      >
-        <div class="w-[120px] text-muted">{{ property }}</div>
-        <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
-      </div>
-    </div>
+      :items="networkContent"
+    />
 
     <template
       v-if="!connected && showNetworksList"
@@ -577,6 +562,45 @@ const sectionIcon = computed(() => {
 });
 
 const forgetNetworkModal = ref(false);
+
+const networkContent = computed(() => [
+  [
+    {
+      title: 'Name',
+      value: wifiStore.wifi?.ssid,
+      loading: !wifiStore.wifi
+    },
+    {
+      title: 'IP address',
+      value: wifiStore.wifi?.ip_config?.address,
+      loading: !wifiStore.wifi,
+      class: 'overflow-visible whitespace-normal break-all'
+    },
+    {
+      title: 'Channel',
+      value: wifiStore.wifi?.channel ? String(wifiStore.wifi.channel) : undefined,
+      loading: !wifiStore.wifi
+    }
+  ],
+  [
+    {
+      title: 'Security',
+      value: wifiStore.wifi?.security,
+      loading: !wifiStore.wifi
+    },
+    {
+      title: 'BSSID',
+      value: wifiStore.wifi?.bssid,
+      loading: !wifiStore.wifi,
+      class: 'overflow-visible whitespace-normal break-all'
+    },
+    {
+      title: 'Signal strength',
+      value: wifiStore.wifi?.rssi ? `${wifiStore.wifi.rssi} dBm` : 'Unknown',
+      loading: !wifiStore.wifi
+    }
+  ]
+]);
 
 async function init () {
   await refreshWifiState();

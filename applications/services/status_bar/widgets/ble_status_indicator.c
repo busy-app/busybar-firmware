@@ -8,6 +8,7 @@
 struct BleStatusIndicator {
     Widget base;
     lv_obj_t* ble_image;
+    BleStatusIndicatorState state;
 };
 
 const lv_obj_class_t ble_status_indicator_lvgl_class;
@@ -21,7 +22,7 @@ static void ble_status_indicator_lvgl_constructor(const lv_obj_class_t* class_p,
 
     instance->ble_image = lv_image_create(obj);
     lv_obj_center(instance->ble_image);
-    lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_6x8.bin"));
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
 }
 
 /* Public API */
@@ -44,6 +45,26 @@ void ble_status_indicator_free(BleStatusIndicator* instance) {
 Widget* ble_status_indicator_get_base(BleStatusIndicator* instance) {
     furi_assert(instance);
     return (Widget*)instance;
+}
+
+void ble_status_indicator_set_state(BleStatusIndicator* instance, BleStatusIndicatorState state) {
+    furi_assert(instance);
+    furi_assert(state < BleStatusIndicatorStateMax);
+
+    if(state != instance->state) {
+        if(state == BleStatusIndicatorStateDisconnected) {
+            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_disconnected_8x8.bin"));
+        } else if(state == BleStatusIndicatorStateConnectable) {
+            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_connecting_8x8.bin"));
+        } else if(state == BleStatusIndicatorStateConnected) {
+            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_8x8.bin"));
+        }
+
+        const bool is_hidden = (state == BleStatusIndicatorStateUnknown);
+        lv_obj_update_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN, is_hidden);
+
+        instance->state = state;
+    }
 }
 
 const lv_obj_class_t ble_status_indicator_lvgl_class = {
