@@ -12,11 +12,23 @@ Endpoints:
 
 from __future__ import annotations
 
+import requests
 from typing import Any
 
 from pydantic import BaseModel, field_validator
 
 from .base import BaseAPI
+
+# Priority constants mirrored from loader.h
+LOADER_MAX_PRIORITY = 100
+LOADER_DEFAULT_APP_PRIORITY = 10  # any running app's baseline priority
+LOADER_MAX_APP_PRIORITY = 90  # busy app sets this while a work session is active
+LOADER_STUB_APP_PRIORITY = 0  # poweroff / settings stub apps; always preemptable
+DEFAULT_ELEMENT_PRIORITY = 50  # default priority used by the draw endpoint when omitted
+
+# Draw semantics: a POST /api/display/draw request is accepted when
+#   request_priority >= active_loader_priority
+# Equal-priority requests from a *different* app_id override the current display.
 
 
 # === Response Models ===
@@ -58,6 +70,7 @@ class DisplayDrawRequest(BaseModel):
     """Request for POST /api/display/draw."""
 
     app_id: str
+    priority: int | None = None
     elements: list[DisplayElement]
 
 
@@ -119,27 +132,57 @@ class AssetsAPI(BaseAPI):
 
     # === Display ===
 
-    def draw(self, app_id: str, elements: list[dict[str, Any]]) -> AssetResultResponse:
+    def draw(
+        self,
+        app_id: str,
+        elements: list[dict[str, Any]],
+        priority: int | None = None,
+    ) -> AssetResultResponse:
         """
-        Draw elements to the display.
+        Draw elements to the display (raises on non-2xx).
 
         Args:
             app_id: Application ID
             elements: List of element dictionaries
+            priority: Draw priority (1–100). Defaults to server default (50).
         """
+        body: dict[str, Any] = {"app_id": app_id, "elements": elements}
+        if priority is not None:
+            body["priority"] = priority
         return self.post(
             "/api/display/draw",
             AssetResultResponse,
-            json={"app_id": app_id, "elements": elements},
+            json=body,
         )
 
-    def draw_raw(self, data: dict[str, Any]):
-        """Send raw draw command (for error testing)."""
+    def draw_response(
+        self,
+        app_id: str,
+        elements: list[dict[str, Any]],
+        priority: int | None = None,
+    ) -> requests.Response:
+        """
+        Draw elements to the display and return the raw response.
+
+        Use this variant when the call is expected to fail (400, 409, etc.)
+        so that the error status code can be inspected without raising.
+        """
+        body: dict[str, Any] = {"app_id": app_id, "elements": elements}
+        if priority is not None:
+            body["priority"] = priority
+        return self.post_raw("/api/display/draw", json=body)
+
+    def draw_raw(self, data: dict[str, Any]) -> requests.Response:
+        """Send a fully custom draw payload (for schema / limit testing)."""
         return self.post_raw("/api/display/draw", json=data)
 
     def clear_display(self) -> AssetResultResponse:
-        """Clear the display."""
+        """Clear all elements from the display."""
         return self.delete("/api/display/draw", AssetResultResponse)
+
+    def clear_display_by_app(self, app_id: str) -> requests.Response:
+        """Clear display elements belonging to a specific app_id."""
+        return self.delete_raw("/api/display/draw", params={"app_id": app_id})
 
     # === Audio ===
 

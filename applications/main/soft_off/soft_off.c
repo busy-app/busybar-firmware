@@ -2,6 +2,8 @@
 
 #include <furi.h>
 
+#include <loader/loader.h>
+
 #include <gui/gui.h>
 #include <gui/modules/anim_player.h>
 
@@ -28,6 +30,9 @@ static bool soft_off_signal_callback(uint32_t signal, void* arg, void* context) 
 
 int32_t soft_off_app(void* arg) {
     UNUSED(arg);
+
+    Loader* loader = furi_record_open(RECORD_LOADER);
+    loader_set_priority(loader, 0);
 
     Gui* gui = furi_record_open(RECORD_GUI);
     BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
@@ -57,6 +62,7 @@ int32_t soft_off_app(void* arg) {
 
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_GUI);
+    furi_record_close(RECORD_LOADER);
 
     return 0;
 }

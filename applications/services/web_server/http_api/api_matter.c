@@ -163,6 +163,8 @@ static bool api_matter_switch_set(
     void* untyped_ctx) {
     UNUSED(untyped_ctx);
 
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     bool success = false;
     bool matter_request_error = false;
     char* device_type = NULL;
@@ -170,8 +172,6 @@ static bool api_matter_switch_set(
 
     MatterSrv* matter = furi_record_open(RECORD_MATTER);
     do {
-        if(!IS_HTTP_ENDPOINT(path)) break;
-
         if(!(device_type = mg_json_get_str(msg->body, "$.type"))) break;
         if(strcmp(device_type, "switch") != 0) break;
 
