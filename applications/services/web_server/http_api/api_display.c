@@ -16,7 +16,7 @@
 #define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
 #define DISPLAY_BUILTIN_ANIM_FORMATTER   EXT_PATH("apps_assets/%s/animations/%s.anim")
 
-#define DEFAULT_ELEMENT_PRIORITY ((FLIPPER_MAX_APP_PRIORITY / 2) + 1)
+#define DEFAULT_ELEMENT_PRIORITY ((LOADER_MAX_APP_PRIORITY / 2) + 1)
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
@@ -337,31 +337,10 @@ static bool api_display_draw_check_elements_visible(CanvasElementsArray_t elemen
     return elemets_visible > 0;
 }
 
-static int api_display_active_priority(void) {
-    int priority = INT_MIN;
-
+static size_t api_display_active_priority(void) {
     Loader* loader = furi_record_open(RECORD_LOADER);
-    FuriString* app_name = furi_string_alloc();
-
-    do {
-        bool canvas_running = furi_record_exists(RECORD_CANVAS);
-        if(canvas_running) {
-            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-            priority = canvas_active_priority(canvas);
-            furi_record_close(RECORD_CANVAS);
-            break;
-        }
-
-        const FlipperInternalApplication* running_app;
-        if((running_app = loader_get_application_descriptor(loader))) {
-            priority = running_app->priority;
-            break;
-        }
-    } while(0);
-
-    furi_string_free(app_name);
+    size_t priority = loader_get_priority(loader);
     furi_record_close(RECORD_LOADER);
-
     return priority;
 }
 
@@ -390,7 +369,7 @@ static bool api_display_draw_callback(
             priority = json_num;
         }
         if(priority <= 0) break;
-        if((size_t)priority > FLIPPER_MAX_APP_PRIORITY) break;
+        if((size_t)priority > LOADER_MAX_APP_PRIORITY) break;
 
         struct mg_str elements_obj = mg_json_get_tok(msg->body, "$.elements");
         if(!elements_obj.buf) break;
@@ -410,8 +389,8 @@ static bool api_display_draw_callback(
             break;
         }
 
-        int active_priority = api_display_active_priority();
-        if(priority <= active_priority) {
+        size_t active_priority = api_display_active_priority();
+        if((size_t)priority <= active_priority) {
             MG_REPLY_ERROR(conn, 409, "Not drawn due to low priority");
             break;
         }

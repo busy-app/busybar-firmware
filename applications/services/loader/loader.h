@@ -8,6 +8,9 @@ extern "C" {
 #define RECORD_LOADER            "loader"
 #define LOADER_APPLICATIONS_NAME "Apps"
 
+#define LOADER_MAX_APP_PRIORITY     100
+#define LOADER_DEFAULT_APP_PRIORITY (LOADER_MAX_APP_PRIORITY / 2)
+
 typedef struct Loader Loader;
 
 typedef enum {
@@ -91,6 +94,26 @@ bool loader_get_application_name(Loader* instance, FuriString* name);
  * @return true if signal was sent and consumed, false otherwise
  */
 bool loader_send_signal(Loader* instance, uint32_t signal, void* arg);
+
+/**
+ * @brief Sets the priority level for the currently running app
+ * 
+ * @param[in] instance pointer to the loader instance
+ * @param[in] priority priority level to set. Max is `LOADER_MAX_APP_PRIORITY`
+ * 
+ * @return `true` if set successfully, `false` if argument is out of range or
+ *         the requesting thread does not belong to the running app
+ */
+bool loader_set_priority(Loader* instance, size_t priority);
+
+/**
+ * @brief Gets the priority level of the currently running app
+ * 
+ * @param[in] instance pointer to the loader instance
+ * 
+ * @return the active priority level, or `0` if no app is running
+ */
+size_t loader_get_priority(Loader* instance);
 
 #ifdef __cplusplus
 }

@@ -7,6 +7,7 @@ typedef struct {
     char* args;
     FuriThread* thread;
     bool insomniac;
+    size_t priority;
 } LoaderAppData;
 
 struct Loader {
@@ -25,6 +26,8 @@ typedef enum {
     LoaderMessageTypeIsLocked,
     LoaderMessageTypeGetApplicationName,
     LoaderMessageTypeSendCustomSignal,
+    LoaderMessageTypeSetPriority,
+    LoaderMessageTypeGetPriority,
     LoaderMessageTypeMax,
 } LoaderMessageType;
 
@@ -50,11 +53,13 @@ typedef struct {
 typedef struct {
     FuriApiLock api_lock;
     LoaderMessageType type;
+    FuriThreadId caller;
 
     union {
         LoaderMessageStartByName start;
         LoaderMessageLoaderSendCustomSignal custom_signal;
         FuriString* application_name;
+        size_t* priority;
     };
 
     union {
