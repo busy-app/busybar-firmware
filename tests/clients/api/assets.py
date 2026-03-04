@@ -20,9 +20,9 @@ from pydantic import BaseModel, field_validator
 from .base import BaseAPI
 
 # Priority constants mirrored from loader.h
-LOADER_MAX_APP_PRIORITY = 100
+LOADER_MAX_PRIORITY = 100
 LOADER_DEFAULT_APP_PRIORITY = 10  # any running app's baseline priority
-LOADER_BUSY_APP_PRIORITY = 90  # busy app sets this while a work session is active
+LOADER_MAX_APP_PRIORITY = 90  # busy app sets this while a work session is active
 LOADER_STUB_APP_PRIORITY = 0  # poweroff / settings stub apps; always preemptable
 DEFAULT_ELEMENT_PRIORITY = 50  # default priority used by the draw endpoint when omitted
 

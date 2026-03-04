@@ -375,7 +375,7 @@ static bool api_display_draw_callback(
             MG_REPLY_ERROR(conn, 400, "Priority must be >= 1");
             break;
         }
-        if((size_t)priority > LOADER_MAX_APP_PRIORITY) {
+        if((size_t)priority > LOADER_MAX_PRIORITY) {
             MG_REPLY_ERROR(conn, 400, "Priority must be <= 100");
             break;
         }

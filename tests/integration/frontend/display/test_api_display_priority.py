@@ -7,7 +7,7 @@ These tests verify the behaviour introduced in PR FW-682 (iteration 2):
       • Stub apps (poweroff, settings pages)  → 0  (LOADER_STUB_APP_PRIORITY)
       • Any standard built-in app (incl.
         busy timer in NOT_STARTED / paused)   → 10 (LOADER_DEFAULT_APP_PRIORITY)
-      • Active BUSY/CUSTOM work session       → 90 (LOADER_BUSY_APP_PRIORITY)
+      • Active BUSY/CUSTOM work session       → 90 (LOADER_MAX_APP_PRIORITY)
   - The busy app is always running; the loader never reports priority 0 under
     normal operation.
   - A draw request is accepted when its priority is *greater than or equal to*
@@ -46,9 +46,9 @@ import requests
 
 from clients.api.assets import (
     AssetsAPI,
-    LOADER_MAX_APP_PRIORITY,
+    LOADER_MAX_PRIORITY,
     LOADER_DEFAULT_APP_PRIORITY,
-    LOADER_BUSY_APP_PRIORITY,
+    LOADER_MAX_APP_PRIORITY,
     LOADER_STUB_APP_PRIORITY,
     DEFAULT_ELEMENT_PRIORITY,
 )
@@ -119,14 +119,14 @@ class TestDrawPriorityValidation:
     @pytest.mark.frontend
     def test_priority_above_maximum_rejected(self, assets_api: AssetsAPI):
         """
-        Values above LOADER_MAX_APP_PRIORITY (100) must be rejected with 400.
+        Values above LOADER_MAX_PRIORITY (100) must be rejected with 400.
 
         NOTE: the firmware breaks without sending any HTTP response for this
         case (do-while exits early without calling MG_REPLY_BAD_REQUEST),
         so the client may receive a ReadTimeout. Either is treated as rejection.
         """
         try:
-            resp = _simple_draw(assets_api, priority=LOADER_MAX_APP_PRIORITY + 1)
+            resp = _simple_draw(assets_api, priority=LOADER_MAX_PRIORITY + 1)
             assets_api.assert_status(resp, 400)
         except requests.exceptions.ReadTimeout:
             pass
@@ -191,7 +191,7 @@ class TestDrawInDefaultState:
     @pytest.mark.frontend
     def test_maximum_priority_accepted(self, assets_api: AssetsAPI, busy_timer_stopped):
         """priority=100 must succeed when loader priority is 10."""
-        resp = _simple_draw(assets_api, priority=LOADER_MAX_APP_PRIORITY)
+        resp = _simple_draw(assets_api, priority=LOADER_MAX_PRIORITY)
         assets_api.assert_status(resp, 200)
 
     @allure.title("Draw with no explicit priority uses server default (50) – succeeds")
@@ -275,7 +275,7 @@ class TestDrawBusyTimerTransitions:
     Tests that exercise priority changes driven by busy-timer state transitions.
 
     When the timer enters work (active, not-paused) state the busy app calls
-    loader_set_priority(LOADER_BUSY_APP_PRIORITY=90).  When it is paused or
+    loader_set_priority(LOADER_MAX_APP_PRIORITY=90).  When it is paused or
     returns to NOT_STARTED it calls loader_set_priority(LOADER_DEFAULT=10).
 
     Acceptance rule: request_priority >= active_priority.
@@ -308,7 +308,7 @@ class TestDrawBusyTimerTransitions:
         priority=90 == loader priority=90.  With >= acceptance semantics,
         equal-priority draw requests must succeed (200) and override the display.
         """
-        resp = _simple_draw(assets_api, priority=LOADER_BUSY_APP_PRIORITY)
+        resp = _simple_draw(assets_api, priority=LOADER_MAX_APP_PRIORITY)
         assets_api.assert_status(resp, 200)
 
     @allure.title("Active busy timer blocks draw one below BUSY priority (89 < 90)")
@@ -321,7 +321,7 @@ class TestDrawBusyTimerTransitions:
         priority=89 is one below loader priority=90.  Must return 409.
         This pins the exact cutoff boundary for the active-busy state.
         """
-        resp = _simple_draw(assets_api, priority=LOADER_BUSY_APP_PRIORITY - 1)
+        resp = _simple_draw(assets_api, priority=LOADER_MAX_APP_PRIORITY - 1)
         assets_api.assert_status(resp, 409)
 
     @allure.title("Pausing busy timer (prio → 10) allows default-priority draw (50)")

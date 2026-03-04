@@ -8,9 +8,9 @@ extern "C" {
 #define RECORD_LOADER            "loader"
 #define LOADER_APPLICATIONS_NAME "Apps"
 
-#define LOADER_MAX_APP_PRIORITY     100
+#define LOADER_MAX_PRIORITY         100
 #define LOADER_DEFAULT_APP_PRIORITY 10
-#define LOADER_BUSY_APP_PRIORITY    90
+#define LOADER_MAX_APP_PRIORITY     90
 /** Priority 0 is reserved for system stub apps (e.g. poweroff, certain
  *  settings pages) that must never block HTTP draw requests. */
 #define LOADER_STUB_APP_PRIORITY    0
@@ -103,7 +103,7 @@ bool loader_send_signal(Loader* instance, uint32_t signal, void* arg);
  * @brief Sets the priority level for the currently running app
  * 
  * @param[in] instance pointer to the loader instance
- * @param[in] priority priority level to set. Max is `LOADER_MAX_APP_PRIORITY`
+ * @param[in] priority priority level to set. Max is `LOADER_MAX_PRIORITY`
  * 
  * @return `true` if set successfully, `false` if argument is out of range or
  *         the requesting thread does not belong to the running app
