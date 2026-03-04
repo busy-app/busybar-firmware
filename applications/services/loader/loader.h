@@ -9,7 +9,11 @@ extern "C" {
 #define LOADER_APPLICATIONS_NAME "Apps"
 
 #define LOADER_MAX_APP_PRIORITY     100
-#define LOADER_DEFAULT_APP_PRIORITY (LOADER_MAX_APP_PRIORITY / 2)
+#define LOADER_DEFAULT_APP_PRIORITY 10
+#define LOADER_BUSY_APP_PRIORITY    90
+/** Priority 0 is reserved for system stub apps (e.g. poweroff, certain
+ *  settings pages) that must never block HTTP draw requests. */
+#define LOADER_STUB_APP_PRIORITY    0
 
 typedef struct Loader Loader;
 
