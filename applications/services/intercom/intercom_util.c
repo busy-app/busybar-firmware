@@ -40,9 +40,8 @@ void intercom_dump_frame(const IntercomFrame* frame) {
     furi_string_free(tmp);
 }
 
-// TODO: Move this to a startup hook?
-void intercom_reset_other_side(void) {
 #if defined(BSB_MCU_U5)
+void intercom_reset_other_side(void) {
     furi_hal_power_reset_917(false);
-#endif
 }
+#endif //BSB_MCU_U5
