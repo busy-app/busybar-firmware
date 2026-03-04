@@ -8,7 +8,7 @@
 
 #define HTTP_HOST            "http://127.0.0.1"
 #define HTTP_URI_API_PREFIX  "/api/"
-#define HTTP_CONN_TIMEOUT_MS (5000)
+#define HTTP_CONN_TIMEOUT_MS (30000)
 
 #define SUB_QOS (MqttQosExactlyOnce)
 #define PUB_QOS (MqttQosExactlyOnce)
