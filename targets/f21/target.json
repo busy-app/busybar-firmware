@@ -131,7 +131,8 @@
         "cli",
         "containers",
         "anim_file",
-        "utz"
+        "utz",
+        "nanopb"
     ],
     "fw_modules": [
         "fw_elf",
@@ -140,7 +141,8 @@
         "sdk_extapps",
         "bsb_assets",
         "bsb_assets_bkp",
-        "link_builddir"
+        "link_builddir",
+        "proto"
     ],
     "dist_modules": [
         "elf_flash",
