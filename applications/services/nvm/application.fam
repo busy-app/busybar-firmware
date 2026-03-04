@@ -2,6 +2,7 @@ App(
     appid="nvm",
     apptype=FlipperAppType.STARTUP,
     entry_point="nvm_on_system_start",
+    stack_size=2*1024,
     order=120,
     targets=["f64", "f65"],
     requires=["wifi"],

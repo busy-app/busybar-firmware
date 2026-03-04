@@ -5,14 +5,9 @@
 
 #define TAG "SvcStartup"
 
-// TODO:
-// Find the minimum value that won't cause stack issues or OOM
-// Pay extra attention to NVM as it was known to cause issues in the past
-#define STARTUP_HOOK_STACK_SIZE (1024)
-
 static int32_t startup_hook_thread_callback(void* context) {
-    const FlipperInternalOnStartHook hook = context;
-    hook();
+    const FlipperInternalOnStartHook* hook = context;
+    hook->callback();
     return 0;
 }
 
@@ -35,9 +30,9 @@ static void run_service(const FlipperInternalApplication* service) {
     furi_thread_start(thread);
 }
 
-static void run_startup_hook(FlipperInternalOnStartHook hook) {
+static void run_startup_hook(const FlipperInternalOnStartHook* hook) {
     FuriThread* hook_thread = furi_thread_alloc_ex(
-        "Hook thread", STARTUP_HOOK_STACK_SIZE, startup_hook_thread_callback, hook);
+        "Hook thread", hook->stack_size, startup_hook_thread_callback, (void*)hook);
     furi_thread_set_state_callback(hook_thread, startup_hook_thread_state_callback);
     furi_thread_start(hook_thread);
 }
@@ -54,7 +49,7 @@ static void run_all_startup_hooks(void) {
     FURI_LOG_I(TAG, "Running %d startup hooks", FLIPPER_ON_SYSTEM_START_COUNT);
 
     for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
-        run_startup_hook(FLIPPER_ON_SYSTEM_START[i]);
+        run_startup_hook(&FLIPPER_ON_SYSTEM_START[i]);
     }
 }
 
