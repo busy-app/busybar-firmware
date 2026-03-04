@@ -6,4 +6,5 @@ App(
     requires=["gui"],
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],
+    priority=0,
 )
