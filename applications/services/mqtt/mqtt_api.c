@@ -322,7 +322,9 @@ static void mqtt_set_profile_api_message_handler(Mqtt* instance, const MqttApiMe
     if(profile_id == MqttProfileIdCustom) {
         // TODO: Better checks for custom url
         if(set_profile->custom_url) {
-            furi_string_set(settings->custom_url, set_profile->custom_url);
+            *settings->custom_url = '\0';
+            strncat(
+                settings->custom_url, set_profile->custom_url, sizeof(settings->custom_url) - 1);
         }
     }
 

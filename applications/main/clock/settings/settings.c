@@ -6,26 +6,24 @@
 #define CLOCK_SETTINGS_VERSION   1
 #define CLOCK_SETTINGS_ROOT      clock_v1_settings_root
 
-void clock_settings_reset(ClockSettings* settings) {
+bool clock_settings_reset(ClockSettings* settings) {
     SettingProvider* provider =
         setting_provider_alloc(CLOCK_SETTINGS_FILE_PATH, CLOCK_SETTINGS_VERSION, NULL, 0);
-
-    setting_provider_open(provider);
-    setting_provider_reset(provider, &CLOCK_SETTINGS_ROOT, settings);
-    setting_provider_close(provider);
+    bool is_successful = setting_provider_reset(provider, &CLOCK_SETTINGS_ROOT, settings);
     setting_provider_free(provider);
+
+    return is_successful;
 }
 
-void clock_settings_load(ClockSettings* settings) {
+bool clock_settings_load(ClockSettings* settings) {
     furi_check(settings);
 
     SettingProvider* provider =
         setting_provider_alloc(CLOCK_SETTINGS_FILE_PATH, CLOCK_SETTINGS_VERSION, NULL, 0);
-
-    setting_provider_open(provider);
-    setting_provider_load(provider, &CLOCK_SETTINGS_ROOT, settings);
-    setting_provider_close(provider);
+    bool is_successful = setting_provider_load(provider, &CLOCK_SETTINGS_ROOT, settings);
     setting_provider_free(provider);
+
+    return is_successful;
 }
 
 bool clock_settings_save(const ClockSettings* settings) {
@@ -33,11 +31,8 @@ bool clock_settings_save(const ClockSettings* settings) {
 
     SettingProvider* provider =
         setting_provider_alloc(CLOCK_SETTINGS_FILE_PATH, CLOCK_SETTINGS_VERSION, NULL, 0);
-
-    setting_provider_open(provider);
-    bool is_success = setting_provider_save(provider, &CLOCK_SETTINGS_ROOT, settings);
-    setting_provider_close(provider);
+    bool is_successful = setting_provider_save(provider, &CLOCK_SETTINGS_ROOT, settings);
     setting_provider_free(provider);
 
-    return is_success;
+    return is_successful;
 }
