@@ -109,9 +109,11 @@ void intercom_channel_call_callback(const IntercomChannel* channel, const Interc
     furi_assert(channel);
 
     const IntercomRxCallback callback = channel->rx_callback;
-    furi_check(callback, "rx_callback==NULL, other side sent data");
-
-    callback(rx_frame->data, rx_frame->data_size, channel->callback_context);
+    if(callback) {
+        callback(rx_frame->data, rx_frame->data_size, channel->callback_context);
+    } else {
+        FURI_LOG_W(TAG, "rx_callback==NULL, other side sent data");
+    }
 }
 
 void intercom_channel_send_ready(IntercomChannel* channel) {
