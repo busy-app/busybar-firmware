@@ -33,7 +33,7 @@ static void busy_scene_setup_timer_set_item_defaults(const BusySceneSetupTimer* 
         [VarItemListIdRest] = BUSY_TIMER_REST_TIME_DEFAULT_MN,
         [VarItemListIdCycles] = BUSY_TIMER_CYCLE_COUNT_DEFAULT,
         [VarItemListIdAutostart] = BUSY_TIMER_ENABLE_AUTOSTART_DEFAULT,
-        // VarItemListIdShowWork ... VarItemListIdDemoMode are not reset to default
+        // VarItemListIdShowWork and VarItemListIdDemoMode are not reset to default
     };
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
