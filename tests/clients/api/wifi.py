@@ -145,7 +145,7 @@ class WifiAPI(BaseAPI):
 
     def disconnect(self) -> WifiResultResponse:
         """Disconnect from WiFi."""
-        return self.post("/api/wifi/disconnect", WifiResultResponse)
+        return self.post("/api/wifi/disconnect", WifiResultResponse, data=b"")
 
     def connect_to_test_network(self, timeout: int = 30):
         """

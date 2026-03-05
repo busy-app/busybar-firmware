@@ -48,7 +48,16 @@ API_ENDPOINTS = [
     "/api/account/profile",
     "/api/time/timestamp",
     "/api/time/timezone",
+    "/api/time/tzlist",
+    "/api/status/device",
+    "/api/status/firmware",
+    "/api/storage/rename",
+    "/api/update/autoupdate",
     "/api/busy/snapshot",
+    "/api/busy/profiles/busy",
+    "/api/busy/profiles/custom",
+    "/api/matter/commissioning",
+    "/api/matter/endpoint/1",
 ]
 
 

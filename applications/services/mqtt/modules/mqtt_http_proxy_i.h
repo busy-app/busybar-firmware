@@ -28,5 +28,5 @@ typedef struct {
     FuriString* correlation_data;
     uint8_t* data;
     size_t data_size;
-    uint32_t poll_cnt;
+    uint32_t start_tick;
 } MqttHttpProxyRequest;

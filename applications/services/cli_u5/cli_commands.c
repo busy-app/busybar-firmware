@@ -194,10 +194,14 @@ static void cli_commands_init(CliRegistry* registry) {
         cli_command_sl_cli,
         NULL);
 #endif // SRV_INTERCOM
+
+#ifdef SRV_SNTP
     cli_registry_add_command(
         registry, "date", CliCommandFlagParallelSafe, cli_command_rtc_date, NULL);
     cli_registry_add_command(
         registry, "timezone", CliCommandFlagParallelSafe, cli_command_rtc_timezone, NULL);
+#endif // SRV_SNTP
+
     // commands from `.fam`s
     for(size_t i = 0; i < FLIPPER_CLI_COMMANDS_COUNT; i++) {
         const FlipperInternalCommandApplication* command = &FLIPPER_CLI_COMMANDS[i];

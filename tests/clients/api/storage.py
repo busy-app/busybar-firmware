@@ -7,6 +7,7 @@ Endpoints:
 - GET /api/storage/read
 - POST /api/storage/write
 - POST /api/storage/mkdir
+- POST /api/storage/rename
 - DELETE /api/storage/remove
 """
 
@@ -70,6 +71,7 @@ class StorageAPI(BaseAPI):
     - GET /api/storage/read - Read file contents
     - POST /api/storage/write - Write file
     - POST /api/storage/mkdir - Create directory
+    - POST /api/storage/rename - Rename/move file
     - DELETE /api/storage/remove - Remove file/directory
     """
 
@@ -125,7 +127,30 @@ class StorageAPI(BaseAPI):
         Args:
             path: Directory path to create
         """
-        return self.post("/api/storage/mkdir", StorageResultResponse, params={"path": path})
+        return self.post("/api/storage/mkdir", StorageResultResponse, params={"path": path}, data=b"")
+
+    def rename(self, path: str, new_path: str) -> StorageResultResponse:
+        """
+        Rename/move a file.
+
+        Args:
+            path: Current file path
+            new_path: New file path
+        """
+        return self.post(
+            "/api/storage/rename",
+            StorageResultResponse,
+            params={"path": path, "new_path": new_path},
+            data=b"",
+        )
+
+    def rename_raw(self, path: str, new_path: str):
+        """Rename file and return raw response (for error testing)."""
+        return self.post_raw(
+            "/api/storage/rename",
+            params={"path": path, "new_path": new_path},
+            data=b"",
+        )
 
     def remove(self, path: str):
         """

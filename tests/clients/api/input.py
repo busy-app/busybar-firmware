@@ -64,4 +64,4 @@ class InputAPI(BaseAPI):
         Returns:
             Raw response
         """
-        return self.post_raw("/api/input", params={"key": key})
+        return self.post_raw("/api/input", params={"key": key}, data=b"")

@@ -1,30 +1,21 @@
 import allure
 import pytest
 
-from typing import Optional
-
 from clients.api import SystemAPI
+from clients.api.system import DeviceInfo, FirmwareInfo, TimezoneResponse, TimezoneListResponse
 
 
 @pytest.fixture
 def time_settings_guard(system_api: SystemAPI):
     """Restore device time and timezone after a test."""
-    original = system_api.get_time().timestamp
+    original_time = system_api.get_time().timestamp
+    original_tz = system_api.get_timezone().timezone
 
-    timezone_offset: Optional[str] = None
-    if original.endswith("Z"):
-        timezone_offset = "+00:00"
-    elif len(original) >= 6 and (original[-6] in ("+", "-")):
-        timezone_offset = original[-6:]
-
-    original_local = original[:19]
-
-    yield original_local, timezone_offset
+    yield original_time, original_tz
 
     try:
-        if timezone_offset:
-            system_api.set_timezone(timezone_offset)
-        system_api.set_timestamp(original_local)
+        system_api.set_timezone(original_tz)
+        system_api.set_timestamp(original_time)
     except Exception:
         pass
 
@@ -56,7 +47,7 @@ class TestSystemAPI:
 
         # Structure validation done by pydantic
         assert response.system.uptime
-        assert response.system.version
+        assert response.system.api_semver
         assert 0 <= response.power.battery_charge <= 100
 
         with allure.step("Cross-verify with CLI device_info data"):
@@ -70,12 +61,34 @@ class TestSystemAPI:
         """Test GET /api/status/system endpoint"""
         response = system_api.get_system_status()
 
-        # All fields validated by pydantic as strings
-        assert response.branch
+        # All fields validated by pydantic
+        assert response.api_semver
+        assert response.uptime
+        assert response.boot_time >= 0
+
+    @allure.title("GET /api/status/device")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_status_device_get(self, system_api: SystemAPI):
+        """Test GET /api/status/device endpoint"""
+        response = system_api.get_device_info()
+
+        assert response.serial_number
+        assert response.usb_mac
+        assert isinstance(response.otp_valid, bool)
+
+    @allure.title("GET /api/status/firmware")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_status_firmware_get(self, system_api: SystemAPI):
+        """Test GET /api/status/firmware endpoint"""
+        response = system_api.get_firmware_info()
+
         assert response.version
+        assert response.target >= 0
+        assert response.branch
         assert response.build_date
         assert response.commit_hash
-        assert response.uptime
 
     @allure.id("2641")
     @allure.title("GET /api/status/power")
@@ -113,7 +126,7 @@ class TestTimeAPI:
     @pytest.mark.frontend
     def test_api_time_timestamp_post(self, system_api: SystemAPI, time_settings_guard):
         """Test POST /api/time/timestamp endpoint"""
-        test_timestamp = "2025-06-15T12:30:45"
+        test_timestamp = "2025-06-15T12:30:45Z"
 
         system_api.set_timestamp(test_timestamp)
 
@@ -138,6 +151,30 @@ class TestTimeAPI:
             response = system_api.set_timestamp_raw(invalid_ts)
             assert response.status_code == 400
 
+    @allure.title("GET /api/time/timezone")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_time_timezone_get(self, system_api: SystemAPI):
+        """Test GET /api/time/timezone endpoint"""
+        response = system_api.get_timezone()
+
+        assert response.timezone
+
+    @allure.title("GET /api/time/tzlist")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_time_tzlist_get(self, system_api: SystemAPI):
+        """Test GET /api/time/tzlist endpoint"""
+        response = system_api.get_timezone_list()
+
+        assert isinstance(response.list, list)
+        assert len(response.list) > 0
+
+        # Verify structure of timezone items
+        for tz in response.list[:5]:
+            assert tz.name
+            assert tz.offset
+
     @allure.id("2683")
     @allure.title("POST /api/time/timezone")
     @pytest.mark.api
@@ -145,10 +182,10 @@ class TestTimeAPI:
     @pytest.mark.parametrize(
         "test_tz",
         [
-            "+00:00",
-            "-05:00",
-            "+09:30",
-            "-12:00",
+            "London",
+            "Berlin",
+            "Tokyo",
+            "New York",
         ],
     )
     def test_api_time_timezone_post(self, system_api: SystemAPI, test_tz, time_settings_guard):
@@ -162,16 +199,14 @@ class TestTimeAPI:
     @pytest.mark.parametrize(
         "invalid_tz",
         [
-            "invalid",
-            "+25:00",
-            "-15:00",
             "",
+            "NonExistentTimezone12345",
         ],
     )
     def test_api_time_timezone_post_invalid(
         self, system_api: SystemAPI, invalid_tz
     ):
-        """Test POST /api/time/timezone endpoint with invalid format"""
+        """Test POST /api/time/timezone endpoint with invalid timezone name"""
         with allure.step(f"Test invalid timezone: {invalid_tz}"):
             response = system_api.set_timezone_raw(invalid_tz)
             assert response.status_code == 400

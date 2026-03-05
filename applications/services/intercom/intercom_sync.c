@@ -3,15 +3,11 @@
 #define INTERCOM_SYNC_LEADER_1 (0x55)
 #define INTERCOM_SYNC_LEADER_2 (0xAA)
 
-#define INTERCOM_SYNC_INTERVAL_1_MS (5UL)
-#define INTERCOM_SYNC_INTERVAL_2_MS (1UL)
-
-#define INTERCOM_SYNC_CHAR_TIMEOUT_MS (1000UL)
+#define INTERCOM_SYNC_CHAR_TIMEOUT_MS (50UL)
 #define INTERCOM_SYNC_TIMEOUT_MS      (1000UL)
 
 typedef struct {
     uint8_t leader;
-    uint32_t interval;
     bool repeat_leader;
 } IntercomSyncSequence;
 
@@ -19,13 +15,11 @@ static const IntercomSyncSequence intercom_sync_sequences[] = {
     // Sequence 1 - ensure that the target is responding
     {
         .leader = INTERCOM_SYNC_LEADER_1,
-        .interval = INTERCOM_SYNC_INTERVAL_1_MS,
         .repeat_leader = true,
     },
     // Sequence 2 - ensure that data streams are in sync
     {
         .leader = INTERCOM_SYNC_LEADER_2,
-        .interval = INTERCOM_SYNC_INTERVAL_2_MS,
         .repeat_leader = false,
     },
 };
@@ -50,15 +44,16 @@ static bool
         if(send_leader) {
             if(furi_hal_serial_tx(serial, &sequence->leader, 1, INTERCOM_SYNC_CHAR_TIMEOUT_MS) !=
                1) {
-                break;
-            }
-            if(!furi_hal_serial_tx_wait_complete(serial, INTERCOM_SYNC_CHAR_TIMEOUT_MS)) {
-                break;
+                continue;
             }
             // If repeat_leader is false, then the leader is sent only once
             if(!sequence->repeat_leader) {
                 send_leader = false;
             }
+        }
+
+        if(!furi_hal_serial_tx_wait_complete(serial, INTERCOM_SYNC_CHAR_TIMEOUT_MS)) {
+            continue;
         }
 
         if(furi_hal_serial_rx_available(serial)) {
@@ -67,8 +62,6 @@ static bool
                 break;
             }
         }
-
-        furi_delay_ms(sequence->interval);
     }
 
     return success;
@@ -112,12 +105,4 @@ bool intercom_sync_serial(FuriHalSerialHandle* serial) {
     }
 
     return success;
-}
-
-void intercom_sync_request(const GpioPin* gpio) {
-    furi_hal_gpio_init(gpio, GpioModeOutputOpenDrain, GpioPullNo, GpioSpeedLow);
-    furi_hal_gpio_write_open_drain(gpio, false);
-    furi_delay_us(10);
-    furi_hal_gpio_write_open_drain(gpio, true);
-    furi_hal_gpio_init(gpio, GpioModeInput, GpioPullNo, GpioSpeedLow);
 }

@@ -52,9 +52,6 @@ typedef enum {
 
 typedef struct {
     SupervisorEventType type;
-    union {
-        FuriString* message; // must be deallocated by the receiver
-    };
 } SupervisorEvent;
 
 typedef struct {
@@ -126,8 +123,8 @@ static const SupervisorWarning supervisor_warnings[] = {
         },
     [SupervisorWarningTypeIntercomError] =
         {
-            .front_text = "Intercom error\nUpdate firmware",
-            .back_text = "Intercom error\nPlease update firmware",
+            .front_text = "Intercom error\nReboot device",
+            .back_text = "Intercom error\nPlease reboot the device",
             .input_locked = true,
             .ok_callback = NULL,
         },
@@ -152,29 +149,15 @@ static void supervisor_send_event(Supervisor* instance, SupervisorEventType type
         furi_message_queue_put(instance->message_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
-static void supervisor_send_event_with_message(
-    Supervisor* instance,
-    SupervisorEventType type,
-    const char* message) {
-    furi_check(instance);
-    SupervisorEvent event;
-    event.type = type;
-    event.message = furi_string_alloc_set(message);
-
-    furi_check(
-        furi_message_queue_put(instance->message_queue, &event, FuriWaitForever) == FuriStatusOk);
-}
-
-static void supervisor_intercom_callback(const void* message, void* context) {
+static void supervisor_intercom_state_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    const IntercomEvent* event = message;
     Supervisor* instance = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)message;
 
-    if(event->type == IntercomEventTypeError) {
-        supervisor_send_event_with_message(
-            instance, SupervisorEventTypeIntercomError, event->message);
+    if(intercom_status != IntercomStatusUnknown && intercom_status != IntercomStatusOk) {
+        supervisor_send_event(instance, SupervisorEventTypeIntercomError);
     }
 }
 
@@ -487,18 +470,8 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
         }
     } break;
     case SupervisorEventTypeIntercomError: {
-        FURI_LOG_E(TAG, "Intercom error received: %s", furi_string_get_cstr(event.message));
+        FURI_LOG_E(TAG, "Intercom error received");
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeIntercomError, true);
-        size_t topmost_warning_type = supervisor_get_topmost_warning(&instance->gui);
-        if(topmost_warning_type == SupervisorWarningTypeIntercomError) {
-            with_gui(instance->gui.gui, {
-                label_set_text_fmt(
-                    instance->gui.back_label,
-                    "Intercom error\nPlease update firmware\n\"%s\"",
-                    furi_string_get_cstr(event.message));
-            });
-        }
-        furi_string_free(event.message);
     } break;
     }
 }
@@ -533,8 +506,8 @@ int32_t supervisor_start(void* p) {
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_pubsub_subscribe(power_get_pubsub(instance->power), supervisor_power_callback, instance);
-    furi_pubsub_subscribe(
-        intercom_get_pubsub(instance->intercom), supervisor_intercom_callback, instance);
+    furi_state_subscribe(
+        intercom_get_state(instance->intercom), supervisor_intercom_state_callback, instance);
 
     gui_layer_add_input_callback(
         gui_get_layer(instance->gui.gui, GuiLayerIdSystem), supervisor_input, instance);

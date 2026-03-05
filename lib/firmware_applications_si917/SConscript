@@ -10,6 +10,7 @@ fwenv = env
 
 fwenv.AppendUnique(
     CPPPATH=[Dir(".").srcnode()],
+    LINT_SOURCES=[Dir(".").srcnode()],
 )
 
 

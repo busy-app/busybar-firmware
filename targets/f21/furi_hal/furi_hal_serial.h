@@ -149,17 +149,27 @@ void furi_hal_serial_set_hw_flow_control(
     FuriHalSerialHwFlowControl flow_control);
 
 /**
- * Set the callback functions for the serial interface.
+ * Set the transmit callback function for the serial interface.
  *
  * @param handle Pointer to the serial handle.
- * @param tx_callback Pointer to the transmit callback function.
- * @param rx_callback Pointer to the receive callback function.
+ * @param callback Pointer to the transmit callback function.
  * @param context Pointer to the context object.
  */
-void furi_hal_serial_set_callback(
+void furi_hal_serial_set_tx_callback(
     FuriHalSerialHandle* handle,
-    FuriHalSerialTxCallback tx_callback,
-    FuriHalSerialRxCallback rx_callback,
+    FuriHalSerialTxCallback callback,
+    void* context);
+
+/**
+ * Set the receive callback function for the serial interface.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param callback Pointer to the receive callback function.
+ * @param context Pointer to the context object.
+ */
+void furi_hal_serial_set_rx_callback(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialRxCallback callback,
     void* context);
 
 /* Blocking API */

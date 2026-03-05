@@ -103,10 +103,8 @@ ARRAY_DEF(
 bool canvas_show_elements(
     CanvasApp* canvas,
     const char* app_id,
-    int priority,
+    size_t priority,
     CanvasElementsArray_t elements);
-
-int canvas_active_priority(CanvasApp* canvas);
 
 /**
  * @brief Delete elements by filter and possibly terminate Canvas

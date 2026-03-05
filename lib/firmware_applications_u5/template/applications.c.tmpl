@@ -39,7 +39,7 @@ extern int32_t {{ app.entry_point }}(void* p);
 const {{ entry_type }} {{ entry_block }}[] = {
     {% for app in buildset.get_apps_of_type(apptype): %}
         {% if app.apptype == FlipperAppType.STARTUP: %}
-    {{ app.entry_point }},
+{% include("startup_block.tmpl") %},
         {% :elif app.apptype == FlipperAppType.CLICMD: %}
 {% include("cli_cmd_block.tmpl") %},
         {% :else: %}

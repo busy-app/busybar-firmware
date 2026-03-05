@@ -47,7 +47,7 @@ static const char* intercom_channel_id_name(IntercomChannelId channel_id) {
 
 static FURI_ALWAYS_INLINE IntercomChannelId intercom_channel_id(IntercomChannel* channel) {
     furi_assert(channel);
-    return channel - channel->intercom->handles;
+    return channel - channel->intercom->channels;
 }
 
 static void intercom_meta_channel_ready(Intercom* intercom, const IntercomMetaFrame* frame) {
@@ -62,7 +62,7 @@ static void intercom_meta_channel_ready(Intercom* intercom, const IntercomMetaFr
 
     FURI_LOG_D(TAG, "OTHER side ready: %s", intercom_channel_id_name(channel_id));
 
-    const IntercomChannel* channel = &intercom->handles[channel_id];
+    const IntercomChannel* channel = &intercom->channels[channel_id];
     furi_check(
         !(furi_event_flag_set(channel->flags, IntercomChannelFlagPeerReady) & FuriFlagError));
 }
@@ -100,16 +100,15 @@ void intercom_channel_set_callback(
     IntercomRxCallback callback,
     void* context) {
     furi_assert(channel);
-    if(context) furi_assert(callback);
 
     channel->rx_callback = callback;
     channel->callback_context = context;
 }
 
-void intercom_channel_call_callback(IntercomChannel* channel, const IntercomFrame* rx_frame) {
+void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* rx_frame) {
     furi_assert(channel);
 
-    IntercomRxCallback callback = channel->rx_callback;
+    const IntercomRxCallback callback = channel->rx_callback;
     furi_check(callback, "rx_callback==NULL, other side sent data");
 
     callback(rx_frame->data, rx_frame->data_size, channel->callback_context);
@@ -117,19 +116,18 @@ void intercom_channel_call_callback(IntercomChannel* channel, const IntercomFram
 
 void intercom_channel_send_ready(IntercomChannel* channel) {
     furi_assert(channel);
-    IntercomChannelId channel_id = intercom_channel_id(channel);
+
+    const IntercomChannelId channel_id = intercom_channel_id(channel);
     furi_check(channel_id != IntercomChannelIdMeta);
 
-    IntercomFrame* tx_frame = intercom_do_acquire_tx(channel->intercom);
-    tx_frame->channel_id = IntercomChannelIdMeta;
+    const IntercomMetaFrame frame = {
+        .type = IntercomMetaTypeChannelReady,
+        .channel_ready.channel_id = channel_id,
+    };
 
-    IntercomMetaFrame* frame = (IntercomMetaFrame*)tx_frame->data;
-    frame->type = IntercomMetaTypeChannelReady;
-    frame->channel_ready.channel_id = channel_id;
-
-    tx_frame->data_size = sizeof(*frame);
-    tx_frame->check = intercom_frame_get_checksum(tx_frame);
-    intercom_do_tx(channel->intercom);
+    const size_t tx_size = intercom_tx_internal(
+        channel->intercom, IntercomChannelIdMeta, &frame, sizeof(frame), FuriWaitForever);
+    furi_check(tx_size == sizeof(frame));
 
     FURI_LOG_D(TAG, "THIS side ready: %s", intercom_channel_id_name(channel_id));
 }

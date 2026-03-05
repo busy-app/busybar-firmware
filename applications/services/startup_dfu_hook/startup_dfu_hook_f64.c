@@ -25,12 +25,23 @@ typedef enum {
     StartupDfuHookStateExit,
 } StartupDfuHookState;
 
+typedef struct {
+    Input* input;
+    Intercom* intercom;
+    StatusLights* status_lights;
+
+    FuriPubSub* input_events;
+
+    FuriPubSubSubscription* input_events_subscription;
+    FuriStateSub* intercom_state_subscription;
+} StartupDfuHook;
+
 static void startup_dfu_hook_input_events_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
     const InputCommonEvent* event = message;
-    FuriThreadId* thread_id = context;
+    FuriThreadId thread_id = context;
 
     if(event->device == InputDeviceButton) {
         if(event->button_event.button == InputButtonStart &&
@@ -40,98 +51,105 @@ static void startup_dfu_hook_input_events_callback(const void* message, void* co
     }
 }
 
-static void startup_dfu_hook_intercom_events_callback(const void* message, void* context) {
+static void startup_dfu_hook_intercom_state_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    const IntercomEvent* event = message;
-    FuriThreadId* thread_id = context;
+    FuriThreadId thread_id = context;
 
-    if(event->type == IntercomEventTypeSyncStateChanged) {
-        if(event->is_in_sync) {
-            furi_thread_flags_set(thread_id, StartupDfuHookFlagIntercomSync);
-        }
+    const IntercomStatus intercom_status = *(IntercomStatus*)message;
+
+    if(intercom_status == IntercomStatusOk) {
+        furi_thread_flags_set(thread_id, StartupDfuHookFlagIntercomSync);
     }
 }
 
-static int32_t startup_dfu_hook_thread(void* arg) {
-    furi_assert(arg);
+static void startup_dfu_hook_run(StartupDfuHook* instance) {
+    StatusLights* status_lights = instance->status_lights;
+    StartupDfuHookState state = StartupDfuHookStateDfuWarn;
 
-    Input* input = arg;
-    FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
-    FuriPubSubSubscription* input_events_subscription = furi_pubsub_subscribe(
-        input_events, startup_dfu_hook_input_events_callback, furi_thread_get_current_id());
-    // TODO [FW-503]: use furi_state
-    InputAbsoluteState input_state = input_get_absolute_state(input);
+    do {
+        switch(state) {
+        case StartupDfuHookStateDfuWarn: {
+            status_lights_run_preset(
+                status_lights, StatusLightsPresetBlink, (Color)COLOR_MAKE_HEX(DFU_WARN_COLOR));
 
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    FuriPubSub* intercom_events = intercom_get_pubsub(intercom);
-    FuriPubSubSubscription* intercom_events_subscription = furi_pubsub_subscribe(
-        intercom_events, startup_dfu_hook_intercom_events_callback, furi_thread_get_current_id());
-    bool is_intercom_in_sync = intercom_is_in_sync(intercom);
+            uint32_t flags = furi_thread_flags_wait(
+                StartupDfuHookFlagAny, FuriFlagWaitAny, DFU_WARN_TIMEOUT_MS);
 
-    if(input_state.buttons & InputButtonMaskStart && !is_intercom_in_sync) {
-        StatusLights* status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
-        StartupDfuHookState state = StartupDfuHookStateDfuWarn;
+            state = (flags & FuriFlagError) ? StartupDfuHookStateDfuEnter :
+                                              StartupDfuHookStateAbort;
+            break;
+        }
 
-        do {
-            switch(state) {
-            case StartupDfuHookStateDfuWarn: {
-                status_lights_run_preset(
-                    status_lights, StatusLightsPresetBlink, (Color)COLOR_MAKE_HEX(DFU_WARN_COLOR));
+        case StartupDfuHookStateDfuEnter:
+            status_lights_run_preset(
+                status_lights,
+                StatusLightsPresetStaticColor,
+                (Color)COLOR_MAKE_HEX(DFU_ENTER_COLOR));
 
-                uint32_t flags = furi_thread_flags_wait(
-                    StartupDfuHookFlagAny, FuriFlagWaitAny, DFU_WARN_TIMEOUT_MS);
+            furi_thread_flags_wait(
+                StartupDfuHookFlagIntercomSync, FuriFlagWaitAny, FuriWaitForever);
 
-                state = (flags & FuriFlagError) ? StartupDfuHookStateDfuEnter :
-                                                  StartupDfuHookStateAbort;
-                break;
-            }
+            state = StartupDfuHookStateAbort;
+            break;
 
-            case StartupDfuHookStateDfuEnter:
-                status_lights_run_preset(
-                    status_lights,
-                    StatusLightsPresetStaticColor,
-                    (Color)COLOR_MAKE_HEX(DFU_ENTER_COLOR));
+        case StartupDfuHookStateAbort:
+            status_lights_run_preset(
+                status_lights, StatusLightsPresetOff, (Color)COLOR_MAKE_RGB(0, 0, 0));
+            state = StartupDfuHookStateExit;
+            break;
 
-                furi_thread_flags_wait(
-                    StartupDfuHookFlagIntercomSync, FuriFlagWaitAny, FuriWaitForever);
+        case StartupDfuHookStateExit:
+            break;
 
-                state = StartupDfuHookStateAbort;
-                break;
+        default:
+            furi_crash("Invalid StartupDfuHookState value");
+        }
 
-            case StartupDfuHookStateAbort:
-                status_lights_run_preset(
-                    status_lights, StatusLightsPresetOff, (Color)COLOR_MAKE_RGB(0, 0, 0));
-                state = StartupDfuHookStateExit;
-                break;
+    } while(state != StartupDfuHookStateExit);
+}
 
-            case StartupDfuHookStateExit:
-                break;
-            }
-        } while(state != StartupDfuHookStateExit);
+static void startup_dfu_hook_construct(StartupDfuHook* instance) {
+    instance->input = furi_record_open(RECORD_INPUT);
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
 
-        furi_record_close(RECORD_STATUS_LIGHTS);
-    }
+    instance->input_events = furi_record_open(RECORD_INPUT_EVENTS);
+    instance->input_events_subscription = furi_pubsub_subscribe(
+        instance->input_events,
+        startup_dfu_hook_input_events_callback,
+        furi_thread_get_current_id());
 
-    furi_pubsub_unsubscribe(intercom_events, intercom_events_subscription);
-    furi_record_close(RECORD_INTERCOM);
+    FuriState* intercom_state = intercom_get_state(instance->intercom);
+    instance->intercom_state_subscription = furi_state_subscribe(
+        intercom_state, startup_dfu_hook_intercom_state_callback, furi_thread_get_current_id());
+}
 
-    furi_pubsub_unsubscribe(input_events, input_events_subscription);
+static void startup_dfu_hook_teardown(StartupDfuHook* instance) {
+    furi_pubsub_unsubscribe(instance->input_events, instance->input_events_subscription);
+    furi_state_unsubscribe(instance->intercom_state_subscription);
+
+    furi_record_close(RECORD_INPUT);
     furi_record_close(RECORD_INPUT_EVENTS);
+    furi_record_close(RECORD_INTERCOM);
+    furi_record_close(RECORD_STATUS_LIGHTS);
+}
 
-    return 0;
+static bool startup_dfu_hook_should_run(const StartupDfuHook* instance) {
+    // TODO [FW-503]: use furi_state
+    const InputAbsoluteState input_state = input_get_absolute_state(instance->input);
+    return (input_state.buttons & InputButtonMaskStart);
 }
 
 void startup_dfu_hook_on_system_start(void) {
-    Input* input = furi_record_open(RECORD_INPUT);
-    // TODO [FW-503]: use furi_state
-    InputAbsoluteState input_state = input_get_absolute_state(input);
+    // Using stack allocation to conserve heap
+    StartupDfuHook instance = {0};
+    startup_dfu_hook_construct(&instance);
 
-    if(input_state.buttons & InputButtonMaskStart) {
-        furi_thread_start(
-            furi_thread_alloc_ex("StartupDfuHook", 1024, startup_dfu_hook_thread, input));
-    } else {
-        furi_record_close(RECORD_INPUT);
+    if(startup_dfu_hook_should_run(&instance)) {
+        startup_dfu_hook_run(&instance);
     }
+
+    startup_dfu_hook_teardown(&instance);
 }

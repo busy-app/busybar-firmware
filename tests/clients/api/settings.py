@@ -40,8 +40,7 @@ class AccessResponse(BaseModel):
 class BrightnessResponse(BaseModel):
     """Response from GET /api/display/brightness."""
 
-    front: str | int
-    back: str | int
+    value: str
 
 
 class VolumeResponse(BaseModel):
@@ -133,7 +132,14 @@ class SettingsAPI(BaseAPI):
         params = {"mode": mode}
         if key is not None:
             params["key"] = key
-        return self.post("/api/access", SettingsResultResponse, params=params)
+        return self.post("/api/access", SettingsResultResponse, params=params, data=b"")
+
+    def set_access_raw(self, mode: str, key: str = None):
+        """Set access settings and return raw response (for error testing)."""
+        params = {"mode": mode}
+        if key is not None:
+            params["key"] = key
+        return self.post_raw("/api/access", params=params, data=b"")
 
     # === Brightness ===
 
@@ -141,20 +147,14 @@ class SettingsAPI(BaseAPI):
         """Get display brightness."""
         return self.get("/api/display/brightness", BrightnessResponse)
 
-    def set_brightness(self, front: str = None, back: str = None) -> SettingsResultResponse:
+    def set_brightness(self, value: str) -> SettingsResultResponse:
         """
         Set display brightness.
 
         Args:
-            front: Front display brightness (0-100 or "auto")
-            back: Back display brightness (0-100 or "auto")
+            value: Brightness value (0-100 or "auto")
         """
-        params = {}
-        if front is not None:
-            params["front"] = front
-        if back is not None:
-            params["back"] = back
-        return self.post("/api/display/brightness", SettingsResultResponse, params=params)
+        return self.post("/api/display/brightness", SettingsResultResponse, params={"value": value}, data=b"")
 
     # === Volume ===
 
@@ -169,8 +169,8 @@ class SettingsAPI(BaseAPI):
         Args:
             volume: Volume level (0-100)
         """
-        return self.post("/api/audio/volume", SettingsResultResponse, params={"volume": volume})
+        return self.post("/api/audio/volume", SettingsResultResponse, params={"volume": volume}, data=b"")
 
     def set_volume_raw(self, volume: int):
         """Set volume and return raw response (for error testing)."""
-        return self.post_raw("/api/audio/volume", params={"volume": volume})
+        return self.post_raw("/api/audio/volume", params={"volume": volume}, data=b"")

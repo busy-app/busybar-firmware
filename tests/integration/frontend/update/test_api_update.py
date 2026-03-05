@@ -117,6 +117,73 @@ class TestUpdateAPI:
 
 @allure.feature("5. Web Frontend")
 @allure.story("Updater")
+class TestAutoupdateAPI:
+    """Test cases for Autoupdate API endpoints"""
+
+    @allure.title("GET /api/update/autoupdate")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_update_autoupdate_get(self, update_api: UpdateAPI):
+        """Test GET /api/update/autoupdate returns settings"""
+        response = update_api.get_autoupdate()
+
+        assert isinstance(response.is_enabled, bool)
+        assert response.interval_start
+        assert response.interval_end
+
+        # Validate time format HH:MM
+        for time_str in [response.interval_start, response.interval_end]:
+            parts = time_str.split(":")
+            assert len(parts) == 2
+            hours, minutes = int(parts[0]), int(parts[1])
+            assert 0 <= hours <= 23
+            assert 0 <= minutes <= 59
+
+    @allure.title("POST /api/update/autoupdate (set and restore)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_update_autoupdate_set(self, update_api: UpdateAPI):
+        """Test POST /api/update/autoupdate sets settings"""
+        # Save original settings
+        original = update_api.get_autoupdate()
+
+        test_settings = {
+            "is_enabled": not original.is_enabled,
+            "interval_start": "03:00",
+            "interval_end": "06:00",
+        }
+
+        try:
+            with allure.step("Set test autoupdate settings"):
+                update_api.set_autoupdate(test_settings)
+
+            with allure.step("Verify settings were applied"):
+                updated = update_api.get_autoupdate()
+                assert updated.is_enabled == test_settings["is_enabled"]
+                assert updated.interval_start == "03:00"
+                assert updated.interval_end == "06:00"
+        finally:
+            with allure.step("Restore original settings"):
+                update_api.set_autoupdate({
+                    "is_enabled": original.is_enabled,
+                    "interval_start": original.interval_start,
+                    "interval_end": original.interval_end,
+                })
+
+    @allure.title("POST /api/update/autoupdate (invalid time)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_update_autoupdate_invalid_time(self, update_api: UpdateAPI):
+        """Test POST /api/update/autoupdate rejects invalid time format"""
+        response = update_api.set_autoupdate_raw({
+            "interval_start": "invalid",
+            "interval_end": "25:00",
+        })
+        assert response.status_code == 400
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("Updater")
 class TestUpdateStatusFlow:
     """Test update status transitions by triggering actions and verifying states"""
 
@@ -131,7 +198,7 @@ class TestUpdateStatusFlow:
             initial = update_api.get_status()
             attach_status_json({
                 "check.event": initial.check.event,
-                "check.result": initial.check.result,
+                "check.status": initial.check.status,
                 "check.is_checking": initial.check.is_checking,
                 "check.is_available": initial.check.is_available,
                 "check.available_version": initial.check.available_version,
@@ -144,13 +211,13 @@ class TestUpdateStatusFlow:
                 name="Check Response",
                 attachment_type=allure.attachment_type.TEXT
             )
-            assert response.status_code == 200
+            assert response.status_code in [200, 409]  # 409 if check already in progress
 
         with allure.step("3. Verify check is in progress or completed"):
             status = update_api.get_status()
             attach_status_json({
                 "check.event": status.check.event,
-                "check.result": status.check.result,
+                "check.status": status.check.status,
                 "check.is_checking": status.check.is_checking,
             }, "Status After Check Trigger")
             assert status.check.event in ["start", "stop"]
@@ -159,7 +226,7 @@ class TestUpdateStatusFlow:
             check_result = update_api.wait_for_check_complete(timeout=30)
             attach_status_json({
                 "event": check_result.event,
-                "result": check_result.result,
+                "status": check_result.status,
                 "available_version": check_result.available_version,
                 "is_available": check_result.is_available,
                 "is_up_to_date": check_result.is_up_to_date,
@@ -263,4 +330,4 @@ class TestUpdateStatusFlow:
             # If not checking, check result should be definitive
             if not status.check.is_checking:
                 # status should be one of the terminal states
-                assert status.check.result in ["available", "not_available", "failure", "none"]
+                assert status.check.status in ["available", "not_available", "failure", "none"]

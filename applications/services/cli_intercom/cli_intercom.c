@@ -402,11 +402,14 @@ static int32_t cli_intercom_tx_worker(void* context) {
     return 0;
 }
 
-static void cli_intercom_intercom_event_callback(const void* message, void* context) {
-    CliIntercom* cli_intercom = context;
-    const IntercomEvent* event = message;
+static void cli_intercom_intercom_state_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
 
-    if(event->type == IntercomEventTypeSyncStateChanged && !event->is_in_sync) {
+    CliIntercom* cli_intercom = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)message;
+
+    if(intercom_status != IntercomStatusUnknown && intercom_status != IntercomStatusOk) {
         FURI_LOG_W(TAG, "Intercom lost sync, signaling death");
         cli_intercom_send_simple_event(cli_intercom, CliIntercomInternalEventTypeIntercomDesync);
     }
@@ -450,8 +453,8 @@ static CliIntercom* cli_intercom_alloc(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     cli_intercom->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdCli, cli_intercom_intercom_rx_callback, cli_intercom);
-    furi_pubsub_subscribe(
-        intercom_get_pubsub(intercom), cli_intercom_intercom_event_callback, cli_intercom);
+    furi_state_subscribe(
+        intercom_get_state(intercom), cli_intercom_intercom_state_callback, cli_intercom);
 
     cli_intercom->event_loop = furi_event_loop_alloc();
 
