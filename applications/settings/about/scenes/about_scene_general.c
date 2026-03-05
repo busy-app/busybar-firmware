@@ -6,6 +6,7 @@
 #include <back_display/back_display.h>
 
 #include <furi_hal_version.h>
+#include <sl_info/sl_info.h>
 
 #define MAC_ADDRESS_LEN            (6)
 #define SERIAL_NUMBER_NEW_LINE_POS (8)
@@ -62,34 +63,59 @@ static void about_scene_general_on_enter(void* context) {
     scene->general_info_str = furi_string_alloc();
     FuriString* temp_str = furi_string_alloc();
 
+    // Devce name
     about_scene_general_fill_name(temp_str);
     furi_string_printf(
         scene->general_info_str, GREY_TEXT("Name:") " %s\n", furi_string_get_cstr(temp_str));
 
+    // Device serial number
     about_scene_general_fill_serial_number(temp_str);
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Serial number:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
+    // Device hardware version
     about_scene_general_fill_hardware_version(temp_str);
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Hardware version:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
-    // TODO add BLE and WiFi MAC addresses info
+    // Device WiFi MAC address
+    SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
+    const char* sl_mac_addr = NULL;
+
+    SlInfoStatus sl_status = sl_info_get_value(sl_info, "sl_wifi_mac", &sl_mac_addr);
+    if(sl_status == SlInfoStatusOk) {
+        furi_string_cat_printf(
+            scene->general_info_str, GREY_TEXT("Mac address [Wi-Fi]:") "\n%s\n", sl_mac_addr);
+    }
+
+    // Device BLE MAC address
+    sl_status = sl_info_get_value(sl_info, "sl_ble_mac", &sl_mac_addr);
+    if(sl_status == SlInfoStatusOk) {
+        furi_string_cat_printf(
+            scene->general_info_str, GREY_TEXT("Mac address [BLE]:") "\n%s\n", sl_mac_addr);
+    }
+
+    furi_record_close(RECORD_SL_INFO);
+
+    // Device USB MAC address
     about_scene_general_fill_mac_address(temp_str);
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Mac address [USB]:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
+    // Device Front display info
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Front display:") "\n%dx%d (LED)\n",
         FRONT_DISPLAY_W,
         FRONT_DISPLAY_H);
+
+    // Device Back display info
     furi_string_cat_printf(
         scene->general_info_str,
         GREY_TEXT("Back display:") "\n%dx%d (OLED)\n",
