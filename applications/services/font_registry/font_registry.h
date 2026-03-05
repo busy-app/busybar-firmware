@@ -4,7 +4,6 @@
  */
 
 #include <lvgl.h>
-#include <storage/storage.h>
 #include "fonts.h"
 
 #define RECORD_FONT_REGISTRY "font_registry"
