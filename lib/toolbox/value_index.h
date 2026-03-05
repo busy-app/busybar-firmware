@@ -74,18 +74,22 @@ size_t value_index_bool(const bool value, const bool values[], size_t values_cou
 size_t value_index_string(const char* value, const char* const values[], size_t values_count);
 
 /**
- * @brief Maps a string value using two arrays logically representing an associative array
+ * @brief String-to-string mapping
+ * 
+ * Finds out the index of `input` in `src_array`, returns the element at the
+ * same index in `dst_array`.
+ * 
+ * @param   src_array Array of source strings (to map from)
+ * @param   dst_array Array of destination strings (to map to)
+ * @param   length Length of either array (the must have equal lengths)
+ * @param   input Input string to map
+ * 
  */
-#define VALUE_INDEX_MAP_STRING(_src_array, _dst_array, _input)     \
-    ({                                                             \
-        const char* const* src_array = _src_array;                 \
-        const char* const* dst_array = _dst_array;                 \
-        const char* input = _input;                                \
-        size_t src_size = COUNT_OF(_src_array);                    \
-        size_t dst_size = COUNT_OF(_dst_array);                    \
-        furi_assert(src_size == dst_size);                         \
-        dst_array[value_index_string(input, src_array, src_size)]; \
-    })
+const char* value_index_map_string(
+    const char* const src_array[],
+    const char* const dst_array[],
+    size_t count,
+    const char* input);
 
 #ifdef __cplusplus
 }

@@ -46,7 +46,8 @@ static bool api_display_draw_parse_text_element(
             FONT_BUSY_CONDENSED_7,
             FONT_BUSY_BOLD_10,
         };
-        const char* font_path = VALUE_INDEX_MAP_STRING(font_names, font_paths, font_name);
+        const char* font_path =
+            value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
         canvas_element->text.font_path = strdup(font_path);
         free(font_name);
 
