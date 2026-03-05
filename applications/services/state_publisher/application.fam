@@ -3,7 +3,7 @@ App(
     name="StatePublisherSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="state_publisher_srv",
-    stack_size=1024 * 1,
+    stack_size=1024 * 16,
     order=180,
     targets=["f20", "f21", "f22"],
 )
