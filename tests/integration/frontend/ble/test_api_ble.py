@@ -39,19 +39,19 @@ class TestBleAPI:
         """Test that BLE enabled/disabled status is preserved over reboot"""
         # Enable BLE and reboot then disable and reboot
         ble_api.enable()
-        assert ble_api.get_status().state == "enabled"
+        assert ble_api.get_status().status == "enabled"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().state == "enabled"
+        assert ble_api.get_status().status == "enabled"
 
         ble_api.disable()
-        assert ble_api.get_status().state == "disabled"
+        assert ble_api.get_status().status == "disabled"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().state == "disabled"
+        assert ble_api.get_status().status == "disabled"
 
         ble_api.enable()
-        assert ble_api.get_status().state == "enabled"
+        assert ble_api.get_status().status == "enabled"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().state == "enabled"
+        assert ble_api.get_status().status == "enabled"
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")
@@ -66,16 +66,15 @@ class TestBleStatusAPI:
         """Test GET /api/ble/status endpoint"""
         response = ble_api.get_status()
 
-        # State and pairing enums validated by pydantic
+        # Status enum validated by pydantic
         valid_states = [
             "reset", "initialization", "disabled",
-            "enabled", "connected", "internal error",
+            "enabled", "connectable", "connected", "internal error",
         ]
-        assert response.state in valid_states
-        assert response.pairing in ["unknown", "not paired", "paired"]
+        assert response.status in valid_states
 
-        # Address field is only present when BLE is enabled
-        if response.state in ["enabled", "connected"]:
+        # Address field may be present when BLE is active
+        if response.status == "connected":
             assert response.address is not None
 
     @allure.id("3871")

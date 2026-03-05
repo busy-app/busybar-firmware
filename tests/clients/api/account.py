@@ -119,18 +119,18 @@ class AccountAPI(BaseAPI):
         params = {"profile": profile}
         if custom_url:
             params["custom_url"] = custom_url
-        return self.post("/api/account/profile", AccountResultResponse, params=params)
+        return self.post("/api/account/profile", AccountResultResponse, params=params, data=b"")
 
     def set_profile_raw(self, profile: str, custom_url: str = None):
         """Set profile and return raw response (for error testing)."""
         params = {"profile": profile}
         if custom_url:
             params["custom_url"] = custom_url
-        return self.post_raw("/api/account/profile", params=params)
+        return self.post_raw("/api/account/profile", params=params, data=b"")
 
     def link(self) -> AccountLinkResponse:
         """Request account linking PIN code."""
-        return self.post("/api/account/link", AccountLinkResponse)
+        return self.post("/api/account/link", AccountLinkResponse, data=b"")
 
     def unlink(self) -> AccountResultResponse:
         """Unlink account."""

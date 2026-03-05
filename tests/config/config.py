@@ -39,15 +39,15 @@ class Config:
     OPENOCD_INTERFACE: str = "interface/cmsis-dap.cfg"
     OPENOCD_TARGET: str = "scripts/debug/platforms/stm32u5/stm32u5x.cfg"
 
-    # Crash detection - derive from RUNNER_LOG_DIR if available
-    RUNNER_LOG_DIR: str = os.getenv("RUNNER_LOG_DIR", "")
+    # Crash detection - ESSION_LOG_DIR (set by serial_logger)
+    SESSION_LOG_DIR: str = os.getenv("SESSION_LOG_DIR", "")
     CRASH_FLAG_PATH: str = os.getenv(
         "CRASH_FLAG_PATH",
-        os.path.join(RUNNER_LOG_DIR, "crash_detected.flag") if RUNNER_LOG_DIR else "/tmp/crash_detected.flag"
+        os.path.join(SESSION_LOG_DIR, "crash_detected.flag") if SESSION_LOG_DIR else "/tmp/crash_detected.flag"
     )
 
     OPENOCD_LOCK_PATH: str = os.getenv(
-        "OPENOCD_LOCK_PATH",
+        "OPENOCD_LOCK_FILE",
         os.path.join(BSB_FIRMWARE_PATH, ".openocd.lock") if BSB_FIRMWARE_PATH else "/tmp/.openocd.lock"
     )
 

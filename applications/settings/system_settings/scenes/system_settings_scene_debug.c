@@ -45,7 +45,7 @@ static void system_settings_scene_debug_fill_var_item_list(
 
     VarItem* debug_item = var_item_list_add_selector(
         list,
-        "Debug apps",
+        "Dev mode",
         NULL,
         debug_apps_names,
         COUNT_OF(debug_apps_names),

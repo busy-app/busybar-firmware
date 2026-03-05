@@ -21,7 +21,8 @@ from utils.device_flasher import DeviceFlasher
 # API client imports
 from clients.api import (
     SystemAPI, WifiAPI, StorageAPI, AssetsAPI, AccountAPI,
-    BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI
+    BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI,
+    BusyAPI, MatterAPI
 )
 from config.config import Config
 
@@ -485,6 +486,26 @@ def device_flasher():
     return flasher
 
 
+@pytest.fixture(scope="session", autouse=True)
+def skip_hello_screen(web_base_url):
+    """Send 'start' key to dismiss the Hello/Start screen after boot.
+
+    The device shows a welcome screen after flashing that blocks all
+    display draw operations.  Pressing 'start' advances the app to its
+    normal state so that tests can interact with the display.
+    """
+    url = f"{web_base_url}/api/input"
+    try:
+        resp = requests.post(url, params={"key": "start"}, data=b"", timeout=5)
+        resp = requests.post(url, params={"key": "back"}, data=b"", timeout=5)
+        logger.info(
+            "skip_hello_screen: POST /api/input?key=start -> %s", resp.status_code
+        )
+        time.sleep(1)  # let the device transition
+    except requests.RequestException as exc:
+        logger.warning("skip_hello_screen: failed to send start key: %s", exc)
+
+
 def pytest_runtest_teardown(item, nextitem):
     """Test teardown"""
     logger.info(f"Test completed: {item.name}")
@@ -544,9 +565,16 @@ def pytest_runtest_makereport(item, call):
     Hook to:
     1. Detect connection errors and mark for device reset
     2. Mark test as failed if device crash was detected
+    3. Capture display screenshots on test failure/error
     """
     outcome = yield
     report = outcome.get_result()
+
+    # Capture display screenshots when test fails or errors during call phase
+    if report.when == "call" and report.outcome in ("failed", "error"):
+        from clients.api.streaming import attach_failure_screenshots
+        base_url = os.getenv("WEB_BASE_URL", "http://10.0.4.20")
+        attach_failure_screenshots(base_url)
 
     # Check for connection errors during test execution
     if report.when == "call" and report.failed:
@@ -655,6 +683,18 @@ def streaming_api(api_factory):
 def update_api(api_factory):
     """Update API client fixture."""
     return api_factory(UpdateAPI)
+
+
+@pytest.fixture
+def busy_api(api_factory):
+    """Busy Timer API client fixture."""
+    return api_factory(BusyAPI)
+
+
+@pytest.fixture
+def matter_api(api_factory):
+    """Matter API client fixture."""
+    return api_factory(MatterAPI)
 
 
 @pytest.fixture
