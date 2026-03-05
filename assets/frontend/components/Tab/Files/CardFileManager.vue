@@ -33,7 +33,7 @@
           v-model="inputMenuModel"
           class="fim"
           :ui="{
-            base: 'rounded-md pl-[62px]'
+            base: 'rounded-md pl-15.5'
           }"
           @update:model-value="onInputMenuModelUpdate"
           @keydown.enter.prevent="onEnter"
