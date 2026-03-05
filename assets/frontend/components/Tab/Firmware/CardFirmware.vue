@@ -45,23 +45,7 @@
       </div>
     </div>
 
-    <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
-      <div
-        v-for="[property, value] in Object.entries({
-          'Version': system?.version,
-          'Build date': system?.build_date,
-          'Branch': system?.branch,
-          'API version': deviceStore.apiVersion?.api_semver || 'Unknown',
-          'Commit hash': system?.commit_hash,
-          'Uptime': system?.uptime ? system.uptime.slice(0, system.uptime.lastIndexOf(' ')) : 'Unknown'
-        })"
-        :key="property"
-        class="flex gap-2"
-      >
-        <div class="w-[120px] text-muted">{{ property }}</div>
-        <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
-      </div>
-    </div>
+    <ContentList :items="firmwareContent" />
   </SectionCard>
 </template>
 
@@ -71,7 +55,45 @@ const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 
 const system = computed(() => deviceStore.deviceStatus?.system);
-const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
+const firmware = computed(() => deviceStore.deviceStatus?.firmware);
+const fwVersionPolifilled = computed(() => firmware.value?.version === 'unknown' ? `${firmware.value.branch} ${firmware.value.commit_hash}` : firmware.value?.version);
+
+const firmwareContent = computed(() => [
+  [
+    {
+      title: 'Version',
+      value: firmware.value?.version,
+      loading: !firmware.value
+    },
+    {
+      title: 'Branch',
+      value: firmware.value?.branch,
+      loading: !firmware.value
+    },
+    {
+      title: 'Commit hash',
+      value: firmware.value?.commit_hash,
+      loading: !firmware.value
+    }
+  ],
+  [
+    {
+      title: 'Build date',
+      value: firmware.value?.build_date,
+      loading: !firmware.value
+    },
+    {
+      title: 'API version',
+      value: deviceStore.apiVersion?.api_semver,
+      loading: !deviceStore.apiVersion
+    },
+    {
+      title: 'Uptime',
+      value: system.value?.uptime ? system.value.uptime.slice(0, system.value.uptime.lastIndexOf(' ')) : undefined,
+      loading: !system.value
+    }
+  ]
+]);
 
 async function initFirmwareUpdateFromFile () {
   await deviceStore.fetchDeviceStatus();

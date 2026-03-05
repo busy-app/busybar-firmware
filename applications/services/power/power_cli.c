@@ -200,7 +200,7 @@ static void power_cli_pd_request(PipeSide* pipe, FuriString* args) {
     furi_record_close(RECORD_POWER);
 
     if(args_error) {
-        cli_print_usage("power ch_set", "<mv>", furi_string_get_cstr(args));
+        cli_print_usage("power pd_set", "<mv>", furi_string_get_cstr(args));
     }
 }
 
@@ -271,11 +271,11 @@ static void power_cli_info(PipeSide* pipe, FuriString* args) {
     }
 
     property_value_out(&prop_ctx, "%u%%", 2, "BAT", "level", info.charge);
-    property_value_out(&prop_ctx, "%u mV", 2, "BAT", "voltage", info.voltage_battery);
+    property_value_out(&prop_ctx, "%.0f mV", 2, "BAT", "voltage", info.voltage_battery);
     property_value_out(&prop_ctx, "%d mA", 2, "BAT", "current", info.current_battery);
-    property_value_out(&prop_ctx, "%.1f%%", 2, "BAT", "NTC", info.temperature_battery);
+    property_value_out(&prop_ctx, "%.1fC", 2, "BAT", "NTC", info.temperature_battery);
 
-    property_value_out(&prop_ctx, "%u mV", 2, "USB", "voltage", info.voltage_usb);
+    property_value_out(&prop_ctx, "%.0f mV", 2, "USB", "voltage", info.voltage_usb);
     property_value_out(&prop_ctx, "%u mA", 2, "USB", "current", info.current_usb);
     property_value_out(&prop_ctx, "%u mA", 2, "USB", "current_limit", info.charge_ilim_usb);
 

@@ -10,7 +10,7 @@ struct BleModel {
     DeviceName* device_name;
     Ble* ble;
     FuriMutex* lock;
-    BleStatus status;
+    BleState state;
     FuriPubSubSubscription* ble_subscription;
     FuriPubSubSubscription* device_name_subscription;
     FuriTimer* pairing_timer;
@@ -23,10 +23,10 @@ static void ble_model_on_state_change_callback(const void* message, void* contex
     BleModel* model = context;
     furi_assert(model);
 
-    const BleStatus* status = message;
+    const BleState* state = message;
 
     furi_mutex_acquire(model->lock, FuriWaitForever);
-    memcpy(&model->status, status, sizeof(BleStatus));
+    memcpy(&model->state, state, sizeof(BleState));
     furi_timer_stop(model->pairing_timer);
     furi_mutex_release(model->lock);
 
@@ -65,7 +65,7 @@ BleModel* ble_model_alloc(void) {
     model->ble = furi_record_open(RECORD_BLE);
     model->lock = furi_mutex_alloc(FuriMutexTypeNormal);
 
-    bool result = ble_get_status(model->ble, &model->status);
+    bool result = ble_get_state(model->ble, &model->state);
     furi_assert(result);
 
     FuriPubSub* pubsub = ble_get_pubsub(model->ble);
@@ -92,18 +92,20 @@ void ble_model_free(BleModel* model) {
     free(model);
 }
 
-void ble_model_get_status(BleModel* model, BleStatus* output) {
+void ble_model_get_state(BleModel* model, BleState* output) {
     furi_assert(model);
     furi_assert(output);
     furi_mutex_acquire(model->lock, FuriWaitForever);
-    memcpy(output, &model->status, sizeof(BleStatus));
+    memcpy(output, &model->state, sizeof(BleState));
     furi_mutex_release(model->lock);
 }
 
 bool ble_model_is_device_paired(BleModel* model) {
     furi_assert(model);
     furi_mutex_acquire(model->lock, FuriWaitForever);
-    bool result = model->status.pairing == BlePairingStatePaired;
+    bool result =
+        (model->state.status == BleServiceStatusConnected ||
+         model->state.status == BleServiceStatusConnectable);
     furi_mutex_release(model->lock);
     return result;
 }

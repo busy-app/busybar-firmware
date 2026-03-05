@@ -21,6 +21,7 @@ App(
         "font_registry",
         "power_srv",
         "status_bar",
+        "brightness_control",
     ],
     targets=["f20", "f21", "f22"],
 )
@@ -53,7 +54,7 @@ App(
         "matter",
         "device_name",
         "busy_timer",
-        "si917_info",
+        "sl_info",
     ],
     targets=["f20", "f21", "f22"],
 )
@@ -87,7 +88,7 @@ App(
         "ble",
         "tls_crypto_server",
         "intercom_watchdog",
-        "si917_info_server",
+        "sl_info",
     ],
     targets=["f64", "f65"],
 )

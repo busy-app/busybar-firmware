@@ -8,6 +8,8 @@ Endpoints:
 - GET /api/update/changelog
 - POST /api/update/install
 - POST /api/update/abort_download
+- GET /api/update/autoupdate
+- POST /api/update/autoupdate
 """
 
 from __future__ import annotations
@@ -108,7 +110,7 @@ class CheckStatus(BaseModel):
 
     available_version: str | None = None
     event: Literal["start", "stop", "none"]
-    result: Literal["available", "not_available", "failure", "none"]
+    status: Literal["available", "not_available", "failure", "none"]
 
     # === Status Check Properties ===
 
@@ -120,17 +122,17 @@ class CheckStatus(BaseModel):
     @property
     def is_available(self) -> bool:
         """Check if update is available."""
-        return self.result == "available" and bool(self.available_version)
+        return self.status == "available" and bool(self.available_version)
 
     @property
     def is_up_to_date(self) -> bool:
         """Check if firmware is up to date (no update available)."""
-        return self.result == "not_available"
+        return self.status == "not_available"
 
     @property
     def has_failed(self) -> bool:
         """Check if update check failed."""
-        return self.result == "failure"
+        return self.status == "failure"
 
 
 class UpdateStatusResponse(BaseModel):
@@ -138,6 +140,14 @@ class UpdateStatusResponse(BaseModel):
 
     install: InstallStatus
     check: CheckStatus
+
+
+class AutoupdateSettings(BaseModel):
+    """Response from GET /api/update/autoupdate."""
+
+    is_enabled: bool
+    interval_start: str
+    interval_end: str
 
 
 class UpdateResultResponse(BaseModel):
@@ -167,6 +177,8 @@ class UpdateAPI(BaseAPI):
     - GET /api/update/changelog - Get changelog for version
     - POST /api/update/install - Install firmware version
     - POST /api/update/abort_download - Abort download
+    - GET /api/update/autoupdate - Get autoupdate settings
+    - POST /api/update/autoupdate - Set autoupdate settings
     """
 
     def upload_package(self, content: bytes, timeout: int = 30):
@@ -193,11 +205,11 @@ class UpdateAPI(BaseAPI):
 
     def check(self) -> UpdateResultResponse:
         """Start update check."""
-        return self.post("/api/update/check", UpdateResultResponse)
+        return self.post("/api/update/check", UpdateResultResponse, data=b"")
 
     def check_raw(self):
         """Start update check and return raw response (for status code checking)."""
-        return self.post_raw("/api/update/check")
+        return self.post_raw("/api/update/check", data=b"")
 
     def get_changelog(self, version: str):
         """
@@ -225,15 +237,32 @@ class UpdateAPI(BaseAPI):
         Returns:
             Raw response
         """
-        return self.post_raw("/api/update/install", params={"version": version})
+        return self.post_raw("/api/update/install", params={"version": version}, data=b"")
 
     def install_raw(self):
         """Install without version parameter (for error testing)."""
-        return self.post_raw("/api/update/install")
+        return self.post_raw("/api/update/install", data=b"")
 
     def abort_download(self) -> UpdateResultResponse:
         """Abort ongoing download."""
-        return self.post("/api/update/abort_download", UpdateResultResponse)
+        return self.post("/api/update/abort_download", UpdateResultResponse, data=b"")
+
+    def get_autoupdate(self) -> AutoupdateSettings:
+        """Get autoupdate settings."""
+        return self.get("/api/update/autoupdate", AutoupdateSettings)
+
+    def set_autoupdate(self, settings: dict) -> UpdateResultResponse:
+        """
+        Set autoupdate settings.
+
+        Args:
+            settings: Dict with optional keys: is_enabled, interval_start, interval_end
+        """
+        return self.post("/api/update/autoupdate", UpdateResultResponse, json=settings)
+
+    def set_autoupdate_raw(self, settings: dict):
+        """Set autoupdate settings and return raw response."""
+        return self.post_raw("/api/update/autoupdate", json=settings)
 
     # === Status Check Helpers ===
 

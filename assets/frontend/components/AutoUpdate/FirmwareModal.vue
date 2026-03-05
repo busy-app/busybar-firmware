@@ -90,7 +90,7 @@
           <div class="h-36" />
           <div class="text-center pb-6">
             <div class="text-lg font-medium">Update completed</div>
-            <div>Your BUSY Bar is now running the updated firmware ({{ deviceStore.deviceStatus?.system?.version }}).</div>
+            <div>Your BUSY Bar is now running the updated firmware ({{ deviceStore.deviceStatus?.firmware?.version }}).</div>
           </div>
         </template>
 

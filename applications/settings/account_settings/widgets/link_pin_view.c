@@ -1,6 +1,6 @@
 #include "link_pin_view.h"
 #include <settings_helpers/gui_params.h>
-#include "../account_settings.h"
+#include "../account_settings_i.h"
 #include <storage/storage.h>
 #include <gui/widget_i.h>
 #include <gui/modules/anim_player.h>

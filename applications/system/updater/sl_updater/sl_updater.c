@@ -470,19 +470,11 @@ static bool
     instance->bootloader_mode = mode;
     instance->bootloader_state = Si917BootloaderStateInit;
 
-#ifdef SRV_INTERCOM
-    // Prevent crashes
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_error_handling_disable(instance->intercom);
-#else
-    // UNUSED(sl_updater_intercom_error_callback);
-#endif
-
     instance->serial_handle = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);
 
     furi_hal_serial_init(instance->serial_handle, 115200);
-    furi_hal_serial_set_callback(
-        instance->serial_handle, NULL, sl_updater_serial_irq_callback, instance);
+    furi_hal_serial_set_rx_callback(
+        instance->serial_handle, sl_updater_serial_irq_callback, instance);
     furi_hal_serial_async_rx_start(instance->serial_handle, false);
 
     furi_hal_power_reset_917(true);
@@ -496,14 +488,8 @@ static bool
 
     furi_hal_power_reset_917(false);
 
-#ifdef SRV_INTERCOM
-    // TODO: The ability to reset intercom
-    intercom_error_handling_enable(instance->intercom);
-    furi_record_close(RECORD_INTERCOM);
-#endif
-
     furi_hal_serial_async_rx_stop(instance->serial_handle);
-    furi_hal_serial_set_callback(instance->serial_handle, NULL, NULL, NULL);
+    furi_hal_serial_set_rx_callback(instance->serial_handle, NULL, NULL);
     furi_hal_serial_control_release(instance->serial_handle);
     instance->serial_handle = NULL;
 

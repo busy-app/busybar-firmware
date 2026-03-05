@@ -20,6 +20,8 @@ from .base import APIError, BaseAPI
 
 # System API
 from .system import (
+    DeviceInfo,
+    FirmwareInfo,
     PowerInfo,
     ResultResponse,
     SetTimestampRequest,
@@ -28,6 +30,9 @@ from .system import (
     SystemAPI,
     SystemInfo,
     TimeResponse,
+    TimezoneItem,
+    TimezoneListResponse,
+    TimezoneResponse,
     VersionResponse,
 )
 
@@ -103,12 +108,32 @@ from .streaming import (
 
 # Update API
 from .update import (
+    AutoupdateSettings,
     CheckStatus,
     DownloadProgress,
     InstallStatus,
     UpdateAPI,
     UpdateResultResponse,
     UpdateStatusResponse,
+)
+
+# Busy Timer API
+from .busy import (
+    BusyAPI,
+    BusyBarSettings,
+    BusyProfileResponse,
+    BusyResultResponse,
+    BusySnapshotResponse,
+)
+
+# Matter API
+from .matter import (
+    CommissioningStatus,
+    MatterAPI,
+    MatterCommissioningPayload,
+    MatterCommissioningResponse,
+    MatterEndpointState,
+    MatterResultResponse,
 )
 
 __all__ = [
@@ -167,4 +192,21 @@ __all__ = [
     "InstallStatus",
     "CheckStatus",
     "DownloadProgress",
+    "AutoupdateSettings",
+    "DeviceInfo",
+    "FirmwareInfo",
+    "TimezoneResponse",
+    "TimezoneItem",
+    "TimezoneListResponse",
+    "BusyAPI",
+    "BusySnapshotResponse",
+    "BusyProfileResponse",
+    "BusyBarSettings",
+    "BusyResultResponse",
+    "MatterAPI",
+    "MatterCommissioningResponse",
+    "MatterCommissioningPayload",
+    "MatterEndpointState",
+    "MatterResultResponse",
+    "CommissioningStatus",
 ]

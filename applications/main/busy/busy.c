@@ -119,6 +119,7 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->updater = furi_record_open(RECORD_UPDATER);
     instance->matter = furi_record_open(RECORD_MATTER);
+    instance->loader = furi_record_open(RECORD_LOADER);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->theme = busy_theme_alloc();
 
@@ -217,6 +218,7 @@ static void busy_free(BusyApp* instance) {
     });
 
     furi_record_close(RECORD_BUSY_TIMER);
+    furi_record_close(RECORD_LOADER);
     furi_record_close(RECORD_MATTER);
     furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_STATUS_LIGHTS);
@@ -280,6 +282,12 @@ void busy_set_matter(BusyApp* instance, bool switch_state) {
     if(instance->config.is_smart_home_enabled) {
         matter_set_switch_state(instance->matter, switch_state);
     }
+}
+
+void busy_set_priority(BusyApp* instance, bool is_active) {
+    furi_assert(instance);
+    loader_set_priority(
+        instance->loader, is_active ? LOADER_MAX_APP_PRIORITY : LOADER_DEFAULT_APP_PRIORITY);
 }
 
 void busy_set_front_display_blanking(BusyApp* instance, bool is_blanked) {

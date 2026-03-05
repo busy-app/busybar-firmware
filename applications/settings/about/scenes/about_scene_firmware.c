@@ -6,6 +6,10 @@
 
 #define GREY_TEXT(text) "#888888 " text "#"
 
+#define SECONDS_IN_MINUTE (60U)
+#define MINUTES_IN_HOUR   (60U)
+#define HOURS_IN_DAY      (24U)
+
 typedef struct {
     Label* firmware_info[GuiDisplayIdMax];
     FuriString* firmware_info_str;
@@ -41,16 +45,16 @@ static void about_scene_firmware_on_enter(void* context) {
         GREY_TEXT("Build date:") "\n%s\n",
         version_get_builddate(version));
 
-    uint32_t uptime_s = furi_get_tick() / furi_kernel_get_tick_frequency();
-    uint32_t minutes = uptime_s / 60;
-    uint32_t hours = minutes / 60;
-    uint32_t days = hours / 24;
+    uint32_t uptime_seconds = furi_get_tick() / furi_kernel_get_tick_frequency();
+    uint32_t uptime_minutes = uptime_seconds / SECONDS_IN_MINUTE;
+    uint32_t uptime_hours = uptime_minutes / MINUTES_IN_HOUR;
+    uint32_t uptime_days = uptime_hours / HOURS_IN_DAY;
     furi_string_cat_printf(
         scene->firmware_info_str,
         GREY_TEXT("Uptime:") " %lud %02luh %02lum\n",
-        days,
-        hours,
-        minutes);
+        uptime_days,
+        uptime_hours % HOURS_IN_DAY,
+        uptime_minutes % MINUTES_IN_HOUR);
 
     Widget* const windows[GuiDisplayIdMax] = {
         [GuiDisplayIdFront] = instance->front_scene_window,

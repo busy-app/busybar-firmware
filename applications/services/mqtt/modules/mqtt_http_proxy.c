@@ -42,28 +42,28 @@ static MqttHttpProxyMethodId mqtt_http_proxy_get_method_id_by_name(const struct 
 
 static MqttHttpProxyRequest*
     mqtt_http_proxy_request_alloc(Mqtt* mqtt, const MqttMessage* message) {
-    MqttHttpProxyRequest* context = malloc(sizeof(MqttHttpProxyRequest));
+    MqttHttpProxyRequest* request = malloc(sizeof(MqttHttpProxyRequest));
 
-    context->mqtt = mqtt;
-    context->response_topic = furi_string_alloc();
-    context->correlation_data = furi_string_alloc();
-    context->poll_cnt = HTTP_CONN_TIMEOUT_MS / POLL_PERIOD_MS;
+    request->mqtt = mqtt;
+    request->response_topic = furi_string_alloc();
+    request->correlation_data = furi_string_alloc();
+    request->start_tick = furi_get_tick();
 
     size_t data_size;
     const void* data = mqtt_message_get_data(message, &data_size);
 
     if(data_size) {
-        context->data = malloc(data_size);
-        context->data_size = data_size;
-        memcpy(context->data, data, data_size);
+        request->data = malloc(data_size);
+        request->data_size = data_size;
+        memcpy(request->data, data, data_size);
     }
 
     mqtt_message_get_string_property(
-        message, MqttPropertyTypeResponseTopic, context->response_topic);
+        message, MqttPropertyTypeResponseTopic, request->response_topic);
     mqtt_message_get_string_property(
-        message, MqttPropertyTypeCorrelationData, context->correlation_data);
+        message, MqttPropertyTypeCorrelationData, request->correlation_data);
 
-    return context;
+    return request;
 }
 
 static void mqtt_http_proxy_request_free(MqttHttpProxyRequest* request) {
@@ -93,12 +93,8 @@ static bool mqtt_http_proxy_request_requires_response(const MqttHttpProxyRequest
     return requires_response;
 }
 
-static bool mqtt_http_proxy_request_decrement_poll_counter(MqttHttpProxyRequest* request) {
-    if(request->poll_cnt > 0) {
-        request->poll_cnt--;
-    }
-
-    return request->poll_cnt > 0;
+static bool mqtt_http_proxy_request_is_expired(const MqttHttpProxyRequest* request) {
+    return (furi_get_tick() - request->start_tick) >= HTTP_CONN_TIMEOUT_MS;
 }
 
 static bool mqtt_http_proxy_trim_uri(const struct mg_http_message* http_msg, struct mg_str* uri) {
@@ -232,7 +228,7 @@ static void mqtt_api_http_handler(struct mg_connection* connection, int event, v
         connection->fn_data = NULL;
 
     } else if(event == MG_EV_POLL) {
-        if(!mqtt_http_proxy_request_decrement_poll_counter(request)) {
+        if(mqtt_http_proxy_request_is_expired(request)) {
             FURI_LOG_E(TAG, "HTTP timeout");
             connection->is_draining = 1;
         }

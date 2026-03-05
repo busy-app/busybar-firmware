@@ -1,4 +1,4 @@
-#include "../matter_settings.h"
+#include "../matter_settings_i.h"
 #include <settings_helpers/status_view.h>
 
 #include <gui/modules/submenu.h>

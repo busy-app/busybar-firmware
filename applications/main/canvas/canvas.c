@@ -6,6 +6,7 @@
 #include <gui/modules/anim_player.h>
 #include <gui/modules/label.h>
 #include <gui/modules/countdown.h>
+#include <loader/loader.h>
 #include <m-dict.h>
 #include <toolbox/m_cstr_dup.h>
 #include <toolbox/api_lock.h>
@@ -19,12 +20,11 @@ typedef struct {
     enum {
         CanvasAppEventUpdate,
         CanvasAppEventClear,
-        CanvasAppEventGetPriority,
     } type;
     FuriApiLock lock;
     bool* result;
     char* app_id;
-    int* priority;
+    size_t* priority;
     union {
         CanvasElementsArray_t elements;
     };
@@ -56,8 +56,9 @@ struct CanvasApp {
     Gui* gui;
     CanvasWidgetsDict_t widgets;
     DisplayMirror* display_mirror;
+    Loader* loader;
     char* app_id;
-    int priority;
+    size_t priority;
 };
 
 static bool canvas_app_input_callback(const InputEvent* event, void* context) {
@@ -169,6 +170,11 @@ static void canvas_widget_destroy_all(CanvasApp* canvas) {
     }
 }
 
+static void canvas_announce_priority(CanvasApp* canvas, size_t priority) {
+    furi_assert(canvas);
+    loader_set_priority(canvas->loader, priority);
+}
+
 static void canvas_app_clear_all(CanvasApp* canvas) {
     furi_assert(canvas);
 
@@ -181,7 +187,7 @@ static void canvas_app_clear_all(CanvasApp* canvas) {
         furi_event_loop_stop(canvas->event_loop);
     }
 
-    canvas->priority = INT_MIN;
+    canvas_announce_priority(canvas, 0);
 }
 
 static Widget* canvas_element_update_specific(
@@ -435,7 +441,7 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
         } else {
             canvas->app_id = strdup(event.app_id);
         }
-        canvas->priority = *event.priority;
+        canvas_announce_priority(canvas, *event.priority);
         success = canvas_update_all(canvas, event.elements);
         CanvasElementsArray_clear(event.elements);
 
@@ -450,11 +456,6 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
             canvas_app_clear_all(canvas);
             success = true;
         }
-
-    } else if(event.type == CanvasAppEventGetPriority) {
-        furi_assert(event.priority);
-        *event.priority = canvas->priority;
-        success = true;
     }
 
     if(event.app_id) {
@@ -480,6 +481,8 @@ static CanvasApp* canvas_app_alloc() {
     canvas->gui = furi_record_open(RECORD_GUI);
     CanvasWidgetsDict_init(canvas->widgets);
 
+    canvas->loader = furi_record_open(RECORD_LOADER);
+
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, canvas_app_input_callback, canvas);
@@ -487,7 +490,7 @@ static CanvasApp* canvas_app_alloc() {
         canvas->display_mirror = display_mirror_alloc(back_root);
     });
 
-    canvas->priority = INT_MIN;
+    canvas_announce_priority(canvas, 0);
 
     return canvas;
 }
@@ -500,7 +503,7 @@ static void canvas_app_free(CanvasApp* canvas) {
         display_mirror_free(canvas->display_mirror);
     });
 
-    furi_record_close(RECORD_GUI);
+    furi_record_close(RECORD_LOADER);
     furi_record_close(RECORD_GUI);
 
     CanvasWidgetsDict_clear(canvas->widgets);
@@ -542,11 +545,10 @@ int32_t canvas_app(void* arg) {
 bool canvas_show_elements(
     CanvasApp* canvas,
     const char* app_id,
-    int priority,
+    size_t priority,
     CanvasElementsArray_t elements) {
     furi_assert(canvas);
     furi_assert(app_id);
-    furi_assert(priority >= 0);
 
     bool success = false;
 
@@ -563,23 +565,6 @@ bool canvas_show_elements(
 
     api_lock_wait_unlock_and_free(evt.lock);
     return success;
-}
-
-int canvas_active_priority(CanvasApp* canvas) {
-    furi_assert(canvas);
-
-    bool success = false;
-    int priority = 0;
-    CanvasAppQueueEvent evt = {
-        .lock = api_lock_alloc_locked(),
-        .type = CanvasAppEventGetPriority,
-        .priority = &priority,
-        .result = &success,
-    };
-    furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
-
-    api_lock_wait_unlock_and_free(evt.lock);
-    return success ? priority : INT_MIN;
 }
 
 bool canvas_delete_elements(CanvasApp* canvas, const char* app_id) {

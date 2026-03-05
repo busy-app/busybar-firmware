@@ -65,7 +65,8 @@ typedef struct {
     FuriHalSerialHandle* handle;
     FuriHalSerialRxCallback rx_callback;
     FuriHalSerialTxCallback tx_callback;
-    void* callback_context;
+    void* rx_callback_context;
+    void* tx_callback_context;
 } FuriHalSerial;
 
 typedef struct {
@@ -325,18 +326,28 @@ void furi_hal_serial_set_hw_flow_control(
     }
 }
 
-void furi_hal_serial_set_callback(
+void furi_hal_serial_set_tx_callback(
     FuriHalSerialHandle* handle,
-    FuriHalSerialTxCallback tx_callback,
-    FuriHalSerialRxCallback rx_callback,
+    FuriHalSerialTxCallback callback,
     void* context) {
     furi_check(handle);
 
     FuriHalSerial* serial = &furi_hal_serial[handle->id];
 
-    serial->tx_callback = tx_callback;
-    serial->rx_callback = rx_callback;
-    serial->callback_context = context;
+    serial->tx_callback = callback;
+    serial->tx_callback_context = context;
+}
+
+void furi_hal_serial_set_rx_callback(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialRxCallback callback,
+    void* context) {
+    furi_check(handle);
+
+    FuriHalSerial* serial = &furi_hal_serial[handle->id];
+
+    serial->rx_callback = callback;
+    serial->rx_callback_context = context;
 }
 
 void furi_hal_serial_suspend(FuriHalSerialHandle* handle) {
@@ -431,7 +442,7 @@ static void furi_hal_serial_dma_tx_irq_callback(void* context) {
     FuriHalSerial* serial = &furi_hal_serial[handle->id];
 
     if(serial->tx_callback) {
-        serial->tx_callback(handle, FuriHalSerialTxEventComplete, serial->callback_context);
+        serial->tx_callback(handle, FuriHalSerialTxEventComplete, serial->tx_callback_context);
     }
 }
 
@@ -465,7 +476,7 @@ static void furi_hal_serial_dma_rx_irq_callback(void* context) {
     FuriHalSerial* serial = &furi_hal_serial[handle->id];
 
     if(serial->rx_callback) {
-        serial->rx_callback(handle, FuriHalSerialRxEventData, serial->callback_context);
+        serial->rx_callback(handle, FuriHalSerialRxEventData, serial->rx_callback_context);
     }
 }
 
@@ -548,7 +559,9 @@ FURI_ALWAYS_INLINE static void furi_hal_serial_irq_handler(FuriHalSerialId seria
             furi_crash();
         }
 
-        serial->rx_callback(serial->handle, event, serial->callback_context);
+        if(serial->rx_callback) {
+            serial->rx_callback(serial->handle, event, serial->rx_callback_context);
+        }
     }
 }
 

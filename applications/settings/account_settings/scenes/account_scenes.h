@@ -3,7 +3,6 @@
 #include <gui/scene_manager.h>
 
 typedef enum {
-    SceneIdNoWifi,
     SceneIdConnecting,
     SceneIdNotLinkedMenu,
     SceneIdLinkPin,

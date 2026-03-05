@@ -28,7 +28,10 @@ typedef struct {
     const char* path;
 } FlipperExternalApplication;
 
-typedef void (*FlipperInternalOnStartHook)(void);
+typedef struct {
+    void (*const callback)(void);
+    const size_t stack_size;
+} FlipperInternalOnStartHook;
 
 typedef struct {
     const CliCommandExecuteCallback callback;
