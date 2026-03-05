@@ -4,8 +4,6 @@
 
 #include <storage/storage.h>
 
-#include <cjson/cJSON.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,8 +21,6 @@ struct SettingProvider {
     cJSON* json_root;
     cJSON* json_version;
     cJSON* json_values;
-
-    bool is_write_pending;
 };
 
 #ifdef __cplusplus

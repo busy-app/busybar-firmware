@@ -7,8 +7,7 @@ static inline bool is_value_valid(const SettingProviderSetting* setting, int val
 }
 
 SETTING_SAVE_DECLARATION(type_int, json_node, setting, value) {
-    int _value;
-    memcpy(&_value, value, sizeof(_value));
+    int _value = *(const int*)value;
     if(!is_value_valid(setting, _value)) {
         FURI_LOG_W(
             TAG, "Invalid \"%s\" int save attempt with value: \"%d\".", setting->name, _value);
@@ -20,27 +19,34 @@ SETTING_SAVE_DECLARATION(type_int, json_node, setting, value) {
 }
 
 SETTING_LOAD_DECLARATION(type_int, json_node, setting, value) {
-    int _value;
-    if(!json_read_int(json_node, setting->name, &_value)) {
+    int json_value;
+    if(!json_read_int(json_node, setting->name, &json_value)) {
         FURI_LOG_W(TAG, "Failed to load \"%s\" as int.", setting->name);
-        return false;
+        return SettingLoadResultFailure;
     }
 
-    if(!is_value_valid(setting, _value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" int value: \"%d\".", setting->name, _value);
-        return false;
+    if(!is_value_valid(setting, json_value)) {
+        FURI_LOG_W(TAG, "Invalid \"%s\" int value: \"%d\".", setting->name, json_value);
+        return SettingLoadResultFailure;
     }
 
-    memcpy(value, &_value, sizeof(_value));
-    return true;
+    *(int*)value = json_value;
+    return SettingLoadResultOk;
 }
 
 SETTING_RESET_DECLARATION(type_int, json_node, setting, value) {
     const SettingProviderIntInterface* interface = setting->interface;
 
-    FURI_LOG_D(
-        TAG, "Loading default for \"%s\" int: \"%d\"...", setting->name, interface->default_value);
+    int default_value = interface->default_value;
+    furi_check(is_value_valid(setting, default_value));
 
-    json_write_int(json_node, setting->name, interface->default_value);
-    if(value) memcpy(value, &interface->default_value, sizeof(interface->default_value));
+    FURI_LOG_T(TAG, "Loading default for \"%s\" int: \"%d\"...", setting->name, default_value);
+
+    json_write_int(json_node, setting->name, default_value);
+    if(value) *(int*)value = default_value;
+}
+
+SETTING_VALIDATE_DECLARATION(type_int, setting, value) {
+    int _value = *(const int*)value;
+    return is_value_valid(setting, _value);
 }

@@ -6,6 +6,12 @@
 extern "C" {
 #endif
 
+typedef enum {
+    SettingLoadResultOk,
+    SettingLoadResultFallback,
+    SettingLoadResultFailure,
+} SettingLoadResult;
+
 #define SETTING_RESET_RETURN_TYPE void
 #define SETTING_RESET_PARAMETERS(json_node, setting, value) \
     (cJSON * json_node, const SettingProviderSetting* setting, void* value)
@@ -16,7 +22,7 @@ extern "C" {
     SETTING_RESET(type)                                            \
     SETTING_RESET_PARAMETERS(json_node, setting, value)
 
-#define SETTING_LOAD_RETURN_TYPE bool
+#define SETTING_LOAD_RETURN_TYPE SettingLoadResult
 #define SETTING_LOAD_PARAMETERS(json_node, setting, value) \
     (cJSON * json_node, const SettingProviderSetting* setting, void* value)
 #define SETTING_LOAD_POINTER(name) SETTING_LOAD_RETURN_TYPE(*name) SETTING_LOAD_PARAMETERS(, , )
@@ -36,6 +42,17 @@ extern "C" {
     SETTING_SAVE(type)                                            \
     SETTING_SAVE_PARAMETERS(json_node, setting, value)
 
+#define SETTING_VALIDATE_RETURN_TYPE bool
+#define SETTING_VALIDATE_PARAMETERS(setting, value) \
+    (const SettingProviderSetting* setting, const void* value)
+#define SETTING_VALIDATE_POINTER(name) \
+    SETTING_VALIDATE_RETURN_TYPE(*name) SETTING_VALIDATE_PARAMETERS(, )
+#define SETTING_VALIDATE(type) setting_provider_internal_validate_##type
+#define SETTING_VALIDATE_DECLARATION(type, setting, value) \
+    SETTING_VALIDATE_RETURN_TYPE                           \
+    SETTING_VALIDATE(type)                                 \
+    SETTING_VALIDATE_PARAMETERS(setting, value)
+
 void setting_provider_internal_reset(
     cJSON* json_node,
     const SettingProviderSetting* setting,
@@ -50,6 +67,8 @@ bool setting_provider_internal_save(
     cJSON* json_node,
     const SettingProviderSetting* setting,
     const void* value);
+
+bool setting_provider_internal_validate(const SettingProviderSetting* setting, const void* value);
 
 #ifdef __cplusplus
 }

@@ -7,15 +7,10 @@ static inline bool is_value_valid(const SettingProviderSetting* setting, float v
 }
 
 SETTING_SAVE_DECLARATION(type_float, json_node, setting, value) {
-    float _value;
-    memcpy(&_value, value, sizeof(_value));
+    float _value = *(const float*)value;
     if(!is_value_valid(setting, _value)) {
         FURI_LOG_W(
-            TAG,
-            "Invalid \"%s\" float save attempt with value: \"%.2f\".",
-            setting->name,
-            (double)_value);
-
+            TAG, "Invalid \"%s\" float save attempt with value: \"%.2f\".", setting->name, _value);
         return false;
     }
 
@@ -24,30 +19,34 @@ SETTING_SAVE_DECLARATION(type_float, json_node, setting, value) {
 }
 
 SETTING_LOAD_DECLARATION(type_float, json_node, setting, value) {
-    float _value;
-    if(!json_read_float(json_node, setting->name, &_value)) {
+    float json_value;
+    if(!json_read_float(json_node, setting->name, &json_value)) {
         FURI_LOG_W(TAG, "Failed to load \"%s\" as float.", setting->name);
-        return false;
+        return SettingLoadResultFailure;
     }
 
-    if(!is_value_valid(setting, _value)) {
-        FURI_LOG_W(TAG, "Invalid \"%s\" float value: \"%.2f\".", setting->name, (double)_value);
-        return false;
+    if(!is_value_valid(setting, json_value)) {
+        FURI_LOG_W(TAG, "Invalid \"%s\" float value: \"%.2f\".", setting->name, json_value);
+        return SettingLoadResultFailure;
     }
 
-    memcpy(value, &_value, sizeof(_value));
-    return true;
+    *(float*)value = json_value;
+    return SettingLoadResultOk;
 }
 
 SETTING_RESET_DECLARATION(type_float, json_node, setting, value) {
     const SettingProviderFloatInterface* interface = setting->interface;
 
-    FURI_LOG_D(
-        TAG,
-        "Loading default for \"%s\" float: \"%.2f\"...",
-        setting->name,
-        (double)interface->default_value);
+    float default_value = interface->default_value;
+    furi_check(is_value_valid(setting, default_value));
 
-    json_write_float(json_node, setting->name, interface->default_value);
-    if(value) memcpy(value, &interface->default_value, sizeof(interface->default_value));
+    FURI_LOG_T(TAG, "Loading default for \"%s\" float: \"%.2f\"...", setting->name, default_value);
+
+    json_write_float(json_node, setting->name, default_value);
+    if(value) *(float*)value = default_value;
+}
+
+SETTING_VALIDATE_DECLARATION(type_float, setting, value) {
+    float _value = *(const float*)value;
+    return is_value_valid(setting, _value);
 }

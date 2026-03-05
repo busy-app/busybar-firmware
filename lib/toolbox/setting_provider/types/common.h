@@ -62,9 +62,9 @@ static void json_write_float(cJSON* json_node, const char* key, float value) {
 }
 
 FURI_ALWAYS_INLINE
-static bool json_read_string(cJSON* json_node, const char* key, FuriString* value) {
+static bool json_read_string(cJSON* json_node, const char* key, const char** value) {
     cJSON* item = cJSON_GetObjectItem(json_node, key);
-    return cJSON_IsString(item) ? furi_string_set(value, item->valuestring), true : false;
+    return cJSON_IsString(item) ? *value = item->valuestring, true : false;
 }
 
 FURI_ALWAYS_INLINE
@@ -87,6 +87,18 @@ static bool json_read_object(cJSON* json_node, const char* key, cJSON** value) {
 
 FURI_ALWAYS_INLINE
 static void json_write_object(cJSON* json_node, const char* key, cJSON* value) {
+    cJSON_DeleteItemFromObject(json_node, key);
+    cJSON_AddItemToObject(json_node, key, value);
+}
+
+FURI_ALWAYS_INLINE
+static bool json_read_any(cJSON* json_node, const char* key, cJSON** value) {
+    cJSON* item = cJSON_GetObjectItem(json_node, key);
+    return item ? *value = item, true : false;
+}
+
+FURI_ALWAYS_INLINE
+static void json_write_any(cJSON* json_node, const char* key, cJSON* value) {
     cJSON_DeleteItemFromObject(json_node, key);
     cJSON_AddItemToObject(json_node, key, value);
 }

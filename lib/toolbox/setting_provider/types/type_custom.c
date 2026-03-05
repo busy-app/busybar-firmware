@@ -3,70 +3,63 @@
 
 SETTING_SAVE_DECLARATION(type_custom, json_node, setting, value) {
     const SettingProviderCustomInterface* interface = setting->interface;
-
     furi_check(interface->serialize_callback);
 
-    FuriString* _value = furi_string_alloc();
-    bool is_save_successful = false;
+    FuriString* string_value = furi_string_alloc();
+    if(!interface->serialize_callback(setting, value, string_value)) {
+        FURI_LOG_W(TAG, "Invalid \"%s\" custom value save attempt.", setting->name);
+        furi_string_free(string_value);
+        return false;
+    }
 
-    do {
-        if(!interface->serialize_callback(setting, _value, value)) {
-            FURI_LOG_W(TAG, "Invalid \"%s\" custom value save attempt.", setting->name);
-            break;
-        }
+    json_write_string(json_node, setting->name, furi_string_get_cstr(string_value));
+    furi_string_free(string_value);
 
-        json_write_string(json_node, setting->name, furi_string_get_cstr(_value));
-        is_save_successful = true;
-    } while(false);
-
-    furi_string_free(_value);
-    return is_save_successful;
+    return true;
 }
 
 SETTING_LOAD_DECLARATION(type_custom, json_node, setting, value) {
     const SettingProviderCustomInterface* interface = setting->interface;
-
     furi_check(interface->deserialize_callback);
 
-    FuriString* _value = furi_string_alloc();
-    bool is_load_successful = false;
+    const char* json_string_value;
+    if(!json_read_string(json_node, setting->name, &json_string_value)) {
+        FURI_LOG_W(TAG, "Failed to load \"%s\" as custom.", setting->name);
+        return SettingLoadResultFailure;
+    }
 
-    do {
-        if(!json_read_string(json_node, setting->name, _value)) {
-            FURI_LOG_W(TAG, "Failed to load \"%s\" as custom.", setting->name);
-            break;
-        }
+    if(!interface->deserialize_callback(setting, json_string_value, value)) {
+        FURI_LOG_W(TAG, "Invalid \"%s\" custom value.", setting->name);
+        return SettingLoadResultFailure;
+    }
 
-        if(!interface->deserialize_callback(setting, value, _value)) {
-            FURI_LOG_W(TAG, "Invalid \"%s\" custom value.", setting->name);
-            break;
-        }
-
-        is_load_successful = true;
-    } while(false);
-
-    furi_string_free(_value);
-    return is_load_successful;
+    return SettingLoadResultOk;
 }
 
 SETTING_RESET_DECLARATION(type_custom, json_node, setting, value) {
     const SettingProviderCustomInterface* interface = setting->interface;
-
-    furi_check(interface->serialize_callback);
-    furi_check(interface->default_value);
     furi_check(interface->default_value_size > 0);
+    furi_check(interface->serialize_callback);
 
-    FuriString* _value = furi_string_alloc();
-    furi_check(interface->serialize_callback(setting, _value, interface->default_value));
+    const void* default_value = interface->default_value;
+    furi_check(default_value);
 
-    FURI_LOG_D(
+    FuriString* default_string_value = furi_string_alloc();
+    furi_check(interface->serialize_callback(setting, default_value, default_string_value));
+
+    FURI_LOG_T(
         TAG,
         "Loading default for \"%s\" custom: \"%s\"...",
         setting->name,
-        furi_string_get_cstr(_value));
+        furi_string_get_cstr(default_string_value));
 
-    json_write_string(json_node, setting->name, furi_string_get_cstr(_value));
-    furi_string_free(_value);
+    json_write_string(json_node, setting->name, furi_string_get_cstr(default_string_value));
+    furi_string_free(default_string_value);
 
-    if(value) memcpy(value, interface->default_value, interface->default_value_size);
+    if(value) memcpy(value, default_value, interface->default_value_size);
+}
+
+SETTING_VALIDATE_DECLARATION(type_custom, setting, value) {
+    const SettingProviderCustomInterface* interface = setting->interface;
+    return !interface->is_valid_callback || interface->is_valid_callback(setting, value);
 }
