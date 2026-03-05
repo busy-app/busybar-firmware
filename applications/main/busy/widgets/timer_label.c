@@ -251,13 +251,13 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
     const uint32_t m = S_TO_M(time_s - H_TO_S(h));
     const uint32_t s = time_s - H_TO_S(h) - M_TO_S(m);
 
-    const lv_font_t* main_part_font = NULL;
+    const lv_font_t* font = NULL;
 
     if(h) {
         if(h >= 10) {
-            main_part_font = instance->loaded_fonts[TimerLabelFontIdxSeconds];
+            font = instance->loaded_fonts[TimerLabelFontIdxSeconds];
         } else {
-            main_part_font = instance->loaded_fonts[TimerLabelFontIdxMain];
+            font = instance->loaded_fonts[TimerLabelFontIdxMain];
         }
 
         lv_label_set_text_fmt(instance->main_label, "%lu:%02lu", h, m);
@@ -267,12 +267,12 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
 
     } else {
         lv_label_set_text_fmt(instance->main_label, "%02lu:%02lu", m, s);
-        main_part_font = instance->loaded_fonts[TimerLabelFontIdxMain];
+        font = instance->loaded_fonts[TimerLabelFontIdxMain];
 
         lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
     }
 
-    lv_obj_set_style_text_font(instance->main_label, main_part_font, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->main_label, font, LV_PART_MAIN);
 
     if(time_s == COUNTDOWN_START_S) {
         timer_label_to_countdown(instance);
