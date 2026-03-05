@@ -25,10 +25,10 @@
 #define BG_GRAD_STOP_POS (255 * BG_GRAD_WIDTH_PX / MAIN_WIDTH_PX)
 
 typedef enum {
-    TimerLabelFontSlotSeconds,
-    TimerLabelFontSlotMain,
-    TimerLabelFontSlotMAX,
-} TimerLabelFontSlot;
+    TimerLabelFontIdxSeconds,
+    TimerLabelFontIdxMain,
+    TimerLabelFontIdxMAX,
+} TimerLabelFontIdx;
 
 struct TimerLabel {
     Widget base;
@@ -43,7 +43,7 @@ struct TimerLabel {
     lv_color_t countdown_blink_color;
 
     FontRegistry* font_registry;
-    const lv_font_t* loaded_fonts[TimerLabelFontSlotMAX];
+    const lv_font_t* loaded_fonts[TimerLabelFontIdxMAX];
 
     bool is_hidden;
 };
@@ -130,14 +130,14 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     instance->main_label = lv_label_create(instance->top_layout);
     lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);
 
-    instance->loaded_fonts[TimerLabelFontSlotMain] =
+    instance->loaded_fonts[TimerLabelFontIdxMain] =
         font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_7);
-    instance->loaded_fonts[TimerLabelFontSlotSeconds] =
+    instance->loaded_fonts[TimerLabelFontIdxSeconds] =
         font_registry_load_font(instance->font_registry, FONT_BUSY_SUPERSCRIPT_7);
 
     instance->seconds_label = lv_label_create(instance->top_layout);
     lv_obj_set_style_text_font(
-        instance->seconds_label, instance->loaded_fonts[TimerLabelFontSlotSeconds], LV_PART_MAIN);
+        instance->seconds_label, instance->loaded_fonts[TimerLabelFontIdxSeconds], LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
 
     instance->bottom_label = lv_label_create(instance->main_layout);
@@ -149,7 +149,7 @@ static void timer_label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     TimerLabel* instance = (TimerLabel*)obj;
 
-    for(TimerLabelFontSlot i = 0; i < TimerLabelFontSlotMAX; i++) {
+    for(TimerLabelFontIdx i = 0; i < TimerLabelFontIdxMAX; i++) {
         const lv_font_t* loaded_font = instance->loaded_fonts[i];
         font_registry_unload_font(instance->font_registry, loaded_font);
     }
@@ -255,9 +255,9 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
 
     if(h) {
         if(h >= 10) {
-            main_part_font = instance->loaded_fonts[TimerLabelFontSlotSeconds];
+            main_part_font = instance->loaded_fonts[TimerLabelFontIdxSeconds];
         } else {
-            main_part_font = instance->loaded_fonts[TimerLabelFontSlotMain];
+            main_part_font = instance->loaded_fonts[TimerLabelFontIdxMain];
         }
 
         lv_label_set_text_fmt(instance->main_label, "%lu:%02lu", h, m);
@@ -267,7 +267,7 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
 
     } else {
         lv_label_set_text_fmt(instance->main_label, "%02lu:%02lu", m, s);
-        main_part_font = instance->loaded_fonts[TimerLabelFontSlotMain];
+        main_part_font = instance->loaded_fonts[TimerLabelFontIdxMain];
 
         lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
     }
