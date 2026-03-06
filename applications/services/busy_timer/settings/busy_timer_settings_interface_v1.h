@@ -1,6 +1,6 @@
 #pragma once
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider.h>
 
 #include "../busy_timer_profile.h"
 

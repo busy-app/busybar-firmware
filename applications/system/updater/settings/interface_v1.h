@@ -1,6 +1,6 @@
 #pragma once
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider/setting_provider.h>
 
 #define UPDATER_CHECK_URL_MAX_SIZE        (512 + 1)
 #define UPDATER_CHECK_CHANNEL_ID_MAX_SIZE (32 + 1)

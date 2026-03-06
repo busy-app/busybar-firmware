@@ -1,6 +1,6 @@
 #include "time_format.h"
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider.h>
 #include <utz/utz.h>
 
 #define SNTP_SERVER_ADDRESS_MAX_LENGTH 64

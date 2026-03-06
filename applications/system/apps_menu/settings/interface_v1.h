@@ -1,6 +1,6 @@
 #pragma once
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider.h>
 
 #define APPS_MENU_ACTIVE_APPLICATION_MAX_SIZE (32 + 1)
 

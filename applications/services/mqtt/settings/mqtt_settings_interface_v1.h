@@ -2,7 +2,7 @@
 
 #include "../mqtt_common.h"
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider.h>
 
 #define MQTT_SETTINGS_CUSTOM_URL_MAX_SIZE (512 + 1)
 

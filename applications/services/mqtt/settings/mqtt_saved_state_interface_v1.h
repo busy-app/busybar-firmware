@@ -1,6 +1,6 @@
 #pragma once
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider.h>
 
 #define MQTT_SAVED_STATE_CLIENT_ID_MAX_SIZE  (64 + 1)
 #define MQTT_SAVED_STATE_SESSION_ID_MAX_SIZE (64 + 1)

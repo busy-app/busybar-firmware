@@ -1,6 +1,6 @@
 #include "../brightness_control.h"
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider.h>
 
 typedef enum {
     BrightnessSettingV1IdxMode,

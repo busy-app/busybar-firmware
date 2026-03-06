@@ -5,7 +5,7 @@
 
 #include "../unit_tests.h"
 
-#include <toolbox/setting_provider/setting_provider.h>
+#include <setting_provider.h>
 
 #define SETTING_PROVIDER_TEST_PATH UNIT_TESTS_PATH("setting_provider_test.json")
 
