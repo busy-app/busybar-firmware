@@ -26,13 +26,14 @@ typedef struct {
 } BusySceneSetupTimer;
 
 static void busy_scene_setup_timer_set_item_defaults(const BusySceneSetupTimer* data) {
-    static const int32_t default_values_table[VarItemListIdMax] = {
+    static const int32_t default_values_table[] = {
+        // VarItemListIdMode is not reset to default
         [VarItemListIdTime] = BUSY_TIMER_TIME_DEFAULT_MN,
         [VarItemListIdWork] = BUSY_TIMER_WORK_TIME_DEFAULT_MN,
         [VarItemListIdRest] = BUSY_TIMER_REST_TIME_DEFAULT_MN,
         [VarItemListIdCycles] = BUSY_TIMER_CYCLE_COUNT_DEFAULT,
         [VarItemListIdAutostart] = BUSY_TIMER_ENABLE_AUTOSTART_DEFAULT,
-        [VarItemListIdShowWork] = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+        // VarItemListIdShowWork and VarItemListIdDemoMode are not reset to default
     };
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
@@ -40,7 +41,8 @@ static void busy_scene_setup_timer_set_item_defaults(const BusySceneSetupTimer* 
         VarItem* const* items = container->items;
 
         // NOTE: Starting from the second element
-        for(VarItemListId item_id = 1; item_id < VarItemListIdMax; ++item_id) {
+        for(VarItemListId item_id = VarItemListIdTime; item_id < COUNT_OF(default_values_table);
+            ++item_id) {
             var_item_set_value(items[item_id], default_values_table[item_id]);
         }
     }
@@ -194,8 +196,9 @@ static void busy_scene_setup_init_var_item_values(
     var_item_set_value(items[VarItemListIdDemoMode], timer_preset->is_demo_mode_enabled);
 }
 
-static void
-    busy_scene_setup_get_var_item_values(BusySceneSetupTimer* data, BusyTimerPreset* timer_preset) {
+static void busy_scene_setup_get_var_item_values(
+    const BusySceneSetupTimer* data,
+    BusyTimerPreset* timer_preset) {
     VarItem* const* items = data->containers[GuiDisplayIdFront].items;
 
     BusyAppConfig* app_config = &timer_preset->app_config;
@@ -217,6 +220,15 @@ static void
 
     app_config->is_show_work_only_enabled = var_item_get_value(items[VarItemListIdShowWork]);
     timer_preset->is_demo_mode_enabled = var_item_get_value(items[VarItemListIdDemoMode]);
+}
+
+static void
+    busy_scene_setup_update_timer_preset(BusyApp* instance, const BusySceneSetupTimer* data) {
+    BusyTimerPreset timer_preset;
+
+    busy_get_timer_preset(instance, &timer_preset);
+    busy_scene_setup_get_var_item_values(data, &timer_preset);
+    busy_set_timer_preset(instance, &timer_preset);
 }
 
 static void busy_scene_setup_timer_on_enter(void* context) {
@@ -251,10 +263,7 @@ static void busy_scene_setup_timer_on_exit(void* context) {
 
     if(!instance->show_timer_requested) {
         // NOTE: Not saving timer preset if launched via snapshot to avoid deadlocks
-        BusyTimerPreset timer_preset;
-        busy_get_timer_preset(instance, &timer_preset);
-        busy_scene_setup_get_var_item_values(data, &timer_preset);
-        busy_set_timer_preset(instance, &timer_preset);
+        busy_scene_setup_update_timer_preset(instance, data);
     }
 
     with_gui(instance->gui, {
