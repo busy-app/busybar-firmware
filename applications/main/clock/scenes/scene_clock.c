@@ -1,6 +1,5 @@
 #include "../clock_i.h"
 #include "../widgets/clock_view.h"
-#include "../settings/settings.h"
 
 #include <gui/modules/menu.h>
 #include <gui/modules/anim_menu.h>
@@ -23,8 +22,8 @@ static void this_scene_on_enter(void* context) {
     ThisInstance* instance = context;
     ThisScene* scene = this_get_scene(instance);
 
-    ClockSettings settings;
-    clock_settings_load(&settings);
+    SntpSettings* sntp_settings = malloc(sizeof(*sntp_settings));
+    sntp_get_settings(instance->sntp, sntp_settings);
 
     LocalTime local_time = sntp_get_local_time(instance->sntp);
 
@@ -33,8 +32,9 @@ static void this_scene_on_enter(void* context) {
         scene->front_clock = clock_view_alloc(instance->front_scene_window);
         widget_set_align(clock_view_get_base(scene->front_clock), AlignCenter);
 
-        clock_view_set_show_date(scene->front_clock, settings.show_date);
-        clock_view_set_show_seconds(scene->front_clock, settings.show_seconds);
+        clock_view_set_show_date(scene->front_clock, instance->settings.show_date);
+        clock_view_set_show_seconds(scene->front_clock, instance->settings.show_seconds);
+        clock_view_set_time_format(scene->front_clock, sntp_settings->time_format);
         clock_view_set_date_time(scene->front_clock, &local_time.dt);
 
         /* back layout setup */
@@ -43,6 +43,8 @@ static void this_scene_on_enter(void* context) {
         mirror_card_set_show_footer(scene->back_card, false);
         widget_set_align(mirror_card_get_base(scene->back_card), AlignLeftMid);
     });
+
+    free(sntp_settings);
 }
 
 static void this_scene_on_exit(void* context) {

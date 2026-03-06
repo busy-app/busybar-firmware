@@ -127,6 +127,8 @@ static ThisInstance* this_alloc(const char* arguments) {
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, clock_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
 
+    clock_settings_load(&instance->settings);
+
     updater_pause_autoupdates(instance->updater);
 
     with_gui(instance->gui, {
@@ -173,6 +175,7 @@ static ThisInstance* this_alloc(const char* arguments) {
         with_gui(instance->gui, {
             widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
         });
+
         scene_manager_next_scene(instance->scene_manager, ThisSceneIdxClock);
     }
 
