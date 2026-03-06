@@ -239,7 +239,7 @@ bool furi_hal_crypto_ecdsa_sign(
     handle->config.signature_length = *output_length;
     sl_status_t status = sl_si91x_ecdsa(&handle->config, output);
     if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to sign data");
+        FURI_LOG_E(TAG, "Failed to sign data, Error Code : 0x%08lX", status);
         return false;
     }
     *output_length = handle->config.signature_length;
@@ -335,7 +335,7 @@ bool furi_hal_crypto_hmac_digest(
 
     sl_status_t status = sl_si91x_hmac(&handle->config, output);
     if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to compute HMAC");
+        FURI_LOG_E(TAG, "Failed to compute HMAC, , Error Code : 0x%08lX", status);
         return false;
     }
     return true;

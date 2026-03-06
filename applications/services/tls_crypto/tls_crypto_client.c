@@ -12,6 +12,7 @@ struct TlsCryptoClient {
     IntercomChannel* intercom_ch;
     TlsCryptoMessageGeneric msg;
     FuriMessageQueue* response_queue;
+    FuriSemaphore* api_semaphore;
 };
 
 static void tls_crypto_client_rx_callback(const void* data, size_t data_size, void* context) {
@@ -29,6 +30,7 @@ static TlsCryptoClient* tls_crypto_client_alloc(void) {
     TlsCryptoClient* client = malloc(sizeof(TlsCryptoClient));
 
     client->response_queue = furi_message_queue_alloc(1, sizeof(TlsCryptoMessageGeneric));
+    client->api_semaphore = furi_semaphore_alloc(1, 1);
 
     client->intercom = furi_record_open(RECORD_INTERCOM);
     client->intercom_ch = intercom_channel_open(
@@ -48,6 +50,9 @@ bool tls_crypto_client_sign(
     furi_assert(hash);
     furi_assert(sign_buf);
     furi_assert(hash_len <= TLS_CRYPTO_DATA_SIZE_MAX);
+
+    furi_check(furi_semaphore_acquire(client->api_semaphore, FuriWaitForever) == FuriStatusOk);
+
     bool success = false;
 
     client->msg.header.type = TlsCryptoSignRequest;
@@ -78,11 +83,15 @@ bool tls_crypto_client_sign(
         }
     }
 
+    furi_semaphore_release(client->api_semaphore);
+
     return success;
 }
 
 uint8_t* tls_crypto_client_get_cert(TlsCryptoClient* client, uint8_t key_slot, size_t* cert_len) {
     furi_assert(cert_len);
+
+    furi_check(furi_semaphore_acquire(client->api_semaphore, FuriWaitForever) == FuriStatusOk);
 
     uint8_t* cert_buf = NULL;
 
@@ -111,6 +120,8 @@ uint8_t* tls_crypto_client_get_cert(TlsCryptoClient* client, uint8_t key_slot, s
             furi_crash("Unsupported reponse");
         }
     }
+
+    furi_semaphore_release(client->api_semaphore);
 
     return cert_buf;
 }
