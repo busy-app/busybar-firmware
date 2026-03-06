@@ -50,6 +50,7 @@ App(
         "network",
         "sntp",
         "tls_crypto",
+        "tls_crypto_test_cmd",
         "matter",
         "device_name",
         "busy_timer",

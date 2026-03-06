@@ -20,3 +20,13 @@ App(
     targets=["f64", "f65"],
     sources=["tls_crypto_server.c"],
 )
+
+App(
+    appid="tls_crypto_test_cmd",
+    name="tls_crypto_test",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_tls_crypto_test",
+    requires=["tls_crypto"],
+    targets=["f20", "f21", "f22"],
+    sources=["tls_crypto_test.c"],
+)
