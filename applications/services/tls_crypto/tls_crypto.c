@@ -10,7 +10,7 @@
 #define RESPONSE_TIMEOUT 200
 #define ACQUIRE_TIMEOUT  500
 
-struct TlsCryptoClient {
+struct TlsCrypto {
     Intercom* intercom;
     IntercomChannel* intercom_ch;
     TlsCryptoMessageGeneric msg;
@@ -18,120 +18,124 @@ struct TlsCryptoClient {
     FuriSemaphore* api_semaphore;
 };
 
-static void tls_crypto_client_rx_callback(const void* data, size_t data_size, void* context) {
+static void tls_crypto_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data);
     const TlsCryptoDataMessage* msg = data;
     furi_assert((data_size == sizeof(TlsCryptoMessageHeader) + msg->header.data_size));
     furi_assert(context);
-    TlsCryptoClient* instance = context;
+    TlsCrypto* instance = context;
 
     furi_check(
         furi_message_queue_put(instance->response_queue, data, FuriWaitForever) == FuriStatusOk);
 }
 
-static TlsCryptoClient* tls_crypto_client_alloc(void) {
-    TlsCryptoClient* client = malloc(sizeof(TlsCryptoClient));
+static TlsCrypto* tls_crypto_alloc(void) {
+    TlsCrypto* instance = malloc(sizeof(TlsCrypto));
 
-    client->response_queue = furi_message_queue_alloc(1, sizeof(TlsCryptoMessageGeneric));
-    client->api_semaphore = furi_semaphore_alloc(1, 1);
+    instance->response_queue = furi_message_queue_alloc(1, sizeof(TlsCryptoMessageGeneric));
+    instance->api_semaphore = furi_semaphore_alloc(1, 1);
 
-    client->intercom = furi_record_open(RECORD_INTERCOM);
-    client->intercom_ch = intercom_channel_open(
-        client->intercom, IntercomChannelIdTlsCrypto, tls_crypto_client_rx_callback, client);
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+    instance->intercom_ch = intercom_channel_open(
+        instance->intercom, IntercomChannelIdTlsCrypto, tls_crypto_rx_callback, instance);
 
-    return client;
+    return instance;
 }
 
-bool tls_crypto_client_sign(
-    TlsCryptoClient* client,
+bool tls_crypto_sign(
+    TlsCrypto* instance,
     uint8_t key_slot,
-    const uint8_t* hash,
-    size_t hash_len,
-    uint8_t* sign_buf,
-    size_t sign_buf_size,
-    size_t* sign_len) {
-    furi_assert(hash);
-    furi_assert(sign_buf);
-    furi_assert(hash_len <= TLS_CRYPTO_DATA_SIZE_MAX);
+    const void* data,
+    size_t data_size,
+    void* signature_buf,
+    size_t signature_buf_size,
+    size_t* signature_len) {
+    furi_assert(data);
+    furi_assert(signature_buf);
+    furi_assert(data_size <= TLS_CRYPTO_DATA_SIZE_MAX);
 
-    furi_check(furi_semaphore_acquire(client->api_semaphore, FuriWaitForever) == FuriStatusOk);
+    furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
 
     bool success = false;
 
-    client->msg.header.type = TlsCryptoSignRequest;
-    client->msg.header.key_slot = key_slot;
-    client->msg.header.data_size = hash_len;
-    memcpy(client->msg.data, hash, hash_len);
+    instance->msg.header.type = TlsCryptoSignRequest;
+    instance->msg.header.key_slot = key_slot;
+    instance->msg.header.data_size = data_size;
+    memcpy(instance->msg.data, data, data_size);
 
-    size_t packet_len = sizeof(TlsCryptoMessageHeader) + hash_len;
-    size_t tx_size = intercom_tx(client->intercom_ch, &(client->msg), packet_len, FuriWaitForever);
+    size_t packet_len = sizeof(TlsCryptoMessageHeader) + data_size;
+    size_t tx_size =
+        intercom_tx(instance->intercom_ch, &(instance->msg), packet_len, FuriWaitForever);
     furi_check(tx_size == packet_len, "Failed to send data");
 
-    if(furi_message_queue_get(client->response_queue, &client->msg, RESPONSE_TIMEOUT) ==
+    if(furi_message_queue_get(instance->response_queue, &instance->msg, RESPONSE_TIMEOUT) ==
        FuriStatusOk) {
-        if(client->msg.header.type == TlsCryptoSignResponse) {
-            furi_assert(client->msg.header.key_slot == key_slot);
-            size_t resp_sign_len = client->msg.header.data_size;
+        if(instance->msg.header.type == TlsCryptoSignResponse) {
+            furi_assert(instance->msg.header.key_slot == key_slot);
+            size_t resp_sign_len = instance->msg.header.data_size;
             FURI_LOG_D(TAG, "TlsCryptoSignResponse len:%u", resp_sign_len);
-            furi_assert(sign_buf_size >= resp_sign_len);
-            memcpy(sign_buf, client->msg.data, resp_sign_len);
-            if(sign_len) {
-                *sign_len = resp_sign_len;
+            furi_assert(signature_buf_size >= resp_sign_len);
+            memcpy(signature_buf, instance->msg.data, resp_sign_len);
+            if(signature_len) {
+                *signature_len = resp_sign_len;
             }
             success = true;
-        } else if(client->msg.header.type == TlsCryptoError) {
+        } else if(instance->msg.header.type == TlsCryptoError) {
             FURI_LOG_E(TAG, "917 returned error");
         } else {
             furi_crash("Unsupported response");
         }
     }
 
-    furi_semaphore_release(client->api_semaphore);
+    furi_semaphore_release(instance->api_semaphore);
 
     return success;
 }
 
-uint8_t* tls_crypto_client_get_cert(TlsCryptoClient* client, uint8_t key_slot, size_t* cert_len) {
+uint8_t* tls_crypto_get_certificate(TlsCrypto* instance, uint8_t key_slot, size_t* cert_len) {
     furi_assert(cert_len);
 
-    furi_check(furi_semaphore_acquire(client->api_semaphore, FuriWaitForever) == FuriStatusOk);
+    furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
 
     uint8_t* cert_buf = NULL;
 
-    client->msg.header.type = TlsCryptoCertRequest;
-    client->msg.header.key_slot = key_slot;
-    client->msg.header.data_size = 0;
+    instance->msg.header.type = TlsCryptoCertRequest;
+    instance->msg.header.key_slot = key_slot;
+    instance->msg.header.data_size = 0;
 
     size_t packet_len = sizeof(TlsCryptoMessageHeader);
-    size_t tx_size = intercom_tx(client->intercom_ch, &(client->msg), packet_len, FuriWaitForever);
+    size_t tx_size =
+        intercom_tx(instance->intercom_ch, &(instance->msg), packet_len, FuriWaitForever);
     furi_check(tx_size == packet_len, "Failed to send data");
 
-    if(furi_message_queue_get(client->response_queue, &client->msg, RESPONSE_TIMEOUT) ==
+    if(furi_message_queue_get(instance->response_queue, &instance->msg, RESPONSE_TIMEOUT) ==
        FuriStatusOk) {
-        if(client->msg.header.type == TlsCryptoCertResponse) {
-            furi_assert(client->msg.header.key_slot == key_slot);
-            size_t resp_cert_len = client->msg.header.data_size;
+        if(instance->msg.header.type == TlsCryptoCertResponse) {
+            furi_assert(instance->msg.header.key_slot == key_slot);
+            size_t resp_cert_len = instance->msg.header.data_size;
             FURI_LOG_D(TAG, "TlsCryptoCertResponse len:%u", resp_cert_len);
 
             cert_buf = malloc(resp_cert_len);
-            memcpy(cert_buf, client->msg.data, resp_cert_len);
+            memcpy(cert_buf, instance->msg.data, resp_cert_len);
             *cert_len = resp_cert_len;
 
-        } else if(client->msg.header.type == TlsCryptoError) {
+        } else if(instance->msg.header.type == TlsCryptoError) {
             FURI_LOG_E(TAG, "917 returned error");
         } else {
             furi_crash("Unsupported reponse");
         }
     }
 
-    furi_semaphore_release(client->api_semaphore);
+    furi_semaphore_release(instance->api_semaphore);
 
     return cert_buf;
 }
 
-int32_t tls_crypto_client_init(void* arg) {
+int32_t tls_crypto_init(void* arg) {
     UNUSED(arg);
-    TlsCryptoClient* client = tls_crypto_client_alloc();
-    furi_record_create(RECORD_TLS_CRYPTO_CLIENT, client);
+
+    TlsCrypto* instance = tls_crypto_alloc();
+    furi_record_create(RECORD_TLS_CRYPTO, instance);
+
     return 0;
 }

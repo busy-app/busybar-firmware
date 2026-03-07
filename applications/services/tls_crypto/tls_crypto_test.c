@@ -15,7 +15,7 @@ void cli_command_tls_crypto_test(PipeSide* pipe, FuriString* args, void* context
     UNUSED(args);
     UNUSED(context);
 
-    TlsCryptoClient* tls = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
+    TlsCrypto* tls = furi_record_open(RECORD_TLS_CRYPTO);
 
     uint8_t input_data[INPUT_DATA_SIZE];
     uint8_t signature_buf[SIGNATURE_BUF_SIZE];
@@ -24,7 +24,7 @@ void cli_command_tls_crypto_test(PipeSide* pipe, FuriString* args, void* context
     while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
         furi_hal_random_fill_buf(input_data, sizeof(input_data));
 
-        if(!tls_crypto_client_sign(
+        if(!tls_crypto_sign(
                tls,
                1,
                input_data,
@@ -36,5 +36,5 @@ void cli_command_tls_crypto_test(PipeSide* pipe, FuriString* args, void* context
         }
     }
 
-    furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
+    furi_record_close(RECORD_TLS_CRYPTO);
 }

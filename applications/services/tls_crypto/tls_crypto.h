@@ -1,7 +1,6 @@
 /**
  * @brief TLS crypto client
  */
-
 #pragma once
 
 #include <furi.h>
@@ -10,20 +9,20 @@
 extern "C" {
 #endif
 
-typedef struct TlsCryptoClient TlsCryptoClient;
+#define RECORD_TLS_CRYPTO "tls_crypto"
 
-#define RECORD_TLS_CRYPTO_CLIENT "tls_crypto_client"
+typedef struct TlsCrypto TlsCrypto;
 
-bool tls_crypto_client_sign(
-    TlsCryptoClient* client,
+bool tls_crypto_sign(
+    TlsCrypto* instance,
     uint8_t key_slot,
-    const uint8_t* hash,
-    size_t hash_len,
-    uint8_t* sign_buf,
-    size_t sign_buf_size,
-    size_t* sign_len);
+    const void* data,
+    size_t data_size,
+    void* signature_buf,
+    size_t signature_buf_size,
+    size_t* signature_len);
 
-uint8_t* tls_crypto_client_get_cert(TlsCryptoClient* client, uint8_t key_slot, size_t* cert_len);
+uint8_t* tls_crypto_get_certificate(TlsCrypto* instance, uint8_t key_slot, size_t* cert_len);
 
 #ifdef __cplusplus
 }
