@@ -5,7 +5,7 @@
 
 #include "tls_crypto_common.h"
 
-#define TAG "TlsCryptoServer"
+#define TAG "TlsCrypto"
 
 #define KEY_ID_OFFSET (0x10)
 #define KEY_SLOTS_MAX (2)

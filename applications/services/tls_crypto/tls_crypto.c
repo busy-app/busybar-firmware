@@ -1,9 +1,12 @@
-#include "tls_crypto_client.h"
+#include "tls_crypto.h"
+
 #include <furi.h>
 #include <intercom/intercom.h>
+
 #include "tls_crypto_common.h"
 
-#define TAG              "TlsCryptoClient"
+#define TAG "TlsCrypto"
+
 #define RESPONSE_TIMEOUT 200
 #define ACQUIRE_TIMEOUT  500
 

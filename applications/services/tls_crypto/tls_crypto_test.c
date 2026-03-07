@@ -5,7 +5,7 @@
 
 #include <furi_hal_random.h>
 
-#include <tls_crypto/tls_crypto_client.h>
+#include <tls_crypto/tls_crypto.h>
 
 #define INPUT_DATA_SIZE    (800)
 #define SIGNATURE_BUF_SIZE (128)

@@ -1,9 +1,12 @@
 #include <mongoose.h>
+
 #include <mbedtls/ssl.h>
 #include <mbedtls/pk.h>
+
 #include <pk_wrap.h>
-#include <tls_crypto/tls_crypto_client.h>
+
 #include <storage/storage.h>
+#include <tls_crypto/tls_crypto.h>
 
 #define TAG "MqttTls"
 
