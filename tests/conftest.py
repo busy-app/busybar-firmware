@@ -205,6 +205,7 @@ def pytest_configure(config):
         "feature_cli: Feature 6. CLI",
         "feature_web_frontend: Feature 5. Web Frontend",
         "connection_test: Fresh connection tests",
+        "schemathesis: OpenAPI schema conformance tests (schemathesis)",
     ]
 
     for marker in markers:
