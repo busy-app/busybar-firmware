@@ -5,149 +5,151 @@
 
 #include <intercom/intercom.h>
 
-#include "tls_crypto_common.h"
+#include "tls_crypto_common_i.h"
 
 #define TAG "TlsCrypto"
 
 #define KEY_ID_OFFSET (0x10)
-#define KEY_SLOTS_MAX (2)
-
-#define SIGNATURE_LEN_MAX (80)
-static_assert(SIGNATURE_LEN_MAX <= TLS_CRYPTO_DATA_SIZE_MAX);
 
 typedef struct {
-    Intercom* intercom;
-    IntercomChannel* intercom_ch;
     FuriEventLoop* event_loop;
-    FuriMessageQueue* command_queue;
+    IntercomChannel* intercom_ch;
+    TlsCryptoRequest request;
+    TlsCryptoResponse response;
 } TlsCrypto;
 
-static void tls_crypto_sign(TlsCrypto* instance, TlsCryptoMessageGeneric* msg) {
-    bool success = false;
+typedef enum {
+    TlsCryptoCustomEventRequest = 1UL << 0,
+} TlsCryptoCustomEvent;
 
-    uint8_t* signature_buf = malloc(SIGNATURE_LEN_MAX);
-    size_t signature_len = SIGNATURE_LEN_MAX;
-
-    do {
-        if(msg->header.key_slot >= KEY_SLOTS_MAX) break;
-        uint32_t key_id = KEY_ID_OFFSET + msg->header.key_slot;
-
-        FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
-        FuriHalCryptoStatus status =
-            furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, key_id);
-
-        if(status == FuriHalCryptoStatusOk) {
-            FuriHalCryptoEcdsa* sign_ctx = furi_hal_crypto_ecdsa_sign_init(
-                FuriHalCryptoEcdsaModeSha256,
-                key->data,
-                FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
-                FuriHalCryptoWrappingModeOff);
-
-            success = furi_hal_crypto_ecdsa_sign(
-                sign_ctx, msg->data, msg->header.data_size, signature_buf, &signature_len);
-
-            furi_hal_crypto_ecdsa_deinit(sign_ctx);
-        }
-        furi_hal_crypto_storage_free(key);
-
-    } while(0);
-
-    if(success) {
-        FURI_LOG_D(TAG, "Sign done");
-        msg->header.type = TlsCryptoSignResponse;
-        msg->header.data_size = signature_len;
-        memcpy(msg->data, signature_buf, signature_len);
-        size_t packet_len = sizeof(TlsCryptoMessageHeader) + msg->header.data_size;
-        size_t tx_size = intercom_tx(instance->intercom_ch, msg, packet_len, FuriWaitForever);
-        furi_check(tx_size == packet_len, "Failed to send data");
-    } else {
-        FURI_LOG_E(TAG, "Sign error");
-        TlsCryptoErrorMessage error_msg = {.header = {.type = TlsCryptoError}};
-        size_t tx_size = intercom_tx(
-            instance->intercom_ch, &error_msg, sizeof(TlsCryptoErrorMessage), FuriWaitForever);
-        furi_check(tx_size == sizeof(TlsCryptoErrorMessage), "Failed to send data");
-    }
-    free(signature_buf);
-}
-
-static void tls_crypto_get_certificate(TlsCrypto* instance, TlsCryptoMessageGeneric* msg) {
-    bool success = false;
-
-    do {
-        if(msg->header.key_slot >= KEY_SLOTS_MAX) break;
-        uint32_t key_id = KEY_ID_OFFSET + msg->header.key_slot;
-
-        FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
-        FuriHalCryptoStatus status =
-            furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeCrtDerEcdsa256, key_id);
-
-        if(status == FuriHalCryptoStatusOk) {
-            furi_check(key->header.size <= TLS_CRYPTO_DATA_SIZE_MAX);
-            msg->header.type = TlsCryptoCertResponse;
-            msg->header.data_size = key->header.size;
-            memcpy(msg->data, key->data, key->header.size);
-
-            size_t packet_len = sizeof(TlsCryptoMessageHeader) + msg->header.data_size;
-            size_t tx_size = intercom_tx(instance->intercom_ch, msg, packet_len, FuriWaitForever);
-            furi_check(tx_size == packet_len, "Failed to send data");
-
-            success = true;
-        }
-        furi_hal_crypto_storage_free(key);
-    } while(0);
-
-    if(!success) {
-        FURI_LOG_E(TAG, "Get cert error");
-        TlsCryptoErrorMessage error_msg = {.header = {.type = TlsCryptoError}};
-        size_t tx_size = intercom_tx(
-            instance->intercom_ch, &error_msg, sizeof(TlsCryptoErrorMessage), FuriWaitForever);
-        furi_check(tx_size == sizeof(TlsCryptoErrorMessage), "Failed to send data");
-    }
-}
-
-static void tls_crypto_message_callback(FuriEventLoopObject* object, void* context) {
-    TlsCrypto* instance = context;
-    furi_check(instance);
-    furi_check(object == instance->command_queue);
-
-    TlsCryptoMessageGeneric* msg = malloc(sizeof(TlsCryptoMessageGeneric));
-    furi_check(furi_message_queue_get(instance->command_queue, msg, 0) == FuriStatusOk);
-
-    if(msg->header.type == TlsCryptoSignRequest) {
-        tls_crypto_sign(instance, msg);
-    } else if(msg->header.type == TlsCryptoCertRequest) {
-        tls_crypto_get_certificate(instance, msg);
-    }
-
-    free(msg);
-}
-
-static void tls_crypto_rx_callback(const void* data, size_t data_size, void* context) {
+static void tls_crypto_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data);
-    const TlsCryptoDataMessage* msg = data;
-    furi_assert((data_size == sizeof(TlsCryptoMessageHeader) + msg->header.data_size));
+    furi_assert(context);
+
+    furi_check(data_size == sizeof(TlsCryptoRequest));
+
+    TlsCrypto* instance = context;
+    const TlsCryptoRequest* request = data;
+
+    instance->request = *request;
+    furi_event_loop_set_custom_event(instance->event_loop, TlsCryptoCustomEventRequest);
+}
+
+static TlsCryptoStatus
+    tls_crypto_sign_request_handler(const TlsCryptoRequest* request, TlsCryptoResponse* response) {
+    TlsCryptoStatus status = TlsCryptoStatusErrorInternal;
+
+    const TlsCryptoRequestSign* sign_request = &request->sign;
+    TlsCryptoResponseSign* sign_response = &response->sign;
+
+    const uint32_t internal_key_id = (uint32_t)sign_request->key_id + KEY_ID_OFFSET;
+
+    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoStatus hal_status =
+        furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
+
+    if(hal_status == FuriHalCryptoStatusOk) {
+        FuriHalCryptoEcdsa* sign_ctx = furi_hal_crypto_ecdsa_sign_init(
+            FuriHalCryptoEcdsaModeSha256,
+            key->data,
+            FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
+            FuriHalCryptoWrappingModeOff);
+
+        TlsCryptoSignature* signature = &sign_response->signature;
+
+        const bool sign_success = furi_hal_crypto_ecdsa_sign(
+            sign_ctx,
+            sign_request->data,
+            sign_request->length,
+            signature->bytes,
+            &signature->length);
+
+        furi_hal_crypto_ecdsa_deinit(sign_ctx);
+
+        if(sign_success) {
+            status = TlsCryptoStatusOk;
+        }
+    }
+
+    furi_hal_crypto_storage_free(key);
+
+    return status;
+}
+
+static TlsCryptoStatus tls_crypto_get_certificate_request_handler(
+    const TlsCryptoRequest* request,
+    TlsCryptoResponse* response) {
+    TlsCryptoStatus status = TlsCryptoStatusErrorInternal;
+
+    const TlsCryptoRequestGetCertificate* get_cert_request = &request->get_cert;
+    TlsCryptoResponseGetCertificate* get_cert_response = &response->get_cert;
+
+    const uint32_t internal_key_id = (uint32_t)get_cert_request->key_id + KEY_ID_OFFSET;
+
+    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoStatus hal_status =
+        furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeCrtDerEcdsa256, internal_key_id);
+
+    if(hal_status == FuriHalCryptoStatusOk) {
+        const size_t data_len = key->header.size;
+        furi_check(data_len <= TLS_CRYPTO_DATA_LEN_MAX);
+
+        TlsCryptoCertificate* certificate = &get_cert_response->certificate;
+        memcpy(certificate->bytes, key->data, data_len);
+        certificate->length = data_len;
+
+        status = TlsCryptoStatusOk;
+    }
+
+    furi_hal_crypto_storage_free(key);
+
+    return status;
+}
+
+static void tls_crypto_send_response(const TlsCrypto* instance) {
+    const TlsCryptoResponse* response = &instance->response;
+    const size_t tx_size =
+        intercom_tx(instance->intercom_ch, response, sizeof(TlsCryptoResponse), FuriWaitForever);
+    furi_check(tx_size == sizeof(TlsCryptoResponse));
+}
+
+static void tls_crypto_handle_request(TlsCrypto* instance) {
+    const TlsCryptoRequest* request = &instance->request;
+    const TlsCryptoRequestType request_type = request->type;
+
+    TlsCryptoResponse* response = &instance->response;
+    response->type = request_type;
+
+    if(request_type == TlsCryptoRequestTypeGetCertificate) {
+        response->status = tls_crypto_get_certificate_request_handler(request, response);
+    } else if(request_type == TlsCryptoRequestTypeSign) {
+        response->status = tls_crypto_sign_request_handler(request, response);
+    } else {
+        furi_crash("Invalid TlsCryptoRequestType value");
+    }
+
+    tls_crypto_send_response(instance);
+}
+
+static void tls_crypto_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     TlsCrypto* instance = context;
 
-    furi_check(
-        furi_message_queue_put(instance->command_queue, data, FuriWaitForever) == FuriStatusOk);
+    if(events & TlsCryptoCustomEventRequest) {
+        tls_crypto_handle_request(instance);
+    }
 }
 
 static TlsCrypto* tls_crypto_alloc(void) {
     TlsCrypto* instance = malloc(sizeof(TlsCrypto));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->command_queue = furi_message_queue_alloc(1, sizeof(TlsCryptoMessageGeneric));
-    furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->command_queue,
-        FuriEventLoopEventIn,
-        tls_crypto_message_callback,
-        instance);
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, tls_crypto_custom_event_callback, instance);
 
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom_ch = intercom_channel_open(
-        instance->intercom, IntercomChannelIdTlsCrypto, tls_crypto_rx_callback, instance);
+        intercom, IntercomChannelIdTlsCrypto, tls_crypto_intercom_rx_callback, instance);
 
     return instance;
 }

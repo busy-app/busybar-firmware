@@ -1,9 +1,9 @@
 /**
- * @brief TLS crypto client
+ * @brief TBD
  */
 #pragma once
 
-#include <furi.h>
+#include "tls_crypto_common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,16 +13,17 @@ extern "C" {
 
 typedef struct TlsCrypto TlsCrypto;
 
-bool tls_crypto_sign(
+TlsCryptoStatus tls_crypto_get_certificate(
     TlsCrypto* instance,
-    uint8_t key_slot,
+    TlsCryptoKeyId key_id,
+    TlsCryptoCertificate* certificate);
+
+TlsCryptoStatus tls_crypto_sign(
+    TlsCrypto* instance,
+    TlsCryptoKeyId key_id,
     const void* data,
     size_t data_size,
-    void* signature_buf,
-    size_t signature_buf_size,
-    size_t* signature_len);
-
-uint8_t* tls_crypto_get_certificate(TlsCrypto* instance, uint8_t key_slot, size_t* cert_len);
+    TlsCryptoSignature* signature);
 
 #ifdef __cplusplus
 }

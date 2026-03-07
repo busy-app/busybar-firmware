@@ -1,34 +1,41 @@
 #pragma once
 
-#include <furi.h>
+#include <stdint.h>
+#include <stddef.h>
 
-#define TLS_CRYPTO_DATA_SIZE_MAX 800
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define TLS_CRYPTO_DATA_LEN_MAX (800)
+
+#define TLS_CRYPTO_CERT_LEN_MAX (TLS_CRYPTO_DATA_LEN_MAX)
+
+#define TLS_CRYPTO_SIGN_LEN_MAX (80)
 
 typedef enum {
-    TlsCryptoSignRequest,
-    TlsCryptoSignResponse,
-    TlsCryptoCertRequest,
-    TlsCryptoCertResponse,
-    TlsCryptoError = 0xFFFFFFFF,
-} TlsCryptoCmd;
+    TlsCryptoStatusOk,
+    TlsCryptoStatusErrorTimeout,
+    TlsCryptoStatusErrorInternal,
+    TlsCryptoStatusMax,
+} TlsCryptoStatus;
+
+typedef enum {
+    TlsCryptoKeyIdIntermediate,
+    TlsCryptoKeyIdDevice,
+    TlsCryptoKeyIdMax,
+} TlsCryptoKeyId;
 
 typedef struct {
-    TlsCryptoCmd type;
-    size_t data_size;
-    uint8_t key_slot;
-} TlsCryptoMessageHeader;
+    uint8_t bytes[TLS_CRYPTO_CERT_LEN_MAX];
+    size_t length;
+} TlsCryptoCertificate;
 
 typedef struct {
-    TlsCryptoMessageHeader header;
-    uint8_t data[TLS_CRYPTO_DATA_SIZE_MAX];
-} TlsCryptoMessageGeneric;
+    uint8_t bytes[TLS_CRYPTO_SIGN_LEN_MAX];
+    size_t length;
+} TlsCryptoSignature;
 
-typedef struct {
-    TlsCryptoMessageHeader header;
-    uint8_t data[];
-} TlsCryptoDataMessage;
-
-typedef struct {
-    TlsCryptoMessageHeader header;
-    // TODO: error code?
-} TlsCryptoErrorMessage;
+#ifdef __cplusplus
+}
+#endif
