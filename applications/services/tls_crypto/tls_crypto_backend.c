@@ -59,8 +59,8 @@ static TlsCryptoStatus
 
         const bool sign_success = furi_hal_crypto_ecdsa_sign(
             sign_ctx,
-            sign_request->data,
-            sign_request->length,
+            sign_request->message,
+            sign_request->message_length,
             signature->bytes,
             &signature->length);
 

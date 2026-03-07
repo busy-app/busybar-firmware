@@ -21,8 +21,8 @@ TlsCryptoStatus tls_crypto_get_certificate(
 TlsCryptoStatus tls_crypto_sign(
     TlsCrypto* instance,
     TlsCryptoKeyId key_id,
-    const void* data,
-    size_t data_size,
+    const void* message,
+    size_t message_len,
     TlsCryptoSignature* signature);
 
 #ifdef __cplusplus

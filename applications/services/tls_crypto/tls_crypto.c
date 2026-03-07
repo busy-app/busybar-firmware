@@ -73,15 +73,15 @@ static void tls_crypto_build_get_cert_request(TlsCrypto* instance, TlsCryptoKeyI
 static void tls_crypto_build_sign_request(
     TlsCrypto* instance,
     TlsCryptoKeyId key_id,
-    const void* data,
-    size_t data_len) {
+    const void* message,
+    size_t message_len) {
     TlsCryptoRequest* request = &instance->request;
     request->type = TlsCryptoRequestTypeSign;
 
     TlsCryptoRequestSign* sign_request = &request->sign;
     sign_request->key_id = key_id;
-    sign_request->length = data_len;
-    memcpy(sign_request->data, data, data_len);
+    sign_request->message_length = message_len;
+    memcpy(sign_request->message, message, message_len);
 }
 
 static void tls_crypto_api_acquire(const TlsCrypto* instance) {
@@ -136,18 +136,18 @@ TlsCryptoStatus tls_crypto_get_certificate(
 TlsCryptoStatus tls_crypto_sign(
     TlsCrypto* instance,
     TlsCryptoKeyId key_id,
-    const void* data,
-    size_t data_len,
+    const void* message,
+    size_t message_len,
     TlsCryptoSignature* signature) {
     furi_check(instance);
     furi_check(key_id < TlsCryptoKeyIdMax);
-    furi_check(data);
-    furi_check(data_len > 0 && data_len <= TLS_CRYPTO_DATA_LEN_MAX);
+    furi_check(message);
+    furi_check(message_len > 0 && message_len <= TLS_CRYPTO_DATA_LEN_MAX);
     furi_check(signature);
 
     tls_crypto_api_acquire(instance);
 
-    tls_crypto_build_sign_request(instance, key_id, data, data_len);
+    tls_crypto_build_sign_request(instance, key_id, message, message_len);
     tls_crypto_send_request(instance);
 
     const TlsCryptoStatus status = tls_crypto_wait_for_response(instance);

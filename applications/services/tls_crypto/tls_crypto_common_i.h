@@ -14,8 +14,8 @@ typedef struct {
 
 typedef struct {
     TlsCryptoKeyId key_id;
-    uint8_t data[TLS_CRYPTO_DATA_LEN_MAX];
-    size_t length;
+    uint8_t message[TLS_CRYPTO_DATA_LEN_MAX];
+    size_t message_length;
 } TlsCryptoRequestSign;
 
 typedef struct {
