@@ -131,11 +131,7 @@ uint8_t* tls_crypto_get_certificate(TlsCrypto* instance, uint8_t key_slot, size_
     return cert_buf;
 }
 
-int32_t tls_crypto_init(void* arg) {
-    UNUSED(arg);
-
+void tls_crypto_startup(void) {
     TlsCrypto* instance = tls_crypto_alloc();
     furi_record_create(RECORD_TLS_CRYPTO, instance);
-
-    return 0;
 }

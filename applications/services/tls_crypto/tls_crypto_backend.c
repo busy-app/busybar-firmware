@@ -1,7 +1,9 @@
 #include <furi.h>
-#include <intercom/intercom.h>
+
 #include <furi_hal_crypto.h>
 #include <furi_hal_crypto_storage.h>
+
+#include <intercom/intercom.h>
 
 #include "tls_crypto_common.h"
 
@@ -18,9 +20,9 @@ typedef struct {
     IntercomChannel* intercom_ch;
     FuriEventLoop* event_loop;
     FuriMessageQueue* command_queue;
-} TlsCryptoServer;
+} TlsCrypto;
 
-static void tls_crypto_server_sign(TlsCryptoServer* instance, TlsCryptoMessageGeneric* msg) {
+static void tls_crypto_sign(TlsCrypto* instance, TlsCryptoMessageGeneric* msg) {
     bool success = false;
 
     uint8_t* signature_buf = malloc(SIGNATURE_LEN_MAX);
@@ -68,7 +70,7 @@ static void tls_crypto_server_sign(TlsCryptoServer* instance, TlsCryptoMessageGe
     free(signature_buf);
 }
 
-static void tls_crypto_server_get_cert(TlsCryptoServer* instance, TlsCryptoMessageGeneric* msg) {
+static void tls_crypto_get_certificate(TlsCrypto* instance, TlsCryptoMessageGeneric* msg) {
     bool success = false;
 
     do {
@@ -103,8 +105,8 @@ static void tls_crypto_server_get_cert(TlsCryptoServer* instance, TlsCryptoMessa
     }
 }
 
-static void tls_crypto_server_message_callback(FuriEventLoopObject* object, void* context) {
-    TlsCryptoServer* instance = context;
+static void tls_crypto_message_callback(FuriEventLoopObject* object, void* context) {
+    TlsCrypto* instance = context;
     furi_check(instance);
     furi_check(object == instance->command_queue);
 
@@ -112,43 +114,48 @@ static void tls_crypto_server_message_callback(FuriEventLoopObject* object, void
     furi_check(furi_message_queue_get(instance->command_queue, msg, 0) == FuriStatusOk);
 
     if(msg->header.type == TlsCryptoSignRequest) {
-        tls_crypto_server_sign(instance, msg);
+        tls_crypto_sign(instance, msg);
     } else if(msg->header.type == TlsCryptoCertRequest) {
-        tls_crypto_server_get_cert(instance, msg);
+        tls_crypto_get_certificate(instance, msg);
     }
 
     free(msg);
 }
 
-static void tls_crypto_server_rx_callback(const void* data, size_t data_size, void* context) {
+static void tls_crypto_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data);
     const TlsCryptoDataMessage* msg = data;
     furi_assert((data_size == sizeof(TlsCryptoMessageHeader) + msg->header.data_size));
     furi_assert(context);
-    TlsCryptoServer* instance = context;
+    TlsCrypto* instance = context;
 
     furi_check(
         furi_message_queue_put(instance->command_queue, data, FuriWaitForever) == FuriStatusOk);
 }
 
-int32_t tls_crypto_server_init(void* arg) {
-    UNUSED(arg);
-    TlsCryptoServer* instance = malloc(sizeof(TlsCryptoServer));
+static TlsCrypto* tls_crypto_alloc(void) {
+    TlsCrypto* instance = malloc(sizeof(TlsCrypto));
+
     instance->event_loop = furi_event_loop_alloc();
     instance->command_queue = furi_message_queue_alloc(1, sizeof(TlsCryptoMessageGeneric));
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->command_queue,
         FuriEventLoopEventIn,
-        tls_crypto_server_message_callback,
+        tls_crypto_message_callback,
         instance);
 
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom_ch = intercom_channel_open(
-        instance->intercom, IntercomChannelIdTlsCrypto, tls_crypto_server_rx_callback, instance);
+        instance->intercom, IntercomChannelIdTlsCrypto, tls_crypto_rx_callback, instance);
 
-    FURI_LOG_I(TAG, "Start");
+    return instance;
+}
 
+int32_t tls_crypto_srv(void* arg) {
+    UNUSED(arg);
+
+    TlsCrypto* instance = tls_crypto_alloc();
     furi_event_loop_run(instance->event_loop);
 
     return 0;
