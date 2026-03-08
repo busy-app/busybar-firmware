@@ -22,6 +22,11 @@ typedef enum {
     TlsCryptoCustomEventRequest = 1UL << 0,
 } TlsCryptoCustomEvent;
 
+typedef TlsCryptoStatus (
+    *TlsCryptoRequestHandler)(const TlsCryptoRequest* request, TlsCryptoResponse* response);
+
+static const TlsCryptoRequestHandler tls_crypto_request_handlers[];
+
 static void tls_crypto_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data);
     furi_assert(context);
@@ -116,17 +121,11 @@ static void tls_crypto_send_response(const TlsCrypto* instance) {
 static void tls_crypto_handle_request(TlsCrypto* instance) {
     const TlsCryptoRequest* request = &instance->request;
     const TlsCryptoRequestType request_type = request->type;
+    furi_check(request_type < TlsCryptoRequestTypeMax);
 
     TlsCryptoResponse* response = &instance->response;
     response->type = request_type;
-
-    if(request_type == TlsCryptoRequestTypeGetCertificate) {
-        response->status = tls_crypto_get_certificate_request_handler(request, response);
-    } else if(request_type == TlsCryptoRequestTypeSign) {
-        response->status = tls_crypto_sign_request_handler(request, response);
-    } else {
-        furi_crash("Invalid TlsCryptoRequestType value");
-    }
+    response->status = tls_crypto_request_handlers[request_type](request, response);
 
     tls_crypto_send_response(instance);
 }
@@ -162,3 +161,8 @@ int32_t tls_crypto_srv(void* arg) {
 
     return 0;
 }
+
+static const TlsCryptoRequestHandler tls_crypto_request_handlers[TlsCryptoRequestTypeMax] = {
+    [TlsCryptoRequestTypeGetCertificate] = tls_crypto_get_certificate_request_handler,
+    [TlsCryptoRequestTypeSign] = tls_crypto_sign_request_handler,
+};
