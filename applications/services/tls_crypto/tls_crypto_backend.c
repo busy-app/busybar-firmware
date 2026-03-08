@@ -7,8 +7,6 @@
 
 #include "tls_crypto_common_i.h"
 
-#define TAG "TlsCrypto"
-
 #define KEY_ID_OFFSET (0x10)
 
 typedef struct {
@@ -40,14 +38,15 @@ static void tls_crypto_intercom_rx_callback(const void* data, size_t data_size, 
     furi_event_loop_set_custom_event(instance->event_loop, TlsCryptoCustomEventRequest);
 }
 
-static TlsCryptoStatus
-    tls_crypto_sign_request_handler(const TlsCryptoRequest* request, TlsCryptoResponse* response) {
+static TlsCryptoStatus tls_crypto_sign_message_request_handler(
+    const TlsCryptoRequest* request,
+    TlsCryptoResponse* response) {
     TlsCryptoStatus status = TlsCryptoStatusErrorInternal;
 
-    const TlsCryptoRequestSign* sign_request = &request->sign;
-    TlsCryptoResponseSign* sign_response = &response->sign;
+    const TlsCryptoRequestSignMessage* sign_message_request = &request->sign_message;
+    TlsCryptoResponseSignMessage* sign_message_response = &response->sign_message;
 
-    const uint32_t internal_key_id = (uint32_t)sign_request->key_id + KEY_ID_OFFSET;
+    const uint32_t internal_key_id = (uint32_t)sign_message_request->key_id + KEY_ID_OFFSET;
 
     FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
     FuriHalCryptoStatus hal_status =
@@ -60,12 +59,12 @@ static TlsCryptoStatus
             FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
             FuriHalCryptoWrappingModeOff);
 
-        TlsCryptoSignature* signature = &sign_response->signature;
+        TlsCryptoSignature* signature = &sign_message_response->signature;
 
         const bool sign_success = furi_hal_crypto_ecdsa_sign(
             sign_ctx,
-            sign_request->message,
-            sign_request->message_length,
+            sign_message_request->message,
+            sign_message_request->message_length,
             signature->bytes,
             &signature->length);
 
@@ -124,8 +123,11 @@ static void tls_crypto_handle_request(TlsCrypto* instance) {
     furi_check(request_type < TlsCryptoRequestTypeMax);
 
     TlsCryptoResponse* response = &instance->response;
+
     response->type = request_type;
     response->status = tls_crypto_request_handlers[request_type](request, response);
+
+    tls_crypto_log_response_status(response);
 
     tls_crypto_send_response(instance);
 }
@@ -164,5 +166,5 @@ int32_t tls_crypto_srv(void* arg) {
 
 static const TlsCryptoRequestHandler tls_crypto_request_handlers[TlsCryptoRequestTypeMax] = {
     [TlsCryptoRequestTypeGetCertificate] = tls_crypto_get_certificate_request_handler,
-    [TlsCryptoRequestTypeSign] = tls_crypto_sign_request_handler,
+    [TlsCryptoRequestTypeSignMessage] = tls_crypto_sign_message_request_handler,
 };

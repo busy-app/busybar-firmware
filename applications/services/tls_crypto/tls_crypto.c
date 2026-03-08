@@ -5,8 +5,6 @@
 
 #include "tls_crypto_common_i.h"
 
-#define TAG "TlsCrypto"
-
 #define TLS_CRYPTO_RESPONSE_TIMEOUT_MS (500)
 
 struct TlsCrypto {
@@ -62,9 +60,14 @@ static TlsCryptoStatus tls_crypto_wait_for_response(const TlsCrypto* instance) {
         TLS_CRYPTO_RESPONSE_TIMEOUT_MS);
 
     if(flags == TlsCryptoEventFlagResponse) {
-        status = instance->response.status;
+        const TlsCryptoResponse* response = &instance->response;
+        status = response->status;
+        tls_crypto_log_response_status(response);
+
     } else if(flags == FuriFlagErrorTimeout) {
         status = TlsCryptoStatusErrorTimeout;
+        FURI_LOG_E(TAG, "Response timeout");
+
     } else {
         furi_crash();
     }
@@ -80,18 +83,18 @@ static void tls_crypto_build_get_cert_request(TlsCrypto* instance, TlsCryptoKeyI
     get_cert_request->key_id = key_id;
 }
 
-static void tls_crypto_build_sign_request(
+static void tls_crypto_build_sign_message_request(
     TlsCrypto* instance,
     TlsCryptoKeyId key_id,
     const void* message,
     size_t message_len) {
     TlsCryptoRequest* request = &instance->request;
-    request->type = TlsCryptoRequestTypeSign;
+    request->type = TlsCryptoRequestTypeSignMessage;
 
-    TlsCryptoRequestSign* sign_request = &request->sign;
-    sign_request->key_id = key_id;
-    sign_request->message_length = message_len;
-    memcpy(sign_request->message, message, message_len);
+    TlsCryptoRequestSignMessage* sign_message_request = &request->sign_message;
+    sign_message_request->key_id = key_id;
+    sign_message_request->message_length = message_len;
+    memcpy(sign_message_request->message, message, message_len);
 }
 
 static void tls_crypto_api_lock(const TlsCrypto* instance) {
@@ -159,14 +162,15 @@ TlsCryptoStatus tls_crypto_sign(
 
     tls_crypto_api_lock(instance);
 
-    tls_crypto_build_sign_request(instance, key_id, message, message_len);
+    tls_crypto_build_sign_message_request(instance, key_id, message, message_len);
     tls_crypto_send_request(instance);
 
     const TlsCryptoStatus status = tls_crypto_wait_for_response(instance);
 
     if(status == TlsCryptoStatusOk) {
-        const TlsCryptoResponseSign* sign_response = &instance->response.sign;
-        *signature = sign_response->signature;
+        const TlsCryptoResponseSignMessage* sign_message_response =
+            &instance->response.sign_message;
+        *signature = sign_message_response->signature;
     }
 
     tls_crypto_api_unlock(instance);

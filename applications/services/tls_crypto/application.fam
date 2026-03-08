@@ -5,8 +5,11 @@ App(
     entry_point="tls_crypto_startup",
     order=20,
     targets=["f20", "f21", "f22"],
-    stack_size=1024 * 4,
-    sources=["tls_crypto.c"],
+    stack_size=1024 * 1,
+    sources=[
+        "tls_crypto.c",
+        "tls_crypto_common.c",
+    ],
 )
 
 App(
@@ -18,7 +21,10 @@ App(
     stack_size=1 * 1024,
     order=90,
     targets=["f64", "f65"],
-    sources=["tls_crypto_backend.c"],
+    sources=[
+        "tls_crypto_backend.c",
+        "tls_crypto_common.c",
+    ],
 )
 
 App(
