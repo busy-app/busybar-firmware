@@ -114,7 +114,7 @@ static TlsCrypto* tls_crypto_alloc(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdTlsCrypto, tls_crypto_intercom_rx_callback, instance);
-
+    // Unlock api requests for the first time
     tls_crypto_api_unlock(instance);
 
     return instance;
@@ -168,7 +168,7 @@ TlsCryptoStatus tls_crypto_sign(
         const TlsCryptoResponseSign* sign_response = &instance->response.sign;
         *signature = sign_response->signature;
     }
-    // Unlock api requests for the first time
+
     tls_crypto_api_unlock(instance);
 
     return status;
