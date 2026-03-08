@@ -4,6 +4,11 @@
 
 #define TAG "TlsCrypto"
 
+typedef struct {
+    uint8_t bytes[TLS_CRYPTO_DATA_LEN_MAX];
+    size_t length;
+} TlsCryptoMessage;
+
 typedef enum {
     TlsCryptoRequestTypeGetCertificate,
     TlsCryptoRequestTypeSignMessage,
@@ -16,8 +21,7 @@ typedef struct {
 
 typedef struct {
     TlsCryptoKeyId key_id;
-    uint8_t message[TLS_CRYPTO_DATA_LEN_MAX];
-    size_t message_length;
+    TlsCryptoMessage message;
 } TlsCryptoRequestSignMessage;
 
 typedef struct {

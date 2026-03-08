@@ -59,14 +59,11 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
             FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
             FuriHalCryptoWrappingModeOff);
 
+        const TlsCryptoMessage* message = &sign_message_request->message;
         TlsCryptoSignature* signature = &sign_message_response->signature;
 
         const bool sign_success = furi_hal_crypto_ecdsa_sign(
-            sign_ctx,
-            sign_message_request->message,
-            sign_message_request->message_length,
-            signature->bytes,
-            &signature->length);
+            sign_ctx, message->bytes, message->length, signature->bytes, &signature->length);
 
         furi_hal_crypto_ecdsa_deinit(sign_ctx);
 

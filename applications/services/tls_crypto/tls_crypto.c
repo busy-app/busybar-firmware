@@ -86,15 +86,17 @@ static void tls_crypto_build_get_cert_request(TlsCrypto* instance, TlsCryptoKeyI
 static void tls_crypto_build_sign_message_request(
     TlsCrypto* instance,
     TlsCryptoKeyId key_id,
-    const void* message,
-    size_t message_len) {
+    const void* data,
+    size_t data_len) {
     TlsCryptoRequest* request = &instance->request;
     request->type = TlsCryptoRequestTypeSignMessage;
 
     TlsCryptoRequestSignMessage* sign_message_request = &request->sign_message;
     sign_message_request->key_id = key_id;
-    sign_message_request->message_length = message_len;
-    memcpy(sign_message_request->message, message, message_len);
+
+    TlsCryptoMessage* message = &sign_message_request->message;
+    memcpy(message->bytes, data, data_len);
+    message->length = data_len;
 }
 
 static void tls_crypto_api_lock(const TlsCrypto* instance) {
