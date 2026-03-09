@@ -796,13 +796,7 @@ static FURI_ALWAYS_INLINE osStatus_t osMutexDelete(osMutexId_t mutex_id) {
 static FURI_ALWAYS_INLINE osSemaphoreId_t
     osSemaphoreNew(uint32_t max_count, uint32_t initial_count, const osSemaphoreAttr_t* attr) {
     UNUSED(attr);
-    //furi_check((attr == NULL), "osSemaphoreNew: attr != NULL Check");
-
-    if(attr == NULL) {
-        return (osSemaphoreId_t)furi_semaphore_alloc(max_count, initial_count);
-    }
-    //furi_crash("osSemaphoreNew: attr != NULL Check");
-    return NULL;
+    return (osSemaphoreId_t)furi_semaphore_alloc(max_count, initial_count);
 }
 
 // /// Get name of a Semaphore object.
