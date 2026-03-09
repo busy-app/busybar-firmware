@@ -75,7 +75,7 @@ class TestGetConformance:
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
         deadline=None,
     )
-    def test_get_conformance(self, case: schemathesis.Case) -> None:
+    def test_get_conformance(self, case: schemathesis.Case, web_session) -> None:
         """
         Each GET endpoint must:
         - return an HTTP status code documented in the schema
@@ -84,7 +84,7 @@ class TestGetConformance:
         _skip_if_dangerous(case)
 
         with allure.step(f"Call {case.method.upper()} {case.formatted_path}"):
-            response = case.call()
+            response = case.call(session=web_session)
 
         with allure.step(f"Validate response ({response.status_code})"):
             case.validate_response(response)
@@ -119,7 +119,7 @@ class TestSafeWriteConformance:
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
         deadline=None,
     )
-    def test_post_conformance(self, case: schemathesis.Case) -> None:
+    def test_post_conformance(self, case: schemathesis.Case, web_session) -> None:
         """
         POST operations from the allowlist: for any generated input the server
         must not return a 5xx response.
@@ -127,7 +127,7 @@ class TestSafeWriteConformance:
         _skip_if_not_safe_write(case)
 
         with allure.step(f"Call {case.method.upper()} {case.formatted_path}"):
-            response = case.call()
+            response = case.call(session=web_session)
 
         with allure.step(f"Validate response ({response.status_code})"):
             case.validate_response(response)
