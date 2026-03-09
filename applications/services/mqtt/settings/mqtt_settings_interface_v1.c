@@ -18,8 +18,8 @@ static bool mqtt_settings_v1_custom_url_is_valid_cb(
     UNUSED(setting);
 
     return strlen(value) == 0 ||
-           strncmp(value, MQTT_URL_TLS_PREFIX, sizeof(MQTT_URL_TLS_PREFIX) - 1) == 0 ||
-           strncmp(value, MQTT_URL_TLS_PREFIX, sizeof(MQTT_URL_PREFIX) - 1) == 0;
+           strncmp(value, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_TLS_PREFIX)) == 0 ||
+           strncmp(value, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_PREFIX)) == 0;
 }
 
 static const SettingProviderEnumInterface mqtt_settings_v1_profile_interface = {

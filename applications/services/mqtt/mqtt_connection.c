@@ -93,8 +93,7 @@ static bool mqtt_is_tls_enabled(const Mqtt* instance) {
     if(profile_id != MqttProfileIdCustom) {
         return mqtt_profile_table[profile_id].use_tls;
     } else {
-        return strncmp(
-                   settings->custom_url, MQTT_URL_TLS_PREFIX, sizeof(MQTT_URL_TLS_PREFIX) - 1) ==
+        return strncmp(settings->custom_url, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_TLS_PREFIX)) ==
                0;
     }
 }

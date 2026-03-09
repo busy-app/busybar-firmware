@@ -82,9 +82,9 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
     apps_menu_settings_load(&settings);
 
     if(launching_application) {
-        *settings.active_application = '\0';
+        strcpy(settings.active_application, "");
         apps_menu_settings_save(&settings);
-    } else if(*settings.active_application != '\0') {
+    } else if(strnlen(settings.active_application, sizeof(settings.active_application)) > 0) {
         Desktop* desktop = furi_record_open(RECORD_DESKTOP);
         desktop_replace_current_app(desktop, settings.active_application, "-s");
         furi_record_close(RECORD_DESKTOP);

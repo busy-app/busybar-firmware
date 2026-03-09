@@ -43,18 +43,10 @@ static void mqtt_account_link_token_message_callback(const MqttMessage* message,
         FURI_LOG_I(TAG, "Link done!");
 
         MqttSavedState* saved_state = &instance->saved_state;
-
-        *saved_state->session_id = '\0';
-        strncat(saved_state->session_id, session_id, sizeof(saved_state->session_id) - 1);
-
-        *saved_state->user_id = '\0';
-        strncat(saved_state->user_id, user_id, sizeof(saved_state->user_id) - 1);
-
-        *saved_state->email = '\0';
-        strncat(saved_state->email, email, sizeof(saved_state->email) - 1);
-
-        *saved_state->token = '\0';
-        strncat(saved_state->token, token, sizeof(saved_state->token) - 1);
+        strlcpy(saved_state->session_id, session_id, sizeof(saved_state->session_id));
+        strlcpy(saved_state->user_id, user_id, sizeof(saved_state->user_id));
+        strlcpy(saved_state->email, email, sizeof(saved_state->email));
+        strlcpy(saved_state->token, token, sizeof(saved_state->token));
 
         mqtt_saved_state_save(saved_state);
 
