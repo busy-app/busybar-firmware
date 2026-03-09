@@ -15,7 +15,7 @@ static bool http_api_name_parse(const char* payload, FuriString* output) {
         cJSON* name_item = cJSON_GetObjectItem(json_root, "name");
 
         if(cJSON_IsString(name_item)) {
-            furi_string_set_str(output, cJSON_GetStringValue(name_item));
+            furi_string_set_str(output, name_item->valuestring);
             is_successful = true;
         }
     }
