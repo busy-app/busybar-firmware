@@ -66,7 +66,7 @@ typedef enum {
     FuriHalCryptoShaModeSha256,
     FuriHalCryptoShaModeSha384,
     FuriHalCryptoShaModeSha512,
-    FuriHalCryptoShaModeSha244,
+    FuriHalCryptoShaModeSha224,
     FuriHalCryptoShaModeMAX,
 } FuriHalCryptoShaMode;
 
@@ -298,7 +298,7 @@ void furi_hal_crypto_hmac_wrap_key(
  *   FuriHalCryptoShaModeSha256 – For SHA256 
  *   FuriHalCryptoShaModeSha384 – For SHA384 
  *   FuriHalCryptoShaModeSha512 – For SHA512 
- *   FuriHalCryptoShaModeSha244 – For SHA224 
+ *   FuriHalCryptoShaModeSha224 – For SHA224 
  * @param[in] msg Pointer to the message buffer
  * @param[in] msg_length Length of the message buffer
  * @param[out] digest Pointer to the digest buffer

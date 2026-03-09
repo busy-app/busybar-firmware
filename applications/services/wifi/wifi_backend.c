@@ -217,7 +217,7 @@ static sl_status_t wifi_connect_request_handler(
                 break;
             }
 
-            if(i < NUM_CONNECTION_ATTEMPTS) {
+            if(i < NUM_CONNECTION_ATTEMPTS - 1) {
                 furi_delay_ms(250);
             }
         }
@@ -342,7 +342,7 @@ static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinis
                 const sl_wifi_extended_scan_result_t* result_in = &scan_results[i];
                 WifiScanResult* result_out = &response.scan_results.data[i];
 
-                strncpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
+                strlcpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
                 result_out->security_mode = wifi_decode_security_mode(result_in->security_mode);
                 result_out->rssi = result_in->rssi;
             }
@@ -489,7 +489,7 @@ static sl_status_t
 
     } else if(event == SL_WIFI_STATS_MODULE_STATE_EVENT) {
         furi_assert(data);
-        furi_assert(data_length = sizeof(sl_wifi_module_state_stats_response_t));
+        furi_assert(data_length == sizeof(sl_wifi_module_state_stats_response_t));
 
         const sl_wifi_module_state_stats_response_t* response = data;
 

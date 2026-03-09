@@ -102,7 +102,7 @@ static void account_settings_account_event_callback(
     case AccountModelEventPinGot:
         evt.event = AppEventAccountLinkPin;
         furi_assert(pin);
-        strncpy(evt.link.pin, pin, ACCOUNT_MODEL_LINK_PIN_LEN);
+        strlcpy(evt.link.pin, pin, sizeof(evt.link.pin));
         evt.link.valid_untill = pin_valid_untill;
         break;
     case AccountModelEventPinTimeout:

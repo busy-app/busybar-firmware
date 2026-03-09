@@ -67,11 +67,8 @@ sl_wifi_security_t wifi_encode_security_mode(WifiSecurityMode security_mode) {
 }
 
 void wifi_encode_ssid(sl_wifi_ssid_t* sl_ssid, const char* ssid) {
-    char* sl_ssid_str = (char*)sl_ssid->value;
-    const size_t sl_ssid_capacity = sizeof(sl_ssid->value);
-
-    strncpy(sl_ssid_str, ssid, sl_ssid_capacity);
-    sl_ssid->length = strlen(sl_ssid_str);
+    const size_t len = strlcpy((char*)sl_ssid->value, ssid, sizeof(sl_ssid->value));
+    sl_ssid->length = MIN(len, sizeof(sl_ssid->value) - 1);
 }
 
 WifiSecurityMode wifi_decode_security_mode(sl_wifi_security_t sl_security) {

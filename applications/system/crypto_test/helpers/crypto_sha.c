@@ -27,7 +27,7 @@ static const uint8_t digest_out_sha512[FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE] = {
     0xae, 0xad, 0xb6, 0x88, 0x90, 0x18, 0x50, 0x1d, 0x28, 0x9e, 0x49, 0x00, 0xf7,
     0xe4, 0x33, 0x1b, 0x99, 0xde, 0xc4, 0xb5, 0x43, 0x3a, 0xc7, 0xd3, 0x29, 0xee,
     0xb6, 0xdd, 0x26, 0x54, 0x5e, 0x96, 0xe5, 0x5b, 0x87, 0x4b, 0xe9, 0x09};
-static const uint8_t digest_out_sha244[FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE] = {
+static const uint8_t digest_out_sha224[FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE] = {
     0xC9, 0x7C, 0xA9, 0xA5, 0x59, 0x85, 0x0C, 0xE9, 0x7A, 0x04, 0xA9, 0x6D, 0xEF, 0x6D,
     0x99, 0xA9, 0xE0, 0xE0, 0xE2, 0xAB, 0x14, 0xE6, 0xB8, 0xDF, 0x26, 0x5F, 0xC0, 0xB3};
 
@@ -63,7 +63,7 @@ void crypto_sha_test_custom_sha_mode(FuriHalCryptoShaMode sha_mode) {
     case FuriHalCryptoShaModeSha512:
         digest_length = FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE;
         break;
-    case FuriHalCryptoShaModeSha244:
+    case FuriHalCryptoShaModeSha224:
         digest_length = FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE;
         break;
 
@@ -86,8 +86,8 @@ void crypto_sha_test_custom_sha_mode(FuriHalCryptoShaMode sha_mode) {
     case FuriHalCryptoShaModeSha512:
         crypto_sha_check("SHA512", digest, digest_out_sha512, FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE);
         break;
-    case FuriHalCryptoShaModeSha244:
-        crypto_sha_check("SHA224", digest, digest_out_sha244, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
+    case FuriHalCryptoShaModeSha224:
+        crypto_sha_check("SHA224", digest, digest_out_sha224, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
         break;
 
     default:
@@ -104,6 +104,6 @@ void crypto_sha_command(PipeSide* pipe, FuriString* args, void* context) {
     crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha256);
     crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha384);
     crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha512);
-    crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha244);
+    crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha224);
     printf("Crypto SHA done\r\n");
 }

@@ -20,6 +20,8 @@ static void wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* mess
     if(furi_semaphore_acquire(instance->api_semaphore, 0) == FuriStatusOk) {
         instance->api_message = *message;
         furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+    } else {
+        FURI_LOG_W(TAG, "Dropping nonblocking request type %d, another request in progress", message->request_type);
     }
 }
 

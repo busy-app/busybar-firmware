@@ -366,7 +366,7 @@ static void download_state_callback(const FuriString* state, void* context) {
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
     update_state->event = UpdaterUpdateEventDetailChange;
-    strncpy(update_state->detail, furi_string_get_cstr(state), sizeof(update_state->detail));
+    strlcpy(update_state->detail, furi_string_get_cstr(state), sizeof(update_state->detail));
     furi_state_release(instance->update_state);
 }
 

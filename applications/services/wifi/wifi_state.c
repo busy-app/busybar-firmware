@@ -23,7 +23,7 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
             if(new_state == WifiStateConnecting) {
                 const WifiCredentials* credentials = va_arg(args, const WifiCredentials*);
 
-                strncpy(info->ssid, credentials->ssid, SSID_MAX_LEN);
+                strlcpy(info->ssid, credentials->ssid, SSID_MAX_LEN);
                 info->security_mode = credentials->security_mode;
             } else {
                 furi_crash("Invalid transition from WifiStateDisconnected");

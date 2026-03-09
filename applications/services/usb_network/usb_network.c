@@ -110,9 +110,10 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
         for(struct pbuf* q = p; q != NULL && size > 0; q = q->next) {
             /* Read enough bytes to fill this pbuf in the chain. 
              * The available data in the pbuf is given by the q->len variable. */
-            memcpy(q->payload, src, size < q->len ? size : q->len);
-            src += q->len;
-            size -= q->len;
+            const uint16_t chunk = size < q->len ? size : q->len;
+            memcpy(q->payload, src, chunk);
+            src += chunk;
+            size -= chunk;
         }
 
 #if(ETH_PAD_SIZE != 0)

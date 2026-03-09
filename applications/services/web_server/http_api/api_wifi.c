@@ -305,10 +305,11 @@ static bool api_wifi_connect_parse_config(
     FuriString* buf = furi_string_alloc();
     do {
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SSID, buf, error_msg)) break;
-        strncpy(credentials->ssid, furi_string_get_cstr(buf), SSID_MAX_LEN);
+        strlcpy(credentials->ssid, furi_string_get_cstr(buf), sizeof(credentials->ssid));
 
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_PASSWORD, buf, error_msg)) break;
-        strncpy(credentials->passphrase, furi_string_get_cstr(buf), PASSPHRASE_MAX_LEN);
+        strlcpy(
+            credentials->passphrase, furi_string_get_cstr(buf), sizeof(credentials->passphrase));
 
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SECURITY, buf, error_msg)) break;
         if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) {

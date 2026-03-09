@@ -79,14 +79,15 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
-    const void* src = data;
+    const uint8_t* src = data;
 
     for(struct pbuf* q = p; q != NULL && size > 0; q = q->next) {
         /* Read enough bytes to fill this pbuf in the chain.
          * The available data in the pbuf is given by the q->len variable. */
-        memcpy(q->payload, src, size < q->len ? size : q->len);
-        src += q->len;
-        size -= q->len;
+        const size_t chunk = MIN(size, q->len);
+        memcpy(q->payload, src, chunk);
+        src += chunk;
+        size -= chunk;
     }
 
 #if(ETH_PAD_SIZE != 0)
@@ -158,6 +159,14 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
 
         if(furi_semaphore_acquire(instance->dhcp_semaphore, DHCP_WAIT_MS) != FuriStatusOk) {
             FURI_LOG_E(TAG, "Failed to receive IP configuration");
+
+            LOCK_TCPIP_CORE();
+            netif_set_status_callback(netif, NULL);
+            dhcp_release_and_stop(netif);
+            netif_set_down(netif);
+            netif_set_link_down(netif);
+            UNLOCK_TCPIP_CORE();
+
             success = false;
         }
     }

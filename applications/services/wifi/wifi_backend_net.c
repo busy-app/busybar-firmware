@@ -290,7 +290,7 @@ sl_status_t
     const sl_wifi_system_packet_t* pkt = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
 
     const uint8_t* data = pkt->data;
-    const uint16_t data_len = MAX(pkt->length, LWIP_FRAME_ALIGNMENT);
+    const uint16_t data_len = MIN(pkt->length, MAX_TRANSFER_UNIT);
 
     const uint16_t ethertype = *((const uint16_t*)&data[12]);
 
