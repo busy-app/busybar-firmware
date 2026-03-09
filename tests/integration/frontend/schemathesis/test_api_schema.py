@@ -30,25 +30,6 @@ _schema = schemathesis.from_pytest_fixture("schemathesis_schema")
 
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _skip_if_dangerous(case: schemathesis.Case) -> None:
-    """Skip the test if the operation is in the dangerous list."""
-    op_id = case.operation.definition.raw.get("operationId", "")
-    if op_id in SKIP_OPERATION_IDS:
-        pytest.skip(f"Skipped dangerous operation: {op_id}")
-
-
-def _skip_if_not_safe_write(case: schemathesis.Case) -> None:
-    """Skip POST operations not in the explicit safe-write allowlist."""
-    op_id = case.operation.definition.raw.get("operationId", "")
-    if op_id not in SAFE_WRITE_OPERATION_IDS:
-        pytest.skip(f"Not in safe-write allowlist: {op_id}")
-
-
-# ---------------------------------------------------------------------------
 # 1. GET conformance — all read-only operations
 # ---------------------------------------------------------------------------
 
@@ -57,7 +38,7 @@ def _skip_if_not_safe_write(case: schemathesis.Case) -> None:
 @allure.story("Schema Conformance")
 class TestGetConformance:
     """
-    Verifies all GET endpoints: responses must conform to the OpenAPI schema.
+    Verifies GET endpoints not in SKIP_OPERATION_IDS.
 
     Schemathesis automatically:
     - generates boundary values for query/path parameters
@@ -69,7 +50,7 @@ class TestGetConformance:
     @allure.title("GET endpoints conform to OpenAPI schema")
     @pytest.mark.schemathesis
     @pytest.mark.frontend
-    @_schema.parametrize(method="GET")
+    @_schema.parametrize(method="GET", operation_id=lambda op_id: op_id not in SKIP_OPERATION_IDS)
     @settings(
         max_examples=10,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
@@ -81,8 +62,6 @@ class TestGetConformance:
         - return an HTTP status code documented in the schema
         - return a response body that matches the schema (when a body is documented)
         """
-        _skip_if_dangerous(case)
-
         with allure.step(f"Call {case.method.upper()} {case.formatted_path}"):
             response = case.call(session=web_session)
 
@@ -99,7 +78,7 @@ class TestGetConformance:
 @allure.story("Schema Conformance")
 class TestSafeWriteConformance:
     """
-    Verifies POST operations from SAFE_WRITE_OPERATION_IDS.
+    Verifies POST operations from SAFE_WRITE_OPERATION_IDS only.
 
     Fewer examples are used (max_examples=5) because even safe writes have
     side effects (changing settings, sending key presses, etc.).
@@ -113,7 +92,7 @@ class TestSafeWriteConformance:
     @allure.title("Safe write operations conform to OpenAPI schema")
     @pytest.mark.schemathesis
     @pytest.mark.frontend
-    @_schema.parametrize(method="POST")
+    @_schema.parametrize(method="POST", operation_id=lambda op_id: op_id in SAFE_WRITE_OPERATION_IDS)
     @settings(
         max_examples=5,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
@@ -124,8 +103,6 @@ class TestSafeWriteConformance:
         POST operations from the allowlist: for any generated input the server
         must not return a 5xx response.
         """
-        _skip_if_not_safe_write(case)
-
         with allure.step(f"Call {case.method.upper()} {case.formatted_path}"):
             response = case.call(session=web_session)
 
