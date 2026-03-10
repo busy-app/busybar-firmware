@@ -78,13 +78,13 @@ def convert_web_api():
 
 def convert_fonts():
     # TODO: perform conversion from ttf once `lv_font_conv` arrives to the toolchain
-    src_files = fwenv.GlobRecursive("*.lvgl_font", Dir("#/assets/fonts"))
+    src_files = fwenv.GlobRecursive("*.font", Dir("#/assets/fonts"))
     converted = []
 
     for f in src_files:
         internal_name = splitext(f.name)[0]
         file_node = assets_dir.File(
-            "fonts/" + internal_name + ".lvgl_font"
+            "fonts/" + internal_name + ".font"
         )
         converted.append(fw_assets_env.Copy(file_node, f))
 

@@ -7,7 +7,7 @@
 
 #include <storage/storage.h>
 
-#define FONT_PATH(name) EXT_PATH("apps_assets/fonts/" name ".lvgl_font")
+#define FONT_PATH(name) EXT_PATH("apps_assets/fonts/" name ".font")
 
 #define FONT_BUSY_BOLD_7        FONT_PATH("busy_bold_7")
 #define FONT_BUSY_BOLD_10       FONT_PATH("busy_bold_10")
