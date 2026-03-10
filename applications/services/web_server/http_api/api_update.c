@@ -300,8 +300,6 @@ static bool api_update_raw_hdr_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    if(!furi_string_empty(path)) return false;
-
     FURI_LOG_I(
         TAG, "on_headers: Received update request for URI: %.*s", (int)msg->uri.len, msg->uri.buf);
 
