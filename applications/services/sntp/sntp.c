@@ -6,6 +6,7 @@
 
 #include <furi_hal_rtc.h>
 #include <api_lock.h>
+#include <furi/core/state.h>
 
 #define TAG "SntpSvc"
 
@@ -28,10 +29,10 @@ typedef enum {
 } SntpMessageType;
 
 typedef enum {
-    SntpStateBoot,
-    SntpStateInSync,
-    SntpStateRetry,
-} SntpState;
+    SntpStatusBoot,
+    SntpStatusInSync,
+    SntpStatusRetry,
+} SntpStatus;
 
 typedef struct {
     SntpMessageType type;
@@ -51,9 +52,10 @@ struct Sntp {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     FuriMessageQueue* message_queue;
+    FuriState* state;
 
     SntpSettings settings;
-    SntpState state;
+    SntpStatus status;
     bool is_time_update_ongoing;
 };
 
@@ -84,6 +86,8 @@ static bool do_set_settings(Sntp* instance, SntpMessage* message) {
     if(!sntp_settings_save(message->set_settings)) return false;
 
     instance->settings = *message->set_settings;
+
+    furi_state_set(instance->state, &instance->settings);
 
     if(instance->settings.is_enabled) {
         furi_event_loop_pend_callback(instance->event_loop, time_update_timer_callback, instance);
@@ -133,7 +137,7 @@ static void custom_event_callback(uint32_t events, void* context) {
         if(instance->settings.is_enabled) {
             furi_event_loop_timer_start(
                 instance->timer, SNTP_S_TO_MS(instance->settings.background_sync_interval));
-            instance->state = SntpStateInSync;
+            instance->status = SntpStatusInSync;
         }
     } else if(events & SntpCustomEventUpdateFailure) {
         FURI_LOG_E(TAG, "SNTP time update failed");
@@ -143,7 +147,7 @@ static void custom_event_callback(uint32_t events, void* context) {
         if(instance->settings.is_enabled) {
             furi_event_loop_timer_start(
                 instance->timer, SNTP_S_TO_MS(instance->settings.retry_sync_interval));
-            instance->state = SntpStateRetry;
+            instance->status = SntpStatusRetry;
         }
     }
 }
@@ -158,7 +162,7 @@ static void sntp_send_message(Sntp* instance, const SntpMessage* message) {
 Sntp* sntp_alloc() {
     Sntp* instance = malloc(sizeof(Sntp));
 
-    instance->state = SntpStateBoot;
+    instance->status = SntpStatusBoot;
     instance->is_time_update_ongoing = false;
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(SNTP_MAX_MESSAGES, sizeof(SntpMessage));
@@ -176,6 +180,8 @@ Sntp* sntp_alloc() {
         instance->event_loop, custom_event_callback, instance);
 
     sntp_settings_load(&instance->settings);
+    instance->state = furi_state_alloc(sizeof(SntpSettings));
+    furi_state_set(instance->state, &instance->settings);
 
     if(instance->settings.is_enabled)
         furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_delay));
@@ -242,6 +248,10 @@ LocalTime sntp_get_local_time(Sntp* instance) {
     sntp_send_message(instance, &message);
 
     return result;
+}
+
+FuriState* sntp_get_settings_state(Sntp* instance) {
+    return instance->state;
 }
 
 int32_t sntp_srv(void* p) {

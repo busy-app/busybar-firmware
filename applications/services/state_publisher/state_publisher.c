@@ -4,6 +4,7 @@
 #include <brightness_control/brightness_control.h>
 #include <power/power_service/power.h>
 #include <sntp/sntp.h>
+#include <sntp/sntp.h>
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
 #include <state.pb.h>
@@ -38,6 +39,7 @@ typedef bool (*MessageHandler)(StatePublisher* instance, const Message* message)
 static const MessageHandler message_handlers[];
 
 static void brightness_state_callback(const void* item, void* context);
+static void sntp_settings_state_callback(const void* item, void* context);
 static void power_pubsub_callback(const void* message, void* context);
 
 static void publish_power(StatePublisher* instance);
@@ -68,6 +70,11 @@ static void subscribe(StatePublisher* instance) {
         instance->power = furi_record_open(RECORD_POWER);
         FuriPubSub* power_pubsub = power_get_pubsub(instance->power);
         furi_pubsub_subscribe(power_pubsub, power_pubsub_callback, instance);
+    }
+    {
+        Sntp* sntp = furi_record_open(RECORD_SNTP);
+        FuriState* state = sntp_get_settings_state(sntp);
+        furi_state_subscribe(state, sntp_settings_state_callback, instance);
     }
 }
 
@@ -195,7 +202,6 @@ static void publish_power(StatePublisher* instance) {
 
     PowerInfo power_info;
     power_get_info(instance->power, &power_info);
-    FURI_LOG_D(TAG, "got info");
 
     update->which_state = BSB_State_StateUpdate_power_tag;
 
@@ -226,4 +232,20 @@ static void power_pubsub_callback(const void* message, void* context) {
         .type = MessageTypePowerEvent,
     };
     send_message(instance, &msg);
+}
+
+static void sntp_settings_state_callback(const void* item, void* context) {
+    StatePublisher* instance = context;
+    const SntpSettings* settings = item;
+
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    update->which_state = BSB_State_StateUpdate_timezone_tag;
+
+    static_assert(sizeof(update->state.timezone.name) > sizeof(void*)); // make sure it's an array
+    strlcpy(
+        update->state.timezone.name, settings->timezone.name, sizeof(update->state.timezone.name));
+    update->state.timezone.offset =
+        settings->timezone.offset.hours * 60 + settings->timezone.offset.minutes;
+
+    schedule_state_update(instance, update);
 }

@@ -64,6 +64,13 @@ LocalTime sntp_get_local_time(Sntp* instance);
  */
 time_t sntp_get_timestamp_ms(void);
 
+/**
+ * @brief Get FuriState holding SntpSettings.
+ *
+ * @param[in] instance
+ */
+FuriState* sntp_get_settings_state(Sntp* instance);
+
 #ifdef __cplusplus
 }
 #endif
