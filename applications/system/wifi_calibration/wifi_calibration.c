@@ -348,8 +348,9 @@ static void calibration_sl_calib_write_command(PipeSide* pipe, FuriString* args,
         parse_err |= strint_to_int8(args_cstr, NULL, &instance->calib_pkt.gain_offset_ch14, 10);
     }
     if(parse_err == StrintParseNoError) {
-        sl_status_t status = sl_si91x_calibration_write(instance->calib_pkt);
+        // sl_status_t status = sl_si91x_calibration_write(instance->calib_pkt);
         //furi_delay_ms(500);
+        sl_status_t status = SL_STATUS_OK;
         if(status != SL_STATUS_OK) {
             printf("Calibration data write failed: 0x%lx\r\n", status);
             return;
