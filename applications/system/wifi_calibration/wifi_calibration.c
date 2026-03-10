@@ -364,18 +364,40 @@ static void calibration_sl_calib_write_command(PipeSide* pipe, FuriString* args,
         } else {
             printf("Calibration data read successful\r\n");
             printf(
-                "target %d, gain_offset_low:%d, gain_offset_2:%d, gain_offset_3:%d,xo_tune:%d,gain_offset_ch14:%d\r\n",
+                "target %d, gain_offset_low:%d, gain_offset_2:%d, gain_offset_3:%d,xo_tune:%u,gain_offset_ch14:%d\r\n",
                 instance->calib_read_pkt.target,
                 instance->calib_read_pkt.gain_offset[0],
                 instance->calib_read_pkt.gain_offset[1],
                 instance->calib_read_pkt.gain_offset[2],
-                instance->calib_read_pkt.xo_ctune,
+                (uint8_t)instance->calib_read_pkt.xo_ctune,
                 instance->calib_read_pkt.gain_offset_ch14);
         }
     } else {
         printf(
             "sl_calib_write <target> <flags> <gain_offset_low> <gain_offset_mid> <gain_offset_high> <xo_ctune> <gain_"
             "offset_ch14>\r\n");
+    }
+}
+
+static void calibration_sl_calib_read_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    CalibApp* instance = context;
+    instance->target.target = 1;
+    sl_status_t status = sl_si91x_calibration_read(instance->target, &instance->calib_read_pkt);
+    if(status != SL_STATUS_OK) {
+        printf("Calibration data read failed: 0x%lx\r\n", status);
+        return;
+    } else {
+        printf("Calibration data read successful\r\n");
+        printf(
+            "target %d, gain_offset_low:%d, gain_offset_2:%d, gain_offset_3:%d,xo_tune:%u,gain_offset_ch14:%d\r\n",
+            instance->calib_read_pkt.target,
+            instance->calib_read_pkt.gain_offset[0],
+            instance->calib_read_pkt.gain_offset[1],
+            instance->calib_read_pkt.gain_offset[2],
+            (uint8_t)instance->calib_read_pkt.xo_ctune,
+            instance->calib_read_pkt.gain_offset_ch14);
     }
 }
 
@@ -674,6 +696,8 @@ void wifi_calibration_command(PipeSide* pipe, FuriString* args, void* context) {
         registry, "sl_freq_offset", CliCommandFlagDefault, calibration_sl_freq_offset_command, app);
     cli_registry_add_command(
         registry, "sl_calib_write", CliCommandFlagDefault, calibration_sl_calib_write_command, app);
+    cli_registry_add_command(
+        registry, "sl_calib_read", CliCommandFlagDefault, calibration_sl_calib_read_command, app);
     cli_registry_add_command(
         registry, "sl_evm_offset", CliCommandFlagDefault, calibration_sl_evm_offset_command, app);
     cli_registry_add_command(
