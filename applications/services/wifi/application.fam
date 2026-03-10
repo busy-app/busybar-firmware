@@ -17,6 +17,7 @@ App(
         "wifi_net.c",
         "settings/*.c",
         "wifi_state.c",
+        "wifi_util.c",
     ],
 )
 
@@ -36,5 +37,6 @@ App(
         "wifi_backend.c",
         "wifi_backend_net.c",
         "wifi_backend_util.c",
+        "wifi_util.c",
     ],
 )

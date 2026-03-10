@@ -98,7 +98,7 @@ typedef enum {
     WifiIpTypeMax, /**< Special value, internal use */
 } WifiIpType;
 
-/** Union which represents IPv4 as byte sequence and single uint32_t */
+/** Union which represents IPv4 as byte sequence and single uint32_t (big-endian) */
 typedef union {
     uint32_t value; ///< IPv4 address as a uint32_t
     uint8_t bytes[4]; ///< IPv4 address as uint8_t[4]
@@ -111,9 +111,10 @@ typedef struct {
     WifiIpv4 mask;
 } WifiIpv4Settings;
 
-/** Union which represents IPv6 as byte and uint32_t sequences */
+/** Union which represents IPv6 as byte, uint16_t, and uint32_t sequences */
 typedef union {
     uint32_t value[4]; ///< IPv6 address as a uint32_t[4]
+    uint16_t words[8]; ///< IPv6 address as uint16_t[8]
     uint8_t bytes[16]; ///< IPv6 address as uint8_t[16]
 } WifiIpv6;
 
