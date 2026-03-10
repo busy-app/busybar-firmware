@@ -1,11 +1,13 @@
 #include "state_publisher.h"
 #include <furi/furi.h>
 #include <dyn_buffer.h>
+
 #include <brightness_control/brightness_control.h>
 #include <power/power_service/power.h>
 #include <audio/audio.h>
 #include <sntp/sntp.h>
-#include <sntp/sntp.h>
+#include <device_name/device_name.h>
+
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
 #include <state.pb.h>
@@ -45,6 +47,7 @@ static void brightness_state_callback(const void* item, void* context);
 static void sntp_settings_state_callback(const void* item, void* context);
 static void power_pubsub_callback(const void* message, void* context);
 static void audio_pubsub_callback(const void* message, void* context);
+static void device_name_pubsub_callback(const void* message, void* context);
 
 static void publish_power(StatePublisher* instance);
 static void publish_audio(StatePublisher* instance);
@@ -85,6 +88,11 @@ static void subscribe(StatePublisher* instance) {
         instance->audio = furi_record_open(RECORD_AUDIO);
         FuriPubSub* pubsub = audio_get_pubsub(instance->audio);
         furi_pubsub_subscribe(pubsub, audio_pubsub_callback, instance);
+    }
+    {
+        DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
+        FuriPubSub* pubsub = device_name_get_pubsub(device_name);
+        furi_pubsub_subscribe(pubsub, device_name_pubsub_callback, instance);
     }
 }
 
@@ -273,6 +281,20 @@ static void audio_pubsub_callback(const void* message, void* context) {
         .type = MessageTypeAudioEvent,
     };
     send_message(instance, &msg);
+}
+
+static void device_name_pubsub_callback(const void* message, void* context) {
+    StatePublisher* instance = context;
+    const FuriString* name = message;
+
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    FURI_LOG_D(TAG, "publish device name");
+
+    update->which_state = BSB_State_StateUpdate_device_name_tag;
+    static_assert(sizeof(update->state.device_name.name) > sizeof(void*)); // make sure it's an array
+    strlcpy(update->state.device_name.name, furi_string_get_cstr(name), sizeof(update->state.device_name.name));
+
+    schedule_state_update(instance, update);
 }
 
 static void sntp_settings_state_callback(const void* item, void* context) {
