@@ -34,7 +34,7 @@ _stack_size = 0x200; /* Required amount of stack */
 _flash_address_start = 0x8202000;
 _flash_size = 0x1fe000;
 
-_ram_total_size = 256K; /* Memory configuration 2 */
+_ram_total_size = 320K; /* Memory configuration 3 */
 _ram_address_start = 0xc; /* Cannot start from 0 for some reason */
 
 _udma_size = 1K;
