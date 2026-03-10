@@ -3,6 +3,7 @@
 #include <dyn_buffer.h>
 #include <brightness_control/brightness_control.h>
 #include <power/power_service/power.h>
+#include <audio/audio.h>
 #include <sntp/sntp.h>
 #include <sntp/sntp.h>
 #include <nanopb/pb.h>
@@ -18,11 +19,13 @@ struct StatePublisher {
     FuriMessageQueue* message_queue;
 
     Power* power;
+    Audio* audio;
 };
 
 typedef enum {
     MessageTypePublishUpdate,
     MessageTypePowerEvent,
+    MessageTypeAudioEvent,
 
     MessageTypesCount,
 } MessageType;
@@ -41,8 +44,10 @@ static const MessageHandler message_handlers[];
 static void brightness_state_callback(const void* item, void* context);
 static void sntp_settings_state_callback(const void* item, void* context);
 static void power_pubsub_callback(const void* message, void* context);
+static void audio_pubsub_callback(const void* message, void* context);
 
 static void publish_power(StatePublisher* instance);
+static void publish_audio(StatePublisher* instance);
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -63,18 +68,23 @@ static void send_message(StatePublisher* instance, const Message* message) {
 static void subscribe(StatePublisher* instance) {
     {
         const BrightnessControl* brightness_control = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
-        FuriState* brightness_state = brightness_control_get_state(brightness_control);
-        furi_state_subscribe(brightness_state, brightness_state_callback, instance);
+        FuriState* stat = brightness_control_get_state(brightness_control);
+        furi_state_subscribe(stat, brightness_state_callback, instance);
     }
     {
         instance->power = furi_record_open(RECORD_POWER);
-        FuriPubSub* power_pubsub = power_get_pubsub(instance->power);
-        furi_pubsub_subscribe(power_pubsub, power_pubsub_callback, instance);
+        FuriPubSub* pubsub = power_get_pubsub(instance->power);
+        furi_pubsub_subscribe(pubsub, power_pubsub_callback, instance);
     }
     {
         Sntp* sntp = furi_record_open(RECORD_SNTP);
         FuriState* state = sntp_get_settings_state(sntp);
         furi_state_subscribe(state, sntp_settings_state_callback, instance);
+    }
+    {
+        instance->audio = furi_record_open(RECORD_AUDIO);
+        FuriPubSub* pubsub = audio_get_pubsub(instance->audio);
+        furi_pubsub_subscribe(pubsub, audio_pubsub_callback, instance);
     }
 }
 
@@ -157,9 +167,16 @@ static bool handle_power_event(StatePublisher* instance, const Message* message)
     return true;
 }
 
+static bool handle_audio_event(StatePublisher* instance, const Message* message) {
+    furi_assert(message->type == MessageTypeAudioEvent);
+    publish_audio(instance);
+    return true;
+}
+
 static const MessageHandler message_handlers[] = {
     [MessageTypePublishUpdate] = handle_publish_update,
     [MessageTypePowerEvent] = handle_power_event,
+    [MessageTypeAudioEvent] = handle_audio_event,
 };
 
 static_assert(COUNT_OF(message_handlers) == MessageTypesCount);
@@ -223,6 +240,19 @@ static void publish_power(StatePublisher* instance) {
     schedule_state_update(instance, update);
 }
 
+static void publish_audio(StatePublisher* instance) {
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    FURI_LOG_D(TAG, "publish audio");
+
+    float volume = audio_get_volume(instance->audio);
+
+    update->which_state = BSB_State_StateUpdate_audio_volume_tag;
+
+    update->state.audio_volume.volume = (uint8_t)roundf(volume * 100.0f);
+
+    schedule_state_update(instance, update);
+}
+
 static void power_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
@@ -230,6 +260,17 @@ static void power_pubsub_callback(const void* message, void* context) {
     // dispatch because power_get_info cannot be called from power task
     Message msg = {
         .type = MessageTypePowerEvent,
+    };
+    send_message(instance, &msg);
+}
+
+static void audio_pubsub_callback(const void* message, void* context) {
+    UNUSED(message);
+    StatePublisher* instance = context;
+
+    // dispatch because audio_get_volume cannot be called from power task
+    Message msg = {
+        .type = MessageTypeAudioEvent,
     };
     send_message(instance, &msg);
 }
