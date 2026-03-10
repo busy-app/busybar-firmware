@@ -84,7 +84,7 @@ def convert_fonts():
     for f in src_files:
         internal_name = splitext(f.name)[0]
         file_node = assets_dir.File(
-            "fonts/" + internal_name + ".font"
+            "shared/fonts/" + internal_name + ".font"
         )
         converted.append(fw_assets_env.Copy(file_node, f))
 
