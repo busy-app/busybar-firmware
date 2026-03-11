@@ -59,7 +59,7 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_img_set_src(lock_image, IMG_PATH("lock_front_12x12.bin"));
     lv_obj_align(lock_image, LV_ALIGN_RIGHT_MID, 0, 0);
 
-    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7);
+    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
 
     instance->code_label = lv_label_create(code_cont);
     lv_label_set_text(instance->code_label, "");
@@ -130,7 +130,7 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     lv_img_set_src(lock_image, IMG_PATH("lock_back_11x11.bin"));
     lv_obj_align(lock_image, LV_ALIGN_BOTTOM_RIGHT, 0, -1);
 
-    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7);
+    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
 
     instance->code_label = lv_label_create(code_cont);
     lv_label_set_text(instance->code_label, "");

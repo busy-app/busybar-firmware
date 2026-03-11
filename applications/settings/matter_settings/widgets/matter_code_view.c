@@ -104,6 +104,7 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
 
     instance->man_title = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
     lv_obj_class_init_obj(instance->man_title);
+    lv_obj_set_style_text_font(instance->man_title, lv_theme_get_font_small(obj), LV_PART_MAIN);
     lv_label_set_text(instance->man_title, "Manual code");
     lv_obj_set_style_align(instance->man_title, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
     lv_obj_set_style_y(instance->man_title, -11, LV_PART_MAIN);
@@ -113,10 +114,7 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     lv_obj_class_init_obj(instance->man_code);
     lv_obj_set_style_align(instance->man_code, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->man_code, TEXT_COLOR, LV_PART_MAIN);
-    lv_obj_set_style_text_font(
-        instance->man_code,
-        font_registry_load_font(instance->font_registry, FONT_BUSY_CONDENSED_7),
-        LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->man_code, lv_theme_get_font_small(obj), LV_PART_MAIN);
 
     instance->qr_code = lv_obj_class_create_obj(MY_QR_CODE_CLASS, obj);
     lv_obj_class_init_obj(instance->qr_code);
@@ -130,8 +128,6 @@ static void matter_code_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_o
 
     font_registry_unload_font(
         instance->font_registry, lv_obj_get_style_text_font(instance->wordmark, LV_PART_MAIN));
-    font_registry_unload_font(
-        instance->font_registry, lv_obj_get_style_text_font(instance->man_code, LV_PART_MAIN));
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }
