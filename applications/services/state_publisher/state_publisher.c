@@ -412,34 +412,8 @@ static void convert_ip_config(BSB_State_Wifi* dst, const WifiIpConfig* ip_config
             sizeof(dst->ip_addresses[0].gateway));
         break;
     case WifiIpTypeV6:
-        if(wifi_ipv6_is_specified(&ip_config->ip6.global)) {
-            size_t idx = dst->ip_addresses_count;
-            dst->ip_addresses_count += 1;
-            dst->ip_addresses[idx].method = convert_ip_configuration_method(ip_config->mgmt);
-            dst->ip_addresses[idx].protocol = BSB_State_IpProtocol_IPV6;
-            wifi_format_ipv6(
-                &ip_config->ip6.global,
-                dst->ip_addresses[idx].address,
-                sizeof(dst->ip_addresses[idx].address));
-            wifi_format_ipv6(
-                &ip_config->ip6.gateway,
-                dst->ip_addresses[idx].gateway,
-                sizeof(dst->ip_addresses[idx].gateway));
-            dst->ip_addresses[idx].netmask[0] = 0;
-        }
-        if(wifi_ipv6_is_specified(&ip_config->ip6.local)) {
-            size_t idx = dst->ip_addresses_count;
-            dst->ip_addresses_count += 1;
-            dst->ip_addresses[idx].method = convert_ip_configuration_method(ip_config->mgmt);
-            dst->ip_addresses[idx].protocol = BSB_State_IpProtocol_IPV6;
-            wifi_format_ipv6(
-                &ip_config->ip6.local,
-                dst->ip_addresses[idx].address,
-                sizeof(dst->ip_addresses[idx].address));
-            strlcpy(dst->ip_addresses[idx].gateway, "::", sizeof(dst->ip_addresses[idx].gateway));
-            dst->ip_addresses[idx].netmask[0] = 0;
-        }
-
+        // No IPv6
+        dst->ip_addresses_count = 0;
         break;
     default:
         furi_assert(false);
