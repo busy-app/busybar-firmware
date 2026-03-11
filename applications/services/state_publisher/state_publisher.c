@@ -9,6 +9,7 @@
 #include <device_name/device_name.h>
 #include <wifi/wifi.h>
 #include <wifi/wifi_util.h>
+#include <matter/matter.h>
 
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
@@ -24,12 +25,14 @@ struct StatePublisher {
 
     Power* power;
     Audio* audio;
+    MatterSrv* matter;
 };
 
 typedef enum {
     MessageTypePublishUpdate,
     MessageTypePowerEvent,
     MessageTypeAudioEvent,
+    MessageTypeMatterEvent,
 
     MessageTypesCount,
 } MessageType;
@@ -51,9 +54,11 @@ static void wifi_info_state_callback(const void* item, void* context);
 static void power_pubsub_callback(const void* message, void* context);
 static void audio_pubsub_callback(const void* message, void* context);
 static void device_name_pubsub_callback(const void* message, void* context);
+static void matter_pubsub_callback(const void* message, void* context);
 
 static void publish_power(StatePublisher* instance);
 static void publish_audio(StatePublisher* instance);
+static void publish_matter(StatePublisher* instance);
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -101,6 +106,11 @@ static void subscribe(StatePublisher* instance) {
         Wifi* wifi = furi_record_open(RECORD_WIFI);
         FuriState* state = wifi_get_state(wifi);
         furi_state_subscribe(state, wifi_info_state_callback, instance);
+    }
+    {
+        instance->matter = furi_record_open(RECORD_MATTER);
+        FuriPubSub* pubsub = matter_get_pubsub(instance->matter);
+        furi_pubsub_subscribe(pubsub, matter_pubsub_callback, instance);
     }
 }
 
@@ -189,10 +199,17 @@ static bool handle_audio_event(StatePublisher* instance, const Message* message)
     return true;
 }
 
+static bool handle_matter_event(StatePublisher* instance, const Message* message) {
+    furi_assert(message->type == MessageTypeMatterEvent);
+    publish_matter(instance);
+    return true;
+}
+
 static const MessageHandler message_handlers[] = {
     [MessageTypePublishUpdate] = handle_publish_update,
     [MessageTypePowerEvent] = handle_power_event,
     [MessageTypeAudioEvent] = handle_audio_event,
+    [MessageTypeMatterEvent] = handle_matter_event,
 };
 
 static_assert(COUNT_OF(message_handlers) == MessageTypesCount);
@@ -269,6 +286,34 @@ static void publish_audio(StatePublisher* instance) {
     schedule_state_update(instance, update);
 }
 
+static void publish_matter(StatePublisher* instance) {
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    FURI_LOG_D(TAG, "publish matter");
+
+    MatterCommissionedFabrics info = matter_commissioned_fabrics(instance->matter);
+    update->which_state = BSB_State_StateUpdate_matter_tag;
+
+    update->state.matter.fabric_count = info.count;
+
+    if(info.last_status_at) {
+        update->state.matter.has_state = true;
+        static const BSB_State_MatterCommissioningStatus lookup[] = {
+            [MatterCommissioningStatusNeverStarted] =
+                BSB_State_MatterCommissioningStatus_NEVER_STARTED,
+            [MatterCommissioningStatusStarted] = BSB_State_MatterCommissioningStatus_STARTED,
+            [MatterCommissioningStatusComplete] =
+                BSB_State_MatterCommissioningStatus_COMPLETED_SUCCESSFULLY,
+            [MatterCommissioningStatusFailed] = BSB_State_MatterCommissioningStatus_FAILED};
+        static_assert(COUNT_OF(lookup) == MatterCommissioningStatusMAX);
+        update->state.matter.state.status = lookup[info.last_status];
+        update->state.matter.state.timestamp = info.last_status_at;
+    } else {
+        update->state.matter.has_state = false;
+    }
+
+    schedule_state_update(instance, update);
+}
+
 static void power_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
@@ -299,10 +344,24 @@ static void device_name_pubsub_callback(const void* message, void* context) {
     FURI_LOG_D(TAG, "publish device name");
 
     update->which_state = BSB_State_StateUpdate_device_name_tag;
-    static_assert(sizeof(update->state.device_name.name) > sizeof(void*)); // make sure it's an array
-    strlcpy(update->state.device_name.name, furi_string_get_cstr(name), sizeof(update->state.device_name.name));
+    static_assert(
+        sizeof(update->state.device_name.name) > sizeof(void*)); // make sure it's an array
+    strlcpy(
+        update->state.device_name.name,
+        furi_string_get_cstr(name),
+        sizeof(update->state.device_name.name));
 
     schedule_state_update(instance, update);
+}
+
+static void matter_pubsub_callback(const void* message, void* context) {
+    UNUSED(message);
+    StatePublisher* instance = context;
+
+    Message msg = {
+        .type = MessageTypeMatterEvent,
+    };
+    send_message(instance, &msg);
 }
 
 static void sntp_settings_state_callback(const void* item, void* context) {
@@ -339,9 +398,18 @@ static void convert_ip_config(BSB_State_Wifi* dst, const WifiIpConfig* ip_config
         dst->ip_addresses_count = 1;
         dst->ip_addresses[0].method = convert_ip_configuration_method(ip_config->mgmt);
         dst->ip_addresses[0].protocol = BSB_State_IpProtocol_IPV4;
-        wifi_format_ipv4(&ip_config->ip4.address, dst->ip_addresses[0].address, sizeof(dst->ip_addresses[0].address));
-        wifi_format_ipv4(&ip_config->ip4.mask, dst->ip_addresses[0].netmask, sizeof(dst->ip_addresses[0].netmask));
-        wifi_format_ipv4(&ip_config->ip4.gateway, dst->ip_addresses[0].gateway, sizeof(dst->ip_addresses[0].gateway));
+        wifi_format_ipv4(
+            &ip_config->ip4.address,
+            dst->ip_addresses[0].address,
+            sizeof(dst->ip_addresses[0].address));
+        wifi_format_ipv4(
+            &ip_config->ip4.mask,
+            dst->ip_addresses[0].netmask,
+            sizeof(dst->ip_addresses[0].netmask));
+        wifi_format_ipv4(
+            &ip_config->ip4.gateway,
+            dst->ip_addresses[0].gateway,
+            sizeof(dst->ip_addresses[0].gateway));
         break;
     case WifiIpTypeV6:
         if(wifi_ipv6_is_specified(&ip_config->ip6.global)) {
@@ -349,8 +417,14 @@ static void convert_ip_config(BSB_State_Wifi* dst, const WifiIpConfig* ip_config
             dst->ip_addresses_count += 1;
             dst->ip_addresses[idx].method = convert_ip_configuration_method(ip_config->mgmt);
             dst->ip_addresses[idx].protocol = BSB_State_IpProtocol_IPV6;
-            wifi_format_ipv6(&ip_config->ip6.global, dst->ip_addresses[idx].address, sizeof(dst->ip_addresses[idx].address));
-            wifi_format_ipv6(&ip_config->ip6.gateway, dst->ip_addresses[idx].gateway, sizeof(dst->ip_addresses[idx].gateway));
+            wifi_format_ipv6(
+                &ip_config->ip6.global,
+                dst->ip_addresses[idx].address,
+                sizeof(dst->ip_addresses[idx].address));
+            wifi_format_ipv6(
+                &ip_config->ip6.gateway,
+                dst->ip_addresses[idx].gateway,
+                sizeof(dst->ip_addresses[idx].gateway));
             dst->ip_addresses[idx].netmask[0] = 0;
         }
         if(wifi_ipv6_is_specified(&ip_config->ip6.local)) {
@@ -358,7 +432,10 @@ static void convert_ip_config(BSB_State_Wifi* dst, const WifiIpConfig* ip_config
             dst->ip_addresses_count += 1;
             dst->ip_addresses[idx].method = convert_ip_configuration_method(ip_config->mgmt);
             dst->ip_addresses[idx].protocol = BSB_State_IpProtocol_IPV6;
-            wifi_format_ipv6(&ip_config->ip6.local, dst->ip_addresses[idx].address, sizeof(dst->ip_addresses[idx].address));
+            wifi_format_ipv6(
+                &ip_config->ip6.local,
+                dst->ip_addresses[idx].address,
+                sizeof(dst->ip_addresses[idx].address));
             strlcpy(dst->ip_addresses[idx].gateway, "::", sizeof(dst->ip_addresses[idx].gateway));
             dst->ip_addresses[idx].netmask[0] = 0;
         }
@@ -370,8 +447,7 @@ static void convert_ip_config(BSB_State_Wifi* dst, const WifiIpConfig* ip_config
     }
 }
 
-static void wifi_info_state_callback(const void* item, void* context)
-{
+static void wifi_info_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const WifiInfo* info = item;
 
@@ -394,19 +470,31 @@ static void wifi_info_state_callback(const void* item, void* context)
         update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_CONNECTING;
         // fall-through
     case WifiStateDisconnecting:
-        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_DISCONNECTING;
+        update->state.wifi.wifi_state.connected.status =
+            BSB_State_WifiConnectionStatus_DISCONNECTING;
         // fall-through
     case WifiStateReconnecting:
-        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_RECONNECTING;
+        update->state.wifi.wifi_state.connected.status =
+            BSB_State_WifiConnectionStatus_RECONNECTING;
         update->state.wifi.which_wifi_state = BSB_State_Wifi_connected_tag;
 
         // SSID
-        static_assert(sizeof(update->state.wifi.wifi_state.connected.ssid) > sizeof(void*)); // make sure it's an array
-        strlcpy(update->state.wifi.wifi_state.connected.ssid, info->ssid, sizeof(update->state.wifi.wifi_state.connected.ssid));
+        static_assert(
+            sizeof(update->state.wifi.wifi_state.connected.ssid) >
+            sizeof(void*)); // make sure it's an array
+        strlcpy(
+            update->state.wifi.wifi_state.connected.ssid,
+            info->ssid,
+            sizeof(update->state.wifi.wifi_state.connected.ssid));
 
         // BSSID
-        static_assert(sizeof(update->state.wifi.wifi_state.connected.bssid) > sizeof(void*)); // make sure it's an array
-        wifi_format_bssid(info->bssid, update->state.wifi.wifi_state.connected.bssid, sizeof(update->state.wifi.wifi_state.connected.bssid));
+        static_assert(
+            sizeof(update->state.wifi.wifi_state.connected.bssid) >
+            sizeof(void*)); // make sure it's an array
+        wifi_format_bssid(
+            info->bssid,
+            update->state.wifi.wifi_state.connected.bssid,
+            sizeof(update->state.wifi.wifi_state.connected.bssid));
 
         // channel
         update->state.wifi.wifi_state.connected.channel = info->channel;

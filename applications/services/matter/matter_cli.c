@@ -218,6 +218,8 @@ static void matter_cli_print_event(const void* message, void* context) {
                 [MatterCommissioningStatusComplete] = "complete",
             };
             furi_string_cat_str(notification, state_names[event->commissioning.status]);
+        } else if(event->type == MatterEventTypeFabricCountChanged) {
+            furi_string_printf(notification, "Fabrics count: %zu", event->fabric_count);
         }
 
         cli_shell_notification_print(matter_cli->shell, notification);
