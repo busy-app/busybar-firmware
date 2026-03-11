@@ -473,7 +473,7 @@ static void wifi_info_state_callback(const void* item, void* context) {
         update->state.wifi.wifi_state.connected.status =
             BSB_State_WifiConnectionStatus_DISCONNECTING;
         // fall-through
-    case WifiStateReconnecting:
+    case WifiStateReconnecting: {
         update->state.wifi.wifi_state.connected.status =
             BSB_State_WifiConnectionStatus_RECONNECTING;
         update->state.wifi.which_wifi_state = BSB_State_Wifi_connected_tag;
@@ -503,40 +503,24 @@ static void wifi_info_state_callback(const void* item, void* context) {
         update->state.wifi.wifi_state.connected.rssi = info->rssi;
 
         // security
-        switch(info->security_mode) {
-        case WifiSecurityModeOpen:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_OPEN;
-            break;
-        case WifiSecurityModeWpa:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA;
-            break;
-        case WifiSecurityModeWpa2:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA2;
-            break;
-        case WifiSecurityModeWep:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WEP;
-            break;
-        case WifiSecurityModeWpaWpa2Mixed:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA_WPA2;
-            break;
-        case WifiSecurityModeWpa3:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA3;
-            break;
-        case WifiSecurityModeWpa3Transition:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA2_WPA3;
-            break;
-        case WifiSecurityModeUnsupported:
-            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_UNKNOWN;
-            break;
-        default:
-            furi_assert(false);
-            break;
-        }
+        static const BSB_State_WifiSecurity lookup[] = {
+            [WifiSecurityModeOpen] = BSB_State_WifiSecurity_OPEN,
+            [WifiSecurityModeWpa] = BSB_State_WifiSecurity_WPA,
+            [WifiSecurityModeWpa2] = BSB_State_WifiSecurity_WPA2,
+            [WifiSecurityModeWep] = BSB_State_WifiSecurity_WEP,
+            [WifiSecurityModeWpaWpa2Mixed] = BSB_State_WifiSecurity_WPA_WPA2,
+            [WifiSecurityModeWpa3] = BSB_State_WifiSecurity_WPA3,
+            [WifiSecurityModeWpa3Transition] = BSB_State_WifiSecurity_WPA2_WPA3,
+            [WifiSecurityModeUnsupported] = BSB_State_WifiSecurity_UNKNOWN,
+        };
+        static_assert(COUNT_OF(lookup) == WifiSecurityModeMax);
+        update->state.wifi.wifi_state.connected.security = lookup[info->security_mode];
 
         // IP
         convert_ip_config(&update->state.wifi, &info->ip_config);
 
         break;
+    }
     default:
         furi_assert(false);
         break;
