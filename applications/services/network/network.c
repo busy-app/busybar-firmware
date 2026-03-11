@@ -5,7 +5,9 @@
 #include <lwip/api.h>
 #include <lwip/tcpip.h>
 
+#if defined(BSB_MCU_U5)
 #include <mongoose_glue.h>
+#endif // BSB_MCU_U5
 
 #define TAG "Network"
 
@@ -33,7 +35,9 @@ void network_on_system_start(void) {
 
     furi_semaphore_free(lwip_start_sem);
 
+#if defined(BSB_MCU_U5)
     mg_init_early();
+#endif // BSB_MCU_U5
 
     furi_record_create(RECORD_NETWORK, NULL);
 }
