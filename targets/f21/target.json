@@ -122,6 +122,7 @@
         "targets",
         "furi",
         "settings_helpers",
+        "setting_provider",
         "drivers",
         "version",
         "internal_assets",

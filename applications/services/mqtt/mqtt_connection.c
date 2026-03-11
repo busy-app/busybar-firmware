@@ -93,7 +93,8 @@ static bool mqtt_is_tls_enabled(const Mqtt* instance) {
     if(profile_id != MqttProfileIdCustom) {
         return mqtt_profile_table[profile_id].use_tls;
     } else {
-        return furi_string_start_with(settings->custom_url, MQTT_URL_TLS_PREFIX);
+        return strncmp(settings->custom_url, MQTT_URL_TLS_PREFIX, strlen(MQTT_URL_TLS_PREFIX)) ==
+               0;
     }
 }
 
@@ -104,7 +105,7 @@ static const char* mqtt_get_server_url(const Mqtt* instance) {
     if(profile_id != MqttProfileIdCustom) {
         return mqtt_profile_table[profile_id].url;
     } else {
-        return furi_string_get_cstr(settings->custom_url);
+        return settings->custom_url;
     }
 }
 
@@ -341,9 +342,9 @@ void mqtt_connection_open(Mqtt* instance) {
     const MqttSavedState* saved_state = &instance->saved_state;
 
     const struct mg_mqtt_opts opts = {
-        .client_id = mg_str(furi_string_get_cstr(saved_state->client_id)),
+        .client_id = mg_str(saved_state->client_id),
         .user = mg_str(furi_string_get_cstr(username)),
-        .pass = mg_str(furi_string_get_cstr(saved_state->token)),
+        .pass = mg_str(saved_state->token),
         .clean = true,
         .keepalive = 0,
         .version = MQTT_VERSION,

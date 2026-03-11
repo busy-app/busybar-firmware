@@ -18,26 +18,25 @@
 
 #define TIME_FORMAT_DEFAULT SntpSettingTimeFormat24h
 
-static bool boot_delay_is_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
+static const char* const time_format_string_map[] = {
+    [SntpSettingTimeFormat24h] = "24h",
+    [SntpSettingTimeFormat12h] = "12h",
+};
 
-    return (value >= BOOT_DELAY_MIN && value <= BOOT_DELAY_MAX);
-}
+static_assert(COUNT_OF(time_format_string_map) == SntpSettingTimeFormatCount);
 
-static bool background_sync_interval_is_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
+typedef struct {
+    int min;
+    int max;
+} IntMinMaxValidationContext;
 
-    return (value >= BACKGROUND_SYNC_INTERVAL_MIN && value <= BACKGROUND_SYNC_INTERVAL_MAX);
-}
-
-static bool retry_sync_interval_is_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
-
-    return (value >= RETRY_SYNC_INTERVAL_MIN && value <= RETRY_SYNC_INTERVAL_MAX);
+static bool int_min_max_validate(const SettingProviderSetting* setting, int value) {
+    const IntMinMaxValidationContext* context = setting->context;
+    return value >= context->min && value <= context->max;
 }
 
 static bool
-    serialize_uzone(const SettingProviderSetting* setting, FuriString* string, const void* value) {
+    serialize_uzone(const SettingProviderSetting* setting, const void* value, FuriString* string) {
     UNUSED(setting);
 
     const utz_zone_t* zone = value;
@@ -47,24 +46,14 @@ static bool
     return true;
 }
 
-bool deserialize_uzone(
-    const SettingProviderSetting* setting,
-    void* value,
-    const FuriString* string) {
+static bool
+    deserialize_uzone(const SettingProviderSetting* setting, const char* string, void* value) {
     UNUSED(setting);
 
     utz_zone_t* zone = value;
 
-    return utz_get_zone_by_name(furi_string_get_cstr(string), zone);
+    return utz_get_zone_by_name(string, zone);
 }
-
-static bool time_format_is_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
-
-    return value < SntpSettingTimeFormatCount;
-}
-
-size_t default_value_size;
 
 const SettingProviderSetting sntp_v1_settings[] = {
     [SntpSettingV1IdxIsEnabled] =
@@ -83,8 +72,7 @@ const SettingProviderSetting sntp_v1_settings[] = {
             .interface =
                 &(const SettingProviderStringInterface){
                     .default_value = SERVER_ADDRESS_DEFAULT,
-                    .is_valid_callback = NULL,
-                    .max_length = SIZEOF_MEMBER(SntpSettingsV1, server_address),
+                    .max_size = SIZEOF_MEMBER(SntpSettingsV1, server_address),
                 },
             .field_offset = offsetof(SntpSettingsV1, server_address),
             .type = SettingProviderSettingTypeString,
@@ -94,10 +82,10 @@ const SettingProviderSetting sntp_v1_settings[] = {
             .name = "timezone",
             .interface =
                 &(const SettingProviderCustomInterface){
-                    .default_value = &utz_zone_default,
-                    .default_value_size = sizeof(utz_zone_default),
                     .serialize_callback = serialize_uzone,
                     .deserialize_callback = deserialize_uzone,
+                    .default_value = &utz_zone_default,
+                    .default_value_size = sizeof(utz_zone_default),
                 },
             .field_offset = offsetof(SntpSettingsV1, timezone),
             .type = SettingProviderSettingTypeCustom,
@@ -107,8 +95,13 @@ const SettingProviderSetting sntp_v1_settings[] = {
             .name = "boot_delay",
             .interface =
                 &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
                     .default_value = BOOT_DELAY_DEFAULT,
-                    .is_valid_callback = boot_delay_is_valid,
+                },
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = BOOT_DELAY_MIN,
+                    .max = BOOT_DELAY_MAX,
                 },
             .field_offset = offsetof(SntpSettingsV1, boot_delay),
             .type = SettingProviderSettingTypeInt,
@@ -118,8 +111,13 @@ const SettingProviderSetting sntp_v1_settings[] = {
             .name = "background_sync_interval",
             .interface =
                 &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
                     .default_value = BACKGROUND_SYNC_INTERVAL_DEFAULT,
-                    .is_valid_callback = background_sync_interval_is_valid,
+                },
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = BACKGROUND_SYNC_INTERVAL_MIN,
+                    .max = BACKGROUND_SYNC_INTERVAL_MAX,
                 },
             .field_offset = offsetof(SntpSettingsV1, background_sync_interval),
             .type = SettingProviderSettingTypeInt,
@@ -129,8 +127,13 @@ const SettingProviderSetting sntp_v1_settings[] = {
             .name = "retry_sync_interval",
             .interface =
                 &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
                     .default_value = RETRY_SYNC_INTERVAL_DEFAULT,
-                    .is_valid_callback = retry_sync_interval_is_valid,
+                },
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = RETRY_SYNC_INTERVAL_MIN,
+                    .max = RETRY_SYNC_INTERVAL_MAX,
                 },
             .field_offset = offsetof(SntpSettingsV1, retry_sync_interval),
             .type = SettingProviderSettingTypeInt,
@@ -139,12 +142,14 @@ const SettingProviderSetting sntp_v1_settings[] = {
         {
             .name = "time_format",
             .interface =
-                &(const SettingProviderIntInterface){
-                    .default_value = TIME_FORMAT_DEFAULT,
-                    .is_valid_callback = time_format_is_valid,
+                &(const SettingProviderEnumInterface){
+                    .string_map = time_format_string_map,
+                    .string_map_length = COUNT_OF(time_format_string_map),
+                    .type_size = SIZEOF_MEMBER(SntpSettingsV1, time_format),
+                    .default_value = &(const SntpSettingTimeFormat){TIME_FORMAT_DEFAULT},
                 },
             .field_offset = offsetof(SntpSettingsV1, time_format),
-            .type = SettingProviderSettingTypeInt,
+            .type = SettingProviderSettingTypeEnum,
         },
 };
 
@@ -153,11 +158,10 @@ static_assert(COUNT_OF(sntp_v1_settings) == SntpSettingV1IdxsCount);
 const SettingProviderSetting sntp_v1_settings_root = {
     .name = NULL,
     .interface =
-        &(const SettingProviderStructureInterface){
-            .is_valid_callback = NULL,
+        &(const SettingProviderStructInterface){
             .inner_settings = sntp_v1_settings,
             .inner_settings_count = COUNT_OF(sntp_v1_settings),
         },
     .field_offset = 0,
-    .type = SettingProviderSettingTypeStructure,
+    .type = SettingProviderSettingTypeStruct,
 };

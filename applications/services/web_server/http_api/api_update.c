@@ -725,10 +725,7 @@ static void api_update_autoupdate_get(struct mg_connection* conn, struct mg_http
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
 
-    UpdaterSettings settings = {
-        .check_url = furi_string_alloc(),
-        .check_channel_id = furi_string_alloc(),
-    };
+    UpdaterSettings settings;
     updater_get_settings(updater, &settings);
 
     cJSON* response = cJSON_CreateObject();
@@ -751,8 +748,6 @@ static void api_update_autoupdate_get(struct mg_connection* conn, struct mg_http
     cJSON_Delete(response);
 
     furi_string_free(time_buffer);
-    furi_string_free(settings.check_url);
-    furi_string_free(settings.check_channel_id);
     furi_record_close(RECORD_UPDATER);
 }
 
@@ -760,10 +755,7 @@ static void api_update_autoupdate_set(struct mg_connection* conn, struct mg_http
     FURI_LOG_I(TAG, "Received autoupdate settings set request");
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
-    UpdaterSettings settings = {
-        .check_url = furi_string_alloc(),
-        .check_channel_id = furi_string_alloc(),
-    };
+    UpdaterSettings settings;
     updater_get_settings(updater, &settings);
 
     bool is_success;
@@ -809,8 +801,6 @@ static void api_update_autoupdate_set(struct mg_connection* conn, struct mg_http
         }
     } while(false);
 
-    furi_string_free(settings.check_url);
-    furi_string_free(settings.check_channel_id);
     furi_record_close(RECORD_UPDATER);
 }
 
