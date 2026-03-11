@@ -747,7 +747,7 @@ static void busy_timer_mqtt_profile_busy_callback(const MqttMessage* message, vo
     if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
         busy_timer_set_profile(instance, BusyTimerProfileIdBusy, &profile);
     } else {
-        FURI_LOG_W(TAG, "Invalid profile data");
+        FURI_LOG_W(TAG, "Invalid busy profile data");
     }
 }
 
@@ -763,7 +763,7 @@ static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, 
     if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
         busy_timer_set_profile(instance, BusyTimerProfileIdCustom, &profile);
     } else {
-        FURI_LOG_W(TAG, "Invalid profile data");
+        FURI_LOG_W(TAG, "Invalid custom profile data");
     }
 }
 
