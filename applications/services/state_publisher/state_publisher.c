@@ -10,6 +10,7 @@
 #include <wifi/wifi.h>
 #include <wifi/wifi_util.h>
 #include <matter/matter.h>
+#include <updater/updater.h>
 
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
@@ -26,6 +27,7 @@ struct StatePublisher {
     Power* power;
     Audio* audio;
     MatterSrv* matter;
+    Updater* updater;
 };
 
 typedef enum {
@@ -33,6 +35,7 @@ typedef enum {
     MessageTypePowerEvent,
     MessageTypeAudioEvent,
     MessageTypeMatterEvent,
+    MessageTypeUpdaterCheckEvent,
 
     MessageTypesCount,
 } MessageType;
@@ -41,6 +44,7 @@ typedef struct {
     MessageType type;
     union {
         BSB_State_StateUpdate* update; // allocated on the heap
+        UpdaterCheckState updater_check_state;
     };
 } Message;
 
@@ -51,6 +55,9 @@ static const MessageHandler message_handlers[];
 static void brightness_state_callback(const void* item, void* context);
 static void sntp_settings_state_callback(const void* item, void* context);
 static void wifi_info_state_callback(const void* item, void* context);
+static void updater_update_state_callback(const void* item, void* context);
+static void updater_check_state_callback(const void* item, void* context);
+
 static void power_pubsub_callback(const void* message, void* context);
 static void audio_pubsub_callback(const void* message, void* context);
 static void device_name_pubsub_callback(const void* message, void* context);
@@ -59,6 +66,7 @@ static void matter_pubsub_callback(const void* message, void* context);
 static void publish_power(StatePublisher* instance);
 static void publish_audio(StatePublisher* instance);
 static void publish_matter(StatePublisher* instance);
+static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* check_state);
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -111,6 +119,13 @@ static void subscribe(StatePublisher* instance) {
         instance->matter = furi_record_open(RECORD_MATTER);
         FuriPubSub* pubsub = matter_get_pubsub(instance->matter);
         furi_pubsub_subscribe(pubsub, matter_pubsub_callback, instance);
+    }
+    {
+        instance->updater = furi_record_open(RECORD_UPDATER);
+        FuriState* update_state = updater_get_update_state(instance->updater);
+        FuriState* check_state = updater_get_check_state(instance->updater);
+        furi_state_subscribe(update_state, updater_update_state_callback, instance);
+        furi_state_subscribe(check_state, updater_check_state_callback, instance);
     }
 }
 
@@ -205,11 +220,18 @@ static bool handle_matter_event(StatePublisher* instance, const Message* message
     return true;
 }
 
+static bool handle_updater_check_event(StatePublisher* instance, const Message* message) {
+    furi_assert(message->type == MessageTypeUpdaterCheckEvent);
+    publish_update_check(instance, &message->updater_check_state);
+    return true;
+}
+
 static const MessageHandler message_handlers[] = {
     [MessageTypePublishUpdate] = handle_publish_update,
     [MessageTypePowerEvent] = handle_power_event,
     [MessageTypeAudioEvent] = handle_audio_event,
     [MessageTypeMatterEvent] = handle_matter_event,
+    [MessageTypeUpdaterCheckEvent] = handle_updater_check_event,
 };
 
 static_assert(COUNT_OF(message_handlers) == MessageTypesCount);
@@ -311,6 +333,40 @@ static void publish_matter(StatePublisher* instance) {
         update->state.matter.has_state = false;
     }
 
+    schedule_state_update(instance, update);
+}
+
+static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* info) {
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    update->which_state = BSB_State_StateUpdate_update_check_tag;
+
+    FURI_LOG_D(TAG, "publish update check");
+
+    switch(info->result) {
+    case UpdaterCheckResultAvailable: {
+        update->state.update_check.which_status = BSB_Update_CheckState_available_tag;
+        UpdateCheckInfo check_info;
+        updater_get_check_info(instance->updater, &check_info);
+        strlcpy(
+            update->state.update_check.status.available.version,
+            furi_string_get_cstr(check_info.version),
+            sizeof(update->state.update_check.status.available.version));
+        break;
+    }
+    case UpdaterCheckResultNotAvailable:
+        update->state.update_check.status.unavailable.reason = BSB_Update_CheckError_NOT_AVAILABLE;
+        // fall-through
+    case UpdaterCheckResultFailure:
+        update->state.update_check.status.unavailable.reason = BSB_Update_CheckError_FAILURE;
+        // fall-through
+    case UpdaterCheckResultNone:
+        update->state.update_check.status.unavailable.reason = BSB_Update_CheckError_IDLE;
+        update->state.update_check.which_status = BSB_Update_CheckState_unavailable_tag;
+        break;
+    default:
+        furi_assert(false);
+        break;
+    }
     schedule_state_update(instance, update);
 }
 
@@ -501,4 +557,72 @@ static void wifi_info_state_callback(const void* item, void* context) {
     }
 
     schedule_state_update(instance, update);
+}
+
+static void updater_update_state_callback(const void* item, void* context) {
+    StatePublisher* instance = context;
+    const UpdaterUpdateState* info = item;
+
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    update->which_state = BSB_State_StateUpdate_update_state_tag;
+
+    static const BSB_Update_UpdateStatus status_lookup[] = {
+        [UpdaterStatusOk] = BSB_Update_UpdateStatus_OK,
+        [UpdaterStatusBatteryLow] = BSB_Update_UpdateStatus_BATTERY_LOW,
+        [UpdaterStatusBusy] = BSB_Update_UpdateStatus_BUSY,
+        [UpdaterStatusDownloadFailure] = BSB_Update_UpdateStatus_DOWNLOAD_FAILURE,
+        [UpdaterStatusDownloadAbort] = BSB_Update_UpdateStatus_DOWNLOAD_ABORT,
+        [UpdaterStatusShaMismatch] = BSB_Update_UpdateStatus_SHA_MISMATCH,
+        [UpdaterStatusUnpackCreateStagingDirectoryFailure] =
+            BSB_Update_UpdateStatus_UNPACK_CREATE_STAGING_DIRECTORY_FAILURE,
+        [UpdaterStatusUnpackArchiveOpenFailure] =
+            BSB_Update_UpdateStatus_UNPACK_ARCHIVE_OPEN_FAILURE,
+        [UpdaterStatusUnpackArchiveUnpackFailure] =
+            BSB_Update_UpdateStatus_UNPACK_ARCHIVE_UNPACK_FAILURE,
+        [UpdaterStatusInstallationPrepareManifestNotFound] =
+            BSB_Update_UpdateStatus_INSTALLATION_PREPARE_MANIFEST_NOT_FOUND,
+        [UpdaterStatusInstallationPrepareManifestInvalid] =
+            BSB_Update_UpdateStatus_INSTALLATION_PREPARE_MANIFEST_INVALID,
+        [UpdaterStatusInstallationPrepareSessionConfigSetupFailure] =
+            BSB_Update_UpdateStatus_INSTALLATION_PREPARE_SESSION_CONFIG_SETUP_FAILURE,
+        [UpdaterStatusInstallationPreparePointerSetupFailure] =
+            BSB_Update_UpdateStatus_INSTALLATION_PREPARE_POINTER_SETUP_FAILURE,
+        [UpdaterStatusUnknownFailure] = BSB_Update_UpdateStatus_UNKNOWN_FAILURE,
+    };
+    static_assert(COUNT_OF(status_lookup) == UpdaterStatusesCount);
+
+    static const BSB_Update_UpdateAction action_lookup[] = {
+        [UpdaterUpdateActionDownload] = BSB_Update_UpdateAction_DOWNLOAD,
+        [UpdaterUpdateActionShaVerification] = BSB_Update_UpdateAction_SHA_VERIFICATION,
+        [UpdaterUpdateActionUnpack] = BSB_Update_UpdateAction_UNPACK,
+        [UpdaterUpdateActionInstallationPrepare] = BSB_Update_UpdateAction_INSTALLATION_PREPARE,
+        [UpdaterUpdateActionInstallationApply] = BSB_Update_UpdateAction_INSTALLATION_APPLY,
+        [UpdaterUpdateActionNone] = BSB_Update_UpdateAction_ACTION_NONE,
+    };
+    static_assert(COUNT_OF(action_lookup) == UpdaterUpdateActionsCount);
+
+    static const BSB_Update_UpdateEvent event_lookup[] = {
+        [UpdaterUpdateEventSessionStart] = BSB_Update_UpdateEvent_SESSION_START,
+        [UpdaterUpdateEventSessionStop] = BSB_Update_UpdateEvent_SESSION_STOP,
+        [UpdaterUpdateEventActionBegin] = BSB_Update_UpdateEvent_ACTION_BEGIN,
+        [UpdaterUpdateEventActionDone] = BSB_Update_UpdateEvent_ACTION_DONE,
+        [UpdaterUpdateEventDetailChange] = BSB_Update_UpdateEvent_DETAIL_CHANGE,
+        [UpdaterUpdateEventActionProgress] = BSB_Update_UpdateEvent_ACTION_PROGRESS,
+        [UpdaterUpdateEventNone] = BSB_Update_UpdateEvent_EVENT_NONE,
+    };
+    static_assert(COUNT_OF(event_lookup) == UpdaterUpdateEventsCount);
+
+    update->state.update_state.action = action_lookup[info->action];
+    update->state.update_state.status = status_lookup[info->status];
+    update->state.update_state.event = event_lookup[info->event];
+
+    schedule_state_update(instance, update);
+}
+
+static void updater_check_state_callback(const void* item, void* context) {
+    StatePublisher* instance = context;
+    const UpdaterCheckState* info = item;
+
+    Message msg = {.type = MessageTypeUpdaterCheckEvent, .updater_check_state = *info};
+    send_message(instance, &msg);
 }
