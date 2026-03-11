@@ -20,7 +20,14 @@ void wifi_format_bssid(const uint8_t* bssid, char* str_out, size_t str_out_size)
 }
 
 void wifi_format_ipv4(const WifiIpv4* ipv4, char* str_out, size_t str_out_size) {
-    snprintf(str_out, str_out_size, "%hhu.%hhu.%hhu.%hhu", ipv4->bytes[0], ipv4->bytes[1], ipv4->bytes[2], ipv4->bytes[3]);
+    snprintf(
+        str_out,
+        str_out_size,
+        "%hhu.%hhu.%hhu.%hhu",
+        ipv4->bytes[0],
+        ipv4->bytes[1],
+        ipv4->bytes[2],
+        ipv4->bytes[3]);
 }
 
 typedef struct ZeroRun {
@@ -51,7 +58,12 @@ static ZeroRun find_longest_zero_run(const WifiIpv6* ipv6) {
     return result;
 }
 
-static void append_ipv6_part(const WifiIpv6* ipv6, char* str_out, size_t str_out_size, size_t start, size_t end) {
+static void append_ipv6_part(
+    const WifiIpv6* ipv6,
+    char* str_out,
+    size_t str_out_size,
+    size_t start,
+    size_t end) {
     if(start == end) {
         return;
     }
@@ -71,7 +83,8 @@ void wifi_format_ipv6(const WifiIpv6* ipv6, char* str_out, size_t str_out_size) 
         // two halves separated by ::
         append_ipv6_part(ipv6, str_out, str_out_size, 0, zero_run.start);
         strlcat(str_out, "::", str_out_size);
-        append_ipv6_part(ipv6, str_out, str_out_size, zero_run.start + zero_run.length, COUNT_OF(ipv6->words));
+        append_ipv6_part(
+            ipv6, str_out, str_out_size, zero_run.start + zero_run.length, COUNT_OF(ipv6->words));
     } else {
         // one piece
         append_ipv6_part(ipv6, str_out, str_out_size, 0, COUNT_OF(ipv6->words));
