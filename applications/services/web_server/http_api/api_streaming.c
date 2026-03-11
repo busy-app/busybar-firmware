@@ -338,40 +338,34 @@ static void
 
 bool http_api_streaming_ws_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     furi_assert(ctx);
+    UNUSED(method);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     ApiStreamingCtx* instance = ctx;
 
-    bool success = false;
-    do {
-        bool is_ws_upgrade = (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL);
-        if(!is_ws_upgrade) break;
+    if(StreamClientsList_size(instance->clients) >= MAX_CLIENTS_COUNT) {
+        MG_REPLY_ERROR(conn, 400, "Exceed max clients count");
+        return true;
+    }
 
-        if(StreamClientsList_size(instance->clients) >= MAX_CLIENTS_COUNT) {
-            MG_REPLY_ERROR(conn, 400, "Exceed max clients count");
-            break;
-        }
+    // Assign connection callbacks
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    conn_ctx->ws.on_open = api_streaming_client_connection_open;
+    conn_ctx->on_close = api_streaming_client_connection_close;
+    conn_ctx->ws.on_message = api_streaming_client_on_message;
+    conn_ctx->on_wakeup = api_streaming_client_send_frame;
+    conn_ctx->context = instance;
 
-        // Assign connection callbacks
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->ws.on_open = api_streaming_client_connection_open;
-        conn_ctx->on_close = api_streaming_client_connection_close;
-        conn_ctx->ws.on_message = api_streaming_client_on_message;
-        conn_ctx->on_wakeup = api_streaming_client_send_frame;
-        conn_ctx->context = instance;
+    // Upgrade connection to WebSocket
+    mg_ws_upgrade(conn, msg, NULL);
 
-        // Upgrade connection to WebSocket
-        mg_ws_upgrade(conn, msg, NULL);
-
-        success = true;
-    } while(false);
-
-    return success;
+    return true;
 }
 
 static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
@@ -483,13 +477,19 @@ void http_api_streaming_ws_free(void* ctx) {
 
 bool http_api_streaming_single_frame_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodGet) {
+        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        return true;
+    }
 
     char display_str[2];
     int var_len = mg_http_get_var(&msg->query, "display", display_str, sizeof(display_str));

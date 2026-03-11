@@ -5,6 +5,8 @@
 #include <lwip/api.h>
 #include <lwip/tcpip.h>
 
+#include <mongoose_glue.h>
+
 #define TAG "Network"
 
 static void network_tcpip_init_done_callback(void* arg) {
@@ -30,6 +32,8 @@ void network_on_system_start(void) {
     furi_check(furi_semaphore_acquire(lwip_start_sem, FuriWaitForever) == FuriStatusOk);
 
     furi_semaphore_free(lwip_start_sem);
+
+    mg_init_early();
 
     furi_record_create(RECORD_NETWORK, NULL);
 }

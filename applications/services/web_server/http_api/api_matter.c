@@ -11,15 +11,9 @@ typedef struct {
     HttpHandlersList_t handlers;
 } ApiMatterCtx;
 
-static bool api_matter_commissioning_status(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
+static void
+    api_matter_commissioning_status(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(untyped_ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     MatterSrv* matter = furi_record_open(RECORD_MATTER);
     MatterCommissionedFabrics fabrics = matter_commissioned_fabrics(matter);
@@ -49,20 +43,13 @@ static bool api_matter_commissioning_status(
     cJSON_Delete(object);
     MG_REPLY_OK_BODY(conn, serialized);
     free(serialized);
-
-    return true;
 }
 
-static bool api_matter_enable_commissioning(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
+static void
+    api_matter_enable_commissioning(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(untyped_ctx);
 
     bool success = false;
-    if(!IS_HTTP_ENDPOINT(path)) return success;
 
     FuriString* qr_code = furi_string_alloc();
     FuriString* manual_code = furi_string_alloc();
@@ -94,23 +81,13 @@ static bool api_matter_enable_commissioning(
 
     furi_string_free(qr_code);
     furi_string_free(manual_code);
-
-    return true;
 }
 
-static bool api_matter_factory_reset(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
+static void api_matter_factory_reset(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(untyped_ctx);
-
-    bool success = false;
-    if(!IS_HTTP_ENDPOINT(path)) return success;
 
     MatterSrv* matter = furi_record_open(RECORD_MATTER);
-    success = matter_factory_reset(matter);
+    bool success = matter_factory_reset(matter);
     furi_record_close(RECORD_MATTER);
 
     if(success) {
@@ -118,21 +95,32 @@ static bool api_matter_factory_reset(
     } else {
         MG_REPLY_ERROR(conn, 503, "Matter unavailable");
     }
-
-    return true;
 }
 
-static bool api_matter_switch_get(
+static bool api_matter_commissioning_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* untyped_ctx) {
     UNUSED(msg);
     UNUSED(untyped_ctx);
 
-    bool handled = true;
-
     if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodGet) {
+        api_matter_commissioning_status(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_matter_enable_commissioning(conn, msg);
+    } else if(method == HttpMethodDelete) {
+        api_matter_factory_reset(conn, msg);
+    }
+
+    return true;
+}
+
+static void api_matter_switch_get(struct mg_connection* conn, struct mg_http_message* msg) {
+    UNUSED(msg);
 
     bool state;
     MatterSrv* matter = furi_record_open(RECORD_MATTER);
@@ -141,7 +129,7 @@ static bool api_matter_switch_get(
 
     if(!result) {
         MG_REPLY_ERROR(conn, 503, "Matter unavailable");
-        return handled;
+        return;
     }
 
     cJSON* object = cJSON_CreateObject();
@@ -153,18 +141,9 @@ static bool api_matter_switch_get(
     cJSON_Delete(object);
     MG_REPLY_OK_BODY(conn, serialized);
     free(serialized);
-    return handled;
 }
 
-static bool api_matter_switch_set(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
-    UNUSED(untyped_ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_matter_switch_set(struct mg_connection* conn, struct mg_http_message* msg) {
     bool success = false;
     bool matter_request_error = false;
     char* device_type = NULL;
@@ -224,6 +203,23 @@ static bool api_matter_switch_set(
             MG_REPLY_BAD_REQUEST(conn);
         }
     }
+}
+
+static bool api_matter_switch_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* untyped_ctx) {
+    UNUSED(untyped_ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodGet) {
+        api_matter_switch_get(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_matter_switch_set(conn, msg);
+    }
 
     return true;
 }
@@ -231,33 +227,15 @@ static bool api_matter_switch_set(
 static const HttpHandler handlers_matter[] = {
     {
         .uri = "commissioning",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPost | HttpMethodDelete,
         .type = HttpHandlerCustom,
-        .on_request = api_matter_commissioning_status,
-    },
-    {
-        .uri = "commissioning",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_matter_enable_commissioning,
-    },
-    {
-        .uri = "commissioning",
-        .method = "DELETE",
-        .type = HttpHandlerCustom,
-        .on_request = api_matter_factory_reset,
+        .on_request = api_matter_commissioning_callback,
     },
     {
         .uri = "endpoint/1",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
-        .on_request = api_matter_switch_get,
-    },
-    {
-        .uri = "endpoint/1",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_matter_switch_set,
+        .on_request = api_matter_switch_callback,
     },
 };
 
@@ -283,9 +261,10 @@ void http_api_matter_free(void* ctx) {
 
 bool http_api_matter_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiMatterCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

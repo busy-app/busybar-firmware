@@ -13,6 +13,7 @@
 
 static bool api_time_get_timestamp_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
@@ -20,6 +21,10 @@ static bool api_time_get_timestamp_callback(
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodGet) {
+        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        return true;
+    }
 
     Sntp* sntp = furi_record_open(RECORD_SNTP);
     LocalTime local_time = sntp_get_local_time(sntp);
@@ -37,9 +42,11 @@ static bool api_time_get_timestamp_callback(
 
 static bool api_time_set_timestamp_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -76,15 +83,7 @@ static bool api_time_set_timestamp_callback(
     return true;
 }
 
-static bool api_time_set_timezone_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_time_set_timezone(struct mg_connection* conn, struct mg_http_message* msg) {
     bool is_success = false;
     do {
         if(msg->query.len == 0) {
@@ -116,19 +115,10 @@ static bool api_time_set_timezone_callback(
     } else {
         MG_REPLY_BAD_REQUEST(conn);
     }
-
-    return true;
 }
 
-static bool api_time_get_timezone_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
+static void api_time_get_timezone(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     bool is_success = true;
 
@@ -142,6 +132,24 @@ static bool api_time_get_timezone_callback(
         MG_REPLY_OK_BODY(conn, "{\"timezone\":\"%s\"}\n", settings.timezone.name);
     } else {
         MG_REPLY_BAD_REQUEST(conn);
+    }
+}
+
+static bool api_time_timezone_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodGet) {
+        api_time_get_timezone(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_time_set_timezone(conn, msg);
     }
 
     return true;
@@ -183,9 +191,11 @@ static FuriString* generate_zone_list_json(const TzutilTzInfoList* infos) {
 
 static bool api_time_get_timezone_list_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -212,31 +222,25 @@ static bool api_time_get_timezone_list_callback(
 static const HttpHandler api_time_handlers[] = {
     {
         .uri = "",
-        .method = "GET",
+        .method = HttpMethodAny,
         .type = HttpHandlerCustom,
         .on_request = api_time_get_timestamp_callback,
     },
     {
         .uri = "timestamp",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_time_set_timestamp_callback,
     },
     {
         .uri = "timezone",
-        .method = "POST",
+        .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
-        .on_request = api_time_set_timezone_callback,
-    },
-    {
-        .uri = "timezone",
-        .method = "GET",
-        .type = HttpHandlerCustom,
-        .on_request = api_time_get_timezone_callback,
+        .on_request = api_time_timezone_callback,
     },
     {
         .uri = "tzlist",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_time_get_timezone_list_callback,
     },
@@ -267,10 +271,11 @@ void http_api_time_free(void* ctx) {
 
 bool http_api_time_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiTimeCtx* context = ctx;
 
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

@@ -23,13 +23,14 @@ static bool http_api_name_parse(const char* payload, FuriString* output) {
 
 bool http_api_name_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    if(mg_match(msg->method, mg_str("GET"), NULL)) {
+    if(method == HttpMethodGet) {
         FuriString* name = furi_string_alloc();
 
         DeviceName* dev_name = furi_record_open(RECORD_DEVICE_NAME);
@@ -38,7 +39,7 @@ bool http_api_name_callback(
 
         MG_REPLY_OK_BODY(conn, "{\"name\":%m}\n", mg_print_esc, 0, furi_string_get_cstr(name));
         furi_string_free(name);
-    } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
+    } else if(method == HttpMethodPost) {
         FuriString* name = furi_string_alloc();
         FuriString* error = furi_string_alloc();
         do {

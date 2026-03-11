@@ -291,21 +291,21 @@ static void api_update_on_close_cb(struct mg_connection* conn) {
 
 static bool api_update_raw_hdr_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* http_handler_ctx) {
+    UNUSED(method);
     UNUSED(http_handler_ctx);
     ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     HttpUpdateHandlerCtx* update_ctx = NULL;
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    if(!furi_string_empty(path)) return false;
-
     FURI_LOG_I(
         TAG, "on_headers: Received update request for URI: %.*s", (int)msg->uri.len, msg->uri.buf);
 
-    if(!mg_match(msg->method, mg_str("POST"), NULL)) {
+    if(method != HttpMethodPost) {
         MG_REPLY_METHOD_NOT_ALLOWED(conn);
         conn->is_draining = 1;
         return true;
@@ -364,9 +364,11 @@ static bool api_update_raw_hdr_callback(
 
 static bool api_update_check_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -405,9 +407,11 @@ static bool api_update_check_callback(
 
 static bool api_update_changelog_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -476,9 +480,11 @@ static bool api_update_changelog_callback(
 
 static bool api_update_install_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -571,9 +577,11 @@ static bool api_update_install_callback(
 
 static bool api_update_status_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -672,9 +680,11 @@ static bool api_update_status_callback(
 
 static bool api_update_abort_download_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -708,15 +718,8 @@ static bool parse_time_minutes(const char* time_string, uint32_t* minutes_total)
     return true;
 }
 
-static bool api_update_autoupdate_get_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
+static void api_update_autoupdate_get(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FURI_LOG_I(TAG, "Received autoupdate settings get request");
 
@@ -751,19 +754,9 @@ static bool api_update_autoupdate_get_callback(
     furi_string_free(settings.check_url);
     furi_string_free(settings.check_channel_id);
     furi_record_close(RECORD_UPDATER);
-
-    return true;
 }
 
-static bool api_update_autoupdate_post_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_update_autoupdate_set(struct mg_connection* conn, struct mg_http_message* msg) {
     FURI_LOG_I(TAG, "Received autoupdate settings set request");
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
@@ -819,6 +812,23 @@ static bool api_update_autoupdate_post_callback(
     furi_string_free(settings.check_url);
     furi_string_free(settings.check_channel_id);
     furi_record_close(RECORD_UPDATER);
+}
+
+static bool api_update_autoupdate_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodGet) {
+        api_update_autoupdate_get(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_update_autoupdate_set(conn, msg);
+    }
 
     return true;
 }
@@ -826,49 +836,43 @@ static bool api_update_autoupdate_post_callback(
 static const HttpHandler api_update_handlers[] = {
     {
         .uri = "check",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_update_check_callback,
     },
     {
         .uri = "status",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_update_status_callback,
     },
     {
         .uri = "changelog",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_update_changelog_callback,
     },
     {
         .uri = "install",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_update_install_callback,
     },
     {
         .uri = "abort_download",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_update_abort_download_callback,
     },
     {
         .uri = "autoupdate",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
-        .on_request = api_update_autoupdate_get_callback,
-    },
-    {
-        .uri = "autoupdate",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_update_autoupdate_post_callback,
+        .on_request = api_update_autoupdate_callback,
     },
     {
         .uri = "",
-        .method = "POST",
+        .method = HttpMethodAny,
         .type = HttpHandlerCustom,
         .on_headers = api_update_raw_hdr_callback,
     },
@@ -900,20 +904,22 @@ void http_api_update_free(void* ctx) {
 
 bool http_api_update_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiUpdateCtx* context = ctx;
 
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }
 
 bool http_api_update_hdr_callback_root(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiUpdateCtx* context = ctx;
 
-    return http_handle_headers(path, context->handlers, conn, msg);
+    return http_handle_headers(path, method, context->handlers, conn, msg);
 }
