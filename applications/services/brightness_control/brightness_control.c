@@ -220,9 +220,7 @@ static void light_sensor_event(const void* message, void* context) {
 static void load_config(BrightnessControl* instance) {
     BrightnessSettings settings;
 
-    setting_provider_open(instance->setting_provider);
     setting_provider_load(instance->setting_provider, &BRIGHTNESS_SETTINGS_ROOT, &settings);
-    setting_provider_close(instance->setting_provider);
 
 #if defined(SRV_LIGHT_SENSOR)
     instance->is_auto = settings.mode == BrightnessControlBrightnessModeAuto;
@@ -239,9 +237,7 @@ static void save_config(const BrightnessControl* instance) {
                                     BrightnessControlBrightnessModeManual,
     };
 
-    setting_provider_open(instance->setting_provider);
     setting_provider_save(instance->setting_provider, &BRIGHTNESS_SETTINGS_ROOT, &settings);
-    setting_provider_close(instance->setting_provider);
 }
 
 static InternalBrightness get_effective_brightness(const BrightnessControl* instance) {

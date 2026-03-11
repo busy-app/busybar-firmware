@@ -36,8 +36,6 @@ static void this_scene_on_enter(void* context) {
     ThisScene* scene = this_get_scene(instance);
 
     scene->updater_settings_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    scene->updater_settings.check_url = furi_string_alloc();
-    scene->updater_settings.check_channel_id = furi_string_alloc();
     updater_get_settings(instance->updater, &scene->updater_settings);
 
     with_gui(instance->gui, {
@@ -64,8 +62,6 @@ static void this_scene_on_exit(void* context) {
     ThisScene* scene = this_get_scene(instance);
 
     furi_mutex_free(scene->updater_settings_mutex);
-    furi_string_free(scene->updater_settings.check_url);
-    furi_string_free(scene->updater_settings.check_channel_id);
 
     with_gui(instance->gui, {
         var_item_list_free(scene->back_list);

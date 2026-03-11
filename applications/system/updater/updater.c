@@ -287,8 +287,8 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
 
     bool is_check_start_successful = update_checker_run(
         instance->update_checker,
-        furi_string_get_cstr(instance->settings.check_url),
-        furi_string_get_cstr(instance->settings.check_channel_id));
+        instance->settings.check_url,
+        instance->settings.check_channel_id);
 
     if(is_check_start_successful) {
         UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
@@ -320,8 +320,7 @@ static UpdaterStatus do_session_stop(Updater* instance, UpdaterMessage* message)
 }
 
 static UpdaterStatus do_get_settings(Updater* instance, UpdaterMessage* message) {
-    updater_settings_copy(message->as_get_settings.get_settings, &instance->settings);
-
+    *message->as_get_settings.get_settings = instance->settings;
     return UpdaterStatusOk;
 }
 
@@ -329,7 +328,7 @@ static UpdaterStatus do_set_settings(Updater* instance, UpdaterMessage* message)
     if(!updater_settings_save(message->as_set_settings.set_settings))
         return UpdaterStatusUnknownFailure;
 
-    updater_settings_copy(&instance->settings, message->as_set_settings.set_settings);
+    instance->settings = *message->as_set_settings.set_settings;
 
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
@@ -1007,8 +1006,6 @@ static Updater* updater_alloc(void) {
     instance->message_queue =
         furi_message_queue_alloc(MESSAGE_QUEUE_ITEMS_COUNT, sizeof(UpdaterMessage));
 
-    instance->settings.check_url = furi_string_alloc();
-    instance->settings.check_channel_id = furi_string_alloc();
     updater_settings_load(&instance->settings);
 
     instance->update_lock = furi_semaphore_alloc(1, 1);
