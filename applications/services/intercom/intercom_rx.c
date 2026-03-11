@@ -6,7 +6,11 @@
 
 typedef enum {
     IntercomRxThreadFlagFrameReceived = 1UL << 0,
+    IntercomRxThreadFlagErrorOccurred = 1UL << 1,
 } IntercomRxThreadFlag;
+
+#define INTERCOM_RX_THREAD_FLAGS_ALL \
+    (IntercomRxThreadFlagFrameReceived | IntercomRxThreadFlagErrorOccurred)
 
 #ifdef SRV_INTERCOM_WATCHDOG
 
@@ -72,7 +76,7 @@ static void intercom_rx_state_callback(const void* item, void* context) {
     const IntercomStatus status = *(IntercomStatus*)item;
 
     if(status != IntercomStatusOk) {
-        furi_thread_suspend(rx_thread);
+        furi_thread_flags_set(rx_thread, IntercomRxThreadFlagErrorOccurred);
     }
 }
 
@@ -100,9 +104,14 @@ static void intercom_rx_wait_for_data(Intercom* instance) {
     furi_hal_serial_dma_rx_start(
         instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
 
-    const uint32_t flags = furi_thread_flags_wait(
-        IntercomRxThreadFlagFrameReceived, FuriFlagWaitAny, FuriWaitForever);
-    furi_check(flags == IntercomRxThreadFlagFrameReceived);
+    const uint32_t flags =
+        furi_thread_flags_wait(INTERCOM_RX_THREAD_FLAGS_ALL, FuriFlagWaitAny, FuriWaitForever);
+
+    furi_check((flags & FuriFlagError) == 0);
+
+    if(flags & IntercomRxThreadFlagErrorOccurred) {
+        furi_thread_suspend(furi_thread_get_current_id());
+    }
 }
 
 static int32_t intercom_rx_thread(void* arg) {
