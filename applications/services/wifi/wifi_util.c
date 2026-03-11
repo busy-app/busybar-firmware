@@ -77,3 +77,11 @@ void wifi_format_ipv6(const WifiIpv6* ipv6, char* str_out, size_t str_out_size) 
         append_ipv6_part(ipv6, str_out, str_out_size, 0, COUNT_OF(ipv6->words));
     }
 }
+
+bool wifi_ipv6_is_specified(const WifiIpv6* ipv6) {
+    uint32_t r = 0;
+    for(size_t i = 0; i != COUNT_OF(ipv6->value); ++i) {
+        r |= ipv6->value[i];
+    }
+    return r != 0;
+}

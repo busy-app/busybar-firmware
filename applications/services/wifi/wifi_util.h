@@ -32,3 +32,8 @@ void wifi_format_ipv4(const WifiIpv4* ipv4, char* str_out, size_t str_out_size);
  * @param[in] str_out_size maximum number of bytes str_out can hold
  */
 void wifi_format_ipv6(const WifiIpv6* ipv6, char* str_out, size_t str_out_size);
+
+/**
+ * @brief Check if an IPv6 address is a specified one (not all zeroes).
+ */
+bool wifi_ipv6_is_specified(const WifiIpv6* ipv6);

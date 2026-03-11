@@ -7,6 +7,8 @@
 #include <audio/audio.h>
 #include <sntp/sntp.h>
 #include <device_name/device_name.h>
+#include <wifi/wifi.h>
+#include <wifi/wifi_util.h>
 
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
@@ -45,6 +47,7 @@ static const MessageHandler message_handlers[];
 
 static void brightness_state_callback(const void* item, void* context);
 static void sntp_settings_state_callback(const void* item, void* context);
+static void wifi_info_state_callback(const void* item, void* context);
 static void power_pubsub_callback(const void* message, void* context);
 static void audio_pubsub_callback(const void* message, void* context);
 static void device_name_pubsub_callback(const void* message, void* context);
@@ -93,6 +96,11 @@ static void subscribe(StatePublisher* instance) {
         DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
         FuriPubSub* pubsub = device_name_get_pubsub(device_name);
         furi_pubsub_subscribe(pubsub, device_name_pubsub_callback, instance);
+    }
+    {
+        Wifi* wifi = furi_record_open(RECORD_WIFI);
+        FuriState* state = wifi_get_state(wifi);
+        furi_state_subscribe(state, wifi_info_state_callback, instance);
     }
 }
 
@@ -309,6 +317,142 @@ static void sntp_settings_state_callback(const void* item, void* context) {
         update->state.timezone.name, settings->timezone.name, sizeof(update->state.timezone.name));
     update->state.timezone.offset =
         settings->timezone.offset.hours * 60 + settings->timezone.offset.minutes;
+
+    schedule_state_update(instance, update);
+}
+
+static BSB_State_IpConfigurationMethod convert_ip_configuration_method(WifiIpManagement method) {
+    switch(method) {
+    case WifiIpManagementStatic:
+        return BSB_State_IpConfigurationMethod_STATIC;
+    case WifiIpManagementDynamic:
+        return BSB_State_IpConfigurationMethod_DHCP;
+    default:
+        furi_assert(false);
+        return BSB_State_IpConfigurationMethod_STATIC;
+    }
+}
+
+static void convert_ip_config(BSB_State_Wifi* dst, const WifiIpConfig* ip_config) {
+    switch(ip_config->type) {
+    case WifiIpTypeV4:
+        dst->ip_addresses_count = 1;
+        dst->ip_addresses[0].method = convert_ip_configuration_method(ip_config->mgmt);
+        dst->ip_addresses[0].protocol = BSB_State_IpProtocol_IPV4;
+        wifi_format_ipv4(&ip_config->ip4.address, dst->ip_addresses[0].address, sizeof(dst->ip_addresses[0].address));
+        wifi_format_ipv4(&ip_config->ip4.mask, dst->ip_addresses[0].netmask, sizeof(dst->ip_addresses[0].netmask));
+        wifi_format_ipv4(&ip_config->ip4.gateway, dst->ip_addresses[0].gateway, sizeof(dst->ip_addresses[0].gateway));
+        break;
+    case WifiIpTypeV6:
+        if(wifi_ipv6_is_specified(&ip_config->ip6.global)) {
+            size_t idx = dst->ip_addresses_count;
+            dst->ip_addresses_count += 1;
+            dst->ip_addresses[idx].method = convert_ip_configuration_method(ip_config->mgmt);
+            dst->ip_addresses[idx].protocol = BSB_State_IpProtocol_IPV6;
+            wifi_format_ipv6(&ip_config->ip6.global, dst->ip_addresses[idx].address, sizeof(dst->ip_addresses[idx].address));
+            wifi_format_ipv6(&ip_config->ip6.gateway, dst->ip_addresses[idx].gateway, sizeof(dst->ip_addresses[idx].gateway));
+            dst->ip_addresses[idx].netmask[0] = 0;
+        }
+        if(wifi_ipv6_is_specified(&ip_config->ip6.local)) {
+            size_t idx = dst->ip_addresses_count;
+            dst->ip_addresses_count += 1;
+            dst->ip_addresses[idx].method = convert_ip_configuration_method(ip_config->mgmt);
+            dst->ip_addresses[idx].protocol = BSB_State_IpProtocol_IPV6;
+            wifi_format_ipv6(&ip_config->ip6.local, dst->ip_addresses[idx].address, sizeof(dst->ip_addresses[idx].address));
+            strlcpy(dst->ip_addresses[idx].gateway, "::", sizeof(dst->ip_addresses[idx].gateway));
+            dst->ip_addresses[idx].netmask[0] = 0;
+        }
+
+        break;
+    default:
+        furi_assert(false);
+        break;
+    }
+}
+
+static void wifi_info_state_callback(const void* item, void* context)
+{
+    StatePublisher* instance = context;
+    const WifiInfo* info = item;
+
+    FURI_LOG_D(TAG, "publish wifi");
+
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    update->which_state = BSB_State_StateUpdate_wifi_tag;
+
+    switch(info->state) {
+    case WifiStateUnknown:
+        update->state.wifi.which_wifi_state = BSB_State_Wifi_unknown_tag;
+        break;
+    case WifiStateDisconnected:
+        update->state.wifi.which_wifi_state = BSB_State_Wifi_disconnected_tag;
+        break;
+    case WifiStateConnected:
+        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_CONNECTED;
+        // fall-through
+    case WifiStateConnecting:
+        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_CONNECTING;
+        // fall-through
+    case WifiStateDisconnecting:
+        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_DISCONNECTING;
+        // fall-through
+    case WifiStateReconnecting:
+        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_RECONNECTING;
+        update->state.wifi.which_wifi_state = BSB_State_Wifi_connected_tag;
+
+        // SSID
+        static_assert(sizeof(update->state.wifi.wifi_state.connected.ssid) > sizeof(void*)); // make sure it's an array
+        strlcpy(update->state.wifi.wifi_state.connected.ssid, info->ssid, sizeof(update->state.wifi.wifi_state.connected.ssid));
+
+        // BSSID
+        static_assert(sizeof(update->state.wifi.wifi_state.connected.bssid) > sizeof(void*)); // make sure it's an array
+        wifi_format_bssid(info->bssid, update->state.wifi.wifi_state.connected.bssid, sizeof(update->state.wifi.wifi_state.connected.bssid));
+
+        // channel
+        update->state.wifi.wifi_state.connected.channel = info->channel;
+
+        // rssi
+        update->state.wifi.wifi_state.connected.rssi = info->rssi;
+
+        // security
+        switch(info->security_mode) {
+        case WifiSecurityModeOpen:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_OPEN;
+            break;
+        case WifiSecurityModeWpa:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA;
+            break;
+        case WifiSecurityModeWpa2:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA2;
+            break;
+        case WifiSecurityModeWep:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WEP;
+            break;
+        case WifiSecurityModeWpaWpa2Mixed:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA_WPA2;
+            break;
+        case WifiSecurityModeWpa3:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA3;
+            break;
+        case WifiSecurityModeWpa3Transition:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_WPA2_WPA3;
+            break;
+        case WifiSecurityModeUnsupported:
+            update->state.wifi.wifi_state.connected.security = BSB_State_WifiSecurity_UNKNOWN;
+            break;
+        default:
+            furi_assert(false);
+            break;
+        }
+
+        // IP
+        convert_ip_config(&update->state.wifi, &info->ip_config);
+
+        break;
+    default:
+        furi_assert(false);
+        break;
+    }
 
     schedule_state_update(instance, update);
 }
