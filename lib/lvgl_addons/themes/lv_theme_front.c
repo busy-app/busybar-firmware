@@ -331,7 +331,17 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &countdown_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+
+    } else if(lv_obj_check_type(obj, &theme_picker_arrow_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+
 #endif // APP_BUSY
+
+#ifdef APP_SETTINGS_WIFI
+    } else if(lv_obj_check_type(obj, &wifi_info_view_arrow_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+
+#endif // APP_SETTINGS_WIFI
     }
 }
 

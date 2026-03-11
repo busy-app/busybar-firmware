@@ -66,6 +66,12 @@ extern const lv_obj_class_t status_view_additional_text_lvgl_class;
 // Countdown
 extern const lv_obj_class_t countdown_lvgl_class;
 
+// Theme picker
+extern const lv_obj_class_t theme_picker_arrow_lvgl_class;
+
+// Wi-Fi
+extern const lv_obj_class_t wifi_info_view_arrow_lvgl_class;
+
 // Dialog
 extern const lv_obj_class_t dialog_lvgl_class;
 extern const lv_obj_class_t dialog_text_lvgl_class;
