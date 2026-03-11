@@ -31,7 +31,7 @@ static inline ThisScene* this_get_scene(ThisInstance* instance) {
     return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxDownload);
 }
 
-static void this_prepare_up_to_date_result(ThisInstance* instance) {
+static void this_prepare_failure_result(ThisInstance* instance) {
     instance->result_preset.front_image_path = THIS_IMG_PATH("error_front_8x8.bin");
     furi_string_set(instance->result_preset.front_text, "Download failed");
 
@@ -70,7 +70,7 @@ static void this_update_state_callback(const void* item, void* context) {
         if(update_state->status == UpdaterStatusDownloadAbort) {
             settings_firmware_app_fire_event(instance, ThisSceneEventDownloadAborted);
         } else if(update_state->status != UpdaterStatusOk) {
-            this_prepare_up_to_date_result(instance);
+            this_prepare_failure_result(instance);
             scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
         }
         break;

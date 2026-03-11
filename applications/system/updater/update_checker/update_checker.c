@@ -91,6 +91,8 @@ static void thread_state_callback(FuriThread* thread, FuriThreadState state, voi
         furi_thread_free(thread);
         instance->thread = NULL;
 
+        furi_semaphore_release(instance->run_lock);
+
         if(instance->done_callback) {
             instance->done_callback(
                 instance->was_check_successful,
@@ -103,8 +105,6 @@ static void thread_state_callback(FuriThread* thread, FuriThreadState state, voi
                 },
                 instance->done_callback_context);
         }
-
-        furi_semaphore_release(instance->run_lock);
 
         FURI_LOG_D(TAG, "Finished checking for update");
     }
