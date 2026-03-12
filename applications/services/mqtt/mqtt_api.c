@@ -232,16 +232,9 @@ static void mqtt_get_status_api_message_handler(Mqtt* instance, const MqttApiMes
 
 static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
-    furi_assert(data);
+    UNUSED(data);
 
-    mqtt_connection_close(instance, true);
-    mqtt_reset_saved_state(instance);
-
-    MqttEvent pub_event = {
-        .type = MqttEventTypeUnlinked,
-    };
-
-    furi_pubsub_publish(instance->event_pubsub, &pub_event);
+    mqtt_account_unlink(instance);
 }
 
 static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
