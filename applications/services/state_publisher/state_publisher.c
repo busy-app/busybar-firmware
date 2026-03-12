@@ -368,10 +368,12 @@ static void publish_update_check(StatePublisher* instance, const UpdaterCheckSta
     }
     case UpdaterCheckResultNotAvailable:
         update->state.update_check.status.unavailable.reason = BSB_Update_CheckError_NOT_AVAILABLE;
-        // fall-through
+        update->state.update_check.which_status = BSB_Update_CheckState_unavailable_tag;
+        break;
     case UpdaterCheckResultFailure:
         update->state.update_check.status.unavailable.reason = BSB_Update_CheckError_FAILURE;
-        // fall-through
+        update->state.update_check.which_status = BSB_Update_CheckState_unavailable_tag;
+        break;
     case UpdaterCheckResultNone:
         update->state.update_check.status.unavailable.reason = BSB_Update_CheckError_IDLE;
         update->state.update_check.which_status = BSB_Update_CheckState_unavailable_tag;
@@ -507,19 +509,19 @@ static void wifi_info_state_callback(const void* item, void* context) {
         update->state.wifi.which_wifi_state = BSB_State_Wifi_disconnected_tag;
         break;
     case WifiStateConnected:
-        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_CONNECTED;
-        // fall-through
     case WifiStateConnecting:
-        update->state.wifi.wifi_state.connected.status = BSB_State_WifiConnectionStatus_CONNECTING;
-        // fall-through
     case WifiStateDisconnecting:
-        update->state.wifi.wifi_state.connected.status =
-            BSB_State_WifiConnectionStatus_DISCONNECTING;
-        // fall-through
     case WifiStateReconnecting: {
-        update->state.wifi.wifi_state.connected.status =
-            BSB_State_WifiConnectionStatus_RECONNECTING;
         update->state.wifi.which_wifi_state = BSB_State_Wifi_connected_tag;
+
+        // status
+        static const BSB_State_WifiConnectionStatus status_lookup[] = {
+            [WifiStateConnected] = BSB_State_WifiConnectionStatus_CONNECTED,
+            [WifiStateConnecting] = BSB_State_WifiConnectionStatus_CONNECTING,
+            [WifiStateDisconnecting] = BSB_State_WifiConnectionStatus_DISCONNECTING,
+            [WifiStateReconnecting] = BSB_State_WifiConnectionStatus_RECONNECTING,
+        };
+        update->state.wifi.wifi_state.connected.status = status_lookup[info->state];
 
         // SSID
         static_assert(
@@ -546,7 +548,7 @@ static void wifi_info_state_callback(const void* item, void* context) {
         update->state.wifi.wifi_state.connected.rssi = info->rssi;
 
         // security
-        static const BSB_State_WifiSecurity lookup[] = {
+        static const BSB_State_WifiSecurity security_lookup[] = {
             [WifiSecurityModeOpen] = BSB_State_WifiSecurity_OPEN,
             [WifiSecurityModeWpa] = BSB_State_WifiSecurity_WPA,
             [WifiSecurityModeWpa2] = BSB_State_WifiSecurity_WPA2,
@@ -556,8 +558,8 @@ static void wifi_info_state_callback(const void* item, void* context) {
             [WifiSecurityModeWpa3Transition] = BSB_State_WifiSecurity_WPA2_WPA3,
             [WifiSecurityModeUnsupported] = BSB_State_WifiSecurity_UNKNOWN,
         };
-        static_assert(COUNT_OF(lookup) == WifiSecurityModeMax);
-        update->state.wifi.wifi_state.connected.security = lookup[info->security_mode];
+        static_assert(COUNT_OF(security_lookup) == WifiSecurityModeMax);
+        update->state.wifi.wifi_state.connected.security = security_lookup[info->security_mode];
 
         // IP
         convert_ip_config(&update->state.wifi, &info->ip_config);
