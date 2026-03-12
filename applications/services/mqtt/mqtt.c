@@ -32,15 +32,11 @@ static void mqtt_init_device_uid(Mqtt* instance) {
 
 static void mqtt_load_settings(Mqtt* instance) {
     MqttSettings* settings = &instance->settings;
-
-    mqtt_settings_init(settings);
     mqtt_settings_load(settings);
 }
 
 static void mqtt_load_saved_state(Mqtt* instance) {
     MqttSavedState* saved_state = &instance->saved_state;
-
-    mqtt_saved_state_init(saved_state);
     mqtt_saved_state_load(saved_state);
 
     if(!mqtt_saved_state_is_valid(saved_state)) {
@@ -56,7 +52,12 @@ void mqtt_reset_saved_state(Mqtt* instance) {
     uint32_t random_id[2];
     furi_hal_random_fill_buf((uint8_t*)random_id, sizeof(random_id));
 
-    furi_string_printf(saved_state->client_id, "busybar-%08lx%08lx", random_id[0], random_id[1]);
+    snprintf(
+        saved_state->client_id,
+        sizeof(saved_state->client_id),
+        "busybar-%08lx%08lx",
+        random_id[0],
+        random_id[1]);
 
     mqtt_saved_state_save(saved_state);
 }

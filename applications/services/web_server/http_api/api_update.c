@@ -722,10 +722,7 @@ static bool api_update_autoupdate_get_callback(
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
 
-    UpdaterSettings settings = {
-        .check_url = furi_string_alloc(),
-        .check_channel_id = furi_string_alloc(),
-    };
+    UpdaterSettings settings;
     updater_get_settings(updater, &settings);
 
     cJSON* response = cJSON_CreateObject();
@@ -748,8 +745,6 @@ static bool api_update_autoupdate_get_callback(
     cJSON_Delete(response);
 
     furi_string_free(time_buffer);
-    furi_string_free(settings.check_url);
-    furi_string_free(settings.check_channel_id);
     furi_record_close(RECORD_UPDATER);
 
     return true;
@@ -767,10 +762,7 @@ static bool api_update_autoupdate_post_callback(
     FURI_LOG_I(TAG, "Received autoupdate settings set request");
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
-    UpdaterSettings settings = {
-        .check_url = furi_string_alloc(),
-        .check_channel_id = furi_string_alloc(),
-    };
+    UpdaterSettings settings;
     updater_get_settings(updater, &settings);
 
     bool is_success;
@@ -816,8 +808,6 @@ static bool api_update_autoupdate_post_callback(
         }
     } while(false);
 
-    furi_string_free(settings.check_url);
-    furi_string_free(settings.check_channel_id);
     furi_record_close(RECORD_UPDATER);
 
     return true;
