@@ -24,6 +24,8 @@ struct StatePublisher {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
 
+    FuriThreadId main_thread_id;
+
     Power* power;
     Audio* audio;
     MatterSrv* matter;
@@ -80,8 +82,13 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
 }
 
 static void send_message(StatePublisher* instance, const Message* message) {
-    furi_check(
-        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+    if(furi_thread_get_current_id() == instance->main_thread_id) {
+        message_handlers[message->type](instance, message);
+    } else {
+        furi_check(
+            furi_message_queue_put(instance->message_queue, message, FuriWaitForever) ==
+            FuriStatusOk);
+    }
 }
 
 static void subscribe(StatePublisher* instance) {
@@ -134,6 +141,7 @@ static StatePublisher* state_publisher_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(Message));
+    instance->main_thread_id = furi_thread_get_current_id();
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -345,12 +353,17 @@ static void publish_update_check(StatePublisher* instance, const UpdaterCheckSta
     switch(info->result) {
     case UpdaterCheckResultAvailable: {
         update->state.update_check.which_status = BSB_Update_CheckState_available_tag;
-        UpdateCheckInfo check_info;
-        updater_get_check_info(instance->updater, &check_info);
+        FuriString* version = furi_string_alloc();
+        updater_get_check_info(
+            instance->updater,
+            &(UpdateCheckInfo){
+                .version = version,
+            });
         strlcpy(
             update->state.update_check.status.available.version,
-            furi_string_get_cstr(check_info.version),
+            furi_string_get_cstr(version),
             sizeof(update->state.update_check.status.available.version));
+        furi_string_free(version);
         break;
     }
     case UpdaterCheckResultNotAvailable:
@@ -562,6 +575,8 @@ static void wifi_info_state_callback(const void* item, void* context) {
 static void updater_update_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const UpdaterUpdateState* info = item;
+
+    FURI_LOG_D(TAG, "publish update state");
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_update_state_tag;
