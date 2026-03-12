@@ -12,6 +12,7 @@
 #include <matter/matter.h>
 #include <updater/updater.h>
 #include <input/input.h>
+#include <busy_timer/busy_timer.h>
 
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
@@ -31,6 +32,7 @@ struct StatePublisher {
     Audio* audio;
     MatterSrv* matter;
     Updater* updater;
+    BusyTimer* busy_timer;
 };
 
 typedef enum {
@@ -39,6 +41,7 @@ typedef enum {
     MessageTypeAudioEvent,
     MessageTypeMatterEvent,
     MessageTypeUpdaterCheckEvent,
+    MessageTypeBusyTimer,
 
     MessageTypesCount,
 } MessageType;
@@ -66,11 +69,13 @@ static void audio_pubsub_callback(const void* message, void* context);
 static void device_name_pubsub_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
 static void input_event_pubsub_callback(const void* message, void* context);
+static void busy_timer_pubsub_callback(const void* message, void* context);
 
 static void publish_power(StatePublisher* instance);
 static void publish_audio(StatePublisher* instance);
 static void publish_matter(StatePublisher* instance);
 static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* check_state);
+static void publish_busy_timer(StatePublisher* instance);
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -139,6 +144,11 @@ static void subscribe(StatePublisher* instance) {
     {
         FuriPubSub* input_pubsub = furi_record_open(RECORD_INPUT_EVENTS);
         furi_pubsub_subscribe(input_pubsub, input_event_pubsub_callback, instance);
+    }
+    {
+        instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
+        FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
+        furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
     }
 }
 
@@ -211,6 +221,11 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     FURI_LOG_D(TAG, "%s", furi_string_get_cstr(dump));
     furi_string_free(dump);
     dyn_buffer_destroy(&buf);
+
+    // Special case: JSON - free it
+    if(update->which_state == BSB_State_StateUpdate_timer_tag) {
+        free(update->state.timer.json.data);
+    }
     free(update);
     UNUSED(instance);
     return true;
@@ -240,12 +255,19 @@ static bool handle_updater_check_event(StatePublisher* instance, const Message* 
     return true;
 }
 
+static bool handle_busy_timer(StatePublisher* instance, const Message* message) {
+    furi_assert(message->type == MessageTypeBusyTimer);
+    publish_busy_timer(instance);
+    return true;
+}
+
 static const MessageHandler message_handlers[] = {
     [MessageTypePublishUpdate] = handle_publish_update,
     [MessageTypePowerEvent] = handle_power_event,
     [MessageTypeAudioEvent] = handle_audio_event,
     [MessageTypeMatterEvent] = handle_matter_event,
     [MessageTypeUpdaterCheckEvent] = handle_updater_check_event,
+    [MessageTypeBusyTimer] = handle_busy_timer,
 };
 
 static_assert(COUNT_OF(message_handlers) == MessageTypesCount);
@@ -391,6 +413,26 @@ static void publish_update_check(StatePublisher* instance, const UpdaterCheckSta
     schedule_state_update(instance, update);
 }
 
+static void publish_busy_timer(StatePublisher* instance) {
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    FURI_LOG_D(TAG, "publish busy timer");
+
+    update->which_state = BSB_State_StateUpdate_timer_tag;
+
+    update->state.timer.has_json = true;
+    update->state.timer.json.compression = BSB_Util_Compression_PLAIN;
+
+    BusyTimerSnapshot snapshot;
+    busy_timer_get_snapshot(instance->busy_timer, &snapshot);
+    char* json_text = busy_timer_snapshot_serialize(&snapshot);
+    size_t len = strlen(json_text);
+    update->state.timer.json.data = malloc(PB_BYTES_ARRAY_T_ALLOCSIZE(len));
+    update->state.timer.json.data->size = len;
+    memcpy(&update->state.timer.json.data->bytes, json_text, len);
+    free(json_text);
+
+    schedule_state_update(instance, update);
+}
 static void power_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
@@ -515,6 +557,16 @@ static void input_event_pubsub_callback(const void* message, void* context) {
     }
 
     schedule_state_update(instance, update);
+}
+
+static void busy_timer_pubsub_callback(const void* message, void* context) {
+    UNUSED(message);
+    StatePublisher* instance = context;
+
+    Message msg = {
+        .type = MessageTypeBusyTimer,
+    };
+    send_message(instance, &msg);
 }
 
 static void sntp_settings_state_callback(const void* item, void* context) {
