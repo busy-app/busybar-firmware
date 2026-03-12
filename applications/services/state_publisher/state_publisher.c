@@ -11,6 +11,7 @@
 #include <wifi/wifi_util.h>
 #include <matter/matter.h>
 #include <updater/updater.h>
+#include <input/input.h>
 
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
@@ -64,6 +65,7 @@ static void power_pubsub_callback(const void* message, void* context);
 static void audio_pubsub_callback(const void* message, void* context);
 static void device_name_pubsub_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
+static void input_event_pubsub_callback(const void* message, void* context);
 
 static void publish_power(StatePublisher* instance);
 static void publish_audio(StatePublisher* instance);
@@ -133,6 +135,10 @@ static void subscribe(StatePublisher* instance) {
         FuriState* check_state = updater_get_check_state(instance->updater);
         furi_state_subscribe(update_state, updater_update_state_callback, instance);
         furi_state_subscribe(check_state, updater_check_state_callback, instance);
+    }
+    {
+        FuriPubSub* input_pubsub = furi_record_open(RECORD_INPUT_EVENTS);
+        furi_pubsub_subscribe(input_pubsub, input_event_pubsub_callback, instance);
     }
 }
 
@@ -433,6 +439,82 @@ static void matter_pubsub_callback(const void* message, void* context) {
         .type = MessageTypeMatterEvent,
     };
     send_message(instance, &msg);
+}
+
+static void input_event_pubsub_callback(const void* message, void* context) {
+    StatePublisher* instance = context;
+    const InputEvent* event = message;
+
+    // Only publish "press" and "release" events
+    if(event->type != InputTypePress && event->type != InputTypeRelease) {
+        return;
+    } else if(event->type == InputTypeRelease) {
+        // release event is handled for buttons only
+        switch(event->key) {
+        case InputKeyOk:
+        case InputKeyBack:
+        case InputKeyStart:
+            break;
+        default:
+            return;
+        }
+    }
+
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    FURI_LOG_D(TAG, "publish input event");
+    FURI_LOG_D(TAG, "input event: type=%u, key=%u", event->type, event->key);
+
+    update->which_state = BSB_State_StateUpdate_input_tag;
+
+    static const BSB_Input_ButtonAction action_lookup[] = {
+        [InputTypePress] = BSB_Input_ButtonAction_PRESS,
+        [InputTypeRelease] = BSB_Input_ButtonAction_RELEASE,
+    };
+
+    static const BSB_Input_SwitchPosition switch_lookup[] = {
+        [InputKeyBusy] = BSB_Input_SwitchPosition_BUSY,
+        [InputKeyCustom] = BSB_Input_SwitchPosition_CUSTOM,
+        [InputKeyOff] = BSB_Input_SwitchPosition_OFF,
+        [InputKeyApps] = BSB_Input_SwitchPosition_APPS,
+        [InputKeySettings] = BSB_Input_SwitchPosition_SETTINGS,
+    };
+
+    static const BSB_Input_Button button_lookup[] = {
+        [InputKeyOk] = BSB_Input_Button_OK,
+        [InputKeyBack] = BSB_Input_Button_BACK,
+        [InputKeyStart] = BSB_Input_Button_START,
+    };
+
+    update->state.input.event.encoder_event.delta = 0;
+    switch(event->key) {
+    case InputKeyUp: // encoder +1
+        update->state.input.event.encoder_event.delta = 2;
+        // fall-through
+    case InputKeyDown: // encoder -1
+        update->state.input.event.encoder_event.delta -= 1;
+        update->state.input.which_event = BSB_Input_InputEvent_encoder_event_tag;
+        break;
+    case InputKeyOk:
+    case InputKeyBack:
+    case InputKeyStart:
+        update->state.input.which_event = BSB_Input_InputEvent_button_event_tag;
+        update->state.input.event.button_event.button = button_lookup[event->key];
+        update->state.input.event.button_event.action = action_lookup[event->type];
+        break;
+    case InputKeyBusy:
+    case InputKeyCustom:
+    case InputKeyOff:
+    case InputKeyApps:
+    case InputKeySettings:
+        update->state.input.which_event = BSB_Input_InputEvent_switch_event_tag;
+        update->state.input.event.switch_event.position = switch_lookup[event->key];
+        break;
+    default:
+        furi_assert(false);
+        break;
+    }
+
+    schedule_state_update(instance, update);
 }
 
 static void sntp_settings_state_callback(const void* item, void* context) {
