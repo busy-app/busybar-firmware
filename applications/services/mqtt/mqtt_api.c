@@ -234,6 +234,18 @@ static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessage
     furi_assert(instance);
     UNUSED(data);
 
+    FURI_LOG_I(TAG, "Received unlink message from user");
+
+    if(instance->status == MqttStatusConnectedLinked) {
+        const char* empty = "{}";
+
+        bool is_success = mqtt_publish_internal(
+            instance, MqttScopeSession, MqttQosAtMostOnce, "unlink", empty, strlen(empty), NULL, 0);
+        if(!is_success) {
+            FURI_LOG_W(TAG, "Failed to send unlink message to cloud");
+        }
+    }
+
     mqtt_account_unlink(instance);
 }
 
