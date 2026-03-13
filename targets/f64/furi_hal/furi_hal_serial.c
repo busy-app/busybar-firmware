@@ -63,6 +63,16 @@
 
 #define IIR_FIFOSE_SET (0x03UL)
 
+#define SRR_UR_POS (0)
+#define SRR_UR_SET (1UL << SRR_UR_POS)
+#define SRR_UR_CLR (0UL << SRR_UR_POS)
+#define SRR_RFR_POS (1)
+#define SRR_RFR_SET (1UL << SRR_RFR_POS)
+#define SRR_RFR_CLR (0UL << SRR_RFR_POS)
+#define SRR_XFR_POS (2)
+#define SRR_XFR_SET (1UL << SRR_XFR_POS)
+#define SRR_XFR_CLR (0UL << SRR_XFR_POS)
+
 typedef struct {
     FuriHalSerialHandle* handle;
     FuriHalSerialRxCallback rx_callback;
@@ -105,7 +115,7 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
                     [FuriHalSerialPinCts] = NULL,
                 },
             .dma_rx_channel = FuriHalDmaChannelSrcUart1,
-            .dma_tx_channel = FuriHalDmaChannelSrcUart1,
+            .dma_tx_channel = FuriHalDmaChannelDstUart1,
             .irqn = UART1_IRQn,
         },
     [FuriHalSerialIdUlpuart] =
@@ -136,7 +146,7 @@ static void furi_hal_serial_enable_fifo(FuriHalSerialHandle* handle) {
 
 static void furi_hal_serial_disable_fifo(FuriHalSerialHandle* handle) {
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
-    periph->FCR_b.FIFOE = 0;
+    periph->SFE = 0;
 }
 
 void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
@@ -543,13 +553,13 @@ void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection d
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
 
     if(dir & FuriHalSerialDirectionTx) {
-        periph->FCR |= FCR_XFIFOR_SET;
+        periph->SRR = SRR_XFR_SET;
         while(!periph->USR_b.TFE)
             ;
     }
 
     if(dir & FuriHalSerialDirectionRx) {
-        periph->FCR |= FCR_RFIFOR_SET;
+        periph->SRR = SRR_RFR_SET;
         while(periph->USR_b.RFNE)
             ;
     }
