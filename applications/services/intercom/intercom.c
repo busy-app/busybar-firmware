@@ -32,7 +32,9 @@ static void intercom_startup_sequence(Intercom* instance) {
     intercom_reset_other_side();
 #endif // BSB_MCU_U5
 
-    if(intercom_sync_serial(instance->serial)) {
+    const IntercomSyncStatus sync_status = intercom_sync_serial(instance->serial);
+
+    if(sync_status == IntercomSyncStatusOk) {
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
         status = IntercomStatusOk;
     } else {
@@ -63,7 +65,6 @@ static FURI_ALWAYS_INLINE void intercom_process_status_changed_event(Intercom* i
 
     } else if(status == IntercomStatusErrorFraming) {
         FURI_LOG_E(TAG, "Corrupt frame received");
-        intercom_dump_frame(&instance->rx_frame);
         intercom_unrecoverable_error();
 
     } else if(status == IntercomStatusErrorTimeout) {

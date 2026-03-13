@@ -238,6 +238,14 @@ void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle);
  */
 void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection direction);
 
+/**
+ * Get the state of a designated pin associated with the serial.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param pin Pin identifier from @ref FuriHalSerialPin enum.
+ */
+bool furi_hal_serial_get_pin_state(FuriHalSerialHandle* handle, FuriHalSerialPin pin);
+
 #ifdef __cplusplus
 }
 #endif

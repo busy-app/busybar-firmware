@@ -818,6 +818,14 @@ void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection d
     }
 }
 
+bool furi_hal_serial_get_pin_state(FuriHalSerialHandle* handle, FuriHalSerialPin pin) {
+    furi_check(handle);
+    furi_check(pin < FuriHalSerialPinMax);
+
+    const GpioPin* gpio_pin = furi_hal_serial_resources[handle->id].gpio[pin];
+    return furi_hal_gpio_read(gpio_pin);
+}
+
 void furi_hal_serial_set_transfer_direction(
     FuriHalSerialHandle* handle,
     FuriHalSerialDirection dir) {

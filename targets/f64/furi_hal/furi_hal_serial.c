@@ -61,6 +61,8 @@
 #define IIR_IID_BUSY_DETECT  (0x7)
 #define IIR_IID_CHAR_TIMEOUT (0xC)
 
+#define IIR_FIFOSE_SET (0x03UL)
+
 typedef struct {
     FuriHalSerialHandle* handle;
     FuriHalSerialRxCallback rx_callback;
@@ -71,6 +73,7 @@ typedef struct {
 
 typedef struct {
     USART0_Type* periph;
+    const GpioPin* gpio[FuriHalSerialPinMax];
     uint16_t dma_rx_channel;
     uint16_t dma_tx_channel;
     IRQn_Type irqn;
@@ -80,6 +83,13 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
     [FuriHalSerialIdUsart0] =
         {
             .periph = UART0,
+            .gpio =
+                {
+                    [FuriHalSerialPinTx] = &gpio_usart0_tx,
+                    [FuriHalSerialPinRx] = &gpio_usart0_rx,
+                    [FuriHalSerialPinRts] = &gpio_usart0_rts,
+                    [FuriHalSerialPinCts] = &gpio_usart0_cts,
+                },
             .dma_rx_channel = FuriHalDmaChannelSrcUsart0,
             .dma_tx_channel = FuriHalDmaChannelDstUsart0,
             .irqn = USART0_IRQn,
@@ -87,6 +97,13 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
     [FuriHalSerialIdUart1] =
         {
             .periph = UART1,
+            .gpio =
+                {
+                    [FuriHalSerialPinTx] = &gpio_uart1_tx,
+                    [FuriHalSerialPinRx] = &gpio_uart1_rx,
+                    [FuriHalSerialPinRts] = NULL,
+                    [FuriHalSerialPinCts] = NULL,
+                },
             .dma_rx_channel = FuriHalDmaChannelSrcUart1,
             .dma_tx_channel = FuriHalDmaChannelSrcUart1,
             .irqn = UART1_IRQn,
@@ -94,6 +111,13 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
     [FuriHalSerialIdUlpuart] =
         {
             .periph = ULP_UART,
+            .gpio =
+                {
+                    [FuriHalSerialPinTx] = &gpio_ulp_uart_tx,
+                    [FuriHalSerialPinRx] = &gpio_ulp_uart_rx,
+                    [FuriHalSerialPinRts] = NULL,
+                    [FuriHalSerialPinCts] = NULL,
+                },
             .dma_rx_channel = UINT16_MAX, // Not yet implemented
             .dma_tx_channel = UINT16_MAX, // Not yet implemented
             .irqn = ULPSS_UART_IRQn,
@@ -105,6 +129,9 @@ static FuriHalSerial furi_hal_serial[FuriHalSerialIdMax];
 static void furi_hal_serial_enable_fifo(FuriHalSerialHandle* handle) {
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
     periph->FCR = FCR_RT_ONE_CHAR | FCR_DMAM_SET | FCR_FIFOE_SET;
+
+    while(periph->IIR_b.FIFOSE != IIR_FIFOSE_SET)
+        ;
 }
 
 static void furi_hal_serial_disable_fifo(FuriHalSerialHandle* handle) {
@@ -526,6 +553,14 @@ void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection d
         while(periph->USR_b.RFNE)
             ;
     }
+}
+
+bool furi_hal_serial_get_pin_state(FuriHalSerialHandle* handle, FuriHalSerialPin pin) {
+    furi_check(handle);
+    furi_check(pin < FuriHalSerialPinMax);
+
+    const GpioPin* gpio_pin = furi_hal_serial_resources[handle->id].gpio[pin];
+    return furi_hal_gpio_read(gpio_pin);
 }
 
 FURI_ALWAYS_INLINE static void furi_hal_serial_irq_handler(FuriHalSerialId serial_id) {
