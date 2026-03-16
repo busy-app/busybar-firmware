@@ -14,12 +14,11 @@
 
 typedef struct Subscription {
     bool is_valid;
-    ScreenStreamerFrameCb cb;
-    void* context;
     uint32_t frame_interval_ms;
     time_t last_frame_timestamp_ms;
     uint32_t last_hash;
     bool last_frame_skipped;
+    uint8_t stream_flags;
 } Subscription;
 
 typedef struct ScreenStreamer {
@@ -39,6 +38,9 @@ typedef struct ScreenStreamer {
     void* conversion_buf;
     size_t compression_buf_size;
     void* compression_buf;
+
+    ScreenStreamerFrameCb cb;
+    void* cb_context;
 } ScreenStreamer;
 
 typedef enum Message {
@@ -49,7 +51,7 @@ typedef enum Message {
 
 static int32_t screen_streamer_thread(void* context);
 
-ScreenStreamer* screen_streamer_alloc(GuiDisplayId display, Gui* gui) {
+ScreenStreamer* screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb, void* context) {
     ScreenStreamer* instance = malloc(sizeof(ScreenStreamer));
 
     instance->gui = gui;
@@ -83,6 +85,9 @@ ScreenStreamer* screen_streamer_alloc(GuiDisplayId display, Gui* gui) {
         instance->conversion_buf_size; // at max same size, otherwise compression failed
     instance->compression_buf = malloc(instance->compression_buf_size);
 
+    instance->cb = cb;
+    instance->cb_context = context;
+
     return instance;
 }
 
@@ -108,11 +113,10 @@ void screen_streamer_free(ScreenStreamer* instance) {
     free(instance);
 }
 
-ScreenStreamerSubscriptionId screen_streamer_subscrube(
+void screen_streamer_add_stream(
     ScreenStreamer* instance,
     uint32_t frame_interval_ms,
-    ScreenStreamerFrameCb cb,
-    void* context) {
+    uint8_t stream_flags) {
     furi_mutex_acquire(instance->subs_mutex, FuriWaitForever);
     size_t id = 0;
     for(; id != MAX_SUBSCRIPTIONS; ++id) {
@@ -122,8 +126,7 @@ ScreenStreamerSubscriptionId screen_streamer_subscrube(
     }
     furi_check(id < MAX_SUBSCRIPTIONS);
     Subscription* sub = instance->subs + id;
-    sub->cb = cb;
-    sub->context = context;
+    sub->stream_flags = stream_flags;
     sub->frame_interval_ms = frame_interval_ms;
     sub->last_frame_timestamp_ms = 0;
     sub->last_hash = 0;
@@ -135,16 +138,27 @@ ScreenStreamerSubscriptionId screen_streamer_subscrube(
         Message msg = MSG_SUBSCIPTIONS_CHANGED;
         furi_message_queue_put(instance->thread_command_queue, &msg, FuriWaitForever);
     }
-    return id;
 }
 
-void screen_streamer_unsubscrube(ScreenStreamer* instance, ScreenStreamerSubscriptionId id) {
+void stream_streamer_remove_stream(ScreenStreamer* instance, uint8_t stream_flags) {
+    bool changed = false;
     furi_mutex_acquire(instance->subs_mutex, FuriWaitForever);
-    instance->subs[id].is_valid = false;
+    for(size_t i = 0; i != MAX_SUBSCRIPTIONS; ++i) {
+        Subscription* sub = instance->subs + i;
+        if(sub->is_valid) {
+            sub->stream_flags &= ~stream_flags;
+            if(sub->stream_flags == 0) {
+                sub->is_valid = false;
+                changed = true;
+            }
+        }
+    }
     furi_mutex_release(instance->subs_mutex);
 
-    Message msg = MSG_SUBSCIPTIONS_CHANGED;
-    furi_message_queue_put(instance->thread_command_queue, &msg, FuriWaitForever);
+    if(changed) {
+        Message msg = MSG_SUBSCIPTIONS_CHANGED;
+        furi_message_queue_put(instance->thread_command_queue, &msg, FuriWaitForever);
+    }
 }
 
 /**
@@ -158,6 +172,7 @@ static uint32_t dispatch_frame(ScreenStreamer* instance, const ScreenStreamerFra
     if(frame) {
         hash = crc32_calc_buffer(0x12345678, frame->data, frame->data_size); // TODO xxhash
     }
+    uint8_t stream_flags = 0;
     furi_mutex_acquire(instance->subs_mutex, FuriWaitForever);
     time_t now = sntp_get_timestamp_ms();
     uint32_t time_to_next_update = UINT32_MAX;
@@ -173,7 +188,7 @@ static uint32_t dispatch_frame(ScreenStreamer* instance, const ScreenStreamerFra
                     if(frame_due || sub->last_frame_skipped) {
                         // send frame
                         FURI_LOG_D(TAG, "send");
-                        sub->cb(instance->display_id, frame, sub->context);
+                        stream_flags |= sub->stream_flags;
                         sub->last_frame_skipped = false;
                         sub->last_hash = hash;
                         sub->last_frame_timestamp_ms = now;
@@ -195,6 +210,9 @@ static uint32_t dispatch_frame(ScreenStreamer* instance, const ScreenStreamerFra
         }
     }
     furi_mutex_release(instance->subs_mutex);
+    if(stream_flags) {
+        instance->cb(instance->display_id, frame, stream_flags, instance->cb_context);
+    }
     return time_to_next_update;
 }
 

@@ -83,7 +83,7 @@ static void publish_matter(StatePublisher* instance);
 static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* check_state);
 static void publish_busy_timer(StatePublisher* instance);
 
-void ble_screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, void* context);
+void screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, uint8_t stream_flags, void* context);
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -159,7 +159,8 @@ static void subscribe(StatePublisher* instance) {
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
     }
     {
-        screen_streamer_subscrube(instance->screen_streamer_front, 5000, ble_screen_streamer_callback, instance);
+        screen_streamer_add_stream(instance->screen_streamer_front, 5000, 1);
+        screen_streamer_add_stream(instance->screen_streamer_front, 1300, 2);
     }
 }
 
@@ -179,8 +180,8 @@ static StatePublisher* state_publisher_alloc(void) {
 
     instance->gui = furi_record_open(RECORD_GUI);
 
-    instance->screen_streamer_front = screen_streamer_alloc(GuiDisplayIdFront, instance->gui);
-    instance->screen_streamer_back = screen_streamer_alloc(GuiDisplayIdBack, instance->gui);
+    instance->screen_streamer_front = screen_streamer_alloc(GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
+    instance->screen_streamer_back = screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
 
     subscribe(instance);
 
@@ -797,8 +798,8 @@ static void updater_check_state_callback(const void* item, void* context) {
     send_message(instance, &msg);
 }
 
-void ble_screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, void* context) {
+void screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, uint8_t stream_flags, void* context) {
     UNUSED(context);
     UNUSED(display);
-    FURI_LOG_D(TAG, "frame: %lux%lu (%zu) pf:%u c:%u", frame->width, frame->height, frame->data_size, frame->pixel_format, frame->compression);
+    FURI_LOG_D(TAG, "frame for %hhx: %lux%lu (%zu) pf:%u c:%u", stream_flags, frame->width, frame->height, frame->data_size, frame->pixel_format, frame->compression);
 }

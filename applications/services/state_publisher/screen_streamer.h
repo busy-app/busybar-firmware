@@ -29,11 +29,10 @@ typedef struct ScreenStreamerFrame {
     size_t data_size;
 } ScreenStreamerFrame;
 
-typedef void (*ScreenStreamerFrameCb)(GuiDisplayId display, const ScreenStreamerFrame* frame, void* context);
+typedef void (*ScreenStreamerFrameCb)(GuiDisplayId display, const ScreenStreamerFrame* frame, uint8_t stream_flags, void* context);
 
-typedef size_t ScreenStreamerSubscriptionId;
-
-ScreenStreamer* screen_streamer_alloc(GuiDisplayId display, Gui* gui);
+ScreenStreamer* screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb,
+    void* context);
 
 void screen_streamer_free(ScreenStreamer* instance);
 
@@ -41,10 +40,9 @@ void screen_streamer_start(ScreenStreamer* instance);
 
 void screen_streamer_stop(ScreenStreamer* instance);
 
-ScreenStreamerSubscriptionId screen_streamer_subscrube(
+void screen_streamer_add_stream(
     ScreenStreamer* instance,
-    uint32_t framerate_ms,
-    ScreenStreamerFrameCb cb,
-    void* context);
+    uint32_t frame_interval_ms,
+    uint8_t stream_flags);
 
-void screen_streamer_unsubscrube(ScreenStreamer* instance, ScreenStreamerSubscriptionId id);
+void stream_streamer_remove_stream(ScreenStreamer* instance, uint8_t stream_flags);
