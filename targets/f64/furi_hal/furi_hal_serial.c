@@ -174,7 +174,7 @@ static void furi_hal_serial_disable_fifo(FuriHalSerialHandle* handle) {
     periph->SFE = 0;
 }
 
-static void furi_hal_serial_cancel_all_dma_transactions(FuriHalSerialHandle* handle) {
+static void furi_hal_serial_dma_cancel_all_transactions(FuriHalSerialHandle* handle) {
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
     periph->DMASA = DMASA_DMA_SOFTWARE_ACK;
 }
@@ -510,7 +510,7 @@ void furi_hal_serial_dma_init(FuriHalSerialHandle* handle) {
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
 
     FURI_CRITICAL_ENTER();
-    furi_hal_serial_cancel_all_dma_transactions(handle);
+    furi_hal_serial_dma_cancel_all_transactions(handle);
 
     furi_hal_dma_set_callback(
         resources->dma_tx_channel, furi_hal_serial_dma_tx_irq_callback, handle);
@@ -526,7 +526,7 @@ void furi_hal_serial_dma_deinit(FuriHalSerialHandle* handle) {
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
 
     FURI_CRITICAL_ENTER();
-    furi_hal_serial_cancel_all_dma_transactions(handle);
+    furi_hal_serial_dma_cancel_all_transactions(handle);
 
     furi_hal_dma_deinit_channel(resources->dma_tx_channel);
     furi_hal_dma_deinit_channel(resources->dma_rx_channel);
