@@ -35,13 +35,21 @@ static void intercom_startup_sequence(Intercom* instance) {
     const IntercomSyncStatus sync_status = intercom_sync_serial(instance->serial);
 
     if(sync_status == IntercomSyncStatusOk) {
-        furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
         status = IntercomStatusOk;
     } else {
         status = IntercomStatusErrorSync;
     }
 
     intercom_set_status(instance, status);
+}
+
+static void intercom_begin_operation(Intercom* instance) {
+    furi_hal_serial_set_tx_callback(instance->serial, intercom_serial_tx_callback, instance);
+    furi_hal_serial_dma_init(instance->serial);
+
+    intercom_start_rx_thread(instance);
+    // Begin serving API requests
+    furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
 }
 
 static void intercom_unrecoverable_error(void) {
@@ -57,7 +65,7 @@ static FURI_ALWAYS_INLINE void intercom_process_status_changed_event(Intercom* i
         intercom_startup_sequence(instance);
 
     } else if(status == IntercomStatusOk) {
-        intercom_start_rx_thread(instance);
+        intercom_begin_operation(instance);
 
     } else if(status == IntercomStatusErrorSync) {
         FURI_LOG_E(TAG, "Failed to sync with the other side");
@@ -134,7 +142,6 @@ static Intercom* intercom_alloc(void) {
 
     furi_hal_serial_init(instance->serial, INTERCOM_BAUD_RATE);
     furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
-    furi_hal_serial_set_tx_callback(instance->serial, intercom_serial_tx_callback, instance);
 
     intercom_init_channels(instance);
 

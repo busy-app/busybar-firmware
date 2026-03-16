@@ -63,15 +63,18 @@
 
 #define IIR_FIFOSE_SET (0x03UL)
 
-#define SRR_UR_POS (0)
-#define SRR_UR_SET (1UL << SRR_UR_POS)
-#define SRR_UR_CLR (0UL << SRR_UR_POS)
+#define SRR_UR_POS  (0)
+#define SRR_UR_SET  (1UL << SRR_UR_POS)
+#define SRR_UR_CLR  (0UL << SRR_UR_POS)
 #define SRR_RFR_POS (1)
 #define SRR_RFR_SET (1UL << SRR_RFR_POS)
 #define SRR_RFR_CLR (0UL << SRR_RFR_POS)
 #define SRR_XFR_POS (2)
 #define SRR_XFR_SET (1UL << SRR_XFR_POS)
 #define SRR_XFR_CLR (0UL << SRR_XFR_POS)
+
+#define DMASA_DMA_SOFTWARE_ACK_POS (0)
+#define DMASA_DMA_SOFTWARE_ACK     (1UL << DMASA_DMA_SOFTWARE_ACK_POS)
 
 typedef struct {
     FuriHalSerialHandle* handle;
@@ -135,6 +138,28 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
 };
 
 static FuriHalSerial furi_hal_serial[FuriHalSerialIdMax];
+
+static void furi_hal_serial_dma_tx_irq_callback(void* context) {
+    furi_assert(context);
+
+    FuriHalSerialHandle* handle = context;
+    FuriHalSerial* serial = &furi_hal_serial[handle->id];
+
+    if(serial->tx_callback) {
+        serial->tx_callback(handle, FuriHalSerialTxEventComplete, serial->tx_callback_context);
+    }
+}
+
+static void furi_hal_serial_dma_rx_irq_callback(void* context) {
+    furi_assert(context);
+
+    FuriHalSerialHandle* handle = context;
+    FuriHalSerial* serial = &furi_hal_serial[handle->id];
+
+    if(serial->rx_callback) {
+        serial->rx_callback(handle, FuriHalSerialRxEventData, serial->rx_callback_context);
+    }
+}
 
 static void furi_hal_serial_enable_fifo(FuriHalSerialHandle* handle) {
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
@@ -474,13 +499,39 @@ void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle) {
     NVIC_DisableIRQ(resources->irqn);
 }
 
-static void furi_hal_serial_dma_tx_irq_callback(void* context) {
-    FuriHalSerialHandle* handle = context;
-    FuriHalSerial* serial = &furi_hal_serial[handle->id];
+void furi_hal_serial_dma_init(FuriHalSerialHandle* handle) {
+    furi_check(handle);
 
-    if(serial->tx_callback) {
-        serial->tx_callback(handle, FuriHalSerialTxEventComplete, serial->tx_callback_context);
-    }
+    const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
+
+    FURI_CRITICAL_ENTER();
+    // Abort all ongoing DMA transactions
+    resources->periph->DMASA = DMASA_DMA_SOFTWARE_ACK;
+
+    furi_hal_dma_set_callback(
+        resources->dma_tx_channel, furi_hal_serial_dma_tx_irq_callback, handle);
+    furi_hal_dma_set_callback(
+        resources->dma_rx_channel, furi_hal_serial_dma_rx_irq_callback, handle);
+
+    FURI_CRITICAL_EXIT();
+}
+
+void furi_hal_serial_dma_deinit(FuriHalSerialHandle* handle) {
+    furi_check(handle);
+
+    const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
+
+    FURI_CRITICAL_ENTER();
+    // Abort all ongoing DMA transactions
+    resources->periph->DMASA = DMASA_DMA_SOFTWARE_ACK;
+
+    furi_hal_dma_deinit_channel(resources->dma_tx_channel);
+    furi_hal_dma_deinit_channel(resources->dma_rx_channel);
+
+    furi_hal_dma_set_callback(resources->dma_tx_channel, NULL, NULL);
+    furi_hal_dma_set_callback(resources->dma_rx_channel, NULL, NULL);
+
+    FURI_CRITICAL_EXIT();
 }
 
 void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size) {
@@ -490,9 +541,6 @@ void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, 
     furi_check(buffer_size <= FURI_HAL_DMA_MAX_TRANSFER_COUNT);
 
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
-
-    furi_hal_dma_set_callback(
-        resources->dma_tx_channel, furi_hal_serial_dma_tx_irq_callback, handle);
 
     const FuriHalDmaTransfer transfer = {
         .src_address = (uint32_t)buffer,
@@ -508,15 +556,6 @@ void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, 
     furi_hal_dma_init_channel(resources->dma_tx_channel, &transfer);
 }
 
-static void furi_hal_serial_dma_rx_irq_callback(void* context) {
-    FuriHalSerialHandle* handle = context;
-    FuriHalSerial* serial = &furi_hal_serial[handle->id];
-
-    if(serial->rx_callback) {
-        serial->rx_callback(handle, FuriHalSerialRxEventData, serial->rx_callback_context);
-    }
-}
-
 void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, size_t buffer_size) {
     furi_check(handle);
     furi_check(buffer);
@@ -524,9 +563,6 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
     furi_check(buffer_size <= FURI_HAL_DMA_MAX_TRANSFER_COUNT);
 
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
-
-    furi_hal_dma_set_callback(
-        resources->dma_rx_channel, furi_hal_serial_dma_rx_irq_callback, handle);
 
     const FuriHalDmaTransfer transfer = {
         .src_address = (uint32_t)&resources->periph->RBR,
@@ -544,7 +580,9 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
 
 void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle) {
     furi_check(handle);
-    furi_hal_dma_deinit_channel(furi_hal_serial_resources[handle->id].dma_rx_channel);
+
+    const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
+    furi_hal_dma_deinit_channel(resources->dma_rx_channel);
 }
 
 void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection dir) {
