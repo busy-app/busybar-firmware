@@ -3,10 +3,10 @@
  */
 #include "intercom_i.h"
 
-#ifndef INTERCOM_DISABLE_VERSION_CHECK
-#include <version.h>
-#else
+#ifdef INTERCOM_DISABLE_VERSION_CHECK
 #define INTERCOM_CONTROL_STRING_DEFAULT "intercom"
+#else // INTERCOM_DISABLE_VERSION_CHECK
+#include <version.h>
 #endif // INTERCOM_DISABLE_VERSION_CHECK
 
 #define INTERCOM_SYNC_TIMEOUT_MS (1000)
@@ -20,14 +20,12 @@
 
 static const char* intercom_get_control_string(void) {
     const char* str;
-
-#ifndef INTERCOM_DISABLE_VERSION_CHECK
+#ifdef INTERCOM_DISABLE_VERSION_CHECK
+    str = INTERCOM_CONTROL_STRING_DEFAULT;
+#else // INTERCOM_DISABLE_VERSION_CHECK
     const Version* version = version_get();
     str = version_get_githash(version);
-#else
-    str = INTERCOM_CONTROL_STRING_DEFAULT;
 #endif // INTERCOM_DISABLE_VERSION_CHECK
-
     return str;
 }
 
