@@ -3,6 +3,12 @@
  */
 #include "intercom_i.h"
 
+#ifndef INTERCOM_DISABLE_VERSION_CHECK
+#include <version.h>
+#else
+#define INTERCOM_CONTROL_STRING_DEFAULT "intercom"
+#endif // INTERCOM_DISABLE_VERSION_CHECK
+
 #define INTERCOM_SYNC_TIMEOUT_MS (1000)
 
 #define INTERCOM_SYNC_DEBOUNCE_WINDOW_US          (1000)
@@ -10,7 +16,18 @@
 #define INTERCOM_SYNC_DEBOUNCE_CONFIDENCE_THRESHOLD \
     (INTERCOM_SYNC_DEBOUNCE_WINDOW_US / INTERCOM_SYNC_DEBOUNCE_SAMPLE_INTERVAL_US)
 
-#define INTERCOM_SYNC_PHRASE "intercom"
+static const char* intercom_get_control_string(void) {
+    const char* str;
+
+#ifndef INTERCOM_DISABLE_VERSION_CHECK
+    const Version* version = version_get();
+    str = version_get_githash(version);
+#else
+    str = INTERCOM_CONTROL_STRING_DEFAULT;
+#endif // INTERCOM_DISABLE_VERSION_CHECK
+
+    return str;
+}
 
 static uint32_t intercom_sync_get_timeout_left(uint32_t start_time) {
     const uint32_t dt = furi_get_tick() - start_time;
@@ -74,20 +91,20 @@ static bool
 }
 
 static bool intercom_sync_do_handshake(FuriHalSerialHandle* serial, uint32_t start_time) {
-    const uint8_t* sync_phrase = (const uint8_t*)INTERCOM_SYNC_PHRASE;
-    const size_t sync_phrase_len = strlen(INTERCOM_SYNC_PHRASE);
+    const char* control_str = intercom_get_control_string();
+    const size_t control_str_len = strlen(control_str);
 
     uint32_t i;
-    for(i = 0; i < sync_phrase_len; ++i) {
-        if(!intercom_sync_send_char(serial, sync_phrase[i], start_time)) {
+    for(i = 0; i < control_str_len; ++i) {
+        if(!intercom_sync_send_char(serial, control_str[i], start_time)) {
             break;
         }
-        if(!intercom_sync_wait_for_char(serial, sync_phrase[i], start_time)) {
+        if(!intercom_sync_wait_for_char(serial, control_str[i], start_time)) {
             break;
         }
     }
 
-    return (i == sync_phrase_len);
+    return (i == control_str_len);
 }
 
 IntercomSyncStatus intercom_sync_serial(FuriHalSerialHandle* serial) {
