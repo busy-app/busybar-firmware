@@ -41,12 +41,6 @@ typedef enum {
     IntercomChannelFlagPeerReady = (1 << 0), //<! Same channel on other chip is ready to receive
 } IntercomChannelFlag;
 
-typedef enum {
-    IntercomSyncStatusOk,
-    IntercomSyncStatusTimeout,
-    IntercomSyncStatusMismatch,
-} IntercomSyncStatus;
-
 struct IntercomChannel {
     Intercom* intercom;
     FuriEventFlag* flags;
@@ -82,7 +76,7 @@ void intercom_start_rx_thread(Intercom* instance);
 
 // intercom_sync.c:
 
-IntercomSyncStatus intercom_sync_serial(FuriHalSerialHandle* serial);
+bool intercom_sync_serial(FuriHalSerialHandle* serial);
 
 // intercom_channel.c:
 

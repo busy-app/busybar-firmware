@@ -16,6 +16,8 @@
 #define INTERCOM_SYNC_DEBOUNCE_CONFIDENCE_THRESHOLD \
     (INTERCOM_SYNC_DEBOUNCE_WINDOW_US / INTERCOM_SYNC_DEBOUNCE_SAMPLE_INTERVAL_US)
 
+#define TAG "IntercomSync"
+
 static const char* intercom_get_control_string(void) {
     const char* str;
 
@@ -107,23 +109,23 @@ static bool intercom_sync_do_handshake(FuriHalSerialHandle* serial, uint32_t sta
     return (i == control_str_len);
 }
 
-IntercomSyncStatus intercom_sync_serial(FuriHalSerialHandle* serial) {
-    IntercomSyncStatus status;
+bool intercom_sync_serial(FuriHalSerialHandle* serial) {
+    bool success = false;
 
     do {
         const uint32_t start_time = furi_get_tick();
 
         if(!intercom_sync_wait_for_other_side(serial, start_time)) {
-            status = IntercomSyncStatusTimeout;
+            FURI_LOG_E(TAG, "No presence signal from the other side");
             break;
         }
         if(!intercom_sync_do_handshake(serial, start_time)) {
-            status = IntercomSyncStatusMismatch;
+            FURI_LOG_E(TAG, "Handshake failure, possible version mismatch");
             break;
         }
 
-        status = IntercomSyncStatusOk;
+        success = true;
     } while(false);
 
-    return status;
+    return success;
 }

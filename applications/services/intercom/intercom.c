@@ -32,9 +32,7 @@ static void intercom_startup_sequence(Intercom* instance) {
     intercom_reset_other_side();
 #endif // BSB_MCU_U5
 
-    const IntercomSyncStatus sync_status = intercom_sync_serial(instance->serial);
-
-    if(sync_status == IntercomSyncStatusOk) {
+    if(intercom_sync_serial(instance->serial)) {
         status = IntercomStatusOk;
     } else {
         status = IntercomStatusErrorSync;
