@@ -13,6 +13,8 @@
 #include <updater/updater.h>
 #include <input/input.h>
 #include <busy_timer/busy_timer.h>
+#include <gui/gui.h>
+#include "screen_streamer.h"
 
 #include <nanopb/pb.h>
 #include <nanopb/pb_encode.h>
@@ -28,11 +30,15 @@ struct StatePublisher {
 
     FuriThreadId main_thread_id;
 
+    ScreenStreamer* screen_streamer_front;
+    ScreenStreamer* screen_streamer_back;
+
     Power* power;
     Audio* audio;
     MatterSrv* matter;
     Updater* updater;
     BusyTimer* busy_timer;
+    Gui* gui;
 };
 
 typedef enum {
@@ -76,6 +82,8 @@ static void publish_audio(StatePublisher* instance);
 static void publish_matter(StatePublisher* instance);
 static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* check_state);
 static void publish_busy_timer(StatePublisher* instance);
+
+void ble_screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, void* context);
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -150,6 +158,9 @@ static void subscribe(StatePublisher* instance) {
         FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
     }
+    {
+        screen_streamer_subscrube(instance->screen_streamer_front, 5000, ble_screen_streamer_callback, instance);
+    }
 }
 
 static StatePublisher* state_publisher_alloc(void) {
@@ -166,7 +177,15 @@ static StatePublisher* state_publisher_alloc(void) {
         message_queue_callback,
         instance);
 
+    instance->gui = furi_record_open(RECORD_GUI);
+
+    instance->screen_streamer_front = screen_streamer_alloc(GuiDisplayIdFront, instance->gui);
+    instance->screen_streamer_back = screen_streamer_alloc(GuiDisplayIdBack, instance->gui);
+
     subscribe(instance);
+
+    screen_streamer_start(instance->screen_streamer_front);
+    screen_streamer_start(instance->screen_streamer_back);
 
     furi_record_create(RECORD_STATE_PUBLISHER, instance);
 
@@ -776,4 +795,10 @@ static void updater_check_state_callback(const void* item, void* context) {
 
     Message msg = {.type = MessageTypeUpdaterCheckEvent, .updater_check_state = *info};
     send_message(instance, &msg);
+}
+
+void ble_screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, void* context) {
+    UNUSED(context);
+    UNUSED(display);
+    FURI_LOG_D(TAG, "frame: %lux%lu (%zu) pf:%u c:%u", frame->width, frame->height, frame->data_size, frame->pixel_format, frame->compression);
 }

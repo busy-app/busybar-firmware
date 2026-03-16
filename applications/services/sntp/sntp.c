@@ -226,7 +226,6 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
 
 time_t sntp_get_timestamp(void) {
     return furi_hal_rtc_get_timestamp();
-    ;
 }
 
 time_t sntp_get_timestamp_ms(void) {
