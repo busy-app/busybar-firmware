@@ -41,7 +41,7 @@ static void mqtt_make_topic_path(
 
     } else if(scope == MqttScopeSession) {
         root = MQTT_SESSION_ROOT_TOPIC;
-        id = furi_string_get_cstr(instance->saved_state.session_id);
+        id = instance->saved_state.session_id;
 
     } else {
         furi_crash("Invalid MqttScope value");

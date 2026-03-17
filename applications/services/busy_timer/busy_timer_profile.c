@@ -104,6 +104,18 @@ static bool busy_timer_profile_deserialize_timer_settings(
     return success;
 }
 
+static bool
+    busy_timer_profile_handle_missing_app_config(const cJSON* json, BusyAppConfig* app_config) {
+    bool success = false;
+
+    if(json == NULL || cJSON_IsNull(json)) {
+        memset(app_config, 0, sizeof(BusyAppConfig));
+        success = true;
+    }
+
+    return success;
+}
+
 // Public functions
 
 char* busy_timer_profile_serialize(const BusyTimerProfile* profile) {
@@ -148,7 +160,8 @@ bool busy_timer_profile_deserialize(
         }
 
         item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS);
-        if(!busy_timer_common_deserialize_app_config(item, &profile->app_config)) {
+        if(!busy_timer_common_deserialize_app_config(item, &profile->app_config) &&
+           !busy_timer_profile_handle_missing_app_config(item, &profile->app_config)) {
             break;
         }
 
