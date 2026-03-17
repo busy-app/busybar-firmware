@@ -231,6 +231,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
     uint32_t frame_interval_ms,
     StatePublisherPublishCb cb,
     void* context) {
+    UNUSED(frame_interval_ms);
     size_t i = 0;
     furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
     for(; i != MAX_TRANSPORTS; ++i) {
