@@ -41,10 +41,10 @@ static void this_prepare_up_to_date_result(ThisInstance* instance) {
 }
 
 static void this_prepare_failure_result(ThisInstance* instance) {
-    instance->result_preset.front_image_path = THIS_IMG_PATH("error_front_8x8.bin");
+    instance->result_preset.front_image_path = SHARED_IMG_PATH("error_front_8x8.bin");
     furi_string_set(instance->result_preset.front_text, "Unable to check");
 
-    instance->result_preset.back_image_path = THIS_IMG_PATH("error_back_11x11.bin");
+    instance->result_preset.back_image_path = SHARED_IMG_PATH("error_back_11x11.bin");
     furi_string_set(instance->result_preset.back_primary_text, "Unable to check\nfor update");
 
     instance->result_preset.timeout = 3000;
