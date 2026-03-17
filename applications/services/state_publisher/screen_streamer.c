@@ -7,7 +7,7 @@
 #include <toolbox/rle_encode.h>
 #include <toolbox/crc32_calc.h>
 
-#define MAX_MESSAGES      2
+#define MAX_MESSAGES 2
 
 #define TAG "ScrStrm"
 
@@ -26,7 +26,7 @@ typedef struct ScreenStreamer {
     FuriMessageQueue* thread_command_queue;
 
     GuiDisplayId display_id;
-    Output outputs[StatePublisherTransportMax];
+    Output outputs[StatePublisherTransportClassMax];
     FuriMutex* outputs_mutex;
 
     ScreenStreamerPixelFormat pixel_format;
@@ -114,11 +114,10 @@ void screen_streamer_free(ScreenStreamer* instance) {
 
 void screen_streamer_enable_output(
     ScreenStreamer* instance,
-    StatePublisherTransport transport,
+    StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms) {
-
     furi_mutex_acquire(instance->outputs_mutex, FuriWaitForever);
-    Output* output = instance->outputs + transport;
+    Output* output = instance->outputs + transport_class;
     if(output->is_valid) {
         output->frame_interval_ms = MIN(frame_interval_ms, output->frame_interval_ms);
     } else {
@@ -137,10 +136,12 @@ void screen_streamer_enable_output(
     }
 }
 
-void screen_streamer_disable_output(ScreenStreamer* instance, StatePublisherTransport transport) {
+void screen_streamer_disable_output(
+    ScreenStreamer* instance,
+    StatePublisherTransportClass transport_class) {
     bool changed = false;
     furi_mutex_acquire(instance->outputs_mutex, FuriWaitForever);
-    instance->outputs[transport].is_valid = false;
+    instance->outputs[transport_class].is_valid = false;
     furi_mutex_release(instance->outputs_mutex);
 
     if(changed) {
@@ -164,7 +165,7 @@ static uint32_t dispatch_frame(ScreenStreamer* instance, const ScreenStreamerFra
     furi_mutex_acquire(instance->outputs_mutex, FuriWaitForever);
     time_t now = sntp_get_timestamp_ms();
     uint32_t time_to_next_update = UINT32_MAX;
-    for(size_t i = 0; i != StatePublisherTransportMax; ++i) {
+    for(size_t i = 0; i != StatePublisherTransportClassMax; ++i) {
         Output* output = instance->outputs + i;
         if(output->is_valid) {
             if(frame) {

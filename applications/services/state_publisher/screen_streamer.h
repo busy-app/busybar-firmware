@@ -47,7 +47,9 @@ void screen_streamer_stop(ScreenStreamer* instance);
 
 void screen_streamer_enable_output(
     ScreenStreamer* instance,
-    StatePublisherTransport transport,
+    StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms);
 
-void screen_streamer_disable_output(ScreenStreamer* instance, StatePublisherTransport transport);
+void screen_streamer_disable_output(
+    ScreenStreamer* instance,
+    StatePublisherTransportClass transport_class);

@@ -27,9 +27,9 @@
 #define MAX_TRANSPORTS 16
 
 typedef enum {
-    StreamFlagMQTT = 1 << StatePublisherTransportMQTT,
-    StreamFlagWebSocket = 1 << StatePublisherTransportWebSocket,
-    StreamFlagBLE = 1 << StatePublisherTransportBLE,
+    StreamFlagMQTT = 1 << StatePublisherTransportClassMQTT,
+    StreamFlagWebSocket = 1 << StatePublisherTransportClassWebSocket,
+    StreamFlagBLE = 1 << StatePublisherTransportClassBLE,
 
     StreamFlagAll = StreamFlagMQTT | StreamFlagWebSocket | StreamFlagBLE
 } StreamFlag;
@@ -223,7 +223,9 @@ static StatePublisher* state_publisher_alloc(void) {
 }
 
 static void update_screen_streamer_outputs(StatePublisher* instance) {
-    for(StatePublisherTransport transport = 0; transport != StatePublisherTransportMax; ++transport) {
+    for(StatePublisherTransportClass transport_class = 0;
+        transport_class != StatePublisherTransportClassMax;
+        ++transport_class) {
         bool enabled = false;
         uint32_t frame_interval_ms = UINT32_MAX;
         for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
@@ -234,18 +236,20 @@ static void update_screen_streamer_outputs(StatePublisher* instance) {
             }
         }
         if(enabled) {
-            screen_streamer_enable_output(instance->screen_streamer_front, transport, frame_interval_ms);
-            screen_streamer_enable_output(instance->screen_streamer_back, transport, frame_interval_ms);
+            screen_streamer_enable_output(
+                instance->screen_streamer_front, transport_class, frame_interval_ms);
+            screen_streamer_enable_output(
+                instance->screen_streamer_back, transport_class, frame_interval_ms);
         } else {
-            screen_streamer_disable_output(instance->screen_streamer_front, transport);
-            screen_streamer_disable_output(instance->screen_streamer_back, transport);
+            screen_streamer_disable_output(instance->screen_streamer_front, transport_class);
+            screen_streamer_disable_output(instance->screen_streamer_back, transport_class);
         }
     }
 }
 
 StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
-    StatePublisherTransport transport,
+    StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms,
     StatePublisherPublishCb cb,
     void* context) {
@@ -256,7 +260,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
         Transport* t = instance->transports + i;
         if(!t->valid) {
             t->valid = true;
-            t->flags = 1 << transport;
+            t->flags = 1 << transport_class;
             t->frame_interval_ms = frame_interval_ms;
             t->cb = cb;
             t->cb_context = context;

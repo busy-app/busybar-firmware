@@ -18,24 +18,37 @@ extern "C" {
 
 typedef struct StatePublisher StatePublisher;
 
-typedef enum StatePublisherTransport {
-    StatePublisherTransportWebSocket,
-    StatePublisherTransportBLE,
-    StatePublisherTransportMQTT,
+typedef enum StatePublisherTransportClass {
+    StatePublisherTransportClassWebSocket,
+    StatePublisherTransportClassBLE,
+    StatePublisherTransportClassMQTT,
 
-    StatePublisherTransportMax,
-} StatePublisherTransport;
+    StatePublisherTransportClassMax,
+} StatePublisherTransportClass;
 
 typedef void (*StatePublisherPublishCb)(const void* data, size_t data_size, void* context);
 
 typedef size_t StatePublisherTransportHandle;
 
+/**
+ * Add transport (sink) to receive serialized updates.
+ *
+ * @param transport transport class.
+ * @param frame_interval_ms minimum frame interval for this transport class.
+ * @return handle to be used in state_publisher_del_transport.
+ */
 StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
-    StatePublisherTransport transport,
+    StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms,
     StatePublisherPublishCb cb,
     void* context);
+
+/**
+ * Delete transport (sink).
+ *
+ * @param handle transport handle received from state_publisher_add_transport.
+ */
 void state_publisher_del_transport(StatePublisher* instance, StatePublisherTransportHandle handle);
 
 #ifdef __cplusplus
