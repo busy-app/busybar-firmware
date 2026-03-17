@@ -5,10 +5,9 @@
 
 #include <furi_hal_random.h>
 
-#include <tls_crypto/tls_crypto_client.h>
+#include <tls_crypto/tls_crypto.h>
 
-#define INPUT_DATA_SIZE    (800)
-#define SIGNATURE_BUF_SIZE (128)
+#define INPUT_DATA_LEN (TLS_CRYPTO_DATA_LEN_MAX)
 
 #define ERROR_COUNT_MAX (64) // An arbitrary round number
 #define RETRY_COUNT_MAX (10)
@@ -18,11 +17,10 @@ void cli_command_tls_crypto_test(PipeSide* pipe, FuriString* args, void* context
     UNUSED(args);
     UNUSED(context);
 
-    TlsCryptoClient* tls = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
+    TlsCrypto* tls_crypto = furi_record_open(RECORD_TLS_CRYPTO);
 
-    uint8_t input_data[INPUT_DATA_SIZE];
-    uint8_t signature_buf[SIGNATURE_BUF_SIZE];
-    size_t signature_len;
+    uint8_t input_data[INPUT_DATA_LEN];
+    TlsCryptoSignature signature;
 
     uint32_t error_count = 0;
     uint32_t retry_count = 0;
@@ -32,14 +30,10 @@ void cli_command_tls_crypto_test(PipeSide* pipe, FuriString* args, void* context
     while(retry_count < RETRY_COUNT_MAX && !cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
         furi_hal_random_fill_buf(input_data, sizeof(input_data));
 
-        if(!tls_crypto_client_sign(
-               tls,
-               1,
-               input_data,
-               sizeof(input_data),
-               signature_buf,
-               sizeof(signature_buf),
-               &signature_len)) {
+        const TlsCryptoStatus status = tls_crypto_sign(
+            tls_crypto, TlsCryptoKeyIdDevice, input_data, sizeof(input_data), &signature);
+
+        if(status != TlsCryptoStatusOk) {
             printf(ANSI_FG_RED "Failed to sign data\r\n" ANSI_RESET);
             ++error_count;
         } else {
@@ -61,5 +55,5 @@ void cli_command_tls_crypto_test(PipeSide* pipe, FuriString* args, void* context
         }
     }
 
-    furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
+    furi_record_close(RECORD_TLS_CRYPTO);
 }

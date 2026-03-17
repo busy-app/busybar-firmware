@@ -202,7 +202,23 @@ void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle);
 /* DMA-based asynchronous API */
 
 /**
+ * Enable DMA-related functions for the serial instance.
+ *
+ * @param handle Pointer to the serial handle.
+ */
+void furi_hal_serial_dma_init(FuriHalSerialHandle* handle);
+
+/**
+ * Disable DMA-related functions for the serial instance.
+ *
+ * @pre furi_hal_serial_dma_init
+ */
+void furi_hal_serial_dma_deinit(FuriHalSerialHandle* handle);
+
+/**
  * Transmit data over the serial interface using DMA.
+ *
+ * @pre furi_hal_serial_dma_init
  *
  * @param handle Pointer to the serial handle.
  * @param buffer Pointer to the data buffer.
@@ -212,6 +228,8 @@ void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, 
 
 /**
  * Start receiving in DMA mode.
+ *
+ * @pre furi_hal_serial_dma_init
  *
  * @note In this mode, the receive event will only be generated once the whole buffer has been filled.
  *
@@ -223,6 +241,8 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
 
 /**
  * Stop receiving in DMA mode.
+ *
+ * @pre furi_hal_serial_dma_init
  *
  * @param handle Pointer to the serial handle.
  */
@@ -237,6 +257,14 @@ void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle);
  * @param direction Direction (transmit, receive or both) to clear.
  */
 void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection direction);
+
+/**
+ * Get the state of a designated pin associated with the serial.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param pin Pin identifier from @ref FuriHalSerialPin enum.
+ */
+bool furi_hal_serial_get_pin_state(FuriHalSerialHandle* handle, FuriHalSerialPin pin);
 
 #ifdef __cplusplus
 }

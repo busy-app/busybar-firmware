@@ -11,30 +11,27 @@
 #define TAG "FuriHalCryptoStorage"
 
 #define FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY (0x464c4950UL) // "FLIP"
-#define FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX    (996UL) // Maximum data size for keys
 #define FURI_HAL_CRYPTO_KEY_ADDRESS_INIT         (0xFFFFFFFFUL)
 #define FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX      (2048UL)
 
 FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition) {
     FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
-    key->header.magic_number = FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY;
-    key->header.reserved = 0xFFFF;
-    key->header.reserved1 = 0xFFFFFFFF;
+
+    FuriHalCryptoKeyHeader* header = &key->header;
+    header->magic_number = FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY, header->reserved = UINT16_MAX,
+    header->reserved1 = UINT32_MAX,
+
     key->partition = partition;
     key->address = FURI_HAL_CRYPTO_KEY_ADDRESS_INIT;
     key->length = FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX;
-    key->data = malloc(key->length);
+
     return key;
 }
 
 void furi_hal_crypto_storage_free(FuriHalCryptoKey* key) {
     furi_check(key);
-    if(key->data) {
-        memset(key->data, 0, key->length);
-        memset(&key->header, 0, sizeof(FuriHalCryptoKeyHeader));
-        free(key->data);
-        key->data = NULL;
-    }
+
+    memset(key, 0, sizeof(FuriHalCryptoKey));
     free(key);
 }
 
@@ -100,28 +97,28 @@ static FuriHalCryptoStatus
         furi_crash();
     }
 
-    FuriHalCryptoKeyHeader* header_key = malloc(sizeof(FuriHalCryptoKeyHeader));
     sl_status_t status = SL_STATUS_FAIL;
 
     while((address_start + sizeof(FuriHalCryptoKeyHeader)) <= address_max) {
+        FuriHalCryptoKeyHeader header;
         // Read the header of the key at the current address
         status = sl_si91x_command_to_read_common_flash(
-            address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)header_key);
+            address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)&header);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to read from NWP flash: 0x%08lx\r\n", status);
             ret = FuriHalCryptoStatusFail;
             break;
         }
-        if(header_key->magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY) {
-            if(header_key->type == key->header.type && header_key->id == key->header.id) {
+        if(header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY) {
+            if(header.type == key->header.type && header.id == key->header.id) {
                 // Duplicate key type+id found
                 ret = FuriHalCryptoStatusDuplicate;
                 break;
             }
             // Found a matching key, continue to the next slot
-            address_start += sizeof(FuriHalCryptoKeyHeader) + header_key->size;
-        } else if(header_key->magic_number == 0xFFFFFFFF) {
+            address_start += sizeof(FuriHalCryptoKeyHeader) + header.size;
+        } else if(header.magic_number == 0xFFFFFFFF) {
             // Found an empty slot, return the address
             ret = FuriHalCryptoStatusOk;
             break;
@@ -140,7 +137,7 @@ static FuriHalCryptoStatus
             *address = address_start;
         }
     }
-    free(header_key);
+
     return ret;
 }
 
@@ -298,30 +295,30 @@ FuriHalCryptoStatus
         furi_crash();
     }
 
-    FuriHalCryptoKeyHeader* header_key = malloc(sizeof(FuriHalCryptoKeyHeader));
     sl_status_t status = SL_STATUS_FAIL;
 
     while((address_start + sizeof(FuriHalCryptoKeyHeader)) <= address_max) {
+        FuriHalCryptoKeyHeader header;
         // Read the header of the key at the current address
         status = sl_si91x_command_to_read_common_flash(
-            address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)header_key);
+            address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)&header);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to read from NWP flash: 0x%08lx\r\n", status);
             ret = FuriHalCryptoStatusFail;
             break;
         }
-        if(header_key->magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY) {
+        if(header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY) {
             // Found a matching key, check if it matches the requested type and id
-            if(header_key->type == type && header_key->id == id) {
+            if(header.type == type && header.id == id) {
                 // Read the key data
                 ret = furi_hal_crypto_storage_read_address(key, address_start);
                 break;
             } else {
                 // Continue to the next slot
-                address_start += sizeof(FuriHalCryptoKeyHeader) + header_key->size;
+                address_start += sizeof(FuriHalCryptoKeyHeader) + header.size;
             }
-        } else if(header_key->magic_number == 0xFFFFFFFF) {
+        } else if(header.magic_number == 0xFFFFFFFF) {
             // Found an empty slot
             ret = FuriHalCryptoStatusNotFound; // No matching key found
             break;
@@ -333,8 +330,6 @@ FuriHalCryptoStatus
     if((address_start + sizeof(FuriHalCryptoKeyHeader)) >= address_max) {
         ret = FuriHalCryptoStatusNotFound; // No matching key found
     }
-
-    free(header_key);
 
     if(ret == FuriHalCryptoStatusOk) {
         uint32_t crc32 = 0;
@@ -387,29 +382,30 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key) 
         ret = FuriHalCryptoStatusStorageFull;
     }
 
-    FuriHalCryptoKeyHeader* header_key = malloc(sizeof(FuriHalCryptoKeyHeader));
     do {
-        sl_status_t status = sl_si91x_command_to_read_common_flash(
-            address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)header_key);
+        FuriHalCryptoKeyHeader header;
+
+        const sl_status_t status = sl_si91x_command_to_read_common_flash(
+            address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)&header);
+
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to read from NWP flash: 0x%08lx\r\n", status);
             break;
         }
-        if(header_key->magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY) {
+
+        if(header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY) {
             // Read the key data
             ret = furi_hal_crypto_storage_read_address(key, address_start);
             if(ret == FuriHalCryptoStatusOk) {
                 key->address = address_start;
             }
-        } else if(header_key->magic_number == 0xFFFFFFFF) {
+        } else if(header.magic_number == 0xFFFFFFFF) {
             // No more keys found
             ret = FuriHalCryptoStatusNotFound;
         } else {
             furi_crash();
         }
     } while(false);
-
-    free(header_key);
 
     return ret;
 }
@@ -506,7 +502,7 @@ FuriHalCryptoStatus
         (key->header.flags & FuriHalCryptoKeyFlagWrap) == 0);
 
     FuriHalCryptoKey* csr_der_key = furi_hal_crypto_storage_alloc(key->partition);
-    psa_key_id_t key_id;
+    psa_key_id_t key_id = 0;
     mbedtls_pk_context key_ctx;
     mbedtls_x509write_csr csr_ctx;
     int csr_der_status = 0;
