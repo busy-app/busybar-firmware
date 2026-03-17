@@ -51,7 +51,8 @@ typedef enum Message {
 
 static int32_t screen_streamer_thread(void* context);
 
-ScreenStreamer* screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb, void* context) {
+ScreenStreamer*
+    screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb, void* context) {
     ScreenStreamer* instance = malloc(sizeof(ScreenStreamer));
 
     instance->gui = gui;

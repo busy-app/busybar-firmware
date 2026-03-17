@@ -24,6 +24,23 @@
 
 #define MAX_MESSAGES 16
 
+#define MAX_TRANSPORTS 16
+
+typedef enum {
+    StreamFlagMQTT = 1 << StatePublisherTransportMQTT,
+    StreamFlagWebSocket = 1 << StatePublisherTransportWebSocket,
+    StreamFlagBLE = 1 << StatePublisherTransportBLE,
+
+    StreamFlagAll = StreamFlagMQTT | StreamFlagWebSocket | StreamFlagBLE
+} StreamFlag;
+
+typedef struct Transport {
+    bool valid;
+    StreamFlag flags;
+    StatePublisherPublishCb cb;
+    void* cb_context;
+} Transport;
+
 struct StatePublisher {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
@@ -39,6 +56,9 @@ struct StatePublisher {
     Updater* updater;
     BusyTimer* busy_timer;
     Gui* gui;
+
+    FuriMutex* transports_mutex;
+    Transport transports[MAX_TRANSPORTS];
 };
 
 typedef enum {
@@ -55,7 +75,10 @@ typedef enum {
 typedef struct {
     MessageType type;
     union {
-        BSB_State_StateUpdate* update; // allocated on the heap
+        struct {
+            BSB_State_StateUpdate* data; // allocated on the heap
+            StreamFlag stream_flags;
+        } update;
         UpdaterCheckState updater_check_state;
     };
 } Message;
@@ -83,7 +106,11 @@ static void publish_matter(StatePublisher* instance);
 static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* check_state);
 static void publish_busy_timer(StatePublisher* instance);
 
-void screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, uint8_t stream_flags, void* context);
+void screen_streamer_callback(
+    GuiDisplayId display,
+    const ScreenStreamerFrame* frame,
+    uint8_t stream_flags,
+    void* context);
 
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -180,8 +207,13 @@ static StatePublisher* state_publisher_alloc(void) {
 
     instance->gui = furi_record_open(RECORD_GUI);
 
-    instance->screen_streamer_front = screen_streamer_alloc(GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
-    instance->screen_streamer_back = screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
+    instance->screen_streamer_front = screen_streamer_alloc(
+        GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
+    instance->screen_streamer_back =
+        screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
+
+    instance->transports_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
+    bzero(instance->transports, sizeof(instance->transports));
 
     subscribe(instance);
 
@@ -191,6 +223,35 @@ static StatePublisher* state_publisher_alloc(void) {
     furi_record_create(RECORD_STATE_PUBLISHER, instance);
 
     return instance;
+}
+
+StatePublisherTransportHandle state_publisher_add_transport(
+    StatePublisher* instance,
+    StatePublisherTransport transport,
+    uint32_t frame_interval_ms,
+    StatePublisherPublishCb cb,
+    void* context) {
+    size_t i = 0;
+    furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+    for(; i != MAX_TRANSPORTS; ++i) {
+        Transport* t = instance->transports + i;
+        if(!t->valid) {
+            t->valid = true;
+            t->flags = 1 << transport;
+            t->cb = cb;
+            t->cb_context = context;
+            break;
+        }
+    }
+    furi_mutex_release(instance->transports_mutex);
+    furi_check(i < MAX_TRANSPORTS);
+    return i;
+}
+
+void state_publisher_del_transport(StatePublisher* instance, StatePublisherTransportHandle handle) {
+    furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+    instance->transports[handle].valid = false;
+    furi_mutex_release(instance->transports_mutex);
 }
 
 int32_t state_publisher_srv(void* p) {
@@ -219,9 +280,23 @@ static pb_ostream_t ostream_with_buffer(DynBuffer* buf) {
         .state = buf};
 }
 
+static void free_state_update(BSB_State_StateUpdate* update) {
+    switch(update->which_state) {
+    case BSB_State_StateUpdate_timer_tag:
+        free(update->state.timer.json.data);
+        break;
+    case BSB_State_StateUpdate_frame_tag:
+        free(update->state.frame.data);
+        break;
+    default:
+        break;
+    }
+    free(update);
+}
+
 static bool handle_publish_update(StatePublisher* instance, const Message* message) {
     furi_assert(message->type == MessageTypePublishUpdate);
-    BSB_State_StateUpdate* update = message->update;
+    BSB_State_StateUpdate* update = message->update.data;
     BSB_State_State state = {
         .timestamp = sntp_get_timestamp_ms(),
         .updates_count = 1,
@@ -234,19 +309,27 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
 
     bool result = pb_encode(&stream, BSB_State_State_fields, &state);
     furi_assert(result);
-    FuriString* dump = furi_string_alloc();
+
+    FuriString* dump = furi_string_alloc_printf("%hhx: ", message->update.stream_flags);
     for(size_t i = 0; i != buf.size; ++i) {
         furi_string_cat_printf(dump, "%02hhX", buf.data[i]);
     }
     FURI_LOG_D(TAG, "%s", furi_string_get_cstr(dump));
     furi_string_free(dump);
+
+    {
+        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+        for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+            Transport* t = instance->transports + i;
+            if(t->valid && (t->flags & message->update.stream_flags)) {
+                t->cb(buf.data, buf.size, t->cb_context);
+            }
+        }
+        furi_mutex_release(instance->transports_mutex);
+    }
     dyn_buffer_destroy(&buf);
 
-    // Special case: JSON - free it
-    if(update->which_state == BSB_State_StateUpdate_timer_tag) {
-        free(update->state.timer.json.data);
-    }
-    free(update);
+    free_state_update(update);
     UNUSED(instance);
     return true;
 }
@@ -292,10 +375,17 @@ static const MessageHandler message_handlers[] = {
 
 static_assert(COUNT_OF(message_handlers) == MessageTypesCount);
 
-static void schedule_state_update(StatePublisher* instance, BSB_State_StateUpdate* update) {
+static void schedule_state_update(
+    StatePublisher* instance,
+    BSB_State_StateUpdate* update,
+    StreamFlag flags) {
     Message msg = {
         .type = MessageTypePublishUpdate,
-        .update = update,
+        .update =
+            {
+                .data = update,
+                .stream_flags = flags,
+            },
     };
     send_message(instance, &msg);
 }
@@ -321,7 +411,7 @@ static void brightness_state_callback(const void* item, void* context) {
 
     update->state.brightness.actual_brightness = state->effective_brightness;
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void publish_power(StatePublisher* instance) {
@@ -348,7 +438,7 @@ static void publish_power(StatePublisher* instance) {
     update->state.power.state.known.usb_voltage_mv = power_info.voltage_usb;
     update->state.power.state.known.battery_current_ma = power_info.current_battery;
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void publish_audio(StatePublisher* instance) {
@@ -361,7 +451,7 @@ static void publish_audio(StatePublisher* instance) {
 
     update->state.audio_volume.volume = (uint8_t)roundf(volume * 100.0f);
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void publish_matter(StatePublisher* instance) {
@@ -389,7 +479,7 @@ static void publish_matter(StatePublisher* instance) {
         update->state.matter.has_state = false;
     }
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* info) {
@@ -430,7 +520,7 @@ static void publish_update_check(StatePublisher* instance, const UpdaterCheckSta
         furi_assert(false);
         break;
     }
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void publish_busy_timer(StatePublisher* instance) {
@@ -451,7 +541,7 @@ static void publish_busy_timer(StatePublisher* instance) {
     memcpy(&update->state.timer.json.data->bytes, json_text, len);
     free(json_text);
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 static void power_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
@@ -490,7 +580,7 @@ static void device_name_pubsub_callback(const void* message, void* context) {
         furi_string_get_cstr(name),
         sizeof(update->state.device_name.name));
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void matter_pubsub_callback(const void* message, void* context) {
@@ -576,7 +666,7 @@ static void input_event_pubsub_callback(const void* message, void* context) {
         break;
     }
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void busy_timer_pubsub_callback(const void* message, void* context) {
@@ -602,7 +692,7 @@ static void sntp_settings_state_callback(const void* item, void* context) {
     update->state.timezone.offset =
         settings->timezone.offset.hours * 60 + settings->timezone.offset.minutes;
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static BSB_State_IpConfigurationMethod convert_ip_configuration_method(WifiIpManagement method) {
@@ -725,7 +815,7 @@ static void wifi_info_state_callback(const void* item, void* context) {
         break;
     }
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void updater_update_state_callback(const void* item, void* context) {
@@ -787,7 +877,7 @@ static void updater_update_state_callback(const void* item, void* context) {
     update->state.update_state.status = status_lookup[info->status];
     update->state.update_state.event = event_lookup[info->event];
 
-    schedule_state_update(instance, update);
+    schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void updater_check_state_callback(const void* item, void* context) {
@@ -798,8 +888,45 @@ static void updater_check_state_callback(const void* item, void* context) {
     send_message(instance, &msg);
 }
 
-void screen_streamer_callback(GuiDisplayId display, const ScreenStreamerFrame* frame, uint8_t stream_flags, void* context) {
-    UNUSED(context);
-    UNUSED(display);
-    FURI_LOG_D(TAG, "frame for %hhx: %lux%lu (%zu) pf:%u c:%u", stream_flags, frame->width, frame->height, frame->data_size, frame->pixel_format, frame->compression);
+void screen_streamer_callback(
+    GuiDisplayId display,
+    const ScreenStreamerFrame* frame,
+    uint8_t stream_flags,
+    void* context) {
+    StatePublisher* instance = context;
+    FURI_LOG_D(
+        TAG,
+        "frame for %hhx: %lux%lu (%zu) pf:%u c:%u",
+        stream_flags,
+        frame->width,
+        frame->height,
+        frame->data_size,
+        frame->pixel_format,
+        frame->compression);
+
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+    update->which_state = BSB_State_StateUpdate_frame_tag;
+
+    static const BSB_Frame_Encoding encoding_lookup[] = {
+        [ScreenStreamerCompressionPlain] = BSB_Frame_Encoding_PLAIN,
+        [ScreenStreamerCompressionRLE] = BSB_Frame_Encoding_RUN_LENGTH,
+    };
+    static const BSB_Frame_PixelFormat pixel_format_lookup[] = {
+        [ScreenStreamerPixelFormatR8G8B8] = BSB_Frame_PixelFormat_RGB888,
+        [ScreenStreamerPixelFormatL8] = BSB_Frame_PixelFormat_L8,
+        [ScreenStreamerPixelFormatL4] = BSB_Frame_PixelFormat_L4,
+    };
+    static const BSB_Frame_Screen screen_lookup[] = {
+        [GuiDisplayIdFront] = BSB_Frame_Screen_FRONT,
+        [GuiDisplayIdBack] = BSB_Frame_Screen_BACK,
+    };
+    update->state.frame.screen = screen_lookup[display];
+    update->state.frame.width = frame->width;
+    update->state.frame.height = frame->height;
+    update->state.frame.pixel_format = pixel_format_lookup[frame->pixel_format];
+    update->state.frame.encoding = encoding_lookup[frame->compression];
+    update->state.frame.data = malloc(PB_BYTES_ARRAY_T_ALLOCSIZE(frame->data_size));
+    update->state.frame.data->size = frame->data_size;
+    memcpy(&update->state.frame.data->bytes, frame->data, frame->data_size);
+    schedule_state_update(instance, update, stream_flags);
 }

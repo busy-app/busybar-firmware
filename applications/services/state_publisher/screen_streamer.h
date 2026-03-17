@@ -29,10 +29,14 @@ typedef struct ScreenStreamerFrame {
     size_t data_size;
 } ScreenStreamerFrame;
 
-typedef void (*ScreenStreamerFrameCb)(GuiDisplayId display, const ScreenStreamerFrame* frame, uint8_t stream_flags, void* context);
-
-ScreenStreamer* screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb,
+typedef void (*ScreenStreamerFrameCb)(
+    GuiDisplayId display,
+    const ScreenStreamerFrame* frame,
+    uint8_t stream_flags,
     void* context);
+
+ScreenStreamer*
+    screen_streamer_alloc(GuiDisplayId display, Gui* gui, ScreenStreamerFrameCb cb, void* context);
 
 void screen_streamer_free(ScreenStreamer* instance);
 
