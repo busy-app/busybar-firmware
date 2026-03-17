@@ -37,6 +37,7 @@ typedef enum {
 typedef struct Transport {
     bool valid;
     StreamFlag flags;
+    uint32_t frame_interval_ms;
     StatePublisherPublishCb cb;
     void* cb_context;
 } Transport;
@@ -185,10 +186,6 @@ static void subscribe(StatePublisher* instance) {
         FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
     }
-    {
-        screen_streamer_add_stream(instance->screen_streamer_front, 5000, 1);
-        screen_streamer_add_stream(instance->screen_streamer_front, 1300, 2);
-    }
 }
 
 static StatePublisher* state_publisher_alloc(void) {
@@ -225,6 +222,27 @@ static StatePublisher* state_publisher_alloc(void) {
     return instance;
 }
 
+static void update_screen_streamer_outputs(StatePublisher* instance) {
+    for(StatePublisherTransport transport = 0; transport != StatePublisherTransportMax; ++transport) {
+        bool enabled = false;
+        uint32_t frame_interval_ms = UINT32_MAX;
+        for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+            Transport* t = instance->transports + i;
+            if(t->valid) {
+                enabled = true;
+                frame_interval_ms = MIN(frame_interval_ms, t->frame_interval_ms);
+            }
+        }
+        if(enabled) {
+            screen_streamer_enable_output(instance->screen_streamer_front, transport, frame_interval_ms);
+            screen_streamer_enable_output(instance->screen_streamer_back, transport, frame_interval_ms);
+        } else {
+            screen_streamer_disable_output(instance->screen_streamer_front, transport);
+            screen_streamer_disable_output(instance->screen_streamer_back, transport);
+        }
+    }
+}
+
 StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
     StatePublisherTransport transport,
@@ -239,11 +257,13 @@ StatePublisherTransportHandle state_publisher_add_transport(
         if(!t->valid) {
             t->valid = true;
             t->flags = 1 << transport;
+            t->frame_interval_ms = frame_interval_ms;
             t->cb = cb;
             t->cb_context = context;
             break;
         }
     }
+    update_screen_streamer_outputs(instance);
     furi_mutex_release(instance->transports_mutex);
     furi_check(i < MAX_TRANSPORTS);
     return i;
@@ -252,6 +272,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
 void state_publisher_del_transport(StatePublisher* instance, StatePublisherTransportHandle handle) {
     furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
     instance->transports[handle].valid = false;
+    update_screen_streamer_outputs(instance);
     furi_mutex_release(instance->transports_mutex);
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <gui/gui.h>
+#include "state_publisher.h"
 
 typedef struct ScreenStreamer ScreenStreamer;
 
@@ -44,9 +45,9 @@ void screen_streamer_start(ScreenStreamer* instance);
 
 void screen_streamer_stop(ScreenStreamer* instance);
 
-void screen_streamer_add_stream(
+void screen_streamer_enable_output(
     ScreenStreamer* instance,
-    uint32_t frame_interval_ms,
-    uint8_t stream_flags);
+    StatePublisherTransport transport,
+    uint32_t frame_interval_ms);
 
-void stream_streamer_remove_stream(ScreenStreamer* instance, uint8_t stream_flags);
+void screen_streamer_disable_output(ScreenStreamer* instance, StatePublisherTransport transport);

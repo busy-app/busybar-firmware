@@ -22,6 +22,8 @@ typedef enum StatePublisherTransport {
     StatePublisherTransportWebSocket,
     StatePublisherTransportBLE,
     StatePublisherTransportMQTT,
+
+    StatePublisherTransportMax,
 } StatePublisherTransport;
 
 typedef void (*StatePublisherPublishCb)(const void* data, size_t data_size, void* context);
