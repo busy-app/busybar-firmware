@@ -11,28 +11,26 @@ void mqtt_saved_state_init(MqttSavedState* saved_state) {
     mqtt_saved_state_v1_init(saved_state);
 }
 
-void mqtt_saved_state_reset(MqttSavedState* saved_state) {
+bool mqtt_saved_state_reset(MqttSavedState* saved_state) {
     furi_check(saved_state);
 
     SettingProvider* provider =
         setting_provider_alloc(MQTT_SAVED_STATE_FILE_PATH, MQTT_SAVED_STATE_VERSION, NULL, 0);
-
-    setting_provider_open(provider);
-    setting_provider_reset(provider, &MQTT_SAVED_STATE_ROOT, saved_state);
-    setting_provider_close(provider);
+    bool is_successful = setting_provider_reset(provider, &MQTT_SAVED_STATE_ROOT, saved_state);
     setting_provider_free(provider);
+
+    return is_successful;
 }
 
-void mqtt_saved_state_load(MqttSavedState* saved_state) {
+bool mqtt_saved_state_load(MqttSavedState* saved_state) {
     furi_check(saved_state);
 
     SettingProvider* provider =
         setting_provider_alloc(MQTT_SAVED_STATE_FILE_PATH, MQTT_SAVED_STATE_VERSION, NULL, 0);
-
-    setting_provider_open(provider);
-    setting_provider_load(provider, &MQTT_SAVED_STATE_ROOT, saved_state);
-    setting_provider_close(provider);
+    bool is_successful = setting_provider_load(provider, &MQTT_SAVED_STATE_ROOT, saved_state);
     setting_provider_free(provider);
+
+    return is_successful;
 }
 
 bool mqtt_saved_state_save(const MqttSavedState* saved_state) {
@@ -40,13 +38,10 @@ bool mqtt_saved_state_save(const MqttSavedState* saved_state) {
 
     SettingProvider* provider =
         setting_provider_alloc(MQTT_SAVED_STATE_FILE_PATH, MQTT_SAVED_STATE_VERSION, NULL, 0);
-
-    setting_provider_open(provider);
-    const bool success = setting_provider_save(provider, &MQTT_SAVED_STATE_ROOT, saved_state);
-    setting_provider_close(provider);
+    bool is_successful = setting_provider_save(provider, &MQTT_SAVED_STATE_ROOT, saved_state);
     setting_provider_free(provider);
 
-    return success;
+    return is_successful;
 }
 
 bool mqtt_saved_state_is_valid(const MqttSavedState* saved_state) {

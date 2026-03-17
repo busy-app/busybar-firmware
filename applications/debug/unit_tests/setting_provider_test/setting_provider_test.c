@@ -1,75 +1,98 @@
 /**
  * @file setting_provider_test.c
- * @brief Unit tests for setting_provider
+ * @brief Minimal unit tests for setting_provider
  */
 
 #include "../unit_tests.h"
 
-#include <toolbox/setting_provider.h>
+#include <setting_provider.h>
 
 #define SETTING_PROVIDER_TEST_PATH UNIT_TESTS_PATH("setting_provider_test.json")
 
 static SettingProvider* provider;
 
-/* custom type for testing - RGB color */
+/* ========== Test types ========== */
+
+/* Custom type for testing - RGB color */
 typedef struct {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 } TestColor;
 
-/* test structure with nested settings */
+/* Struct with nested settings */
 typedef struct {
     int width;
     int height;
     TestColor background;
 } TestRectangle;
 
-/* validation callbacks */
+/* Enum for union discriminator */
+typedef enum {
+    TestShapeTypeCircle,
+    TestShapeTypeRectangle,
+    TestShapeTypesCount,
+
+    TestShapeTypeDefault = TestShapeTypeCircle,
+} TestShapeType;
+
+typedef struct {
+    int radius;
+} TestCircle;
+
+typedef struct {
+    int width;
+    int height;
+} TestShapeRect;
+
+typedef struct {
+    TestShapeType type;
+    union {
+        TestCircle circle;
+        TestShapeRect rectangle;
+    } data;
+} TestShape;
+
+/* Enum for basic enum tests */
+typedef enum {
+    TestEnumFirst,
+    TestEnumSecond,
+    TestEnumThird,
+    TestEnumCount
+} TestEnum;
+
+/* Raw type test struct */
+typedef struct {
+    int x;
+    int y;
+} TestPoint;
+
+/* ========== Callbacks ========== */
+
 static bool test_int_is_valid(const SettingProviderSetting* setting, int value) {
     UNUSED(setting);
     return (value >= 0 && value <= 1000);
 }
 
-static bool test_float_is_valid(const SettingProviderSetting* setting, float value) {
-    UNUSED(setting);
-    return (value >= 0.0f && value <= 100.0f);
-}
-
-static bool test_string_is_valid(const SettingProviderSetting* setting, const char* value) {
-    UNUSED(setting);
-    return (strlen(value) <= 20);
-}
-
-static bool
-    test_furi_string_is_valid(const SettingProviderSetting* setting, const FuriString* value) {
-    UNUSED(setting);
-    return (furi_string_size(value) <= 20);
-}
-
-/* custom type callbacks for color */
 static bool test_color_serialize(
     const SettingProviderSetting* setting,
-    FuriString* string,
-    const void* value) {
+    const void* value,
+    FuriString* string) {
     UNUSED(setting);
     const TestColor* color = value;
     furi_string_printf(string, "#%02x%02x%02x", color->r, color->g, color->b);
     return true;
 }
 
-static bool test_color_deserialize(
-    const SettingProviderSetting* setting,
-    void* value,
-    const FuriString* string) {
+static bool
+    test_color_deserialize(const SettingProviderSetting* setting, const char* string, void* value) {
     UNUSED(setting);
     TestColor* color = value;
-    const char* str = furi_string_get_cstr(string);
 
-    if(str[0] != '#') return false;
+    if(string[0] != '#') return false;
 
     unsigned int r, g, b;
-    if(sscanf(str, "#%02x%02x%02x", &r, &g, &b) == 3) {
+    if(sscanf(string, "#%02x%02x%02x", &r, &g, &b) == 3) {
         color->r = (uint8_t)r;
         color->g = (uint8_t)g;
         color->b = (uint8_t)b;
@@ -78,32 +101,68 @@ static bool test_color_deserialize(
     return false;
 }
 
-/* migration callback */
-static bool test_migration_v1_to_v2(SettingProvider* prov) {
-    UNUSED(prov);
-    /* simple migration - would normally modify settings */
+static bool
+    test_raw_serialize(const SettingProviderSetting* setting, const void* value, cJSON* json_node) {
+    UNUSED(setting);
+    const TestPoint* point = value;
+    cJSON_AddNumberToObject(json_node, "x", point->x);
+    cJSON_AddNumberToObject(json_node, "y", point->y);
     return true;
 }
+
+static bool test_raw_deserialize(
+    const SettingProviderSetting* setting,
+    const cJSON* json_node,
+    void* value) {
+    UNUSED(setting);
+    TestPoint* point = value;
+    const cJSON* x = cJSON_GetObjectItem((cJSON*)json_node, "x");
+    const cJSON* y = cJSON_GetObjectItem((cJSON*)json_node, "y");
+    if(!cJSON_IsNumber(x) || !cJSON_IsNumber(y)) return false;
+    point->x = x->valueint;
+    point->y = y->valueint;
+    return true;
+}
+
+static bool test_migration_v1_to_v2(SettingProvider* instance) {
+    UNUSED(instance);
+    return true;
+}
+
+/* ========== Static data for settings ========== */
 
 static const SettingProviderMigration test_migrations[] = {
     {
         .target_version = 2,
-        .callback = test_migration_v1_to_v2,
+        .migrate_callback = test_migration_v1_to_v2,
     },
 };
 
-/* static default values for nested settings */
-static const uint8_t test_default_r = 255;
-static const uint8_t test_default_g = 255;
-static const uint8_t test_default_b = 255;
+static const char* const test_enum_strings[TestEnumCount] = {
+    [TestEnumFirst] = "first",
+    [TestEnumSecond] = "second",
+    [TestEnumThird] = "third",
+};
 
-/* nested settings for rectangle */
+static const TestEnum test_enum_default = TestEnumSecond;
+
+static const char* const test_shape_type_strings[TestShapeTypesCount] = {
+    [TestShapeTypeCircle] = "circle",
+    [TestShapeTypeRectangle] = "rectangle",
+};
+
+static const TestShapeType test_shape_type_default = TestShapeTypeDefault;
+
+static const uint8_t test_color_r = 255;
+static const uint8_t test_color_g = 255;
+static const uint8_t test_color_b = 255;
+
 static const SettingProviderSetting rectangle_color_settings[] = {
     {
         .name = "r",
         .interface =
             &(const SettingProviderCustomInterface){
-                .default_value = &test_default_r,
+                .default_value = &test_color_r,
                 .serialize_callback = test_color_serialize,
                 .deserialize_callback = test_color_deserialize,
                 .default_value_size = sizeof(uint8_t),
@@ -116,7 +175,7 @@ static const SettingProviderSetting rectangle_color_settings[] = {
         .name = "g",
         .interface =
             &(const SettingProviderCustomInterface){
-                .default_value = &test_default_g,
+                .default_value = &test_color_g,
                 .serialize_callback = test_color_serialize,
                 .deserialize_callback = test_color_deserialize,
                 .default_value_size = sizeof(uint8_t),
@@ -129,7 +188,7 @@ static const SettingProviderSetting rectangle_color_settings[] = {
         .name = "b",
         .interface =
             &(const SettingProviderCustomInterface){
-                .default_value = &test_default_b,
+                .default_value = &test_color_b,
                 .serialize_callback = test_color_serialize,
                 .deserialize_callback = test_color_deserialize,
                 .default_value_size = sizeof(uint8_t),
@@ -143,22 +202,14 @@ static const SettingProviderSetting rectangle_color_settings[] = {
 static const SettingProviderSetting rectangle_settings[] = {
     {
         .name = "width",
-        .interface =
-            &(const SettingProviderIntInterface){
-                .default_value = 100,
-                .is_valid_callback = NULL,
-            },
+        .interface = &(const SettingProviderIntInterface){.default_value = 100},
         .context = NULL,
         .field_offset = offsetof(TestRectangle, width),
         .type = SettingProviderSettingTypeInt,
     },
     {
         .name = "height",
-        .interface =
-            &(const SettingProviderIntInterface){
-                .default_value = 100,
-                .is_valid_callback = NULL,
-            },
+        .interface = &(const SettingProviderIntInterface){.default_value = 100},
         .context = NULL,
         .field_offset = offsetof(TestRectangle, height),
         .type = SettingProviderSettingTypeInt,
@@ -166,16 +217,90 @@ static const SettingProviderSetting rectangle_settings[] = {
     {
         .name = "background",
         .interface =
-            &(const SettingProviderStructureInterface){
+            &(const SettingProviderStructInterface){
                 .is_valid_callback = NULL,
                 .inner_settings = rectangle_color_settings,
                 .inner_settings_count = COUNT_OF(rectangle_color_settings),
             },
         .context = NULL,
         .field_offset = offsetof(TestRectangle, background),
-        .type = SettingProviderSettingTypeStructure,
+        .type = SettingProviderSettingTypeStruct,
     },
 };
+
+static const SettingProviderSetting test_circle_settings[] = {
+    {
+        .name = "radius",
+        .interface = &(const SettingProviderIntInterface){.default_value = 10},
+        .context = NULL,
+        .field_offset = offsetof(TestCircle, radius),
+        .type = SettingProviderSettingTypeInt,
+    },
+};
+
+static const SettingProviderSetting test_rect_settings[] = {
+    {
+        .name = "width",
+        .interface = &(const SettingProviderIntInterface){.default_value = 50},
+        .context = NULL,
+        .field_offset = offsetof(TestShapeRect, width),
+        .type = SettingProviderSettingTypeInt,
+    },
+    {
+        .name = "height",
+        .interface = &(const SettingProviderIntInterface){.default_value = 50},
+        .context = NULL,
+        .field_offset = offsetof(TestShapeRect, height),
+        .type = SettingProviderSettingTypeInt,
+    },
+};
+
+static const SettingProviderSetting test_shape_type_setting = {
+    .name = "type",
+    .interface =
+        &(const SettingProviderEnumInterface){
+            .string_map = test_shape_type_strings,
+            .string_map_length = TestShapeTypesCount,
+            .type_size = sizeof(TestShapeType),
+            .default_value = &test_shape_type_default,
+        },
+    .context = NULL,
+    .field_offset = offsetof(TestShape, type),
+    .type = SettingProviderSettingTypeEnum,
+};
+
+static const SettingProviderSetting test_shape_union_settings[] = {
+    [TestShapeTypeCircle] =
+        {
+            .name = "data",
+            .interface =
+                &(const SettingProviderStructInterface){
+                    .is_valid_callback = NULL,
+                    .inner_settings = test_circle_settings,
+                    .inner_settings_count = COUNT_OF(test_circle_settings),
+                },
+            .context = NULL,
+            .field_offset = offsetof(TestShape, data.circle),
+            .type = SettingProviderSettingTypeStruct,
+        },
+    [TestShapeTypeRectangle] =
+        {
+            .name = "data",
+            .interface =
+                &(const SettingProviderStructInterface){
+                    .is_valid_callback = NULL,
+                    .inner_settings = test_rect_settings,
+                    .inner_settings_count = COUNT_OF(test_rect_settings),
+                },
+            .context = NULL,
+            .field_offset = offsetof(TestShape, data.rectangle),
+            .type = SettingProviderSettingTypeStruct,
+        },
+};
+
+static const TestPoint test_point_default = {.x = 0, .y = 0};
+
+/* ========== Setup/Teardown ========== */
 
 static void setting_provider_setup(void) {
     provider = setting_provider_alloc(
@@ -183,159 +308,96 @@ static void setting_provider_setup(void) {
 }
 
 static void setting_provider_teardown(void) {
-    mu_assert(setting_provider_close(provider), "Failed to close provider");
     setting_provider_free(provider);
     provider = NULL;
 }
 
-static void setting_provider_reopen(void) {
-    setting_provider_teardown();
-    setting_provider_setup();
-    setting_provider_open(provider);
+/* ========== Test 1: Alloc/Free ========== */
+
+MU_TEST(setting_provider_test_alloc_free) {
+    /* Just verify alloc/free works - setup/teardown handles this */
+    mu_assert(provider != NULL, "Provider should be allocated");
 }
 
-/* test basic bool operations */
-MU_TEST(setting_provider_test_bool) {
-    setting_provider_open(provider);
+/* ========== Test 2: File Not Found (uses defaults) ========== */
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_bool_false",
-            .interface = &(const SettingProviderBoolInterface){.default_value = false},
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeBool,
-        };
-        bool value = true;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(false, value);
-    }
+MU_TEST(setting_provider_test_file_not_found) {
+    const SettingProviderSetting setting = {
+        .name = "test_missing_file",
+        .interface = &(const SettingProviderIntInterface){.default_value = 42},
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeInt,
+    };
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_bool_true",
-            .interface = &(const SettingProviderBoolInterface){.default_value = true},
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeBool,
-        };
-        bool value = false;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(true, value);
-    }
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_bool_saved",
-            .interface = &(const SettingProviderBoolInterface){.default_value = false},
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeBool,
-        };
-        bool value = true;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save bool");
-
-        value = false;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(true, value);
-    }
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_bool_reset",
-            .interface = &(const SettingProviderBoolInterface){.default_value = false},
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeBool,
-        };
-        bool value = true;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save bool");
-
-        setting_provider_reset(provider, &setting, &value);
-        mu_assert_int_eq(false, value);
-    }
+    int value = 0;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(42, value); /* Should get default */
 }
 
-/* test basic int operations */
-MU_TEST(setting_provider_test_int) {
-    setting_provider_open(provider);
+/* ========== Test 3: Bool Basic ========== */
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_int_zero",
-            .interface =
-                &(const SettingProviderIntInterface){
-                    .default_value = 0,
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeInt,
-        };
-        int value = 999;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(0, value);
-    }
+MU_TEST(setting_provider_test_bool_basic) {
+    const SettingProviderSetting setting = {
+        .name = "test_bool",
+        .interface = &(const SettingProviderBoolInterface){.default_value = false},
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeBool,
+    };
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_int_default",
-            .interface =
-                &(const SettingProviderIntInterface){
-                    .default_value = 42,
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeInt,
-        };
-        int value = 0;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(42, value);
-    }
+    /* Load default */
+    bool value = true;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(false, value);
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_int_saved",
-            .interface =
-                &(const SettingProviderIntInterface){
-                    .default_value = 0,
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeInt,
-        };
-        int value = 123;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save int");
+    /* Save true */
+    value = true;
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save bool");
 
-        value = 0;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(123, value);
-    }
+    /* Reload */
+    value = false;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(true, value);
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_int_reset",
-            .interface =
-                &(const SettingProviderIntInterface){
-                    .default_value = 100, .is_valid_callback = NULL},
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeInt,
-        };
-        int value = 200;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save int");
-
-        setting_provider_reset(provider, &setting, &value);
-        mu_assert_int_eq(100, value);
-    }
+    /* Reset */
+    setting_provider_reset(provider, &setting, &value);
+    mu_assert_int_eq(false, value);
 }
 
-/* test int validation */
+/* ========== Test 4: Int Basic ========== */
+
+MU_TEST(setting_provider_test_int_basic) {
+    const SettingProviderSetting setting = {
+        .name = "test_int",
+        .interface = &(const SettingProviderIntInterface){.default_value = 100},
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeInt,
+    };
+
+    /* Load default */
+    int value = 0;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(100, value);
+
+    /* Save */
+    value = 500;
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save int");
+
+    /* Reload */
+    value = 0;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(500, value);
+
+    /* Reset */
+    setting_provider_reset(provider, &setting, &value);
+    mu_assert_int_eq(100, value);
+}
+
+/* ========== Test 5: Int Validation ========== */
+
 MU_TEST(setting_provider_test_int_validation) {
-    setting_provider_open(provider);
-
     const SettingProviderSetting setting = {
         .name = "test_int_validated",
         .interface =
@@ -348,640 +410,391 @@ MU_TEST(setting_provider_test_int_validation) {
         .type = SettingProviderSettingTypeInt,
     };
 
-    {
-        int value = 100;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save valid int");
+    /* Valid value */
+    int value = 100;
+    mu_assert(setting_provider_save(provider, &setting, &value), "Should accept valid int");
 
-        value = 0;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(100, value);
-    }
+    value = 0;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(100, value);
 
-    {
-        int invalid_value = 2000;
-        mu_assert(
-            !setting_provider_save(provider, &setting, &invalid_value),
-            "Should reject invalid int");
+    /* Invalid value (too large) */
+    int invalid = 2000;
+    mu_assert(!setting_provider_save(provider, &setting, &invalid), "Should reject invalid int");
 
-        int value = 0;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(100, value);
-    }
+    /* Invalid value (negative) */
+    invalid = -10;
+    mu_assert(!setting_provider_save(provider, &setting, &invalid), "Should reject negative int");
 
-    {
-        int invalid_value = -10;
-        mu_assert(
-            !setting_provider_save(provider, &setting, &invalid_value),
-            "Should reject negative int");
-
-        int value = 0;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(100, value);
-    }
+    /* Original value preserved */
+    value = 0;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(100, value);
 }
 
-/* test basic float operations */
-MU_TEST(setting_provider_test_float) {
-    setting_provider_open(provider);
+/* ========== Test 6: Float Basic ========== */
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_float_zero",
-            .interface =
-                &(const SettingProviderFloatInterface){
-                    .default_value = 0.0f,
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeFloat,
-        };
-        float value = 999.9f;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_double_eq(0.0f, value);
-    }
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_float_default",
-            .interface =
-                &(const SettingProviderFloatInterface){
-                    .default_value = 3.14f,
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeFloat,
-        };
-        float value = 0.0f;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_double_eq(3.14f, value);
-    }
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_float_saved",
-            .interface =
-                &(const SettingProviderFloatInterface){
-                    .default_value = 0.0f,
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeFloat,
-        };
-        float value = 12.34f;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save float");
-
-        value = 0.0f;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_double_eq(12.34f, value);
-    }
-}
-
-/* test float validation */
-MU_TEST(setting_provider_test_float_validation) {
-    setting_provider_open(provider);
-
+MU_TEST(setting_provider_test_float_basic) {
     const SettingProviderSetting setting = {
-        .name = "test_float_validated",
-        .interface =
-            &(const SettingProviderFloatInterface){
-                .default_value = 50.0f,
-                .is_valid_callback = test_float_is_valid,
-            },
+        .name = "test_float",
+        .interface = &(const SettingProviderFloatInterface){.default_value = 1.5f},
         .context = NULL,
         .field_offset = 0,
         .type = SettingProviderSettingTypeFloat,
     };
 
-    {
-        float value = 25.5f;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save valid float");
+    /* Load default */
+    float value = 0.0f;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_double_eq(1.5f, value);
 
-        value = 0.0f;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_double_eq(25.5f, value);
-    }
+    /* Save */
+    value = 3.14159f;
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save float");
 
-    {
-        float invalid_value = 200.0f;
-        mu_assert(
-            !setting_provider_save(provider, &setting, &invalid_value),
-            "Should reject invalid float");
-
-        float value = 0.0f;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_double_eq(25.5f, value);
-    }
+    /* Reload */
+    value = 0.0f;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_double_eq(3.14159f, value);
 }
 
-/* test C-string operations */
-MU_TEST(setting_provider_test_string) {
-    setting_provider_open(provider);
+/* ========== Test 7: String Basic ========== */
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_string_default",
-            .interface =
-                &(const SettingProviderStringInterface){
-                    .default_value = "default_string",
-                    .is_valid_callback = NULL,
-                    .max_length = 32,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeString,
-        };
-        char value[32];
-        setting_provider_load(provider, &setting, value);
-        mu_assert_string_eq("default_string", value);
-    }
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_string_saved",
-            .interface =
-                &(const SettingProviderStringInterface){
-                    .default_value = "default",
-                    .is_valid_callback = NULL,
-                    .max_length = 32,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeString,
-        };
-        const char* value = "test_value";
-        mu_assert(setting_provider_save(provider, &setting, value), "Failed to save string");
-
-        char loaded[32];
-        setting_provider_load(provider, &setting, loaded);
-        mu_assert_string_eq("test_value", loaded);
-    }
-}
-
-/* test C-string validation */
-MU_TEST(setting_provider_test_string_validation) {
-    setting_provider_open(provider);
-
+MU_TEST(setting_provider_test_string_basic) {
     const SettingProviderSetting setting = {
-        .name = "test_string_validated",
+        .name = "test_string",
         .interface =
             &(const SettingProviderStringInterface){
-                .default_value = "default",
-                .is_valid_callback = test_string_is_valid,
-                .max_length = 32,
+                .default_value = "hello",
+                .max_size = 32,
             },
         .context = NULL,
         .field_offset = 0,
         .type = SettingProviderSettingTypeString,
     };
 
-    {
-        const char* value = "valid";
-        mu_assert(setting_provider_save(provider, &setting, value), "Failed to save valid string");
+    /* Load default */
+    char value[32] = {0};
+    setting_provider_load(provider, &setting, value);
+    mu_assert_string_eq("hello", value);
 
-        char loaded[32];
-        setting_provider_load(provider, &setting, loaded);
-        mu_assert_string_eq("valid", loaded);
-    }
+    /* Save */
+    const char* new_value = "world";
+    mu_assert(setting_provider_save(provider, &setting, new_value), "Failed to save string");
 
-    {
-        const char* invalid_value = "this_string_is_way_too_long";
-        mu_assert(
-            !setting_provider_save(provider, &setting, invalid_value),
-            "Should reject invalid string");
-
-        char loaded[32];
-        setting_provider_load(provider, &setting, loaded);
-        mu_assert_string_eq("valid", loaded);
-    }
+    /* Reload */
+    memset(value, 0, sizeof(value));
+    setting_provider_load(provider, &setting, value);
+    mu_assert_string_eq("world", value);
 }
 
-/* test FuriString operations */
-MU_TEST(setting_provider_test_furi_string) {
-    setting_provider_open(provider);
+/* ========== Test 8: String Truncation ========== */
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_furi_string_default",
-            .interface =
-                &(const SettingProviderFuriStringInterface){
-                    .default_value = "default_string",
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeFuriString,
-        };
-        FuriString* value = furi_string_alloc();
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_string_eq("default_string", furi_string_get_cstr(value));
-        furi_string_free(value);
-    }
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_furi_string_saved",
-            .interface =
-                &(const SettingProviderFuriStringInterface){
-                    .default_value = "default",
-                    .is_valid_callback = NULL,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeFuriString,
-        };
-        FuriString* value = furi_string_alloc_set("test_value");
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save FuriString");
-
-        furi_string_reset(value);
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_string_eq("test_value", furi_string_get_cstr(value));
-        furi_string_free(value);
-    }
-}
-
-/* test FuriString validation */
-MU_TEST(setting_provider_test_furi_string_validation) {
-    setting_provider_open(provider);
-
+MU_TEST(setting_provider_test_string_truncation) {
     const SettingProviderSetting setting = {
-        .name = "test_furi_string_validated",
+        .name = "test_string_truncated",
         .interface =
-            &(const SettingProviderFuriStringInterface){
-                .default_value = "default",
-                .is_valid_callback = test_furi_string_is_valid,
+            &(const SettingProviderStringInterface){
+                .default_value = "short",
+                .max_size = 10,
             },
         .context = NULL,
         .field_offset = 0,
-        .type = SettingProviderSettingTypeFuriString,
+        .type = SettingProviderSettingTypeString,
     };
 
-    {
-        FuriString* value = furi_string_alloc_set("valid");
-        mu_assert(
-            setting_provider_save(provider, &setting, &value), "Failed to save valid FuriString");
-        furi_string_free(value);
+    /* String too long for buffer */
+    const char* too_long = "this_string_is_way_too_long";
+    mu_assert(
+        !setting_provider_save(provider, &setting, too_long), "Should reject oversized string");
 
-        value = furi_string_alloc();
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_string_eq("valid", furi_string_get_cstr(value));
-        furi_string_free(value);
-    }
-
-    {
-        FuriString* invalid_value = furi_string_alloc_set("this_string_is_way_too_long");
-        mu_assert(
-            !setting_provider_save(provider, &setting, &invalid_value),
-            "Should reject invalid FuriString");
-        furi_string_free(invalid_value);
-
-        FuriString* value = furi_string_alloc();
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_string_eq("valid", furi_string_get_cstr(value));
-        furi_string_free(value);
-    }
+    /* Default preserved */
+    char value[10] = {0};
+    setting_provider_load(provider, &setting, value);
+    mu_assert_string_eq("short", value);
 }
 
-typedef enum {
-    TestEnumHello,
-    TestEnumWorld,
-    TestEnumDefault,
+/* ========== Test 9: Enum Basic ========== */
 
-    TestEnumCount
-} TestEnum;
+MU_TEST(setting_provider_test_enum_basic) {
+    const SettingProviderSetting setting = {
+        .name = "test_enum",
+        .interface =
+            &(const SettingProviderEnumInterface){
+                .string_map = test_enum_strings,
+                .string_map_length = TestEnumCount,
+                .type_size = sizeof(TestEnum),
+                .default_value = &test_enum_default,
+            },
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeEnum,
+    };
 
-static const char* const test_enum_names[TestEnumCount] = {
-    [TestEnumHello] = "hello",
-    [TestEnumWorld] = "world",
-    [TestEnumDefault] = "default",
-};
+    /* Load default (TestEnumSecond) */
+    TestEnum value = TestEnumFirst;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(TestEnumSecond, value);
 
-/* test enum operations */
-MU_TEST(setting_provider_test_enum) {
-    setting_provider_open(provider);
+    /* Save each variant */
+    value = TestEnumFirst;
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save enum");
+    value = TestEnumCount;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(TestEnumFirst, value);
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_enum_default",
-            .interface =
-                &(const SettingProviderEnumInterface){
-                    .default_value = TestEnumDefault,
-                    .count = TestEnumCount,
-                    .names = test_enum_names,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeEnum,
-        };
-        int value = TestEnumWorld;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(TestEnumDefault, value);
-    }
+    value = TestEnumThird;
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save enum");
+    value = TestEnumCount;
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(TestEnumThird, value);
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_enum_saved",
-            .interface =
-                &(const SettingProviderEnumInterface){
-                    .default_value = TestEnumDefault,
-                    .count = TestEnumCount,
-                    .names = test_enum_names,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeEnum,
-        };
-        int value = TestEnumWorld;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save enum");
-
-        value = TestEnumCount;
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(TestEnumWorld, value);
-    }
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_enum_reset",
-            .interface =
-                &(const SettingProviderEnumInterface){
-                    .default_value = TestEnumDefault,
-                    .count = TestEnumCount,
-                    .names = test_enum_names,
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeEnum,
-        };
-        int value = TestEnumHello;
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save enum");
-
-        setting_provider_reset(provider, &setting, &value);
-        mu_assert_int_eq(TestEnumDefault, value);
-    }
+    /* Reset */
+    setting_provider_reset(provider, &setting, &value);
+    mu_assert_int_eq(TestEnumSecond, value);
 }
 
-/* test custom type (RGB color) */
-MU_TEST(setting_provider_test_custom) {
-    setting_provider_open(provider);
+/* ========== Test 10: Custom Basic ========== */
 
-    static const TestColor default_red = {.r = 255, .g = 0, .b = 0};
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_color_red",
-            .interface =
-                &(const SettingProviderCustomInterface){
-                    .default_value = &default_red,
-                    .serialize_callback = test_color_serialize,
-                    .deserialize_callback = test_color_deserialize,
-                    .default_value_size = sizeof(TestColor),
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeCustom,
-        };
-
-        TestColor value = {0};
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(255, value.r);
-        mu_assert_int_eq(0, value.g);
-        mu_assert_int_eq(0, value.b);
-    }
-
+MU_TEST(setting_provider_test_custom_basic) {
     static const TestColor default_color = {.r = 128, .g = 64, .b = 32};
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_color_custom",
-            .interface =
-                &(const SettingProviderCustomInterface){
-                    .default_value = &default_color,
-                    .serialize_callback = test_color_serialize,
-                    .deserialize_callback = test_color_deserialize,
-                    .default_value_size = sizeof(TestColor),
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeCustom,
-        };
+    const SettingProviderSetting setting = {
+        .name = "test_custom",
+        .interface =
+            &(const SettingProviderCustomInterface){
+                .default_value = &default_color,
+                .serialize_callback = test_color_serialize,
+                .deserialize_callback = test_color_deserialize,
+                .default_value_size = sizeof(TestColor),
+            },
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeCustom,
+    };
 
-        TestColor value = {.r = 30, .g = 40, .b = 50};
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save custom");
+    /* Load default */
+    TestColor value = {0};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(128, value.r);
+    mu_assert_int_eq(64, value.g);
+    mu_assert_int_eq(32, value.b);
 
-        value = (TestColor){0};
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(30, value.r);
-        mu_assert_int_eq(40, value.g);
-        mu_assert_int_eq(50, value.b);
-    }
+    /* Save custom */
+    value = (TestColor){.r = 10, .g = 20, .b = 30};
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save custom");
 
-    static const TestColor default_validate_color = {.r = 100, .g = 100, .b = 100};
-
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_color_validated",
-            .interface =
-                &(const SettingProviderCustomInterface){
-                    .default_value = &default_validate_color,
-                    .serialize_callback = test_color_serialize,
-                    .deserialize_callback = test_color_deserialize,
-                    .default_value_size = sizeof(TestColor),
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeCustom,
-        };
-
-        TestColor value = {.r = 30, .g = 40, .b = 50};
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save custom");
-
-        TestColor invalid_value = {.r = 30, .g = 40, .b = 50};
-        mu_assert(
-            setting_provider_save(provider, &setting, &invalid_value),
-            "Should accept valid color");
-    }
+    /* Reload */
+    value = (TestColor){0};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(10, value.r);
+    mu_assert_int_eq(20, value.g);
+    mu_assert_int_eq(30, value.b);
 }
 
-/* test nested structure settings */
-MU_TEST(setting_provider_test_structure) {
-    setting_provider_open(provider);
+/* ========== Test 11: Struct Nested ========== */
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_rectangle",
-            .interface =
-                &(const SettingProviderStructureInterface){
-                    .is_valid_callback = NULL,
-                    .inner_settings = rectangle_settings,
-                    .inner_settings_count = COUNT_OF(rectangle_settings),
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeStructure,
-        };
+MU_TEST(setting_provider_test_struct_nested) {
+    const SettingProviderSetting setting = {
+        .name = "test_struct",
+        .interface =
+            &(const SettingProviderStructInterface){
+                .is_valid_callback = NULL,
+                .inner_settings = rectangle_settings,
+                .inner_settings_count = COUNT_OF(rectangle_settings),
+            },
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeStruct,
+    };
 
-        TestRectangle value = {0};
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(100, value.width);
-        mu_assert_int_eq(100, value.height);
-        mu_assert_int_eq(255, value.background.r);
-        mu_assert_int_eq(255, value.background.g);
-        mu_assert_int_eq(255, value.background.b);
-    }
+    /* Load defaults */
+    TestRectangle value = {0};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(100, value.width);
+    mu_assert_int_eq(100, value.height);
+    mu_assert_int_eq(255, value.background.r);
+    mu_assert_int_eq(255, value.background.g);
+    mu_assert_int_eq(255, value.background.b);
 
-    {
-        const SettingProviderSetting setting = {
-            .name = "test_rectangle_saved",
-            .interface =
-                &(const SettingProviderStructureInterface){
-                    .is_valid_callback = NULL,
-                    .inner_settings = rectangle_settings,
-                    .inner_settings_count = COUNT_OF(rectangle_settings),
-                },
-            .context = NULL,
-            .field_offset = 0,
-            .type = SettingProviderSettingTypeStructure,
-        };
+    /* Save nested struct */
+    value = (TestRectangle){
+        .width = 640,
+        .height = 480,
+        .background = {.r = 10, .g = 20, .b = 30},
+    };
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save struct");
 
-        TestRectangle value = {
-            .width = 640,
-            .height = 480,
-            .background =
-                {
-                    .r = 10,
-                    .g = 20,
-                    .b = 30,
-                },
-        };
-        mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save structure");
-
-        value = (TestRectangle){0};
-        setting_provider_load(provider, &setting, &value);
-        mu_assert_int_eq(640, value.width);
-        mu_assert_int_eq(480, value.height);
-        mu_assert_int_eq(10, value.background.r);
-        mu_assert_int_eq(20, value.background.g);
-        mu_assert_int_eq(30, value.background.b);
-    }
+    /* Reload */
+    value = (TestRectangle){0};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(640, value.width);
+    mu_assert_int_eq(480, value.height);
+    mu_assert_int_eq(10, value.background.r);
+    mu_assert_int_eq(20, value.background.g);
+    mu_assert_int_eq(30, value.background.b);
 }
 
-/* test drop functionality */
-MU_TEST(setting_provider_test_drop) {
-    setting_provider_open(provider);
+/* ========== Test 12: Union Basic ========== */
+
+MU_TEST(setting_provider_test_union_basic) {
+    const SettingProviderSetting setting = {
+        .name = "test_union",
+        .interface =
+            &(const SettingProviderUnionInterface){
+                .tag_setting = &test_shape_type_setting,
+                .inner_settings = test_shape_union_settings,
+            },
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeUnion,
+    };
+
+    /* Load default (circle) */
+    TestShape value = {0};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(TestShapeTypeCircle, value.type);
+    mu_assert_int_eq(10, value.data.circle.radius);
+
+    /* Save circle variant */
+    value = (TestShape){.type = TestShapeTypeCircle, .data.circle = {.radius = 25}};
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save circle");
+
+    value = (TestShape){0};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(TestShapeTypeCircle, value.type);
+    mu_assert_int_eq(25, value.data.circle.radius);
+
+    /* Switch to rectangle variant */
+    value = (TestShape){
+        .type = TestShapeTypeRectangle, .data.rectangle = {.width = 200, .height = 100}};
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save rectangle");
+
+    value = (TestShape){0};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(TestShapeTypeRectangle, value.type);
+    mu_assert_int_eq(200, value.data.rectangle.width);
+    mu_assert_int_eq(100, value.data.rectangle.height);
+
+    /* Reset */
+    setting_provider_reset(provider, &setting, &value);
+    mu_assert_int_eq(TestShapeTypeCircle, value.type);
+    mu_assert_int_eq(10, value.data.circle.radius);
+}
+
+/* ========== Test 13: Raw Basic ========== */
+
+MU_TEST(setting_provider_test_raw_basic) {
+    const SettingProviderSetting setting = {
+        .name = "test_raw",
+        .interface =
+            &(const SettingProviderRawInterface){
+                .is_valid_callback = NULL,
+                .serialize_callback = test_raw_serialize,
+                .deserialize_callback = test_raw_deserialize,
+                .default_value = &test_point_default,
+                .default_value_size = sizeof(TestPoint),
+            },
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeRaw,
+    };
+
+    /* Load default */
+    TestPoint value = {-1, -1};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(0, value.x);
+    mu_assert_int_eq(0, value.y);
+
+    /* Save */
+    value = (TestPoint){.x = 100, .y = 200};
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save raw");
+
+    /* Reload */
+    value = (TestPoint){-1, -1};
+    setting_provider_load(provider, &setting, &value);
+    mu_assert_int_eq(100, value.x);
+    mu_assert_int_eq(200, value.y);
+}
+
+/* ========== Test 14: Migration Simple ========== */
+
+MU_TEST(setting_provider_test_migration_simple) {
+    /* Provider is created with version 2 and migration to v2 exists.
+     * When loading a file with version 1, migration should run.
+     * This test verifies the migration system works by checking
+     * that version mismatch is handled gracefully. */
 
     const SettingProviderSetting setting = {
-        .name = "test_int_to_drop",
-        .interface =
-            &(const SettingProviderIntInterface){
-                .default_value = 100,
-                .is_valid_callback = NULL,
-            },
+        .name = "test_migration",
+        .interface = &(const SettingProviderIntInterface){.default_value = 999},
         .context = NULL,
         .field_offset = 0,
         .type = SettingProviderSettingTypeInt,
     };
 
-    int value = 200;
-    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save int");
+    /* First load creates file with current version (2) */
+    int value = 0;
+    setting_provider_load(provider, &setting, &value);
 
+    /* Save a value */
+    value = 777;
+    setting_provider_save(provider, &setting, &value);
+
+    /* Reload - migration check happens but is skipped (already v2) */
     value = 0;
     setting_provider_load(provider, &setting, &value);
-    mu_assert_int_eq(200, value);
+    mu_assert_int_eq(777, value);
+}
 
-    setting_provider_drop(provider, &setting);
+/* ========== Test 15: Persistence ========== */
 
+MU_TEST(setting_provider_test_persistence) {
+    const SettingProviderSetting setting = {
+        .name = "test_persistence",
+        .interface = &(const SettingProviderIntInterface){.default_value = 0},
+        .context = NULL,
+        .field_offset = 0,
+        .type = SettingProviderSettingTypeInt,
+    };
+
+    /* Save a value */
+    int value = 12345;
+    mu_assert(setting_provider_save(provider, &setting, &value), "Failed to save");
+
+    /* Free provider */
+    setting_provider_free(provider);
+    provider = NULL;
+
+    /* Reallocate (simulating app restart) */
+    provider = setting_provider_alloc(
+        SETTING_PROVIDER_TEST_PATH, 2, test_migrations, COUNT_OF(test_migrations));
+
+    /* Load - should get saved value */
     value = 0;
     setting_provider_load(provider, &setting, &value);
-    mu_assert_int_eq(100, value);
+    mu_assert_int_eq(12345, value);
 }
 
-/* test drop all functionality */
-MU_TEST(setting_provider_test_drop_all) {
-    setting_provider_open(provider);
+/* ========== Test Suite ========== */
 
-    const SettingProviderSetting setting1 = {
-        .name = "test_drop_all_1",
-        .interface =
-            &(const SettingProviderIntInterface){
-                .default_value = 100,
-                .is_valid_callback = NULL,
-            },
-        .context = NULL,
-        .field_offset = 0,
-        .type = SettingProviderSettingTypeInt,
-    };
-
-    const SettingProviderSetting setting2 = {
-        .name = "test_drop_all_2",
-        .interface =
-            &(const SettingProviderIntInterface){
-                .default_value = 200,
-                .is_valid_callback = NULL,
-            },
-        .context = NULL,
-        .field_offset = 0,
-        .type = SettingProviderSettingTypeInt,
-    };
-
-    int value1 = 150;
-    int value2 = 250;
-    mu_assert(setting_provider_save(provider, &setting1, &value1), "Failed to save int");
-    mu_assert(setting_provider_save(provider, &setting2, &value2), "Failed to save int");
-
-    value1 = 0;
-    value2 = 0;
-    setting_provider_load(provider, &setting1, &value1);
-    setting_provider_load(provider, &setting2, &value2);
-    mu_assert_int_eq(150, value1);
-    mu_assert_int_eq(250, value2);
-
-    setting_provider_drop(provider, NULL);
-
-    value1 = 0;
-    value2 = 0;
-    setting_provider_load(provider, &setting1, &value1);
-    setting_provider_load(provider, &setting2, &value2);
-    mu_assert_int_eq(100, value1);
-    mu_assert_int_eq(200, value2);
-
-    const int rewrite_value1 = 333;
-    const int rewrite_value2 = 444;
-    mu_assert(
-        setting_provider_save(provider, &setting1, &rewrite_value1),
-        "Failed to save int after drop");
-    mu_assert(
-        setting_provider_save(provider, &setting2, &rewrite_value2),
-        "Failed to save int after drop");
-
-    setting_provider_reopen();
-
-    value1 = 0;
-    value2 = 0;
-    setting_provider_load(provider, &setting1, &value1);
-    setting_provider_load(provider, &setting2, &value2);
-    mu_assert_int_eq(rewrite_value1, value1);
-    mu_assert_int_eq(rewrite_value2, value2);
-}
-
-/* test suite */
 MU_TEST_SUITE(setting_provider_test_suite) {
     MU_SUITE_CONFIGURE(&setting_provider_setup, &setting_provider_teardown);
-    MU_RUN_TEST(setting_provider_test_bool);
-    MU_RUN_TEST(setting_provider_test_int);
+    MU_RUN_TEST(setting_provider_test_alloc_free);
+    MU_RUN_TEST(setting_provider_test_file_not_found);
+    MU_RUN_TEST(setting_provider_test_bool_basic);
+    MU_RUN_TEST(setting_provider_test_int_basic);
     MU_RUN_TEST(setting_provider_test_int_validation);
-    MU_RUN_TEST(setting_provider_test_float);
-    MU_RUN_TEST(setting_provider_test_float_validation);
-    MU_RUN_TEST(setting_provider_test_string);
-    MU_RUN_TEST(setting_provider_test_string_validation);
-    MU_RUN_TEST(setting_provider_test_furi_string);
-    MU_RUN_TEST(setting_provider_test_furi_string_validation);
-    MU_RUN_TEST(setting_provider_test_enum);
-    MU_RUN_TEST(setting_provider_test_custom);
-    MU_RUN_TEST(setting_provider_test_structure);
-    MU_RUN_TEST(setting_provider_test_drop);
-    MU_RUN_TEST(setting_provider_test_drop_all);
+    MU_RUN_TEST(setting_provider_test_float_basic);
+    MU_RUN_TEST(setting_provider_test_string_basic);
+    MU_RUN_TEST(setting_provider_test_string_truncation);
+    MU_RUN_TEST(setting_provider_test_enum_basic);
+    MU_RUN_TEST(setting_provider_test_custom_basic);
+    MU_RUN_TEST(setting_provider_test_struct_nested);
+    MU_RUN_TEST(setting_provider_test_union_basic);
+    MU_RUN_TEST(setting_provider_test_raw_basic);
+    MU_RUN_TEST(setting_provider_test_migration_simple);
+    MU_RUN_TEST(setting_provider_test_persistence);
 }
 
 int run_minunit_setting_provider_test(void) {

@@ -1,0 +1,22 @@
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        "#/lib/setting_provider",
+    ],
+    LINT_SOURCES=[
+        Dir("."),
+    ],
+    SDK_HEADERS=[
+        File("setting_provider.h"),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="setting_provider")
+libenv.ApplyLibFlags()
+
+sources = libenv.GlobRecursive("*.c")
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

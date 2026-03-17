@@ -1,8 +1,10 @@
 #pragma once
 
-#include <toolbox/setting_provider.h>
-
 #include "../mqtt_common.h"
+
+#include <setting_provider.h>
+
+#define MQTT_SETTINGS_CUSTOM_URL_MAX_SIZE (512 + 1)
 
 typedef enum {
     MqttSettingsV1IdxProfileId,
@@ -12,7 +14,7 @@ typedef enum {
 
 typedef struct {
     MqttProfileId profile_id;
-    FuriString* custom_url;
+    char custom_url[MQTT_SETTINGS_CUSTOM_URL_MAX_SIZE];
 } MqttSettingsV1;
 
 extern const SettingProviderSetting mqtt_settings_v1[];

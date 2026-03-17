@@ -1,6 +1,6 @@
 #pragma once
 
-#include <toolbox/setting_provider.h>
+#include <setting_provider.h>
 
 typedef enum {
     ClockSettingV1IdxShowDate,
