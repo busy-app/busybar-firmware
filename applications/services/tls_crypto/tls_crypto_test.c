@@ -37,6 +37,9 @@ void cli_command_tls_crypto_test(PipeSide* pipe, FuriString* args, void* context
             printf(ANSI_FG_RED "Failed to sign data\r\n" ANSI_RESET);
             ++error_count;
         } else {
+            if(error_count) {
+                printf(ANSI_FG_GREEN "Recovered after %lu errors\r\n" ANSI_RESET, error_count);
+            }
             error_count = 0;
         }
 
