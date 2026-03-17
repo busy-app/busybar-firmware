@@ -331,10 +331,6 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate) {
     serial->handle = handle;
     serial->periph_ptr = periph;
 
-    // TODO: This should not be called by default
-    furi_hal_serial_dma_tx_init(handle);
-    furi_hal_serial_dma_rx_init(handle);
-
     switch(handle->id) {
     case FuriHalSerialIdUsart1:
         LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_SYSCLK);
@@ -425,9 +421,6 @@ void furi_hal_serial_deinit(FuriHalSerialHandle* handle) {
     if(serial == NULL) return;
 
     LL_USART_Disable(serial->periph_ptr);
-
-    furi_hal_serial_dma_rx_deinit(handle);
-    furi_hal_serial_dma_tx_deinit(handle);
 
     furi_hal_serial_set_transfer_direction(handle, FuriHalSerialDirectionNone);
 
@@ -742,6 +735,20 @@ void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle) {
     FURI_CRITICAL_EXIT();
 }
 
+void furi_hal_serial_dma_init(FuriHalSerialHandle* handle) {
+    furi_check(handle);
+
+    furi_hal_serial_dma_tx_init(handle);
+    furi_hal_serial_dma_rx_init(handle);
+}
+
+void furi_hal_serial_dma_deinit(FuriHalSerialHandle* handle) {
+    furi_check(handle);
+
+    furi_hal_serial_dma_rx_deinit(handle);
+    furi_hal_serial_dma_tx_deinit(handle);
+}
+
 void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size) {
     furi_check(handle);
 
@@ -816,6 +823,14 @@ void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection d
         while(LL_USART_IsActiveFlag_RXNE_RXFNE(periph))
             ;
     }
+}
+
+bool furi_hal_serial_get_pin_state(FuriHalSerialHandle* handle, FuriHalSerialPin pin) {
+    furi_check(handle);
+    furi_check(pin < FuriHalSerialPinMax);
+
+    const GpioPin* gpio_pin = furi_hal_serial_resources[handle->id].gpio[pin];
+    return furi_hal_gpio_read(gpio_pin);
 }
 
 void furi_hal_serial_set_transfer_direction(

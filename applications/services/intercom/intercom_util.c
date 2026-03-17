@@ -2,11 +2,22 @@
 
 #include <furi_hal_power.h>
 
+#ifdef INTERCOM_DEBUG
+static void intercom_mark_frame(IntercomFrame* frame) {
+    static uint8_t frame_watermark = 0xAA;
+    memset(frame->data, frame_watermark++, sizeof(frame->data));
+}
+#endif // INTERCOM_DEBUG
+
 size_t intercom_build_frame(
     IntercomFrame* frame,
     IntercomChannelId channel_id,
     const void* data,
     size_t data_size) {
+#ifdef INTERCOM_DEBUG
+    intercom_mark_frame(frame);
+#endif // INTERCOM_DEBUG
+
     const size_t actual_data_size = MIN(data_size, sizeof(frame->data));
 
     memcpy(frame->data, data, actual_data_size);
