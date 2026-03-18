@@ -97,10 +97,16 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
         switch(event->event) {
         case ThisSceneEventInstall:
             UpdaterStatus session_status = updater_session_start(instance->updater);
-            if(session_status == UpdaterStatusBatteryLow) {
+            if(session_status == UpdaterStatusOk) {
+                updater_install_from_url(
+                    instance->updater,
+                    furi_string_get_cstr(instance->update_info.url),
+                    furi_string_get_cstr(instance->update_info.sha256));
+            } else if(session_status == UpdaterStatusBatteryLow) {
                 this_prepare_battery_low_result(instance);
                 scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
             }
+
             return true;
 
         case ThisSceneEventCancel:
