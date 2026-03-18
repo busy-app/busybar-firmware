@@ -273,7 +273,7 @@ def main(argv=None):
     ensure_tls_slots_empty()
     gen_device_cert(certs_dir, device_uid)
     write_certs(certs_dir)
-    write_private_key(certs_dir / DEVICE_KEY, False)
+    write_private_key(certs_dir / DEVICE_KEY, True)
 
 
 if __name__ == "__main__":
