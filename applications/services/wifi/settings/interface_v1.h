@@ -2,7 +2,7 @@
 
 #include "../wifi_common.h"
 
-#include <toolbox/setting_provider.h>
+#include <setting_provider.h>
 
 typedef enum {
     WifiSettingV1IdxCredentials,

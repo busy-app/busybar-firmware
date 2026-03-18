@@ -22,29 +22,14 @@
 #define AUTOUPDATE_INTERVAL_END_MAX     (24 * 60 - 1)
 #define AUTOUPDATE_INTERVAL_END_DEFAULT (5 * 60)
 
-/* validation callbacks */
-static bool is_check_startup_interval_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
+typedef struct {
+    int min;
+    int max;
+} IntMinMaxValidationContext;
 
-    return (value >= CHECK_STARTUP_INTERVAL_MIN && value <= CHECK_STARTUP_INTERVAL_MAX);
-}
-
-static bool is_check_interval_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
-
-    return (value >= CHECK_INTERVAL_MIN && value <= CHECK_INTERVAL_MAX);
-}
-
-static bool is_autoupdate_interval_start_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
-
-    return (value >= AUTOUPDATE_INTERVAL_START_MIN && value <= AUTOUPDATE_INTERVAL_START_MAX);
-}
-
-static bool is_autoupdate_interval_end_valid(const SettingProviderSetting* setting, int value) {
-    UNUSED(setting);
-
-    return (value >= AUTOUPDATE_INTERVAL_END_MIN && value <= AUTOUPDATE_INTERVAL_END_MAX);
+static bool int_min_max_validate(const SettingProviderSetting* setting, int value) {
+    const IntMinMaxValidationContext* context = setting->context;
+    return value >= context->min && value <= context->max;
 }
 
 const SettingProviderSetting updater_v1_settings[] = {
@@ -52,35 +37,39 @@ const SettingProviderSetting updater_v1_settings[] = {
         {
             .name = "check_url",
             .interface =
-                &(const SettingProviderFuriStringInterface){
-                    .default_value = CHECK_URL_DEFAULT,
+                &(const SettingProviderStringInterface){
                     .is_valid_callback = NULL,
+                    .default_value = CHECK_URL_DEFAULT,
+                    .max_size = SIZEOF_MEMBER(UpdaterSettingsV1, check_url),
                 },
-            .context = NULL,
             .field_offset = offsetof(UpdaterSettingsV1, check_url),
-            .type = SettingProviderSettingTypeFuriString,
+            .type = SettingProviderSettingTypeString,
         },
     [UpdaterSettingV1IdxCheckChannelId] =
         {
             .name = "check_channel_id",
             .interface =
-                &(const SettingProviderFuriStringInterface){
-                    .default_value = CHECK_CHANNEL_ID_DEFAULT,
+                &(const SettingProviderStringInterface){
                     .is_valid_callback = NULL,
+                    .default_value = CHECK_CHANNEL_ID_DEFAULT,
+                    .max_size = SIZEOF_MEMBER(UpdaterSettingsV1, check_channel_id),
                 },
-            .context = NULL,
             .field_offset = offsetof(UpdaterSettingsV1, check_channel_id),
-            .type = SettingProviderSettingTypeFuriString,
+            .type = SettingProviderSettingTypeString,
         },
     [UpdaterSettingV1IdxCheckStartupInterval] =
         {
             .name = "check_startup_interval",
             .interface =
                 &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
                     .default_value = CHECK_STARTUP_INTERVAL_DEFAULT,
-                    .is_valid_callback = is_check_startup_interval_valid,
                 },
-            .context = NULL,
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = CHECK_STARTUP_INTERVAL_MIN,
+                    .max = CHECK_STARTUP_INTERVAL_MAX,
+                },
             .field_offset = offsetof(UpdaterSettingsV1, check_startup_interval),
             .type = SettingProviderSettingTypeInt,
         },
@@ -89,10 +78,14 @@ const SettingProviderSetting updater_v1_settings[] = {
             .name = "check_interval",
             .interface =
                 &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
                     .default_value = CHECK_INTERVAL_DEFAULT,
-                    .is_valid_callback = is_check_interval_valid,
                 },
-            .context = NULL,
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = CHECK_INTERVAL_MIN,
+                    .max = CHECK_INTERVAL_MAX,
+                },
             .field_offset = offsetof(UpdaterSettingsV1, check_interval),
             .type = SettingProviderSettingTypeInt,
         },
@@ -103,7 +96,11 @@ const SettingProviderSetting updater_v1_settings[] = {
                 &(const SettingProviderBoolInterface){
                     .default_value = AUTOUPDATE_ENABLED_DEFAULT,
                 },
-            .context = NULL,
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = CHECK_STARTUP_INTERVAL_MIN,
+                    .max = CHECK_STARTUP_INTERVAL_MAX,
+                },
             .field_offset = offsetof(UpdaterSettingsV1, autoupdate_enabled),
             .type = SettingProviderSettingTypeBool,
         },
@@ -112,10 +109,14 @@ const SettingProviderSetting updater_v1_settings[] = {
             .name = "autoupdate_interval_start",
             .interface =
                 &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
                     .default_value = AUTOUPDATE_INTERVAL_START_DEFAULT,
-                    .is_valid_callback = is_autoupdate_interval_start_valid,
                 },
-            .context = NULL,
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = AUTOUPDATE_INTERVAL_START_MIN,
+                    .max = AUTOUPDATE_INTERVAL_START_MAX,
+                },
             .field_offset = offsetof(UpdaterSettingsV1, autoupdate_interval_start),
             .type = SettingProviderSettingTypeInt,
         },
@@ -124,10 +125,14 @@ const SettingProviderSetting updater_v1_settings[] = {
             .name = "autoupdate_interval_end",
             .interface =
                 &(const SettingProviderIntInterface){
+                    .is_valid_callback = int_min_max_validate,
                     .default_value = AUTOUPDATE_INTERVAL_END_DEFAULT,
-                    .is_valid_callback = is_autoupdate_interval_end_valid,
                 },
-            .context = NULL,
+            .context =
+                &(const IntMinMaxValidationContext){
+                    .min = AUTOUPDATE_INTERVAL_END_MIN,
+                    .max = AUTOUPDATE_INTERVAL_END_MAX,
+                },
             .field_offset = offsetof(UpdaterSettingsV1, autoupdate_interval_end),
             .type = SettingProviderSettingTypeInt,
         },
@@ -136,13 +141,12 @@ const SettingProviderSetting updater_v1_settings[] = {
 const SettingProviderSetting updater_v1_settings_root = {
     .name = NULL,
     .interface =
-        &(const SettingProviderStructureInterface){
-            .is_valid_callback = NULL,
+        &(const SettingProviderStructInterface){
             .inner_settings = updater_v1_settings,
             .inner_settings_count = COUNT_OF(updater_v1_settings),
         },
     .field_offset = 0,
-    .type = SettingProviderSettingTypeStructure,
+    .type = SettingProviderSettingTypeStruct,
 };
 
 static_assert(COUNT_OF(updater_v1_settings) == UpdaterSettingV1IdxsCount);

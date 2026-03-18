@@ -86,7 +86,7 @@ App(
         "status_lights",
         "cli_intercom",
         "ble",
-        "tls_crypto_server",
+        "tls_crypto",
         "intercom_watchdog",
         "sl_info",
     ],

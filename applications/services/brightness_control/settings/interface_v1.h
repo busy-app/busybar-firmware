@@ -1,11 +1,12 @@
 #include "../brightness_control.h"
-#include <toolbox/setting_provider.h>
+
+#include <setting_provider.h>
 
 typedef enum {
-    BrightnessSettingIdxMode,
-    BrightnessSettingIdxBrightness,
+    BrightnessSettingV1IdxMode,
+    BrightnessSettingV1IdxBrightness,
 
-    BrightnessSettingIdxCount
+    BrightnessSettingV1IdxCount
 } BrightnessSettingV1Idx;
 
 typedef struct {

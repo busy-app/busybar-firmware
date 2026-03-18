@@ -10,6 +10,8 @@
 #define FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS (0x00004000UL)
 #define FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS   (0x00004FFFUL) // 4KB partition
 
+#define FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX (996UL) // Maximum data size for keys
+
 typedef enum {
     FuriHalCryptoPartitionMain,
     FuriHalCryptoPartitionUser,
@@ -62,11 +64,11 @@ _Static_assert(
 
 typedef struct {
     FuriHalCryptoKeyHeader header;
-    uint16_t length;
-    uint8_t* data;
     FuriHalCryptoPartition partition;
     uint32_t address; // Address in NWP flash where the key is stored
-} FURI_PACKED FuriHalCryptoKey;
+    uint16_t length;
+    uint8_t data[FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX];
+} FuriHalCryptoKey;
 
 typedef enum {
     FuriHalCryptoStatusOk,

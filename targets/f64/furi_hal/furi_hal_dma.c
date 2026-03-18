@@ -93,6 +93,7 @@ void furi_hal_dma_init_channel(FuriHalDmaChannel channel, const FuriHalDmaTransf
 
     UDMA0->CHNL_ENABLE_CLR = channel_mask;
     UDMA0->CHNL_PRI_ALT_CLR = channel_mask;
+    UDMA0->UDMA_SKIP_DESC_FETCH_REG |= channel_mask;
 
     FuriHalDmaDescriptor* desc = &furi_hal_dma_descriptor[channel];
 
@@ -158,10 +159,11 @@ void IRQ031_Handler(void) {
 
 // UDMA0
 void IRQ033_Handler(void) {
-    for(uint32_t i = 0; i < UDMA_CH_COUNT; ++i) {
-        const uint32_t done_status = UDMA0->UDMA_DONE_STATUS_REG;
-        const uint32_t channel_mask = 1UL << i;
+    /* Save the register outside of the loop to avoid repeated loads */
+    const uint32_t done_status = UDMA0->UDMA_DONE_STATUS_REG;
 
+    for(uint32_t i = 0; i < UDMA_CH_COUNT; ++i) {
+        const uint32_t channel_mask = 1UL << i;
         if(done_status & channel_mask) {
             FuriHalDmaChannelData* channel_data = &furi_hal_dma_channel[i];
             /* Execute the transfer finished callback */

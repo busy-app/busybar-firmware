@@ -13,13 +13,12 @@ const SettingProviderSetting ble_v1_settings[] = {
 const SettingProviderSetting ble_v1_settings_root = {
     .name = NULL,
     .interface =
-        &(const SettingProviderStructureInterface){
-            .is_valid_callback = NULL,
+        &(const SettingProviderStructInterface){
             .inner_settings = ble_v1_settings,
             .inner_settings_count = COUNT_OF(ble_v1_settings),
         },
     .field_offset = 0,
-    .type = SettingProviderSettingTypeStructure,
+    .type = SettingProviderSettingTypeStruct,
 };
 
 static_assert(COUNT_OF(ble_v1_settings) == BleSettingsV1IdxsCount);
