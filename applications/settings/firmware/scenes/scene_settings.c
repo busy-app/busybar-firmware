@@ -3,7 +3,7 @@
 #include <gui/modules/var_item_list.h>
 
 typedef enum {
-    ThisSceneEventChange = ThisEventSceneEventsStart,
+    ThisSceneEventSettingChange = ThisEventSceneEventsStart,
 } ThisSceneEvent;
 
 typedef struct {
@@ -14,26 +14,26 @@ typedef struct {
     UpdaterSettings updater_settings;
 } ThisScene;
 
-static inline ThisScene* this_get_scene(ThisInstance* instance) {
+static inline ThisScene* get_scene(ThisInstance* instance) {
     return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxSettings);
 }
 
-static void this_list_autoupdate_callback(VarItem* item, void* context) {
+static void list_autoupdate_item_callback(VarItem* item, void* context) {
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    ThisScene* scene = get_scene(instance);
 
     furi_mutex_acquire(scene->updater_settings_mutex, FuriWaitForever);
     scene->updater_settings.autoupdate_enabled = var_item_get_value(item);
     furi_mutex_release(scene->updater_settings_mutex);
 
-    settings_firmware_app_fire_event(instance, ThisSceneEventChange);
+    settings_firmware_app_fire_event(instance, ThisSceneEventSettingChange);
 }
 
-static void this_scene_on_enter(void* context) {
+static void scene_on_enter(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    ThisScene* scene = get_scene(instance);
 
     scene->updater_settings_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     updater_get_settings(instance->updater, &scene->updater_settings);
@@ -43,7 +43,7 @@ static void this_scene_on_enter(void* context) {
         scene->front_list = var_item_list_alloc(instance->front_scene_window);
 
         VarItem* front_auto_update_item = var_item_list_add_switch(
-            scene->front_list, "Auto-update", this_list_autoupdate_callback, instance);
+            scene->front_list, "Auto-update", list_autoupdate_item_callback, instance);
         var_item_set_value(front_auto_update_item, scene->updater_settings.autoupdate_enabled);
 
         /* back layout setup */
@@ -55,11 +55,11 @@ static void this_scene_on_enter(void* context) {
     });
 }
 
-static void this_scene_on_exit(void* context) {
+static void scene_on_exit(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    ThisScene* scene = get_scene(instance);
 
     furi_mutex_free(scene->updater_settings_mutex);
 
@@ -69,15 +69,15 @@ static void this_scene_on_exit(void* context) {
     });
 }
 
-static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    ThisScene* scene = get_scene(instance);
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisSceneEventChange:
+        case ThisSceneEventSettingChange:
             furi_mutex_acquire(scene->updater_settings_mutex, FuriWaitForever);
             UpdaterSettings updater_settings = scene->updater_settings;
             furi_mutex_release(scene->updater_settings_mutex);
@@ -95,9 +95,9 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene settings_firmware_app_scene_settings = {
-    .enter_callback = this_scene_on_enter,
-    .exit_callback = this_scene_on_exit,
-    .event_callback = this_scene_on_event,
+const Scene settings_firmware_internal_scene_settings = {
+    .enter_callback = scene_on_enter,
+    .exit_callback = scene_on_exit,
+    .event_callback = scene_on_event,
     .data_size = sizeof(ThisScene),
 };

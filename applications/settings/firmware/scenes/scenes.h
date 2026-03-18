@@ -5,11 +5,12 @@
 typedef enum {
     ThisSceneIdxMain,
     ThisSceneIdxSettings,
-    ThisSceneIdxDialog,
     ThisSceneIdxCheck,
-    ThisSceneIdxResult,
+    ThisSceneIdxCheckResult,
+    ThisSceneIdxDialog,
+    ThisSceneIdxLowBattery,
 
     ThisSceneIdxsCount,
 } ThisSceneIdx;
 
-extern const Scene* const settings_firmware_app_scenes[];
+extern const Scene* const settings_firmware_internal_scenes[];

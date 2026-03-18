@@ -6,6 +6,7 @@
 #include <desktop/desktop.h>
 #include <updater/updater.h>
 #include <storage/storage.h>
+#include <power/power_service/power.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -30,10 +31,8 @@ typedef struct {
 
     const char* back_image_path;
     FuriString* back_primary_text;
-    FuriString* back_auxiliary_text;
-
-    size_t timeout;
-} ThisResultPreset;
+    FuriString* back_detail_text;
+} ThisCheckResultScenePreset;
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -44,9 +43,10 @@ typedef struct {
     Gui* gui;
     Desktop* desktop;
     Updater* updater;
+    Power* power;
 
     UpdateCheckInfo update_info;
-    ThisResultPreset result_preset;
+    ThisCheckResultScenePreset check_result_preset;
 
     /* front layout */
     Widget* front_scene_window;

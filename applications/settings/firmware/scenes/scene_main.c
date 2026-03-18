@@ -12,19 +12,19 @@ typedef struct {
     Submenu* back_submenu;
 } ThisScene;
 
-static inline ThisScene* this_get_scene(ThisInstance* instance) {
+static inline ThisScene* get_scene(ThisInstance* instance) {
     return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxMain);
 }
 
-static void this_submenu_item_callback(uint32_t index, void* context) {
+static void submenu_item_callback(uint32_t index, void* context) {
     settings_firmware_app_fire_event(context, index);
 }
 
-static void this_scene_on_enter(void* context) {
+static void scene_on_enter(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    ThisScene* scene = get_scene(instance);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -34,14 +34,14 @@ static void this_scene_on_enter(void* context) {
             scene->front_submenu,
             "Check for update",
             ThisSceneEventCheckForUpdate,
-            this_submenu_item_callback,
+            submenu_item_callback,
             instance);
 
         submenu_add_item(
             scene->front_submenu,
             "Settings",
             ThisSceneEventSettings,
-            this_submenu_item_callback,
+            submenu_item_callback,
             instance);
 
         /* back layout setup */
@@ -51,11 +51,11 @@ static void this_scene_on_enter(void* context) {
     });
 }
 
-static void this_scene_on_exit(void* context) {
+static void scene_on_exit(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    ThisScene* scene = get_scene(instance);
 
     with_gui(instance->gui, {
         submenu_free(scene->back_submenu);
@@ -63,7 +63,7 @@ static void this_scene_on_exit(void* context) {
     });
 }
 
-static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
@@ -90,9 +90,9 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene settings_firmware_app_scene_main = {
-    .enter_callback = this_scene_on_enter,
-    .exit_callback = this_scene_on_exit,
-    .event_callback = this_scene_on_event,
+const Scene settings_firmware_internal_scene_main = {
+    .enter_callback = scene_on_enter,
+    .exit_callback = scene_on_exit,
+    .event_callback = scene_on_event,
     .data_size = sizeof(ThisScene),
 };

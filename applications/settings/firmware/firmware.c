@@ -76,11 +76,12 @@ static ThisInstance* this_alloc(void) {
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_CAPACITY, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_CAPACITY, sizeof(uint32_t));
     instance->scene_manager =
-        scene_manager_alloc(settings_firmware_app_scenes, ThisSceneIdxsCount, instance);
+        scene_manager_alloc(settings_firmware_internal_scenes, ThisSceneIdxsCount, instance);
 
     instance->gui = furi_record_open(RECORD_GUI);
     instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->updater = furi_record_open(RECORD_UPDATER);
+    instance->power = furi_record_open(RECORD_POWER);
 
     instance->update_info = (UpdateCheckInfo){
         .version = furi_string_alloc(),
@@ -90,9 +91,9 @@ static ThisInstance* this_alloc(void) {
         .changelog = NULL,
     };
 
-    instance->result_preset.front_text = furi_string_alloc();
-    instance->result_preset.back_primary_text = furi_string_alloc();
-    instance->result_preset.back_auxiliary_text = furi_string_alloc();
+    instance->check_result_preset.front_text = furi_string_alloc();
+    instance->check_result_preset.back_primary_text = furi_string_alloc();
+    instance->check_result_preset.back_detail_text = furi_string_alloc();
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -151,14 +152,15 @@ static void this_free(ThisInstance* instance) {
         flex_layout_free(instance->back_container);
     });
 
-    furi_string_free(instance->result_preset.back_auxiliary_text);
-    furi_string_free(instance->result_preset.back_primary_text);
-    furi_string_free(instance->result_preset.front_text);
+    furi_string_free(instance->check_result_preset.back_detail_text);
+    furi_string_free(instance->check_result_preset.back_primary_text);
+    furi_string_free(instance->check_result_preset.front_text);
 
     furi_string_free(instance->update_info.sha256);
     furi_string_free(instance->update_info.url);
     furi_string_free(instance->update_info.version);
 
+    furi_record_close(RECORD_POWER);
     furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_GUI);
