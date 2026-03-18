@@ -1,6 +1,8 @@
 #pragma once
 
-#include <toolbox/setting_provider.h>
+#include <setting_provider.h>
+
+#define APPS_MENU_ACTIVE_APPLICATION_MAX_SIZE (32 + 1)
 
 typedef enum {
     AppsMenuSettingV1IdxActiveApp,
@@ -9,7 +11,7 @@ typedef enum {
 } AppsMenuSettingV1Idx;
 
 typedef struct {
-    FuriString* active_application;
+    char active_application[APPS_MENU_ACTIVE_APPLICATION_MAX_SIZE];
 } AppsMenuSettingsV1;
 
 extern const SettingProviderSetting apps_menu_v1_settings[];
