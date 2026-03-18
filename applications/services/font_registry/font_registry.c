@@ -41,7 +41,7 @@ static const lv_font_t*
 
     for(size_t i = 0; i < COUNT_OF(font_registry_baked); i++) {
         if(strcmp(font_path, font_registry_baked[i].simulated_path) == 0) {
-            FURI_LOG_D(TAG, "Font \"%s\": baked", font_path);
+            FURI_LOG_T(TAG, "Font \"%s\": baked", font_path);
             return font_registry_baked[i].font;
         }
     }
@@ -57,7 +57,7 @@ static const lv_font_t*
     LoadedFont* already_loaded = stbds_shgetp_null(instance->loaded_fonts, font_path);
     if(already_loaded) {
         already_loaded->value.references++;
-        FURI_LOG_D(
+        FURI_LOG_T(
             TAG, "Font \"%s\": references=%zu (+1)", font_path, already_loaded->value.references);
         return already_loaded->value.loaded_data;
     }
@@ -81,7 +81,7 @@ static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const
             },
     };
 
-    FURI_LOG_D(TAG, "Font \"%s\": references=1 (newly loaded)", font_path);
+    FURI_LOG_T(TAG, "Font \"%s\": references=1 (newly loaded)", font_path);
 
     stbds_shputs(instance->loaded_fonts, now_loaded);
     return font_data;
@@ -140,10 +140,10 @@ void font_registry_unload_font(FontRegistry* instance, const lv_font_t* const_fo
 
         found_font = true;
         item->value.references--;
-        FURI_LOG_D(TAG, "Font \"%s\": references=%zu (-1)", item->key, item->value.references);
+        FURI_LOG_T(TAG, "Font \"%s\": references=%zu (-1)", item->key, item->value.references);
 
         if(!item->value.references) {
-            FURI_LOG_D(TAG, "Font \"%s\": unloading", item->key);
+            FURI_LOG_T(TAG, "Font \"%s\": unloading", item->key);
             lv_binfont_destroy(item->value.loaded_data);
             bool did_delete = stbds_shdel(instance->loaded_fonts, item->key);
             furi_check(did_delete);
