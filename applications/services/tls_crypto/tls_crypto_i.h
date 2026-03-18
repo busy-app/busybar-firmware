@@ -40,4 +40,5 @@ struct TlsCrypto {
     FuriMessageQueue* api_queue;
     FuriMessageQueue* response_queue;
     IntercomChannel* intercom_ch;
+    uint16_t current_request_id;
 };

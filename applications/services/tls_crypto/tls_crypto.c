@@ -41,8 +41,10 @@ static void tls_crypto_build_sign_message_request(
     message->length = api_message->data_len;
 }
 
-static void
-    tls_crypto_build_request(TlsCryptoRequest* request, const TlsCryptoApiMessage* api_message) {
+static void tls_crypto_build_request(
+    TlsCrypto* instance,
+    TlsCryptoRequest* request,
+    const TlsCryptoApiMessage* api_message) {
     TlsCryptoRequestType request_type;
     const TlsCryptoApiMessageType api_message_type = api_message->type;
 
@@ -59,7 +61,9 @@ static void
     }
 
     request->type = request_type;
-    request->id = 0; // TODO: Increment id
+    request->id = instance->current_request_id;
+
+    ++instance->current_request_id;
 }
 
 static bool tls_crypto_send_request(const TlsCrypto* instance, const TlsCryptoRequest* request) {
@@ -133,7 +137,7 @@ static void tls_crypto_run(TlsCrypto* instance) {
 
     do {
         TlsCryptoRequest request;
-        tls_crypto_build_request(&request, &api_message);
+        tls_crypto_build_request(instance, &request, &api_message);
 
         if(!tls_crypto_send_request(instance, &request)) {
             break;
