@@ -8,13 +8,16 @@
 #define SUB_QOS (MqttQosAtLeastOnce)
 #define PUB_QOS (MqttQosAtMostOnce)
 
-#define SUB_TOPIC "stream-request"
-#define PUB_TOPIC "displays/front"
+#define SUB_TOPIC   "stream-request"
+#define PUB_TOPIC   "displays/front"
+#define STATE_TOPIC "state"
 
 #define API_QUEUE_SIZE  (4)
 #define FRAME_PERIOD_MS (500)
 
 #define EXPIRY_INTERVAL_DEFAULT_S (60)
+
+static void mqtt_streaming_publish_callback(const void* data, size_t data_size, void* context);
 
 static void mqtt_streaming_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
@@ -36,6 +39,34 @@ static void mqtt_streaming_message_callback(const MqttMessage* message, void* co
     furi_message_queue_put(instance->api_queue, &api_msg, FuriWaitForever);
 }
 
+static void mqtt_streaming_update_state_publisher_subscription(
+    MqttStreamingSrv* instance,
+    MqttStatus status) {
+    switch(status) {
+    case MqttStatusError:
+    case MqttStatusNotConnected:
+        if(instance->state_publisher_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
+            state_publisher_del_transport(
+                instance->state_publisher, instance->state_publisher_handle);
+            instance->state_publisher_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
+        }
+        break;
+    case MqttStatusConnectedNotLinked:
+    case MqttStatusConnectedLinked:
+        if(instance->state_publisher_handle == STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
+            instance->state_publisher_handle = state_publisher_add_transport(
+                instance->state_publisher,
+                StatePublisherTransportClassMQTT,
+                FRAME_PERIOD_MS,
+                mqtt_streaming_publish_callback,
+                instance);
+        }
+        break;
+    default:
+        furi_assert(false);
+    }
+}
+
 static void mqtt_streaming_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
@@ -52,6 +83,7 @@ static void mqtt_streaming_pubsub_callback(const void* message, void* context) {
 
             furi_message_queue_put(instance->api_queue, &api_msg, FuriWaitForever);
         }
+        mqtt_streaming_update_state_publisher_subscription(instance, event->status_changed.status);
     }
 }
 
@@ -107,6 +139,16 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
     }
 }
 
+static void mqtt_streaming_publish_callback(const void* data, size_t data_size, void* context) {
+    MqttStreamingSrv* instance = context;
+
+    void* owned_data = malloc(data_size);
+    memcpy(owned_data, data, data_size);
+
+    mqtt_publish_ex(
+        instance->mqtt, PUB_QOS, STATE_TOPIC, owned_data, data_size, NULL, 0, free, owned_data);
+}
+
 static MqttStreamingSrv* mqtt_streaming_alloc(void) {
     MqttStreamingSrv* instance = malloc(sizeof(MqttStreamingSrv));
 
@@ -125,6 +167,8 @@ static MqttStreamingSrv* mqtt_streaming_alloc(void) {
         furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(MqttStreamingApiMessage));
     instance->mqtt = furi_record_open(RECORD_MQTT);
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
+    instance->state_publisher_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
     instance->frame_buf = malloc(FRONT_DISPLAY_BUF_SIZE);
 
     furi_event_loop_subscribe_message_queue(
@@ -138,6 +182,7 @@ static MqttStreamingSrv* mqtt_streaming_alloc(void) {
         mqtt_get_pubsub(instance->mqtt), mqtt_streaming_pubsub_callback, instance);
 
     mqtt_subscribe(instance->mqtt, SUB_QOS, SUB_TOPIC, mqtt_streaming_message_callback, instance);
+    mqtt_streaming_update_state_publisher_subscription(instance, mqtt_get_status(instance->mqtt));
 
     return instance;
 }

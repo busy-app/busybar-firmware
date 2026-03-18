@@ -2,6 +2,7 @@
 
 #include <gui/gui.h>
 #include <mqtt/mqtt.h>
+#include <state_publisher/state_publisher.h>
 
 typedef enum {
     MqttStreamingApiMessageTypeStart,
@@ -23,5 +24,7 @@ typedef struct {
     FuriMessageQueue* api_queue;
     Mqtt* mqtt;
     Gui* gui;
+    StatePublisher* state_publisher;
+    StatePublisherTransportHandle state_publisher_handle;
     uint8_t* frame_buf;
 } MqttStreamingSrv;
