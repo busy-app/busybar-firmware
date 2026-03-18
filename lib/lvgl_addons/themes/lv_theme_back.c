@@ -72,8 +72,6 @@ typedef struct {
 } my_theme_t;
 
 static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
-    UNUSED(font_registry);
-
     lv_style_init(&theme->styles.screen);
     lv_style_set_bg_opa(&theme->styles.screen, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.screen, COLOR_BG_NORMAL);
@@ -166,10 +164,16 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 
     lv_style_init(&theme->styles.dialog_text_main);
     lv_style_set_flex_grow(&theme->styles.dialog_text_main, 1);
+    lv_style_set_text_font(
+        &theme->styles.dialog_text_main,
+        font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7));
 
     lv_style_init(&theme->styles.dialog_text_sub);
     lv_style_set_flex_grow(&theme->styles.dialog_text_sub, 0);
     lv_style_set_max_width(&theme->styles.dialog_text_sub, LV_PCT(60));
+    lv_style_set_text_font(
+        &theme->styles.dialog_text_sub,
+        font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7));
 
     lv_style_init(&theme->styles.dialog_option);
     lv_style_set_width(&theme->styles.dialog_option, LV_PCT(100));
