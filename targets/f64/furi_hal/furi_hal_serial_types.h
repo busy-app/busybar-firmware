@@ -17,4 +17,13 @@ typedef enum {
     FuriHalSerialDirectionTxRx = FuriHalSerialDirectionTx | FuriHalSerialDirectionRx,
 } FuriHalSerialDirection;
 
+typedef enum {
+    FuriHalSerialPinTx,
+    FuriHalSerialPinRx,
+    FuriHalSerialPinRts,
+    FuriHalSerialPinCts,
+
+    FuriHalSerialPinMax,
+} FuriHalSerialPin;
+
 typedef struct FuriHalSerialHandle FuriHalSerialHandle;
