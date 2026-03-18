@@ -55,7 +55,7 @@ static void scene_menu_on_enter(void* context) {
     char front_tz_text[18];
     snprintf(front_tz_text, sizeof(front_tz_text), "Time zone%7.7s>", zone_abbr);
     char back_tz_text[26];
-    snprintf(back_tz_text, sizeof(back_tz_text), "Time zone %13.13s>", zone_abbr);
+    snprintf(back_tz_text, sizeof(back_tz_text), "Time zone %10.10s>", zone_abbr);
     char front_time_format_text[19];
     snprintf(
         front_time_format_text,
@@ -66,7 +66,7 @@ static void scene_menu_on_enter(void* context) {
     snprintf(
         back_time_format_text,
         sizeof(back_time_format_text),
-        "Time format%12.12s>",
+        "Time format%10.10s>",
         time_settings_format_names[sntp_settings.time_format]);
 
     with_gui(instance->gui, {
