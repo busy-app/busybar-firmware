@@ -1,16 +1,21 @@
 #include <mongoose.h>
+
 #include <mbedtls/ssl.h>
 #include <mbedtls/pk.h>
+
 #include <pk_wrap.h>
-#include <tls_crypto/tls_crypto_client.h>
+
 #include <storage/storage.h>
+#include <tls_crypto/tls_crypto.h>
 
 #define TAG "MqttTls"
 
 #define TLS_DEBUG_LEVEL 0
 
-#define TLS_KEY_SLOT_SIGN   0 // Intermediate cert slot (signing-ca.der)
-#define TLS_KEY_SLOT_DEVICE 1 // Device cert and key slot (device.der + device.key)
+// Intermediate cert slot (signing-ca.der)
+#define TLS_KEY_SLOT_SIGN   TlsCryptoKeyIdIntermediate
+// Device cert and key slot (device.der + device.key)
+#define TLS_KEY_SLOT_DEVICE TlsCryptoKeyIdDevice
 
 #define TLS_CUSTOM_CERT_DEVICE APP_ASSETS_PATH("device.crt")
 #define TLS_CUSTOM_CERT_SIGN   APP_ASSETS_PATH("signing-ca.crt")
@@ -40,30 +45,62 @@ static int tls_pk_can_do(mbedtls_pk_type_t type) {
     return (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_ECDSA);
 }
 
-static int tls_pk_sign_917(
+static int tls_pk_sign_with_hw_crypto(
     mbedtls_md_type_t md_alg,
     const unsigned char* data,
     size_t data_len,
     unsigned char* sig,
     size_t sig_size,
     size_t* sig_len) {
-    if(md_alg != MBEDTLS_MD_SHA256) {
-        FURI_LOG_E(TAG, "Unsupported MD algorithm 0x%02X", md_alg);
-        return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    }
-    TlsCryptoClient* crypto = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
-    bool success = tls_crypto_client_sign(
-        crypto, TLS_KEY_SLOT_DEVICE, data, data_len, sig, sig_size, sig_len);
-    furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
-    return (success ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    int ret;
+
+    do {
+        if(md_alg != MBEDTLS_MD_SHA256) {
+            FURI_LOG_E(TAG, "Unsupported MD algorithm 0x%02X", md_alg);
+            ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+            break;
+        }
+
+        TlsCrypto* tls_crypto = furi_record_open(RECORD_TLS_CRYPTO);
+
+        TlsCryptoSignature signature;
+        const TlsCryptoStatus crypto_status =
+            tls_crypto_sign(tls_crypto, TLS_KEY_SLOT_DEVICE, data, data_len, &signature);
+
+        furi_record_close(RECORD_TLS_CRYPTO);
+
+        if(crypto_status != TlsCryptoStatusOk) {
+            if(crypto_status == TlsCryptoStatusErrorTimeout) {
+                FURI_LOG_E(TAG, "Failed to sign with hw crypto: timeout");
+                ret = MBEDTLS_ERR_SSL_TIMEOUT;
+            } else {
+                FURI_LOG_E(TAG, "Failed to sign with hw crypto: internal error");
+                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            }
+            break;
+        }
+
+        if(sig_size < signature.length) {
+            ret = MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+            break;
+        }
+
+        memcpy(sig, signature.bytes, signature.length);
+        *sig_len = signature.length;
+
+        ret = 0;
+
+    } while(false);
+
+    return ret;
 }
 
-static const mbedtls_pk_info_t tls_pk_wrap_917 = {
+static const mbedtls_pk_info_t tls_pk_wrap_hw_crypto = {
     .type = MBEDTLS_PK_ECKEY,
-    .name = "ECDSA_917",
+    .name = "ECDSA_HW",
     .get_bitlen = tls_pk_get_bitlen,
     .can_do = tls_pk_can_do,
-    .sign_message_func = tls_pk_sign_917,
+    .sign_message_func = tls_pk_sign_with_hw_crypto,
     .verify_func = NULL,
     .sign_func = NULL, // Using .sign_message_func instead
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -93,22 +130,39 @@ static bool tls_load_ca(struct mg_str str, mbedtls_x509_crt* p) {
     return true;
 }
 
-static bool tls_load_cert_from_917(uint8_t slot, mbedtls_x509_crt* crt) {
-    size_t cert_len = 0;
-    TlsCryptoClient* crypto = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
-    uint8_t* cert_buf = tls_crypto_client_get_cert(crypto, slot, &cert_len);
-    furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
-    if(cert_buf == NULL) {
-        FURI_LOG_E(TAG, "Cert get error (slot %u)", slot);
-        return false;
-    }
-    int ret = mbedtls_x509_crt_parse(crt, cert_buf, cert_len);
-    free(cert_buf);
-    if(ret != 0) {
-        FURI_LOG_E(TAG, "Cert parse error -0x%04X", -ret);
-        return false;
-    }
-    return true;
+static bool tls_load_cert_from_hw_crypto(uint8_t slot, mbedtls_x509_crt* crt) {
+    bool success = false;
+
+    do {
+        TlsCrypto* tls_crypto = furi_record_open(RECORD_TLS_CRYPTO);
+
+        TlsCryptoCertificate certificate = {0};
+        const TlsCryptoStatus crypto_status =
+            tls_crypto_get_certificate(tls_crypto, slot, &certificate);
+
+        furi_record_close(RECORD_TLS_CRYPTO);
+
+        if(crypto_status != TlsCryptoStatusOk) {
+            if(crypto_status == TlsCryptoStatusErrorTimeout) {
+                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: timeout");
+            } else {
+                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: internal error");
+            }
+            break;
+        }
+
+        const int parse_result =
+            mbedtls_x509_crt_parse(crt, certificate.bytes, certificate.length);
+
+        if(parse_result != 0) {
+            FURI_LOG_E(TAG, "Cert parse error -0x%04X", -parse_result);
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
 }
 
 static bool tls_load_cert_from_file(char* path, mbedtls_x509_crt* crt) {
@@ -271,15 +325,15 @@ bool mqtt_tls_init(
                 break;
             }
         } else {
-            if(!tls_load_cert_from_917(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
+            if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
                 break;
             }
-            if(!tls_load_cert_from_917(TLS_KEY_SLOT_SIGN, &tls->cert)) {
+            if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_SIGN, &tls->cert)) {
                 break;
             }
 
             // Setup custom PK wrapper for private key operations
-            mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_917);
+            mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_hw_crypto);
         }
 
         ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
