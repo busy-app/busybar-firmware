@@ -30,6 +30,8 @@ typedef void (*StatePublisherPublishCb)(const void* data, size_t data_size, void
 
 typedef size_t StatePublisherTransportHandle;
 
+#define STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID ((StatePublisherTransportHandle) - 1)
+
 /**
  * Add transport (sink) to receive serialized updates.
  *

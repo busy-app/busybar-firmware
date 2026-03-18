@@ -42,7 +42,6 @@ typedef struct ScreenStreamer {
 } ScreenStreamer;
 
 typedef enum Message {
-    MSG_NONE,
     MSG_STOP,
     MSG_OUTPUTS_CHANGED,
 } Message;
@@ -258,7 +257,7 @@ static int32_t screen_streamer_thread(void* context) {
         uint32_t sleep_time_ticks = furi_ms_to_ticks(sleep_time_ms);
 
         // sleep and wait for message
-        Message msg = MSG_NONE;
+        Message msg;
         switch(furi_message_queue_get(instance->thread_command_queue, &msg, sleep_time_ticks)) {
         case FuriStatusOk:
             switch(msg) {
