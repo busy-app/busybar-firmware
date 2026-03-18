@@ -24,12 +24,6 @@
 
 #define BG_GRAD_STOP_POS (255 * BG_GRAD_WIDTH_PX / MAIN_WIDTH_PX)
 
-typedef enum {
-    TimerLabelFontIdxSeconds,
-    TimerLabelFontIdxMain,
-    TimerLabelFontIdxMAX,
-} TimerLabelFontIdx;
-
 struct TimerLabel {
     Widget base;
     lv_obj_t* bg_gradient;
@@ -42,8 +36,9 @@ struct TimerLabel {
     lv_color_t countdown_base_color;
     lv_color_t countdown_blink_color;
 
-    FontRegistry* font_registry;
-    const lv_font_t* loaded_fonts[TimerLabelFontIdxMAX];
+    const lv_font_t* font_regular;
+    const lv_font_t* font_condensed;
+    const lv_font_t* font_small_num;
 
     bool is_hidden;
 };
@@ -99,8 +94,6 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     TimerLabel* instance = (TimerLabel*)obj;
 
-    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
-
     instance->bg_gradient = lv_obj_create(obj);
     lv_obj_add_flag(instance->bg_gradient, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_size(instance->bg_gradient, LV_PCT(100), LV_PCT(100));
@@ -130,14 +123,14 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     instance->main_label = lv_label_create(instance->top_layout);
     lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);
 
-    instance->loaded_fonts[TimerLabelFontIdxMain] =
-        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_7);
-    instance->loaded_fonts[TimerLabelFontIdxSeconds] =
-        font_registry_load_font(instance->font_registry, FONT_BUSY_SUPERSCRIPT_7);
+    FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_regular = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7);
+    instance->font_condensed = font_registry_load_font(font_registry, FONT_BUSY_CONDENSED_7);
+    instance->font_small_num = font_registry_load_font(font_registry, FONT_BUSY_SUPERSCRIPT_7);
+    furi_record_close(RECORD_FONT_REGISTRY);
 
     instance->seconds_label = lv_label_create(instance->top_layout);
-    lv_obj_set_style_text_font(
-        instance->seconds_label, instance->loaded_fonts[TimerLabelFontIdxSeconds], LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->seconds_label, instance->font_small_num, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
 
     instance->bottom_label = lv_label_create(instance->main_layout);
@@ -149,10 +142,11 @@ static void timer_label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     TimerLabel* instance = (TimerLabel*)obj;
 
-    for(TimerLabelFontIdx i = 0; i < TimerLabelFontIdxMAX; i++) {
-        const lv_font_t* loaded_font = instance->loaded_fonts[i];
-        font_registry_unload_font(instance->font_registry, loaded_font);
-    }
+    FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+
+    font_registry_unload_font(font_registry, instance->font_regular);
+    font_registry_unload_font(font_registry, instance->font_condensed);
+    font_registry_unload_font(font_registry, instance->font_small_num);
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }
@@ -251,13 +245,11 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
     const uint32_t m = S_TO_M(time_s - H_TO_S(h));
     const uint32_t s = time_s - H_TO_S(h) - M_TO_S(m);
 
-    const lv_font_t* font = NULL;
+    const lv_font_t* main_label_font = instance->font_regular;
 
     if(h) {
         if(h >= 10) {
-            font = instance->loaded_fonts[TimerLabelFontIdxSeconds];
-        } else {
-            font = instance->loaded_fonts[TimerLabelFontIdxMain];
+            main_label_font = instance->font_condensed;
         }
 
         lv_label_set_text_fmt(instance->main_label, "%lu:%02lu", h, m);
@@ -267,12 +259,11 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
 
     } else {
         lv_label_set_text_fmt(instance->main_label, "%02lu:%02lu", m, s);
-        font = instance->loaded_fonts[TimerLabelFontIdxMain];
 
         lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
     }
 
-    lv_obj_set_style_text_font(instance->main_label, font, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->main_label, main_label_font, LV_PART_MAIN);
 
     if(time_s == COUNTDOWN_START_S) {
         timer_label_to_countdown(instance);
