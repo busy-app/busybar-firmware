@@ -17,6 +17,6 @@ void tls_crypto_log_response_status(const TlsCryptoResponse* response) {
     if(status == TlsCryptoStatusOk) {
         FURI_LOG_D(TAG, "%s OK", request_name);
     } else {
-        FURI_LOG_E(TAG, "%s with id: %hu failed with error: %d", request_name, request_id, status);
+        FURI_LOG_E(TAG, "%s (%hu) failed with error: %d", request_name, request_id, status);
     }
 }

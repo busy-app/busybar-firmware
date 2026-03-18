@@ -150,6 +150,8 @@ static void tls_crypto_run(TlsCrypto* instance) {
 
         tls_crypto_process_response(&response, &api_message);
 
+        tls_crypto_log_response_status(&response);
+
     } while(false);
 
     if(api_message.lock) {

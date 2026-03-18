@@ -5,7 +5,7 @@ App(
     entry_point="tls_crypto_srv",
     order=180,
     targets=["f20", "f21", "f22"],
-    stack_size=2 * 1024,
+    stack_size=3 * 1024,
     sources=[
         "tls_crypto.c",
         "tls_crypto_common.c",
