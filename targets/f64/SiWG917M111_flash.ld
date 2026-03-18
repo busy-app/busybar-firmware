@@ -34,10 +34,18 @@ _stack_size = 0x200; /* Required amount of stack */
 _flash_address_start = 0x8202000;
 _flash_size = 0x1fe000;
 
+_ram_total_size = 320K; /* Memory configuration 3 */
+_ram_address_start = 0xc; /* Cannot start from 0 for some reason */
+
+_udma_size = 1K;
+_udma_address_start = _ram_total_size - _udma_size;
+
+_ram_size = _ram_total_size - _udma_size - _ram_address_start;
+
 MEMORY {
     FLASH (rx)  : ORIGIN = _flash_address_start, LENGTH = _flash_size
-    RAM   (rwx) : ORIGIN = 0x000000c, LENGTH = 0x4fbf4
-    UDMA0 (rwx) : ORIGIN = 0x004fc00, LENGTH = 0x400
+    RAM   (rwx) : ORIGIN = _ram_address_start, LENGTH = _ram_size
+    UDMA0 (rwx) : ORIGIN = _udma_address_start, LENGTH = _udma_size
 }
 
 SECTIONS {
