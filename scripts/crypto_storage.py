@@ -106,6 +106,56 @@ class CryptoStorage(Cli):
         print(parsed_data)
         return ret
 
+    def gen_csr(
+        self,
+        partition: int,
+        key_id: int,
+        flags: int,
+        subject_name: str,
+    ):
+        data = self.send_and_wait_prompt(
+            f"{self.CRYPTO_CMD} gen_csr {partition} {key_id:x} {flags:x} {subject_name}\r"
+        )
+        parsed_data, ret = self._parse_response(data)
+
+        print(parsed_data)
+        return ret
+
+    def read_key_data(
+        self, partition: int, key_type: int, key_id: int
+    ) -> Optional[bytes]:
+        data = self.send_and_wait_prompt(
+            f"{self.CRYPTO_CMD} read {partition} {key_type} {key_id:x}\r"
+        )
+        parsed_data, ret = self._parse_response(data)
+
+        if ret != 0:
+            print(parsed_data)
+            return None
+
+        return self._parse_key_data(parsed_data)
+
+    @staticmethod
+    def _parse_key_data(text: str) -> bytes:
+        result = bytearray()
+        in_data = False
+        for line in text.splitlines():
+            line = line.strip()
+            if line.startswith("key_data:"):
+                in_data = True
+                continue
+            if not in_data:
+                continue
+            # Lines look like: "00000000: aa bb cc dd ..."
+            if ":" not in line:
+                continue
+            hex_part = line.split(":", 1)[1].strip()
+            if not hex_part:
+                continue
+            for token in hex_part.split():
+                result.append(int(token, 16))
+        return bytes(result)
+
     @staticmethod
     def _parse_key_listing(listing: str) -> List["CryptoStorage.KeyEntry"]:
         entries: List[CryptoStorage.KeyEntry] = []
