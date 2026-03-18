@@ -48,8 +48,8 @@ typedef struct {
 
     lv_style_t mirror_card;
 
-    lv_style_t title_card;
     lv_style_t title_card_label;
+    lv_style_t title_card_container;
 
     lv_style_t slider_view;
     lv_style_t slider_view_bar;
@@ -188,12 +188,17 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_pad_ver(&theme->styles.mirror_card, 4);
     lv_style_set_radius(&theme->styles.mirror_card, MENU_ITEM_RADIUS);
 
-    lv_style_init(&theme->styles.title_card);
-    lv_style_set_pad_column(&theme->styles.title_card, 6);
-    lv_style_set_text_font(&theme->styles.title_card, theme->base.font_normal);
-
     lv_style_init(&theme->styles.title_card_label);
-    lv_style_set_translate_y(&theme->styles.title_card_label, 2);
+    lv_style_set_text_color(&theme->styles.title_card_label, COLOR_FG_FOCUSED);
+    lv_style_set_text_font(
+        &theme->styles.title_card_label,
+        font_registry_load_font(font_registry, FONT_BUSY_REGULAR_14));
+
+    lv_style_init(&theme->styles.title_card_container);
+    lv_style_set_layout(&theme->styles.title_card_container, LV_LAYOUT_FLEX);
+    lv_style_set_flex_flow(&theme->styles.title_card_container, LV_FLEX_FLOW_ROW);
+    lv_style_set_flex_cross_place(&theme->styles.title_card_container, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_pad_column(&theme->styles.title_card_container, 6);
 
     lv_style_init(&theme->styles.qr_code_card);
     lv_style_set_radius(&theme->styles.qr_code_card, QR_CODE_CARD_RADIUS);
@@ -360,11 +365,11 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &mirror_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.mirror_card, LV_PART_MAIN);
 
-    } else if(lv_obj_check_type(obj, &title_card_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.title_card, LV_PART_MAIN);
-
     } else if(lv_obj_check_type(obj, &title_card_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.title_card_label, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &title_card_container_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.title_card_container, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &qr_code_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.qr_code_card, LV_PART_MAIN);

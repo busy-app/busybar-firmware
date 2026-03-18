@@ -298,9 +298,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.timer_label, LV_PART_MAIN);
 #endif // APP_BUSY
 
-    } else if(lv_obj_check_type(obj, &title_card_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.title_card, LV_PART_MAIN);
-
     } else if(lv_obj_check_type(obj, &anim_title_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.title_card, LV_PART_MAIN);
 

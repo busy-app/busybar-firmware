@@ -38,6 +38,7 @@ extern const lv_obj_class_t timer_label_lvgl_class;
 // TitleCard
 extern const lv_obj_class_t title_card_lvgl_class;
 extern const lv_obj_class_t title_card_label_lvgl_class;
+extern const lv_obj_class_t title_card_container_lvgl_class;
 
 // AnimTitleCard
 extern const lv_obj_class_t anim_title_card_lvgl_class;
