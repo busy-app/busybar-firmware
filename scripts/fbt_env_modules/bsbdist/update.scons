@@ -249,7 +249,7 @@ installs.extend(
         ),
         InstallAs(
             dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-sil_nwp-${DIST_SUFFIX}.elf")
+                u5_env.subst("busybar-${F_TARGET_HW}-sil_nwp-${DIST_SUFFIX}.rps")
             ),
             sil_env["FW_ENV"]["SI917_NWP_STACK"],
         ),
