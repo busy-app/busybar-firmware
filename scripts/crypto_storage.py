@@ -147,9 +147,13 @@ class CryptoStorage(Cli):
             if not in_data:
                 continue
             # Lines look like: "00000000: aa bb cc dd ..."
-            if ":" not in line:
+            parts = line.split(":", 1)
+            if len(parts) != 2:
                 continue
-            hex_part = line.split(":", 1)[1].strip()
+            addr, hex_part = parts[0].strip(), parts[1].strip()
+            # Address must be an 8-digit hex value
+            if len(addr) != 8 or not all(c in "0123456789abcdefABCDEF" for c in addr):
+                break
             if not hex_part:
                 continue
             for token in hex_part.split():

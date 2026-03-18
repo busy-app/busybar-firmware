@@ -87,7 +87,7 @@ class Main(App):
 
     def generate_device_csr(self, crypto_storage: CryptoStorage, device_uid: str):
         common_name = "BusyBar device " + device_uid
-        subject_name = f"CN={common_name}," f"O=Flipper FZCO," f"ST=Delaware," f"C=US"
+        subject_name = f"CN={common_name}," f"O=Flipper FZCO," f"C=AE"
 
         print(f"Generating key pair and CSR on device: {subject_name}")
         ret = crypto_storage.gen_csr(0, KEY_ID_TLS_DEVICE, 0, subject_name)
