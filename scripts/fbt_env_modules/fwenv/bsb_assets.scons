@@ -82,13 +82,13 @@ def convert_fonts():
     converted = []
 
     for f in src_files:
-        internal_name = splitext(f.name)[0]
         file_node = assets_dir.File(
-            "shared/fonts/" + internal_name + ".font"
+            f.Dir(".").name + "/fonts/" + splitext(f.name)[0] + ".font"
         )
-        converted.append(fw_assets_env.Copy(file_node, f))
+        converted.append(fw_assets_env.FontConverter(file_node, f))
 
     return converted
+
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
     assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")

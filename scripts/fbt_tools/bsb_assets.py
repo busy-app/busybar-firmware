@@ -1,7 +1,6 @@
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Util import splitext
-import shutil
 
 
 def create_header_file_action(target, source, env):
@@ -11,13 +10,12 @@ def create_header_file_action(target, source, env):
         for f in source:
             fout.write(f"extern const lv_image_dsc_t {splitext(f.name)[0]};\r\n")
 
-def copy_action(target, source, env):
-    shutil.copy(source[0].abspath, target[0].abspath)
 
 def generate(env):
     env.SetDefault(
         AUDIO_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/audio.py"),
         ANIM_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/seq2anim.py"),
+        FONT_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/ttf2font.py"),
         IMAGE_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/image.py"),
         SWAGGER_GENERATOR=env.Real("${FBT_SCRIPT_DIR}/swagger.py"),
         SWAGGER_DIST_DIR=env.Dir("swagger-dist"),
@@ -27,10 +25,10 @@ def generate(env):
         env.SetDefault(
             AUDIOCOMSTR="\tAUDIO\t${TARGET}",
             ANIMCOMSTR="\tANIM\t${TARGET}",
+            FONTCOMSTR="\tFONT\t${TARGET}",
             IMAGECONVCOMSTR="\tIMGCONV\t${TARGET}",
             IMAGEHEADERCOMSTR="\tIMGHDR\t${TARGET}",
             SWAGGERCOMSTR="\tSWAG\t${TARGET}",
-            COPYCOMSTR="\tCOPY\t${TARGET}",
         )
 
     env.Append(
@@ -64,6 +62,19 @@ def generate(env):
                         ],
                     ],
                     "${ANIMCOMSTR}",
+                ),
+            ),
+            "FontConverter": Builder(
+                action=Action(
+                    [
+                        [
+                            "${PYTHON3}",
+                            "${FONT_CONVERTER}",
+                            "${SOURCE}",
+                            "${TARGET}",
+                        ],
+                    ],
+                    "${FONTCOMSTR}",
                 ),
             ),
             "ImageConverter": Builder(
@@ -109,12 +120,6 @@ def generate(env):
                     "${SWAGGERCOMSTR}",
                 ),
             ),
-            "Copy": Builder(
-                action=Action(
-                    copy_action,
-                    "${COPYCOMSTR}"
-                )
-            )
         }
     )
 
