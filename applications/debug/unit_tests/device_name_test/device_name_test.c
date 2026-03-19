@@ -1,5 +1,5 @@
 #include "../unit_tests.h"
-#include <device_name/device_name_i.h>
+#include <device_name/helpers/device_name_validator.h>
 
 MU_TEST(device_name_test_validation_basic) {
     static const char* const allowed_names[] = {
