@@ -3,7 +3,7 @@
 #include "helpers/device_name_validator.h"
 #include <cjson/cJSON.h>
 
-#define DEVICE_NAME_MQTT_PREFIX "status"
+#define DEVICE_NAME_MQTT_PREFIX "state"
 #define DEVICE_NAME_KEY         "name"
 
 typedef void (*DeviceNameMessageHandler)(DeviceName* instance, const DeviceNameMessage* message);
