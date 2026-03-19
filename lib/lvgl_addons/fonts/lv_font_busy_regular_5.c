@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 8 px
  * Bpp: 1
- * Opts: --bpp 1 --size 8 --no-compress --font .\BSB_Tiny5-Regular.ttf --symbols ▶▹◃∞ --range 32-127 --format lvgl -o lv_font_tiny5_8.c
+ * Opts: --bpp 1 --size 8 --no-compress --font .\BSB_Tiny5-Regular.ttf --symbols ▶▹◃∞ --range 32-127 --format lvgl -o lv_font_busy_regular_5.c
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
@@ -10,11 +10,11 @@
 #include "lvgl/lvgl.h"
 #endif
 
-#ifndef LV_FONT_TINY5_8
-#define LV_FONT_TINY5_8 1
+#ifndef lv_font_busy_regular_5_c
+#define lv_font_busy_regular_5_c 1
 #endif
 
-#if LV_FONT_TINY5_8
+#if lv_font_busy_regular_5_c
 
 /*-----------------
  *    BITMAPS
@@ -593,9 +593,9 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
 
 /*Initialize a public general font descriptor*/
 #if LVGL_VERSION_MAJOR >= 8
-const lv_font_t lv_font_tiny5_8 = {
+const lv_font_t lv_font_busy_regular_5 = {
 #else
-lv_font_t lv_font_tiny5_8 = {
+lv_font_t lv_font_busy_regular_5 = {
 #endif
     .get_glyph_dsc = lv_font_get_glyph_dsc_fmt_txt, /*Function pointer to get glyph's data*/
     .get_glyph_bitmap = lv_font_get_bitmap_fmt_txt, /*Function pointer to get glyph's bitmap*/
@@ -615,4 +615,4 @@ lv_font_t lv_font_tiny5_8 = {
     .user_data = NULL,
 };
 
-#endif /*#if LV_FONT_TINY5_8*/
+#endif /*#if lv_font_busy_regular_5*/

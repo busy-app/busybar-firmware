@@ -41,7 +41,7 @@ typedef struct {
 
         struct {
             char* text_str;
-            GuiFont font;
+            char* font_path;
             Color color;
             size_t width;
             size_t scroll_rate_cpm;
@@ -65,6 +65,7 @@ static inline void canvas_element_clear(CanvasElement* obj) {
         if(obj->image.file_path) furi_string_free(obj->image.file_path);
     } else if(obj->type == CanvasElementTypeText) {
         if(obj->text.text_str) free(obj->text.text_str);
+        if(obj->text.font_path) free(obj->text.font_path);
     } else if(obj->type == CanvasElementTypeAnimPlayer) {
         if(obj->anim_player.file_path) furi_string_free(obj->anim_player.file_path);
         if(obj->anim_player.section) furi_string_free(obj->anim_player.section);
@@ -79,9 +80,8 @@ static inline void canvas_element_clone(CanvasElement* obj, const CanvasElement*
             obj->image.file_path = furi_string_alloc_set(src->image.file_path);
         }
     } else if(src->type == CanvasElementTypeText) {
-        if(src->text.text_str) {
-            obj->text.text_str = strdup(src->text.text_str);
-        }
+        if(src->text.text_str) obj->text.text_str = strdup(src->text.text_str);
+        if(src->text.font_path) obj->text.font_path = strdup(src->text.font_path);
     } else if(src->type == CanvasElementTypeAnimPlayer) {
         if(src->anim_player.file_path) {
             obj->anim_player.file_path = furi_string_alloc_set(src->anim_player.file_path);

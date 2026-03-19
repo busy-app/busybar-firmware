@@ -71,14 +71,13 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
             layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
         lv_obj_set_flex_grow(layout, 1);
         lv_obj_set_style_pad_row(layout, 1, LV_PART_MAIN);
-        lv_obj_set_style_translate_y(layout, 1, LV_PART_MAIN);
 
         column->top_label = lv_label_create(layout);
         column->bottom_label = lv_label_create(layout);
 
-        lv_obj_set_style_text_font(column->top_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
         lv_obj_set_style_text_font(
             column->bottom_label, lv_theme_get_font_large(obj), LV_PART_MAIN);
+        lv_obj_set_content_height(column->top_label, 5);
 
         if(i == OverviewLabelColumnIdxWork) {
             lv_label_set_text(column->top_label, "WORK");
