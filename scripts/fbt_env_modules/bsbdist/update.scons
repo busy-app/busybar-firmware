@@ -175,9 +175,35 @@ if sil_sign_keystore:
         signed_update_tar,
     )
 
+    # Signed recovery bundle (full + bkp resources + signed Silabs firmwares)
+    signed_bkp_env = signed_bundle_env.Clone(
+        BUNDLE_BKP_RESOURCES=fw_env["BKP_RESOURCES_ROOT"],
+    )
+
+    signed_bkp_tar = signed_bkp_env.UpdateBundle(
+        fw_env.File("${BUILD_DIR}/bkp_signed_${F_TARGET_HW}"),
+        [],
+    )
+    Depends(
+        signed_bkp_tar,
+        base_deps
+        + [
+            fw_env["FW_RESOURCES_MANIFEST"],
+            fw_env["FW_BKP_RESOURCES"],
+            signed_fw_rps,
+            signed_nwp_rps,
+        ],
+    )
+
+    signed_bkp_tgz = bundle_env.CompressBundle(
+        fw_env.File("${BUILD_DIR}/bkp_signed_${F_TARGET_HW}.tgz"),
+        signed_bkp_tar,
+    )
+
     signed_installs = [
         InstallAs(_dist_file("update_signed", "tar"), signed_update_tar),
         InstallAs(_dist_file("update_signed", "tgz"), signed_update_tgz),
+        InstallAs(_dist_file("bkp_signed", "tgz"), signed_bkp_tgz),
         InstallAs(_dist_file("sil_firmware_signed", "rps"), signed_fw_rps),
         InstallAs(_dist_file("sil_nwp_signed", "rps"), signed_nwp_rps),
     ]
