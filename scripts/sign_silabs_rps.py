@@ -23,10 +23,11 @@ def find_commander_cli(user_path=None):
             return user_path
         raise FileNotFoundError(f"commander-cli not found at: {user_path}")
 
-    # Check PATH
-    path = shutil.which("commander-cli")
-    if path:
-        return path
+    # Check PATH for both Linux and macOS binary names
+    for name in ("commander-cli", "commander"):
+        path = shutil.which(name)
+        if path:
+            return path
 
     # macOS default location
     macos_path = "/Applications/Commander-cli.app/Contents/MacOS/commander-cli"

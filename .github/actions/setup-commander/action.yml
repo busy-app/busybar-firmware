@@ -1,0 +1,31 @@
+name: Setup Simplicity Commander
+description: Download Simplicity Commander CLI and add it to PATH
+
+inputs:
+  commander_url:
+    description: URL to the Commander Linux zip archive
+    required: false
+    default: "https://www.silabs.com/documents/login/software/SimplicityCommander-Linux.zip"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download and install Commander
+      shell: bash
+      run: |
+        set -euo pipefail
+        INSTALL_DIR="${RUNNER_TEMP}/commander"
+        mkdir -p "$INSTALL_DIR"
+        echo "Downloading Simplicity Commander..."
+        curl -fsSL "${{ inputs.commander_url }}" -o "${INSTALL_DIR}/commander.zip"
+        unzip -q "${INSTALL_DIR}/commander.zip" -d "${INSTALL_DIR}"
+        rm -f "${INSTALL_DIR}/commander.zip"
+        # Find the commander binary directory
+        COMMANDER_BIN="$(find "${INSTALL_DIR}" -name 'commander' -type f -executable | head -1)"
+        if [[ -z "$COMMANDER_BIN" ]]; then
+          echo "::error::commander executable not found in archive"
+          exit 1
+        fi
+        COMMANDER_DIR="$(dirname "$COMMANDER_BIN")"
+        echo "Commander installed at: $COMMANDER_DIR"
+        echo "$COMMANDER_DIR" >> "$GITHUB_PATH"
