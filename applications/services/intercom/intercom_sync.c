@@ -1,108 +1,129 @@
+/**
+ * @file intercom_sync.c
+ */
 #include "intercom_i.h"
 
-#define INTERCOM_SYNC_LEADER_1 (0x55)
-#define INTERCOM_SYNC_LEADER_2 (0xAA)
+#ifdef INTERCOM_DISABLE_VERSION_CHECK
+#define INTERCOM_CONTROL_STRING_DEFAULT "intercom"
+#else // INTERCOM_DISABLE_VERSION_CHECK
+#include <version.h>
+#endif // INTERCOM_DISABLE_VERSION_CHECK
 
-#define INTERCOM_SYNC_CHAR_TIMEOUT_MS (50UL)
-#define INTERCOM_SYNC_TIMEOUT_MS      (1000UL)
+#define INTERCOM_SYNC_TIMEOUT_MS (1000)
 
-typedef struct {
-    uint8_t leader;
-    bool repeat_leader;
-} IntercomSyncSequence;
+#define INTERCOM_SYNC_DEBOUNCE_WINDOW_US          (1000)
+#define INTERCOM_SYNC_DEBOUNCE_SAMPLE_INTERVAL_US (10)
+#define INTERCOM_SYNC_DEBOUNCE_CONFIDENCE_THRESHOLD \
+    (INTERCOM_SYNC_DEBOUNCE_WINDOW_US / INTERCOM_SYNC_DEBOUNCE_SAMPLE_INTERVAL_US)
 
-static const IntercomSyncSequence intercom_sync_sequences[] = {
-    // Sequence 1 - ensure that the target is responding
-    {
-        .leader = INTERCOM_SYNC_LEADER_1,
-        .repeat_leader = true,
-    },
-    // Sequence 2 - ensure that data streams are in sync
-    {
-        .leader = INTERCOM_SYNC_LEADER_2,
-        .repeat_leader = false,
-    },
-};
+#define TAG "IntercomSync"
 
-/**
- * Basic principle of operation:
- *
- * 1. Send a leader character,
- * 2. Wait for received data,
- * 3. If the received character is a leader character, report success.
- * 4. If no characters have been received, retry until a leader character is detected or the timeout expires.
- * 5. Depending on the repeat_leader flag, send the leader repeatedly when retrying, or do it only in the beginning.
- */
-static bool
-    intercom_sync_sequence(FuriHalSerialHandle* serial, const IntercomSyncSequence* sequence) {
+static const char* intercom_get_control_string(void) {
+    const char* str;
+#ifdef INTERCOM_DISABLE_VERSION_CHECK
+    str = INTERCOM_CONTROL_STRING_DEFAULT;
+#else // INTERCOM_DISABLE_VERSION_CHECK
+    const Version* version = version_get();
+    str = version_get_githash(version);
+#endif // INTERCOM_DISABLE_VERSION_CHECK
+    return str;
+}
+
+static uint32_t intercom_sync_get_timeout_left(uint32_t start_time) {
+    const uint32_t dt = furi_get_tick() - start_time;
+    return dt < INTERCOM_SYNC_TIMEOUT_MS ? INTERCOM_SYNC_TIMEOUT_MS - dt : 0;
+}
+
+static bool intercom_sync_wait_for_other_side(FuriHalSerialHandle* serial, uint32_t start_time) {
     bool success = false;
-    bool send_leader = true;
 
-    const uint32_t start_time = furi_get_tick();
+    int32_t confidence = 0;
 
-    while(furi_get_tick() - start_time < furi_ms_to_ticks(INTERCOM_SYNC_TIMEOUT_MS)) {
-        if(send_leader) {
-            if(furi_hal_serial_tx(serial, &sequence->leader, 1, INTERCOM_SYNC_CHAR_TIMEOUT_MS) !=
-               1) {
-                continue;
-            }
-            // If repeat_leader is false, then the leader is sent only once
-            if(!sequence->repeat_leader) {
-                send_leader = false;
-            }
+    while(intercom_sync_get_timeout_left(start_time)) {
+        const int32_t delta = furi_hal_serial_get_pin_state(serial, FuriHalSerialPinCts) ? -1 : 1;
+
+        confidence = MAX(confidence + delta, 0);
+
+        if(confidence >= INTERCOM_SYNC_DEBOUNCE_CONFIDENCE_THRESHOLD) {
+            success = true;
+            break;
         }
 
-        if(!furi_hal_serial_tx_wait_complete(serial, INTERCOM_SYNC_CHAR_TIMEOUT_MS)) {
-            continue;
+        furi_delay_us(INTERCOM_SYNC_DEBOUNCE_SAMPLE_INTERVAL_US);
+    }
+
+    return success;
+}
+
+static bool intercom_sync_send_char(FuriHalSerialHandle* serial, uint8_t ch, uint32_t start_time) {
+    bool success = false;
+
+    do {
+        const size_t tx_size = furi_hal_serial_tx(
+            serial, &ch, sizeof(ch), intercom_sync_get_timeout_left(start_time));
+
+        if(tx_size != sizeof(ch)) {
+            break;
         }
 
-        if(furi_hal_serial_rx_available(serial)) {
-            if(furi_hal_serial_rx(serial) == sequence->leader) {
-                success = true;
-                break;
-            }
+        if(!furi_hal_serial_tx_wait_complete(serial, intercom_sync_get_timeout_left(start_time))) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool
+    intercom_sync_wait_for_char(FuriHalSerialHandle* serial, uint8_t ch, uint32_t start_time) {
+    bool success = false;
+
+    while(intercom_sync_get_timeout_left(start_time)) {
+        if(furi_hal_serial_rx_available(serial) && furi_hal_serial_rx(serial) == ch) {
+            success = true;
+            break;
         }
     }
 
     return success;
 }
 
-/**
- * The synchronisation procedure lets 2 devices agree on where the beginning of the data stream is.
- *
- * This method has the following benefits:
- * - Rejection of any erroneous data that might have been accidentally sent during configuration.
- * - Independence of the startup timing. Both sides only must be brought up within the timeout period.
- *
- * Basic operating principle:
- *
- * 1. Send the 1st sequence leader character REPEATEDLY until the other side responds with it.
- * 2. Send the 2nd sequence leader character ONCE until the other side responds with it.
- * 3. Once the 2nd sequence leader character has been received, the data streams are synchronised.
- * 4. If any of the above procedures could not be completed within a timeout, report an error.
- *
- * Example time diagram:
- *
- * 1st sequence leader char = 'A'
- * 2nd sequence leader char = 'B'
- *
- * SIDE A | TX | (startup) AAAAAAAAAAAAAAAB
- *        | RX | (garbage or silence)    AB(sync!)
- * -------+----+----------------------------------
- * SIDE B | TX | (startup)               AB
- *        | RX | (garbage or silence)    AB(sync!)
- * -------+----+----------------------------------
- *               TIME ->
- */
-bool intercom_sync_serial(FuriHalSerialHandle* serial) {
-    bool success = true;
+static bool intercom_sync_do_handshake(FuriHalSerialHandle* serial, uint32_t start_time) {
+    const char* control_str = intercom_get_control_string();
+    const size_t control_str_len = strlen(control_str);
 
-    for(uint32_t i = 0; i < COUNT_OF(intercom_sync_sequences); ++i) {
-        if(!intercom_sync_sequence(serial, &intercom_sync_sequences[i])) {
-            success = false;
+    uint32_t i;
+    for(i = 0; i < control_str_len; ++i) {
+        if(!intercom_sync_send_char(serial, control_str[i], start_time)) {
+            break;
+        }
+        if(!intercom_sync_wait_for_char(serial, control_str[i], start_time)) {
             break;
         }
     }
+
+    return (i == control_str_len);
+}
+
+bool intercom_sync_serial(FuriHalSerialHandle* serial) {
+    bool success = false;
+
+    do {
+        const uint32_t start_time = furi_get_tick();
+
+        if(!intercom_sync_wait_for_other_side(serial, start_time)) {
+            FURI_LOG_E(TAG, "No presence signal from the other side");
+            break;
+        }
+        if(!intercom_sync_do_handshake(serial, start_time)) {
+            FURI_LOG_E(TAG, "Handshake failure, possible version mismatch");
+            break;
+        }
+
+        success = true;
+    } while(false);
 
     return success;
 }

@@ -232,16 +232,21 @@ static void mqtt_get_status_api_message_handler(Mqtt* instance, const MqttApiMes
 
 static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
-    furi_assert(data);
+    UNUSED(data);
 
-    mqtt_connection_close(instance, true);
-    mqtt_reset_saved_state(instance);
+    FURI_LOG_I(TAG, "Received unlink message from user");
 
-    MqttEvent pub_event = {
-        .type = MqttEventTypeUnlinked,
-    };
+    if(instance->status == MqttStatusConnectedLinked) {
+        const char* empty = "{}";
 
-    furi_pubsub_publish(instance->event_pubsub, &pub_event);
+        bool is_success = mqtt_publish_internal(
+            instance, MqttScopeSession, MqttQosAtMostOnce, "unlink", empty, strlen(empty), NULL, 0);
+        if(!is_success) {
+            FURI_LOG_W(TAG, "Failed to send unlink message to cloud");
+        }
+    }
+
+    mqtt_account_unlink(instance);
 }
 
 static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
