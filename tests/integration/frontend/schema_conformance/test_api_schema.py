@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Schemathesis tests: automatic verification of API conformance to the OpenAPI contract.
 
@@ -26,7 +28,15 @@ from hypothesis import HealthCheck, settings
 from .conftest import SAFE_WRITE_OPERATION_IDS, SKIP_OPERATION_IDS
 
 # Lazy schema: resolves the 'schemathesis_schema' fixture from conftest.py
-_schema = schemathesis.from_pytest_fixture("schemathesis_schema")
+_schema = schemathesis.pytest.from_fixture("schemathesis_schema")
+_get_operations_schema = _schema.include(
+    method="GET",
+    func=lambda ctx: ctx.operation.operation_id not in SKIP_OPERATION_IDS,
+)
+_safe_write_schema = _schema.include(
+    method="POST",
+    func=lambda ctx: ctx.operation.operation_id in SAFE_WRITE_OPERATION_IDS,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -50,7 +60,7 @@ class TestGetConformance:
     @allure.title("GET endpoints conform to OpenAPI schema")
     @pytest.mark.schemathesis
     @pytest.mark.frontend
-    @_schema.parametrize(method="GET", operation_id=lambda op_id: op_id not in SKIP_OPERATION_IDS)
+    @_get_operations_schema.parametrize()
     @settings(
         max_examples=10,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
@@ -92,7 +102,7 @@ class TestSafeWriteConformance:
     @allure.title("Safe write operations conform to OpenAPI schema")
     @pytest.mark.schemathesis
     @pytest.mark.frontend
-    @_schema.parametrize(method="POST", operation_id=lambda op_id: op_id in SAFE_WRITE_OPERATION_IDS)
+    @_safe_write_schema.parametrize()
     @settings(
         max_examples=5,
         suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],

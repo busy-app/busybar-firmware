@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Schemathesis fixtures and shared configuration.
 
@@ -89,7 +91,4 @@ def schemathesis_schema(web_base_url: str) -> schemathesis.BaseSchema:
     to abort the entire test run.
     """
     schema_url = f"{web_base_url}/openapi.yaml"
-    return schemathesis.from_uri(
-        schema_url,
-        validate_schema=False,
-    )
+    return schemathesis.openapi.from_url(schema_url)
