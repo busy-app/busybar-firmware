@@ -475,7 +475,7 @@ static void busy_scene_timer_on_enter(void* context) {
         data->timer_label = timer_label_alloc(instance->front_window);
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
-        widget_set_align(timer_label_get_base(data->timer_label), AlignRightMid);
+        widget_set_align(timer_label_get_base(data->timer_label), AlignTopRight);
 
         widget_set_visible(mirror_card_get_base(instance->timer_card), true);
         mirror_card_set_show_header(instance->timer_card, true);

@@ -47,11 +47,12 @@ static void fail_scene_on_enter(void* context) {
 
         Label* back_status_label = label_alloc(flex_layout_get_base(back_status_line_flex));
         label_set_text(back_status_label, "Update failed");
+        label_set_font(back_status_label, FONT_BUSY_REGULAR_9);
         widget_set_size_content(label_get_base(back_status_label));
 
         Label* back_description_label = label_alloc(flex_layout_get_base(data->back_flex));
         label_set_long_content_mode(back_description_label, LabelLongContentModeWrap, 0);
-        label_set_text_font_size(back_description_label, LabelFontSizeSmall);
+        label_set_font(back_status_label, FONT_BUSY_REGULAR_5);
         label_set_text(
             back_description_label, "An error occurred during the update. Try again later.");
 

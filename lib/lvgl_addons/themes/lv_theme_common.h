@@ -32,12 +32,10 @@ extern const lv_obj_class_t var_item_arrow_lvgl_class;
 // MirrorCard
 extern const lv_obj_class_t mirror_card_lvgl_class;
 
-// TimerLabel
-extern const lv_obj_class_t timer_label_lvgl_class;
-
 // TitleCard
 extern const lv_obj_class_t title_card_lvgl_class;
 extern const lv_obj_class_t title_card_label_lvgl_class;
+extern const lv_obj_class_t title_card_container_lvgl_class;
 
 // AnimTitleCard
 extern const lv_obj_class_t anim_title_card_lvgl_class;
@@ -65,6 +63,12 @@ extern const lv_obj_class_t status_view_additional_text_lvgl_class;
 
 // Countdown
 extern const lv_obj_class_t countdown_lvgl_class;
+
+// Theme picker
+extern const lv_obj_class_t theme_picker_arrow_lvgl_class;
+
+// Wi-Fi
+extern const lv_obj_class_t wifi_info_view_arrow_lvgl_class;
 
 // Dialog
 extern const lv_obj_class_t dialog_lvgl_class;

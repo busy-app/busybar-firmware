@@ -76,6 +76,7 @@
     "platform_desc": "../../scripts/debug/platforms/siw917.json",
     "rtos_flavor": "freertos-cm4",
     "lib_modules": [
+        "stb",
         "lib_base",
         "mlib",
         "cmsis",
