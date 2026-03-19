@@ -2,7 +2,7 @@
 
 static void device_name_send_message(DeviceName* instance, DeviceNameMessage* message) {
     message->api_lock = api_lock_alloc_locked();
-    furi_check(furi_message_queue_put(instance->queue, &message, FuriWaitForever) == FuriStatusOk);
+    furi_check(furi_message_queue_put(instance->queue, message, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(message->api_lock);
 }
 
