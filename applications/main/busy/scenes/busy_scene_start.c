@@ -97,9 +97,9 @@ static void busy_scene_start_on_enter(void* context) {
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
-            data->back_menu, "Start", NULL, SHARED_IMG_PATH("start_11x11.bin"), 0, NULL, NULL);
+            data->back_menu, "Start", NULL, SHARED_IMG_PATH("start_11x11.image"), 0, NULL, NULL);
         menu_add_item(
-            data->back_menu, "Setup", NULL, SHARED_IMG_PATH("setup_11x11.bin"), 0, NULL, NULL);
+            data->back_menu, "Setup", NULL, SHARED_IMG_PATH("setup_11x11.image"), 0, NULL, NULL);
     });
 
     busy_start_transition(instance);

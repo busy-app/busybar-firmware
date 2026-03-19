@@ -142,8 +142,8 @@ int32_t time_settings_entry(void* arg) {
 
         furi_string_set_str(descriptor->front_title, "Time");
         furi_string_set_str(descriptor->back_title, "Time");
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("clock_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("clock_back_11x11.bin"));
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("clock_front_8x8.image"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("clock_back_11x11.image"));
 
         return 0;
     }

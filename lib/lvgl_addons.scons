@@ -6,6 +6,7 @@ FONTS_FOLDER = LIB_FOLDER + "/fonts"
 THEMES_FOLDER = LIB_FOLDER + "/themes"
 STORAGE_FOLDER = LIB_FOLDER + "/fs"
 OSAL_FOLDER = LIB_FOLDER + "/osal"
+DECODER_FOLDER = LIB_FOLDER + "/image_decoder"
 
 env.Append(
     CPPPATH=[
@@ -15,6 +16,7 @@ env.Append(
         Dir(THEMES_FOLDER).srcnode(),
         Dir(STORAGE_FOLDER).srcnode(),
         Dir(OSAL_FOLDER).srcnode(),
+        Dir(DECODER_FOLDER).srcnode(),
     ],
 )
 
@@ -32,6 +34,7 @@ sources += libenv.Glob(FONTS_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(THEMES_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(STORAGE_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(OSAL_FOLDER + "/*.c", source=True)
+sources += libenv.Glob(DECODER_FOLDER + "/*.c", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

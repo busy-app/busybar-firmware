@@ -3,6 +3,7 @@
 #include <lvgl_addons/fs/lv_fs.h>
 #include <lvgl_addons/themes/lv_theme_front.h>
 #include <lvgl_addons/themes/lv_theme_back.h>
+#include <lvgl_addons/image_decoder/lv_img_decoder.h>
 
 #define TAG "Gui"
 
@@ -246,6 +247,7 @@ static Gui* gui_alloc(void) {
     lv_tick_set_cb(furi_get_tick);
     lv_delay_set_cb(furi_delay_ms);
     lv_log_register_print_cb(gui_log_callback);
+    lv_img_decoder_init();
 
     gui_init_front(&instance->displays[GuiDisplayIdFront]);
     gui_init_back(&instance->displays[GuiDisplayIdBack]);

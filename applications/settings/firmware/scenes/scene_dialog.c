@@ -26,18 +26,19 @@ static void this_prepare_battery_low_result(ThisInstance* instance) {
     furi_record_close(RECORD_POWER);
 
     if(power_info.is_charging) {
-        instance->result_preset.front_image_path = THIS_IMG_PATH("charging_battery_front_8x8.bin");
+        instance->result_preset.front_image_path =
+            THIS_IMG_PATH("charging_battery_front_8x8.image");
         furi_string_set(instance->result_preset.front_text, "Charging to 40%\nto start update...");
 
         furi_string_set(instance->result_preset.back_primary_text, "Battery is charging...");
     } else {
-        instance->result_preset.front_image_path = THIS_IMG_PATH("low_battery_front_8x8.bin");
+        instance->result_preset.front_image_path = THIS_IMG_PATH("low_battery_front_8x8.image");
         furi_string_set(instance->result_preset.front_text, "Charge device up\nto 40% to update");
 
         furi_string_set(instance->result_preset.back_primary_text, "Charge your BUSY Bar");
     }
 
-    instance->result_preset.back_image_path = THIS_IMG_PATH("error_back_11x11.bin");
+    instance->result_preset.back_image_path = THIS_IMG_PATH("error_back_11x11.image");
     furi_string_set(instance->result_preset.back_auxiliary_text, "40% needed to start update");
 
     instance->result_preset.timeout = FuriWaitForever;

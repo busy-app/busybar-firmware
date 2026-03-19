@@ -44,7 +44,7 @@ static void scene_connected_on_enter(void* context) {
         widget_set_align(flex_layout_get_base(data->front_flex), AlignLeftMid);
 
         data->front_mark = image_alloc(flex_layout_get_base(data->front_flex));
-        image_set_source(data->front_mark, SETTINGS_IMG_PATH("checkmark_front_8x6.bin"));
+        image_set_source(data->front_mark, SETTINGS_IMG_PATH("checkmark_front_8x6.image"));
         widget_set_height_content(image_get_base(data->front_mark));
 
         data->front_label = label_alloc(flex_layout_get_base(data->front_flex));
@@ -57,7 +57,7 @@ static void scene_connected_on_enter(void* context) {
             data->back_flex, FlexLayoutAlignCenter, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
 
         data->back_mark = image_alloc(flex_layout_get_base(data->back_flex));
-        image_set_source(data->back_mark, SETTINGS_IMG_PATH("checkmark_back_12x10.bin"));
+        image_set_source(data->back_mark, SETTINGS_IMG_PATH("checkmark_back_12x10.image"));
         widget_set_width_content(image_get_base(data->back_mark));
 
         data->back_label = label_alloc(flex_layout_get_base(data->back_flex));

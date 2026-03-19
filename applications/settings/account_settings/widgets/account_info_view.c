@@ -31,7 +31,7 @@ static void
     lv_obj_set_style_pad_gap(obj, 2, LV_PART_MAIN);
 
     lv_obj_t* state_image = lv_img_create(obj);
-    lv_img_set_src(state_image, IMG_PATH("account_front_ok_8x8.bin"));
+    lv_img_set_src(state_image, IMG_PATH("account_front_ok_8x8.image"));
     lv_obj_set_flex_grow(state_image, 0);
 
     lv_obj_t* text_cont = lv_obj_create(obj);
@@ -81,7 +81,7 @@ static void account_info_view_back_lvgl_constructor(const lv_obj_class_t* class_
     lv_obj_set_style_pad_gap(obj, 6, LV_PART_MAIN);
 
     lv_obj_t* state_image = lv_img_create(obj);
-    lv_img_set_src(state_image, IMG_PATH("account_back_11x11.bin"));
+    lv_img_set_src(state_image, IMG_PATH("account_back_11x11.image"));
     lv_obj_set_flex_grow(state_image, 0);
 
     lv_obj_t* text_cont = lv_obj_create(obj);

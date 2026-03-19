@@ -46,12 +46,10 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     for f in image_src_files:
         internal_name = splitext(f.name)[0]
         file_node = assets_dir.File(
-            f.Dir(".").name + "/images/" + internal_name + ".bin"
+            f.Dir(".").name + "/images/" + internal_name + ".image"
         )
         images_converted.append(
-            fw_assets_env.ImageConverter(
-                file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name
-            )
+            fw_assets_env.ImageConverter(file_node, f, FORMAT="BIN")
         )
 
     resources_dist.append(images_converted)

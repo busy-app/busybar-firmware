@@ -6,7 +6,7 @@
 
 #define TAG "HttpAssets"
 
-#define ASSETS_UPLOAD_DIR EXT_PATH("assets")
+#define ASSETS_UPLOAD_DIR EXT_PATH("user_assets")
 #define FILE_NAME_LEN_MAX 32
 
 typedef struct {

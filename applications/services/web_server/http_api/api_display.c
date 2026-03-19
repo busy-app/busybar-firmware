@@ -12,8 +12,8 @@
 
 #define TAG "HttpDisplay"
 
-#define DISPLAY_ASSETS_DIR               EXT_PATH("assets")
-#define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
+#define DISPLAY_ASSETS_DIR               EXT_PATH("user_assets")
+#define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.image")
 #define DISPLAY_BUILTIN_ANIM_FORMATTER   EXT_PATH("apps_assets/%s/animations/%s.anim")
 
 #define DEFAULT_ELEMENT_PRIORITY 50

@@ -43,8 +43,8 @@ static void system_settings_scene_power_unplug_usb_on_enter(void* context) {
     };
 
     static const char* const images[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("warning_front_8x8.bin"),
-        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("error_back_11x11.bin"),
+        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("warning_front_8x8.image"),
+        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("error_back_11x11.image"),
     };
 
     with_gui(instance->gui, {

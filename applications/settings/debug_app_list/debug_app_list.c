@@ -158,8 +158,8 @@ int32_t debug_app_list_entry(void* arg) {
 
         furi_string_set_str(descriptor->front_title, "Debug apps");
         furi_string_set_str(descriptor->back_title, "Debug apps");
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("debug_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("debug_back_11x11.bin"));
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("debug_front_8x8.image"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("debug_back_11x11.image"));
         descriptor->display_in_menu = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
 
         return 0;

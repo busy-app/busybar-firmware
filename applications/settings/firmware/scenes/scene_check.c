@@ -21,10 +21,10 @@ static inline ThisScene* this_get_scene(ThisInstance* instance) {
 }
 
 static void this_prepare_up_to_date_result(ThisInstance* instance) {
-    instance->result_preset.front_image_path = THIS_IMG_PATH("checkmark_front_8x8.bin");
+    instance->result_preset.front_image_path = THIS_IMG_PATH("checkmark_front_8x8.image");
     furi_string_set(instance->result_preset.front_text, "Up to date");
 
-    instance->result_preset.back_image_path = THIS_IMG_PATH("checkmark_back_11x11.bin");
+    instance->result_preset.back_image_path = THIS_IMG_PATH("checkmark_back_11x11.image");
     furi_string_set(instance->result_preset.back_primary_text, "Firmware is up to date");
     furi_string_printf(
         instance->result_preset.back_auxiliary_text,

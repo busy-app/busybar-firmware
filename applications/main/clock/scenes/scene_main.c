@@ -61,7 +61,7 @@ static void this_scene_on_enter(void* context) {
             data->back_menu,
             "Start",
             NULL,
-            SHARED_IMG_PATH("start_11x11.bin"),
+            SHARED_IMG_PATH("start_11x11.image"),
             ThisSceneEventStart,
             clock_scene_start_menu_callback,
             instance);
@@ -69,7 +69,7 @@ static void this_scene_on_enter(void* context) {
             data->back_menu,
             "Setup",
             NULL,
-            SHARED_IMG_PATH("setup_11x11.bin"),
+            SHARED_IMG_PATH("setup_11x11.image"),
             ThisSceneEventSetup,
             clock_scene_start_menu_callback,
             instance);

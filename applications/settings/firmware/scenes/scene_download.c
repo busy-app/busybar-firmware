@@ -32,10 +32,10 @@ static inline ThisScene* this_get_scene(ThisInstance* instance) {
 }
 
 static void this_prepare_up_to_date_result(ThisInstance* instance) {
-    instance->result_preset.front_image_path = THIS_IMG_PATH("error_front_8x8.bin");
+    instance->result_preset.front_image_path = THIS_IMG_PATH("error_front_8x8.image");
     furi_string_set(instance->result_preset.front_text, "Download failed");
 
-    instance->result_preset.back_image_path = THIS_IMG_PATH("error_back_11x11.bin");
+    instance->result_preset.back_image_path = THIS_IMG_PATH("error_back_11x11.image");
     furi_string_set(instance->result_preset.back_primary_text, "Download failed");
     furi_string_set(instance->result_preset.back_auxiliary_text, "Cannot download file");
 
@@ -121,7 +121,7 @@ static void this_scene_on_enter(void* context) {
         widget_set_padding(flex_box_get_base(back_status_container), 0, 0, 0, 7);
 
         Image* back_status_image = image_alloc(flex_box_get_base(back_status_container));
-        image_set_source(back_status_image, THIS_IMG_PATH("download_12x12.bin"));
+        image_set_source(back_status_image, THIS_IMG_PATH("download_12x12.image"));
         widget_set_padding(image_get_base(back_status_image), 0, 0, 0, 1);
 
         Label* back_status_label = label_alloc(flex_box_get_base(back_status_container));
