@@ -59,6 +59,8 @@ class Main(App):
 
         if self.loudness_data["input_i"] == "-inf":
             self.loudness_data["input_i"] = "-99"
+        if self.loudness_data["input_tp"] == "-inf":
+            self.loudness_data["input_tp"] = "-99"
 
     def apply_loudness(self):
         cmd = (
