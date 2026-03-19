@@ -1,18 +1,20 @@
 #include "title_card.h"
+
 #include "../widget_i.h"
 
-#define MY_CLASS       (&title_card_lvgl_class)
-#define MY_LABEL_CLASS (&title_card_label_lvgl_class)
+#define MY_CLASS           (&title_card_lvgl_class)
+#define MY_LABEL_CLASS     (&title_card_label_lvgl_class)
+#define MY_CONTAINER_CLASS (&title_card_container_lvgl_class)
 
 struct TitleCard {
     Widget base;
-
     lv_obj_t* icon_image;
     lv_obj_t* title_label;
 };
 
 const lv_obj_class_t title_card_lvgl_class;
 const lv_obj_class_t title_card_label_lvgl_class;
+const lv_obj_class_t title_card_container_lvgl_class;
 
 /* LVGL-specific code */
 
@@ -21,14 +23,14 @@ static void title_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     TitleCard* instance = (TitleCard*)obj;
 
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_t* container = lv_obj_class_create_obj(MY_CONTAINER_CLASS, obj);
+    lv_obj_class_init_obj(container);
+    lv_obj_set_align(container, LV_ALIGN_CENTER);
 
-    instance->icon_image = lv_image_create(obj);
+    instance->icon_image = lv_image_create(container);
 
-    instance->title_label = lv_obj_class_create_obj(MY_LABEL_CLASS, obj);
+    instance->title_label = lv_obj_class_create_obj(MY_LABEL_CLASS, container);
     lv_obj_class_init_obj(instance->title_label);
-    lv_obj_set_style_text_color(instance->title_label, lv_color_white(), LV_PART_MAIN);
 }
 
 /* Public API */
@@ -82,6 +84,13 @@ const lv_obj_class_t title_card_lvgl_class = {
 const lv_obj_class_t title_card_label_lvgl_class = {
     .base_class = &lv_label_class,
     .name = "title-card-label",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+};
+
+const lv_obj_class_t title_card_container_lvgl_class = {
+    .base_class = &lv_obj_class,
+    .name = "title-card-container",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
 };

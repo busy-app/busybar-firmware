@@ -27,6 +27,7 @@ App(
     requires=[
         "gui",
         "storage",
+        "font_registry",
     ],
     stack_size=2 * 1024,
     order=300,

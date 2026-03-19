@@ -1,0 +1,25 @@
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        "#/lib/stb",
+    ],
+    LINT_SOURCES=[
+        File("stb.c"),
+        File("stb.h"),
+    ],
+    SDK_HEADERS=[
+        File("stb.h"),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="stb")
+libenv.ApplyLibFlags()
+
+sources = [
+    File("stb.c")
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

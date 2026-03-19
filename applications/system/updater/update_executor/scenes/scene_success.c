@@ -37,6 +37,7 @@ static void success_scene_on_enter(void* context) {
         Label* back_status_label = label_alloc(flex_layout_get_base(data->back_flex));
         label_set_text_font_size(back_status_label, LabelFontSizeLarge);
         label_set_text(back_status_label, "Restarting device...");
+        label_set_font(back_status_label, FONT_BUSY_REGULAR_9);
         widget_set_size_content(label_get_base(back_status_label));
 
         /* front ui */
