@@ -20,20 +20,20 @@ typedef struct {
     UpdateUiSceneIdx startup_scene_idx;
 
     bool is_ui_session_active;
-} ThisStartupHandle;
+} UpdateUiStartup;
 
 /* thread implementation */
 
-static void exit_thread_semaphore_callback(FuriEventLoopObject* object, void* context) {
+static void update_ui_exit_thread_semaphore_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
-    ThisHandle* instance = context;
+    UpdateUi* instance = context;
 
     furi_event_loop_stop(instance->event_loop);
 }
 
-static bool input_callback(const InputEvent* event, void* context) {
-    ThisHandle* instance = context;
+static bool update_ui_input_callback(const InputEvent* event, void* context) {
+    UpdateUi* instance = context;
 
     FuriStatus input_queue_status = furi_message_queue_put(
         instance->input_queue, event, furi_ms_to_ticks(INPUT_QUEUE_TIMEOUT_MS));
@@ -45,10 +45,10 @@ static bool input_callback(const InputEvent* event, void* context) {
     return true;
 }
 
-static void input_queue_callback(FuriEventLoopObject* object, void* context) {
+static void update_ui_input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
-    ThisHandle* instance = context;
+    UpdateUi* instance = context;
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
@@ -58,10 +58,10 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static void event_queue_callback(FuriEventLoopObject* object, void* context) {
+static void update_ui_event_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
-    ThisHandle* instance = context;
+    UpdateUi* instance = context;
 
     uint32_t event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
@@ -69,7 +69,7 @@ static void event_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static void handle_setup(ThisHandle* instance, const ThisStartupHandle* startup_instance) {
+static void update_ui_setup(UpdateUi* instance, const UpdateUiStartup* startup_instance) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->updater = furi_record_open(RECORD_UPDATER);
 
@@ -86,7 +86,7 @@ static void handle_setup(ThisHandle* instance, const ThisStartupHandle* startup_
 
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
-        gui_layer_add_input_callback(system_layer, input_callback, instance);
+        gui_layer_add_input_callback(system_layer, update_ui_input_callback, instance);
 
         Widget* front_root = gui_layer_get_root_widget(system_layer, GuiDisplayIdFront);
         instance->front_scene_window = widget_alloc(front_root);
@@ -101,21 +101,21 @@ static void handle_setup(ThisHandle* instance, const ThisStartupHandle* startup_
         instance->event_loop,
         instance->input_queue,
         FuriEventLoopEventIn,
-        input_queue_callback,
+        update_ui_input_queue_callback,
         instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->event_queue,
         FuriEventLoopEventIn,
-        event_queue_callback,
+        update_ui_event_queue_callback,
         instance);
 
     furi_event_loop_subscribe_semaphore(
         instance->event_loop,
         startup_instance->exit_thread_semaphore,
         FuriEventLoopEventIn,
-        exit_thread_semaphore_callback,
+        update_ui_exit_thread_semaphore_callback,
         instance);
 
     /* reset exit thread semaphore's state in case it was released */
@@ -124,7 +124,7 @@ static void handle_setup(ThisHandle* instance, const ThisStartupHandle* startup_
     scene_manager_next_scene(instance->scene_manager, startup_instance->startup_scene_idx);
 }
 
-static void handle_cleanup(ThisHandle* instance, const ThisStartupHandle* startup_instance) {
+static void update_ui_cleanup(UpdateUi* instance, const UpdateUiStartup* startup_instance) {
     furi_event_loop_unsubscribe(instance->event_loop, startup_instance->exit_thread_semaphore);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
@@ -133,7 +133,7 @@ static void handle_cleanup(ThisHandle* instance, const ThisStartupHandle* startu
 
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
-        gui_layer_remove_input_callback(system_layer, input_callback);
+        gui_layer_remove_input_callback(system_layer, update_ui_input_callback);
 
         widget_free(instance->front_scene_window);
         widget_free(instance->back_scene_window);
@@ -152,15 +152,15 @@ static void handle_cleanup(ThisHandle* instance, const ThisStartupHandle* startu
     furi_record_close(RECORD_GUI);
 }
 
-static int32_t thread_callback(void* context) {
+static int32_t update_ui_thread_callback(void* context) {
     FURI_LOG_T(TAG, "UI thread is running...");
 
-    ThisHandle* instance = malloc(sizeof(*instance));
-    handle_setup(instance, context);
+    UpdateUi* instance = malloc(sizeof(*instance));
+    update_ui_setup(instance, context);
 
     furi_event_loop_run(instance->event_loop);
 
-    handle_cleanup(instance, context);
+    update_ui_cleanup(instance, context);
     free(instance);
 
     FURI_LOG_T(TAG, "UI thread is exiting...");
@@ -168,7 +168,7 @@ static int32_t thread_callback(void* context) {
     return 0;
 }
 
-void update_ui_internal_fire_event(ThisHandle* instance, uint32_t event) {
+void update_ui_internal_fire_event(UpdateUi* instance, uint32_t event) {
     FuriStatus event_queue_status = furi_message_queue_put(
         instance->event_queue, &event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
 
@@ -179,8 +179,9 @@ void update_ui_internal_fire_event(ThisHandle* instance, uint32_t event) {
 
 /* startup implementation */
 
-static void thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
-    ThisStartupHandle* startup_instance = context;
+static void
+    update_ui_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
+    UpdateUiStartup* startup_instance = context;
 
     if(state != FuriThreadStateStopped) return;
 
@@ -188,9 +189,9 @@ static void thread_state_callback(FuriThread* thread, FuriThreadState state, voi
     furi_semaphore_release(startup_instance->join_thread_semaphore);
 }
 
-static void startup_state_callback(const void* item, void* context) {
+static void update_ui_startup_state_callback(const void* item, void* context) {
     const UpdaterUpdateState* state = item;
-    ThisStartupHandle* startup_instance = context;
+    UpdateUiStartup* startup_instance = context;
 
     switch(state->event) {
     case UpdaterUpdateEventSessionStop:
@@ -238,17 +239,17 @@ static void startup_state_callback(const void* item, void* context) {
 
     FURI_LOG_T(TAG, "Spawning UI thread...");
 
-    FuriThread* thread =
-        furi_thread_alloc_ex(THREAD_NAME, THREAD_STACK_SIZE, thread_callback, startup_instance);
+    FuriThread* thread = furi_thread_alloc_ex(
+        THREAD_NAME, THREAD_STACK_SIZE, update_ui_thread_callback, startup_instance);
 
-    furi_thread_set_state_callback(thread, thread_state_callback);
+    furi_thread_set_state_callback(thread, update_ui_thread_state_callback);
     furi_thread_set_state_context(thread, startup_instance);
 
     furi_thread_start(thread);
 }
 
 void update_ui_startup(void) {
-    ThisStartupHandle* startup_instance = malloc(sizeof(*startup_instance));
+    UpdateUiStartup* startup_instance = malloc(sizeof(*startup_instance));
     startup_instance->exit_thread_semaphore = furi_semaphore_alloc(1, 0);
     startup_instance->join_thread_semaphore = furi_semaphore_alloc(1, 1);
     startup_instance->is_ui_session_active = false;
@@ -256,5 +257,5 @@ void update_ui_startup(void) {
     /* persistent state subscription - don't close the record */
     Updater* updater = furi_record_open(RECORD_UPDATER);
     furi_state_subscribe(
-        updater_get_update_state(updater), startup_state_callback, startup_instance);
+        updater_get_update_state(updater), update_ui_startup_state_callback, startup_instance);
 }

@@ -13,14 +13,14 @@
 #define THIS_IMG_PATH(path)    THIS_ASSETS_PATH("images") "/" path
 
 typedef enum {
-    ThisEventSceneEventsStart,
-} ThisEvent;
+    UpdateUiEventSceneEventsStart,
+} UpdateUiEvent;
 
 typedef struct {
     FuriString* front_text;
     FuriString* back_primary_text;
     FuriString* back_detail_text;
-} ThisFailureScenePreset;
+} UpdateUiFailurePreset;
 
 typedef struct {
     Gui* gui;
@@ -33,10 +33,10 @@ typedef struct {
 
     SceneManager* scene_manager;
 
-    ThisFailureScenePreset failure_preset;
+    UpdateUiFailurePreset failure_preset;
 
     Widget* front_scene_window;
     Widget* back_scene_window;
-} ThisHandle;
+} UpdateUi;
 
-void update_ui_internal_fire_event(ThisHandle* instance, uint32_t event);
+void update_ui_internal_fire_event(UpdateUi* instance, uint32_t event);

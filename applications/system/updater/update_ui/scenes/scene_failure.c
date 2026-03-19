@@ -4,8 +4,6 @@
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
 
-#include <storage/storage.h>
-
 #define SCENE_EXIT_TIMEOUT_MS 4000
 
 #define BACK_DETAIL_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
@@ -15,23 +13,23 @@ typedef struct {
     FlexBox* back_box;
 
     FuriEventLoopTimer* exit_timer;
-} ThisScene;
+} UpdateUiFailureScene;
 
-static inline ThisScene* get_scene(ThisHandle* instance) {
+static inline UpdateUiFailureScene* update_ui_failure_scene_get(UpdateUi* instance) {
     return scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxFailure);
 }
 
-static void exit_timer_callback(void* context) {
-    ThisHandle* instance = context;
+static void update_ui_failure_scene_exit_timer_callback(void* context) {
+    UpdateUi* instance = context;
 
     furi_event_loop_stop(instance->event_loop);
 }
 
-static void scene_on_enter(void* context) {
+static void update_ui_failure_scene_on_enter(void* context) {
     furi_assert(context);
 
-    ThisHandle* instance = context;
-    ThisScene* scene = get_scene(instance);
+    UpdateUi* instance = context;
+    UpdateUiFailureScene* scene = update_ui_failure_scene_get(instance);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -72,14 +70,17 @@ static void scene_on_enter(void* context) {
     });
 
     scene->exit_timer = furi_event_loop_timer_alloc(
-        instance->event_loop, exit_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+        instance->event_loop,
+        update_ui_failure_scene_exit_timer_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
 
     furi_event_loop_timer_start(scene->exit_timer, SCENE_EXIT_TIMEOUT_MS);
 }
 
-static void scene_on_exit(void* context) {
-    ThisHandle* instance = context;
-    ThisScene* scene = get_scene(instance);
+static void update_ui_failure_scene_on_exit(void* context) {
+    UpdateUi* instance = context;
+    UpdateUiFailureScene* scene = update_ui_failure_scene_get(instance);
 
     furi_event_loop_timer_free(scene->exit_timer);
 
@@ -89,8 +90,8 @@ static void scene_on_exit(void* context) {
     });
 }
 
-static bool scene_on_event(const SceneManagerEvent* event, void* context) {
-    ThisHandle* instance = context;
+static bool update_ui_failure_scene_on_event(const SceneManagerEvent* event, void* context) {
+    UpdateUi* instance = context;
 
     if(event->type == SceneManagerEventTypeBack) {
         furi_event_loop_stop(instance->event_loop);
@@ -100,8 +101,8 @@ static bool scene_on_event(const SceneManagerEvent* event, void* context) {
 }
 
 const Scene update_ui_internal_scene_failure = {
-    .enter_callback = scene_on_enter,
-    .exit_callback = scene_on_exit,
-    .event_callback = scene_on_event,
-    .data_size = sizeof(ThisScene),
+    .enter_callback = update_ui_failure_scene_on_enter,
+    .exit_callback = update_ui_failure_scene_on_exit,
+    .event_callback = update_ui_failure_scene_on_event,
+    .data_size = sizeof(UpdateUiFailureScene),
 };

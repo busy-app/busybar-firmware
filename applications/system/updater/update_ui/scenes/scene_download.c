@@ -11,8 +11,8 @@
 #define BACK_EXTAS_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
 
 typedef enum {
-    ThisSceneEventUpdateStateChange = ThisEventSceneEventsStart,
-} ThisSceneEvent;
+    UpdateUiDownloadSceneEventUpdateStateChange = UpdateUiEventSceneEventsStart,
+} UpdateUiDownloadEvent;
 
 typedef struct {
     FlexLayout* front_layout;
@@ -25,22 +25,22 @@ typedef struct {
     Label* back_extras_label;
 
     FuriStateSub* update_state_subscription;
-} ThisScene;
+} UpdateUiDownloadScene;
 
-static inline ThisScene* scene_get(ThisHandle* instance) {
+static inline UpdateUiDownloadScene* update_ui_download_scene_get(UpdateUi* instance) {
     return scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxDownload);
 }
 
-static void update_state_callback(const void* item, void* context) {
+static void update_ui_download_scene_update_state_callback(const void* item, void* context) {
     UNUSED(item);
 
-    ThisHandle* instance = context;
+    UpdateUi* instance = context;
 
-    update_ui_internal_fire_event(instance, ThisSceneEventUpdateStateChange);
+    update_ui_internal_fire_event(instance, UpdateUiDownloadSceneEventUpdateStateChange);
 }
 
-static void on_update_state_change(ThisHandle* instance) {
-    ThisScene* scene = scene_get(instance);
+static void update_ui_download_scene_on_update_state_change(UpdateUi* instance) {
+    UpdateUiDownloadScene* scene = update_ui_download_scene_get(instance);
 
     UpdaterUpdateState update_state;
     furi_state_get(updater_get_update_state(instance->updater), &update_state);
@@ -83,9 +83,9 @@ static void on_update_state_change(ThisHandle* instance) {
     }
 }
 
-static void scene_on_enter(void* context) {
-    ThisHandle* instance = context;
-    ThisScene* scene = scene_get(instance);
+static void update_ui_download_scene_on_enter(void* context) {
+    UpdateUi* instance = context;
+    UpdateUiDownloadScene* scene = update_ui_download_scene_get(instance);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -151,14 +151,16 @@ static void scene_on_enter(void* context) {
     });
 
     scene->update_state_subscription = furi_state_subscribe(
-        updater_get_update_state(instance->updater), update_state_callback, instance);
+        updater_get_update_state(instance->updater),
+        update_ui_download_scene_update_state_callback,
+        instance);
 
-    on_update_state_change(instance);
+    update_ui_download_scene_on_update_state_change(instance);
 }
 
-static void scene_on_exit(void* context) {
-    ThisHandle* instance = context;
-    ThisScene* scene = scene_get(instance);
+static void update_ui_download_scene_on_exit(void* context) {
+    UpdateUi* instance = context;
+    UpdateUiDownloadScene* scene = update_ui_download_scene_get(instance);
 
     furi_state_unsubscribe(scene->update_state_subscription);
 
@@ -168,13 +170,13 @@ static void scene_on_exit(void* context) {
     });
 }
 
-static bool scene_on_event(const SceneManagerEvent* event, void* context) {
-    ThisHandle* instance = context;
+static bool update_ui_download_scene_on_event(const SceneManagerEvent* event, void* context) {
+    UpdateUi* instance = context;
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisSceneEventUpdateStateChange:
-            on_update_state_change(instance);
+        case UpdateUiDownloadSceneEventUpdateStateChange:
+            update_ui_download_scene_on_update_state_change(instance);
             break;
 
         default:
@@ -188,8 +190,8 @@ static bool scene_on_event(const SceneManagerEvent* event, void* context) {
 }
 
 const Scene update_ui_internal_scene_download = {
-    .enter_callback = scene_on_enter,
-    .exit_callback = scene_on_exit,
-    .event_callback = scene_on_event,
-    .data_size = sizeof(ThisScene),
+    .enter_callback = update_ui_download_scene_on_enter,
+    .exit_callback = update_ui_download_scene_on_exit,
+    .event_callback = update_ui_download_scene_on_event,
+    .data_size = sizeof(UpdateUiDownloadScene),
 };
