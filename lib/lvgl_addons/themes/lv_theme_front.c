@@ -40,8 +40,6 @@ typedef struct {
 
     lv_style_t var_item_editor;
 
-    lv_style_t timer_label;
-
     lv_style_t margin_right;
 
     lv_style_t title_card;
@@ -131,10 +129,6 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 
     lv_style_init(&theme->styles.var_item_editor);
     lv_style_set_pad_column(&theme->styles.var_item_editor, 2);
-
-    lv_style_init(&theme->styles.timer_label);
-    lv_style_set_pad_row(&theme->styles.timer_label, 1);
-    lv_style_set_text_color(&theme->styles.timer_label, COLOR_FG_FOCUSED);
 
     lv_style_init(&theme->styles.margin_right);
     lv_style_set_margin_right(&theme->styles.margin_right, 2);
@@ -292,11 +286,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &var_item_arrow_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN | LV_STATE_DISABLED);
-
-#ifdef APP_BUSY
-    } else if(lv_obj_check_type(obj, &timer_label_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.timer_label, LV_PART_MAIN);
-#endif // APP_BUSY
 
     } else if(lv_obj_check_type(obj, &anim_title_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.title_card, LV_PART_MAIN);
