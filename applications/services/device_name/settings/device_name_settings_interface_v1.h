@@ -1,8 +1,9 @@
 #pragma once
 
 #include <setting_provider.h>
+#include "../helpers/device_name_validator.h"
 
-#define DEVICE_NAME_MAX_LENGTH (20U)
+#define DEVICE_NAME_MAX_SIZE (DEVICE_NAME_MAX_LENGTH + 1)
 
 typedef enum {
     DeviceNameSettingsV1IdxName,
@@ -10,7 +11,7 @@ typedef enum {
 } DeviceNameSettingsV1Idx;
 
 typedef struct {
-    char name[DEVICE_NAME_MAX_LENGTH];
+    char name[DEVICE_NAME_MAX_SIZE];
 } DeviceNameSettingsV1;
 
 extern const SettingProviderSetting device_name_settings_v1[];

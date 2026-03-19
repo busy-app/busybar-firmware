@@ -10,36 +10,7 @@ static bool device_name_settings_v1_name_is_valid_cb(
     const char* value) {
     UNUSED(setting);
 
-    if(strlen(value) == 0) {
-        return false;
-    }
-
-    if(strlen(value) > DEVICE_NAME_MAX_LENGTH) {
-        return false;
-    }
-
-    static const char* const allowed_special_chars = " !()-_=+;:,.?'|@#$%^&*[]{}/\\\"<>";
-
-    bool only_spaces = true;
-
-    for(size_t i = 0; i < strlen(value); i++) {
-        char c = value[i];
-
-        if(c != ' ') only_spaces = false;
-
-        bool allowed_ascii = isalnum((unsigned char)c) || strchr(allowed_special_chars, c);
-        bool is_utf8 = (unsigned char)c >= 128;
-
-        if(!allowed_ascii || is_utf8) {
-            return false;
-        }
-    }
-
-    if(only_spaces) {
-        return false;
-    }
-
-    return true;
+    return device_name_validate_cstr(value, NULL);
 }
 
 static const SettingProviderStringInterface device_name_settings_v1_name_interface = {
