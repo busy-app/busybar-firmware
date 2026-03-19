@@ -57,7 +57,6 @@ void cli_command_audio(PipeSide* pipe, FuriString* args, void* context) {
     Audio* audio = furi_record_open(RECORD_AUDIO);
     if(cmd == CliAudioCommandStart) {
         audio_enable(audio);
-        furi_delay_ms(100); // as requested by `audio_enable` documentation
         if(!audio_play_file(audio, furi_string_get_cstr(str_tmp))) {
             printf("Failed to play file %s\r\n", furi_string_get_cstr(str_tmp));
         }

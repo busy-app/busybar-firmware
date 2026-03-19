@@ -44,7 +44,6 @@ static bool api_audio_play_callback(
 
         Audio* audio = furi_record_open(RECORD_AUDIO);
         audio_enable(audio);
-        furi_delay_ms(100); // as requested by `audio_enable` documentation
         success = audio_play_file(audio, furi_string_get_cstr(file_path));
         audio_disable(audio);
         furi_record_close(RECORD_AUDIO);
