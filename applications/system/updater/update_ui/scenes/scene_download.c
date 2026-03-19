@@ -147,7 +147,7 @@ static void update_ui_download_scene_on_enter(void* context) {
         label_set_text(scene->back_extras_label, "To cancel update press");
 
         Image* back_extras_image = image_alloc(flex_box_get_base(back_extras_container));
-        image_set_source(back_extras_image, THIS_IMG_PATH("arrow_back_15x15.bin"));
+        image_set_source(back_extras_image, THIS_IMG_PATH("arrow_back_11x11.bin"));
     });
 
     scene->update_state_subscription = furi_state_subscribe(
