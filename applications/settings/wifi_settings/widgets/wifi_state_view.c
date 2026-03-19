@@ -47,7 +47,7 @@ static void wifi_state_view_front_lvgl_constructor(const lv_obj_class_t* class_p
     lv_obj_set_style_pad_all(text_cont, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_gap(text_cont, 0, LV_PART_MAIN);
 
-    const lv_font_t* font = lv_theme_get_font_normal(obj);
+    const lv_font_t* font = lv_theme_get_font_small(obj);
 
     instance->state_label = lv_label_create(text_cont);
     lv_label_set_text(instance->state_label, "Connected");
@@ -111,7 +111,6 @@ static void wifi_state_view_back_lvgl_constructor(const lv_obj_class_t* class_p,
     instance->ssid_label = lv_label_create(text_cont);
     lv_label_set_text(instance->ssid_label, "");
     lv_obj_set_style_text_color(instance->ssid_label, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->ssid_label, font, LV_PART_MAIN);
     lv_obj_set_width(instance->ssid_label, LV_PCT(100));
     lv_label_set_long_mode(instance->ssid_label, LV_LABEL_LONG_SCROLL);
 

@@ -69,8 +69,7 @@ static void mirror_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
         bottom_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
     lv_obj_set_style_bg_opa(bottom_layout, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_pad_column(bottom_layout, 2, LV_PART_MAIN);
-    lv_obj_set_style_margin_top(bottom_layout, 8, LV_PART_MAIN);
-    lv_obj_set_style_margin_bottom(bottom_layout, -3, LV_PART_MAIN);
+    lv_obj_set_style_margin_top(bottom_layout, 7, LV_PART_MAIN);
 
     instance->footer_primary_label = lv_label_create(bottom_layout);
     lv_obj_set_style_text_color(instance->footer_primary_label, lv_color_black(), LV_PART_MAIN);
@@ -79,7 +78,7 @@ static void mirror_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_style_text_color(instance->footer_secondary_label, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(
         instance->footer_secondary_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
-    lv_obj_set_style_translate_y(instance->footer_secondary_label, -2, LV_PART_MAIN);
+    lv_obj_set_style_translate_y(instance->footer_secondary_label, -1, LV_PART_MAIN);
 }
 
 /* public API */

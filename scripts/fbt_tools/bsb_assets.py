@@ -15,6 +15,7 @@ def generate(env):
     env.SetDefault(
         AUDIO_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/audio.py"),
         ANIM_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/seq2anim.py"),
+        FONT_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/ttf2font.py"),
         IMAGE_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/image.py"),
         SWAGGER_GENERATOR=env.Real("${FBT_SCRIPT_DIR}/swagger.py"),
         SWAGGER_DIST_DIR=env.Dir("swagger-dist"),
@@ -24,6 +25,7 @@ def generate(env):
         env.SetDefault(
             AUDIOCOMSTR="\tAUDIO\t${TARGET}",
             ANIMCOMSTR="\tANIM\t${TARGET}",
+            FONTCOMSTR="\tFONT\t${TARGET}",
             IMAGECONVCOMSTR="\tIMGCONV\t${TARGET}",
             IMAGEHEADERCOMSTR="\tIMGHDR\t${TARGET}",
             SWAGGERCOMSTR="\tSWAG\t${TARGET}",
@@ -60,6 +62,19 @@ def generate(env):
                         ],
                     ],
                     "${ANIMCOMSTR}",
+                ),
+            ),
+            "FontConverter": Builder(
+                action=Action(
+                    [
+                        [
+                            "${PYTHON3}",
+                            "${FONT_CONVERTER}",
+                            "${SOURCE}",
+                            "${TARGET}",
+                        ],
+                    ],
+                    "${FONTCOMSTR}",
                 ),
             ),
             "ImageConverter": Builder(
