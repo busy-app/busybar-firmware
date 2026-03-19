@@ -113,7 +113,7 @@ installs = [
     # Silabs artifacts
     InstallAs(_dist_file("sil_firmware", "rps"), sil_env["FW_ENV"]["FW_RPS"][0]),
     InstallAs(_dist_file("sil_firmware", "elf"), sil_env["FW_ENV"]["FW_ELF"][0]),
-    InstallAs(_dist_file("sil_nwp", "elf"), sil_env["FW_ENV"]["SI917_NWP_STACK"]),
+    InstallAs(_dist_file("sil_nwp", "rps"), sil_env["FW_ENV"]["SI917_NWP_STACK"]),
 ]
 
 # Resources zip
