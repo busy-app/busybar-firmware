@@ -13,6 +13,16 @@ VARS.AddVariables(
         "NWP stack to use for the SI917 target",
         "#lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.14.5.2.0.7.rps",
     ),
+    (
+        "SI917_SIGN_KEYSTORE",
+        "Path to JSON keystore for signing SI917 firmware images",
+        "",
+    ),
+    (
+        "COMMANDER_CLI",
+        "Path to commander-cli executable (auto-detected if empty)",
+        "",
+    ),
 )
 
 
