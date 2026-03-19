@@ -171,6 +171,8 @@ void mqtt_api_init(Mqtt* instance);
 
 void mqtt_account_init(Mqtt* instance);
 
+void mqtt_account_unlink(Mqtt* instance);
+
 void mqtt_connection_open(Mqtt* instance);
 
 void mqtt_connection_close(Mqtt* instance, bool reconnect_now);

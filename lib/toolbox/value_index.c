@@ -70,3 +70,16 @@ size_t value_index_string(const char* value, const char* const values[], size_t 
 
     return 0;
 }
+
+const char* value_index_map_string(
+    const char* const src_array[],
+    const char* const dst_array[],
+    size_t count,
+    const char* input) {
+    furi_check(src_array);
+    furi_check(dst_array);
+    furi_check(count > 0);
+    furi_check(input);
+
+    return dst_array[value_index_string(input, src_array, count)];
+}

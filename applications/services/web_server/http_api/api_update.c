@@ -300,8 +300,6 @@ static bool api_update_raw_hdr_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    if(!furi_string_empty(path)) return false;
-
     FURI_LOG_I(
         TAG, "on_headers: Received update request for URI: %.*s", (int)msg->uri.len, msg->uri.buf);
 
@@ -358,6 +356,20 @@ static bool api_update_raw_hdr_callback(
 
     // Also handle possible data in the buffer
     api_update_on_data_cb(conn, &conn->recv);
+
+    return true;
+}
+
+static bool api_update_raw_request_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    MG_REPLY_BAD_REQUEST(conn);
 
     return true;
 }
@@ -815,6 +827,13 @@ static bool api_update_autoupdate_post_callback(
 
 static const HttpHandler api_update_handlers[] = {
     {
+        .uri = "",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_request = api_update_raw_request_callback,
+        .on_headers = api_update_raw_hdr_callback,
+    },
+    {
         .uri = "check",
         .method = "POST",
         .type = HttpHandlerCustom,
@@ -855,12 +874,6 @@ static const HttpHandler api_update_handlers[] = {
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_update_autoupdate_post_callback,
-    },
-    {
-        .uri = "",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_headers = api_update_raw_hdr_callback,
     },
 };
 

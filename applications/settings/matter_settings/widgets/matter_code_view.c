@@ -22,6 +22,7 @@ struct MatterCodeView {
     lv_obj_t* man_title;
     lv_obj_t* man_code;
     lv_obj_t* qr_code;
+    FontRegistry* font_registry;
 };
 
 const lv_obj_class_t matter_code_view_lvgl_class;
@@ -84,6 +85,8 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
 
     MatterCodeView* instance = (MatterCodeView*)obj;
 
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+
     instance->logo = lv_obj_class_create_obj(MY_LOGO_CLASS, obj);
     lv_obj_class_init_obj(instance->logo);
     lv_obj_set_style_align(instance->logo, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
@@ -94,10 +97,14 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     lv_obj_set_style_align(instance->wordmark, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
     lv_obj_set_style_x(instance->wordmark, 19, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->wordmark, TEXT_COLOR, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->wordmark, &lv_font_ark_regular_12, LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->wordmark,
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9),
+        LV_PART_MAIN);
 
     instance->man_title = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
     lv_obj_class_init_obj(instance->man_title);
+    lv_obj_set_style_text_font(instance->man_title, lv_theme_get_font_small(obj), LV_PART_MAIN);
     lv_label_set_text(instance->man_title, "Manual code");
     lv_obj_set_style_align(instance->man_title, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
     lv_obj_set_style_y(instance->man_title, -11, LV_PART_MAIN);
@@ -107,17 +114,28 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     lv_obj_class_init_obj(instance->man_code);
     lv_obj_set_style_align(instance->man_code, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->man_code, TEXT_COLOR, LV_PART_MAIN);
-    lv_obj_set_style_text_font(
-        instance->man_code, &lv_font_ark_numerals_condensed_10, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->man_code, lv_theme_get_font_small(obj), LV_PART_MAIN);
 
     instance->qr_code = lv_obj_class_create_obj(MY_QR_CODE_CLASS, obj);
     lv_obj_class_init_obj(instance->qr_code);
     lv_obj_set_style_align(instance->qr_code, LV_ALIGN_RIGHT_MID, LV_PART_MAIN);
 }
 
+static void matter_code_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    MatterCodeView* instance = (MatterCodeView*)obj;
+
+    font_registry_unload_font(
+        instance->font_registry, lv_obj_get_style_text_font(instance->wordmark, LV_PART_MAIN));
+
+    furi_record_close(RECORD_FONT_REGISTRY);
+}
+
 const lv_obj_class_t matter_code_view_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = matter_code_view_lvgl_constructor,
+    .destructor_cb = matter_code_view_lvgl_destructor,
     .name = "widget-status-view",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
