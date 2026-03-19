@@ -26,6 +26,7 @@ typedef struct {
 
 typedef struct {
     TlsCryptoRequestType type;
+    uint16_t id;
     union {
         TlsCryptoRequestGetCertificate get_cert;
         TlsCryptoRequestSignMessage sign_message;
@@ -43,6 +44,7 @@ typedef struct {
 typedef struct {
     TlsCryptoRequestType type;
     TlsCryptoStatus status;
+    uint16_t id;
     union {
         TlsCryptoResponseGetCertificate get_cert;
         TlsCryptoResponseSignMessage sign_message;

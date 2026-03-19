@@ -1,11 +1,11 @@
 App(
     appid="tls_crypto",
     name="TlsCryptoSrv",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="tls_crypto_startup",
-    order=20,
+    apptype=FlipperAppType.SERVICE,
+    entry_point="tls_crypto_srv",
+    order=180,
     targets=["f20", "f21", "f22"],
-    stack_size=1024 * 1,
+    stack_size=3 * 1024,
     sources=[
         "tls_crypto.c",
         "tls_crypto_common.c",

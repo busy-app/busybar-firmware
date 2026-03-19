@@ -9,7 +9,8 @@ struct Label {
     Widget base;
     lv_obj_t* label;
     FuriString* text;
-    GuiFont font;
+    FontRegistry* font_registry;
+    const lv_font_t* loaded_font;
 };
 
 const lv_obj_class_t label_lvgl_class;
@@ -45,6 +46,7 @@ static void label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj)
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     Label* instance = (Label*)obj;
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
     instance->label = lv_label_create(obj);
     instance->text = furi_string_alloc();
 }
@@ -54,6 +56,7 @@ static void label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) 
 
     Label* instance = (Label*)obj;
     furi_string_free(instance->text);
+    furi_record_close(RECORD_FONT_REGISTRY);
 }
 
 // Public API
@@ -166,7 +169,7 @@ uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_pp
     lv_obj_update_layout(label);
 
     const char* text = furi_string_get_cstr(instance->text);
-    const lv_font_t* font = gui_font_to_lvgl(instance->font);
+    const lv_font_t* font = lv_obj_get_style_text_font(instance->label, LV_PART_MAIN);
     int32_t letter_space = lv_obj_get_style_text_letter_space(label, LV_PART_MAIN);
     int32_t text_width = lv_text_get_width(text, strlen(text), font, letter_space);
 
@@ -178,10 +181,14 @@ uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_pp
     return duration_ms;
 }
 
-void label_set_font(Label* instance, GuiFont font) {
+void label_set_font(Label* instance, const char* font_path) {
     furi_check(instance);
-    lv_obj_set_style_text_font(instance->label, gui_font_to_lvgl(font), LV_PART_MAIN);
-    instance->font = font;
+
+    if(instance->loaded_font)
+        font_registry_unload_font(instance->font_registry, instance->loaded_font);
+    instance->loaded_font = font_registry_load_font(instance->font_registry, font_path);
+
+    lv_obj_set_style_text_font(instance->label, instance->loaded_font, LV_PART_MAIN);
 }
 
 // LVGL class descriptor

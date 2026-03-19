@@ -8,7 +8,7 @@
 
 #define COLOR_IP lv_color_hex(0x888888)
 
-#define ARROW_CHAR ("▶")
+#define ARROW_CHAR (">")
 
 struct WifiInfoView {
     Widget base;
@@ -18,6 +18,7 @@ struct WifiInfoView {
 
 const lv_obj_class_t wifi_info_view_back_lvgl_class;
 const lv_obj_class_t wifi_info_view_front_lvgl_class;
+const lv_obj_class_t wifi_info_view_arrow_lvgl_class;
 
 /* LVGL-specific code */
 
@@ -68,7 +69,7 @@ static void wifi_info_view_back_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_set_style_pad_gap(back_btn, 4, LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(back_btn, LV_SCROLLBAR_MODE_OFF);
 
-    lv_obj_t* arrow = lv_label_create(back_btn);
+    lv_obj_t* arrow = lv_obj_class_create_obj(&wifi_info_view_arrow_lvgl_class, back_btn);
     lv_label_set_text(arrow, ARROW_CHAR);
     lv_obj_set_style_text_color(arrow, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(arrow, font, LV_PART_MAIN);
@@ -170,4 +171,11 @@ const lv_obj_class_t wifi_info_view_back_lvgl_class = {
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(WifiInfoView),
+};
+
+const lv_obj_class_t wifi_info_view_arrow_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "wifi-info-arrow",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
 };

@@ -1,0 +1,10 @@
+App(
+    appid="font_registry",
+    name="FontRegistry",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="font_registry_startup",
+    stack_size=1 * 1024,
+    targets=["f20", "f21", "f22"],
+    requires=["storage"],
+    order=60,
+)

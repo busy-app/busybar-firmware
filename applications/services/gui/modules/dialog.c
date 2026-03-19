@@ -10,7 +10,7 @@
 #define MY_OPTION_CLASS   (&dialog_option_lvgl_class)
 #define MY_CURSOR_CLASS   (&dialog_cursor_lvgl_class)
 
-#define ARROW_CHAR ("▶")
+#define ARROW_CHAR (">")
 
 struct Dialog {
     Widget base;
