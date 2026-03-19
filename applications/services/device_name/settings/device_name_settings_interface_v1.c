@@ -1,8 +1,5 @@
 #include "device_name_settings_interface_v1.h"
 
-#include <ctype.h>
-#include <string.h>
-
 static bool device_name_settings_v1_name_is_valid_cb(
     const SettingProviderSetting* setting,
     const char* value) {

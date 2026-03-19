@@ -115,8 +115,6 @@ static void device_name_mqtt_events_pubsub_callback(const void* msg, void* conte
     }
 }
 
-// ========= Allocation =========
-
 static DeviceName* device_name_alloc(void) {
     DeviceName* instance = malloc(sizeof(DeviceName));
 
