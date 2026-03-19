@@ -122,6 +122,7 @@ static void tls_crypto_handle_request(TlsCrypto* instance) {
     TlsCryptoResponse* response = &instance->response;
 
     response->type = request_type;
+    response->id = request->id;
     response->status = tls_crypto_request_handlers[request_type](request, response);
 
     tls_crypto_log_response_status(response);
