@@ -73,20 +73,24 @@ class CryptoStorage(Cli):
 
         return listing
 
-    def wipe_partition(self, partition: int):
+    def wipe_partition(self, partition: int, *, echo: bool = True):
         data = self.send_and_wait_prompt(f"{self.CRYPTO_CMD} wipe {partition}\r")
         parsed_data, ret = self._parse_response(data)
 
-        print(parsed_data)
+        if echo:
+            print(parsed_data)
         return ret
 
-    def read_key(self, partition: int, key_type: int, key_id: int):
+    def read_key(
+        self, partition: int, key_type: int, key_id: int, *, echo: bool = True
+    ):
         data = self.send_and_wait_prompt(
             f"{self.CRYPTO_CMD} read {partition} {key_type} {key_id:x}\r"
         )
         parsed_data, ret = self._parse_response(data)
 
-        print(parsed_data)
+        if echo:
+            print(parsed_data)
         return ret
 
     def write_key(
@@ -97,13 +101,16 @@ class CryptoStorage(Cli):
         flags: int,
         size: int,
         payload: str,
+        *,
+        echo: bool = True,
     ):
         data = self.send_and_wait_prompt(
             f"{self.CRYPTO_CMD} write {partition} {key_type} {key_id:x} {flags:x} {size} {payload}\r"
         )
         parsed_data, ret = self._parse_response(data)
 
-        print(parsed_data)
+        if echo:
+            print(parsed_data)
         return ret
 
     def gen_csr(
@@ -112,13 +119,16 @@ class CryptoStorage(Cli):
         key_id: int,
         flags: int,
         subject_name: str,
+        *,
+        echo: bool = True,
     ):
         data = self.send_and_wait_prompt(
             f"{self.CRYPTO_CMD} gen_csr {partition} {key_id:x} {flags:x} {subject_name}\r"
         )
         parsed_data, ret = self._parse_response(data)
 
-        print(parsed_data)
+        if echo:
+            print(parsed_data)
         return ret
 
     def read_key_data(
