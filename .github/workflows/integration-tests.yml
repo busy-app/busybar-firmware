@@ -99,14 +99,19 @@ jobs:
           fi
 
           # Derive ELF paths from update path (U5 and Si917)
-          # Handle both .tgz and .tar extensions
-          U5_ELF_PATH="${UPDATE_PATH/-update-/-firmware-}"
-          U5_ELF_PATH="${U5_ELF_PATH%.tgz}"
-          U5_ELF_PATH="${U5_ELF_PATH%.tar}.elf"
+          # Replace only in filename, not in directory part (branch name may contain -update-)
+          UPDATE_DIR="$(dirname "$UPDATE_PATH")"
+          UPDATE_FILE="$(basename "$UPDATE_PATH")"
 
-          SI917_ELF_PATH="${UPDATE_PATH/-update-/-sil_firmware-}"
-          SI917_ELF_PATH="${SI917_ELF_PATH%.tgz}"
-          SI917_ELF_PATH="${SI917_ELF_PATH%.tar}.elf"
+          U5_ELF_FILE="${UPDATE_FILE/-update-/-firmware-}"
+          U5_ELF_FILE="${U5_ELF_FILE%.tgz}"
+          U5_ELF_FILE="${U5_ELF_FILE%.tar}.elf"
+          U5_ELF_PATH="${UPDATE_DIR}/${U5_ELF_FILE}"
+
+          SI917_ELF_FILE="${UPDATE_FILE/-update-/-sil_firmware-}"
+          SI917_ELF_FILE="${SI917_ELF_FILE%.tgz}"
+          SI917_ELF_FILE="${SI917_ELF_FILE%.tar}.elf"
+          SI917_ELF_PATH="${UPDATE_DIR}/${SI917_ELF_FILE}"
 
           echo "update_url=${BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
           echo "u5_elf_url=${BASE_URL}/${U5_ELF_PATH}" >> $GITHUB_OUTPUT

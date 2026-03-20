@@ -57,3 +57,21 @@ App(
     order=310,
     targets=["f20", "f21", "f22"],
 )
+
+App(
+    appid="update_ui",
+    name="UpdateUI",
+    apptype=FlipperAppType.STARTUP,
+    sources=[
+        "update_ui/update_ui.c",
+        "update_ui/scenes/*.c",
+    ],
+    entry_point="update_ui_startup",
+    requires=[
+        "gui",
+        "updater",
+    ],
+    stack_size=1 * 1024,
+    order=320,
+    targets=["f20", "f21", "f22"],
+)

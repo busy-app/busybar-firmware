@@ -55,6 +55,7 @@ static void this_scene_on_enter(void* context) {
         Label* back_primary_label = label_alloc(flex_box_get_base(scene->back_box));
         label_set_text(
             back_primary_label, furi_string_get_cstr(instance->result_preset.back_primary_text));
+        label_set_text_align(back_primary_label, TextAlignCenter);
 
         Label* back_auxiliary_label = label_alloc(flex_box_get_base(scene->back_box));
         label_set_text_color(back_auxiliary_label, (Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88));
