@@ -20,7 +20,7 @@
 
 #if defined(SRV_SL_INFO)
 #include <sl_info/sl_info.h>
-#endif
+#endif // SRV_SL_INFO
 
 #define TAG "Updater"
 
@@ -602,12 +602,27 @@ static UpdaterStatus do_installation_prepare(Updater* instance, UpdaterMessage* 
                 }
             }
 
+            value = NULL;
+            if(sl_info_get_value(sl_info, "sl_nwp_encryption", &value) == SlInfoStatusOk) {
+                if(strcmp(value, "true") == 0) {
+                    device_flags |= UpdateManifestSecurityFlagNwpEncrypted;
+                }
+            }
+
+            value = NULL;
+            if(sl_info_get_value(sl_info, "sl_m4_encryption", &value) == SlInfoStatusOk) {
+                if(strcmp(value, "true") == 0) {
+                    device_flags |= UpdateManifestSecurityFlagM4Encrypted;
+                }
+            }
+
             furi_record_close(RECORD_SL_INFO);
 
-            const uint32_t signing_mask = UpdateManifestSecurityFlagNwpSigned |
-                                          UpdateManifestSecurityFlagM4Signed;
+            const uint32_t check_mask =
+                UpdateManifestSecurityFlagNwpSigned | UpdateManifestSecurityFlagM4Signed |
+                UpdateManifestSecurityFlagNwpEncrypted | UpdateManifestSecurityFlagM4Encrypted;
 
-            if((manifest_flags & signing_mask) != (device_flags & signing_mask)) {
+            if((manifest_flags & check_mask) != (device_flags & check_mask)) {
                 FURI_LOG_E(
                     TAG,
                     "Security mismatch: manifest=0x%lx, device=0x%lx",
@@ -619,7 +634,7 @@ static UpdaterStatus do_installation_prepare(Updater* instance, UpdaterMessage* 
 
             FURI_LOG_I(TAG, "Security flags OK (0x%lx)", manifest_flags);
         }
-#endif
+#endif // SRV_SL_INFO
 
         FURI_LOG_D(TAG, "Setting up session config...");
 

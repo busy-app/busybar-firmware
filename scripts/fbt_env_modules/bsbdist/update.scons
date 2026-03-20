@@ -9,6 +9,7 @@ class UpdateManifestSecurityFlag(IntFlag):
     M4Signed = 1 << 1
     NwpEncrypted = 1 << 2
     M4Encrypted = 1 << 3
+    U5Encrypted = 1 << 4
 
 
 dist_env = DIST_ENV

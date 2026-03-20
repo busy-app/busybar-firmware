@@ -23,8 +23,9 @@ typedef enum {
 typedef enum {
     UpdateManifestSecurityFlagNwpSigned = (1u << 0),
     UpdateManifestSecurityFlagM4Signed = (1u << 1),
-    UpdateManifestSecurityFlagNwpEncrypted = (1u << 2), /**< Reserved */
-    UpdateManifestSecurityFlagM4Encrypted = (1u << 3), /**< Reserved */
+    UpdateManifestSecurityFlagNwpEncrypted = (1u << 2),
+    UpdateManifestSecurityFlagM4Encrypted = (1u << 3),
+    UpdateManifestSecurityFlagU5Encrypted = (1u << 4),
 } UpdateManifestSecurityFlag;
 
 /**
