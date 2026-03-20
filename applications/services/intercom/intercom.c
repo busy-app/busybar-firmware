@@ -187,7 +187,7 @@ size_t
     const uint32_t timeout_ticks = furi_ms_to_ticks(timeout);
     const uint32_t deadline_ticks = furi_get_tick() + timeout_ticks;
 
-    if(!intercom_channel_wait_for_other_side(channel, timeout_ticks)) {
+    if(!intercom_channel_wait_until_ready(channel, timeout_ticks)) {
         return 0;
     }
 
@@ -225,7 +225,8 @@ IntercomChannel* intercom_channel_open(
 
     IntercomChannel* channel = &instance->channels[channel_id];
     intercom_channel_set_callback(channel, callback, context);
-    intercom_channel_send_ready(channel);
+
+    intercom_meta_activate_channel(instance, channel_id);
 
     return channel;
 }

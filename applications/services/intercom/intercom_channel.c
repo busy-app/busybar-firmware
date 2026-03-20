@@ -3,24 +3,8 @@
 #define TAG "IntercomChannel"
 
 typedef enum {
-    IntercomChannelFlagPeerReady = (1UL << 0),
+    IntercomChannelFlagReady = (1UL << 0),
 } IntercomChannelFlag;
-
-typedef enum {
-    IntercomMetaFrameTypeChannelReady,
-    IntercomMetaFrameTypeMax,
-} IntercomMetaFrameType;
-
-typedef struct {
-    IntercomChannelId channel_id;
-} IntercomMetaFrameChannelReady;
-
-typedef struct {
-    IntercomMetaFrameType type;
-    union {
-        IntercomMetaFrameChannelReady channel_ready;
-    };
-} IntercomMetaFrame;
 
 static const char* const intercom_channel_names[IntercomChannelIdMax] = {
     [IntercomChannelIdInput] = "Input",
@@ -35,36 +19,6 @@ static const char* const intercom_channel_names[IntercomChannelIdMax] = {
     [IntercomChannelIdSlInfo] = "SlInfo",
     [IntercomChannelIdDebug] = "Debug",
 };
-
-static FURI_ALWAYS_INLINE const char*
-    intercom_channel_get_name_by_id(IntercomChannelId channel_id) {
-    furi_check(channel_id < IntercomChannelIdMax);
-    return intercom_channel_names[channel_id];
-}
-
-static FURI_ALWAYS_INLINE IntercomChannelId
-    intercom_channel_get_id(const IntercomChannel* channel) {
-    furi_assert(channel);
-    return channel - channel->owner->channels;
-}
-
-static void
-    intercom_channel_handle_other_side_ready(Intercom* intercom, const IntercomMetaFrame* frame) {
-    furi_assert(intercom);
-    furi_assert(frame);
-    furi_assert(frame->type == IntercomMetaFrameTypeChannelReady);
-    const IntercomMetaFrameChannelReady* sub_frame = &frame->channel_ready;
-
-    IntercomChannelId channel_id = sub_frame->channel_id;
-    furi_check(channel_id < IntercomChannelIdMax);
-
-    FURI_LOG_D(TAG, "OTHER side ready: %s", intercom_channel_get_name_by_id(channel_id));
-
-    const IntercomChannel* channel = &intercom->channels[channel_id];
-    furi_check(
-        furi_event_flag_set(channel->flags, IntercomChannelFlagPeerReady) ==
-        IntercomChannelFlagPeerReady);
-}
 
 void intercom_channel_init(IntercomChannel* channel, Intercom* owner) {
     furi_assert(channel);
@@ -92,52 +46,36 @@ void intercom_channel_call_callback(const IntercomChannel* channel, const Interc
     if(callback) {
         callback(frame->data, frame->data_size, channel->rx_callback_context);
     } else {
-        FURI_LOG_W(TAG, "rx_callback is NULL, but other side is sending data");
+        FURI_LOG_W(TAG, "Receive callback is NOT set, but other side is sending data");
     }
 }
 
-void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame) {
-    const IntercomMetaFrame* meta_frame = (const IntercomMetaFrame*)frame->data;
-    const IntercomMetaFrameType type = meta_frame->type;
-
-    if(type == IntercomMetaFrameTypeChannelReady) {
-        intercom_channel_handle_other_side_ready(instance, meta_frame);
-    } else {
-        furi_crash("Invalid IntercomMetaFrameType");
-    }
-}
-
-void intercom_channel_send_ready(IntercomChannel* channel) {
-    furi_assert(channel);
-
-    const IntercomChannelId channel_id = intercom_channel_get_id(channel);
-
-    const IntercomMetaFrame frame = {
-        .type = IntercomMetaFrameTypeChannelReady,
-        .channel_ready.channel_id = channel_id,
-    };
-
-    const size_t tx_size = intercom_tx_internal(
-        channel->owner, IntercomChannelIdMax, &frame, sizeof(frame), FuriWaitForever);
-    furi_check(tx_size == sizeof(frame));
-
-    FURI_LOG_D(TAG, "THIS side ready: %s", intercom_channel_get_name_by_id(channel_id));
-}
-
-bool intercom_channel_wait_for_other_side(IntercomChannel* channel, uint32_t timeout) {
+bool intercom_channel_wait_until_ready(IntercomChannel* channel, uint32_t timeout) {
     furi_assert(channel);
 
     const uint32_t flags = furi_event_flag_wait(
-        channel->flags, IntercomChannelFlagPeerReady, FuriFlagNoClear | FuriFlagWaitAny, timeout);
+        channel->flags, IntercomChannelFlagReady, FuriFlagNoClear | FuriFlagWaitAny, timeout);
 
-    bool success;
+    bool is_ready;
 
-    if(flags == IntercomChannelFlagPeerReady) {
-        success = true;
+    if(flags == IntercomChannelFlagReady) {
+        is_ready = true;
     } else {
         furi_check(flags == (timeout ? FuriFlagErrorTimeout : FuriFlagErrorResource));
-        success = false;
+        is_ready = false;
     }
 
-    return success;
+    return is_ready;
+}
+
+void intercom_channel_mark_as_ready(IntercomChannel* channel) {
+    furi_assert(channel);
+
+    const uint32_t flags = furi_event_flag_set(channel->flags, IntercomChannelFlagReady);
+    furi_check(flags == IntercomChannelFlagReady);
+}
+
+const char* intercom_channel_get_name(IntercomChannelId channel_id) {
+    furi_assert(channel_id < IntercomChannelIdMax);
+    return intercom_channel_names[channel_id];
 }

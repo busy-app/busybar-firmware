@@ -82,11 +82,15 @@ void intercom_channel_set_callback(
 
 void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* frame);
 
-void intercom_channel_send_ready(IntercomChannel* channel);
+bool intercom_channel_wait_until_ready(IntercomChannel* channel, uint32_t timeout);
 
-bool intercom_channel_wait_for_other_side(IntercomChannel* channel, uint32_t timeout);
+void intercom_channel_mark_as_ready(IntercomChannel* channel);
 
-// intercom_meta.c: (TODO: implement the file)
+const char* intercom_channel_get_name(IntercomChannelId channel_id);
+
+// intercom_meta.c:
+
+void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channel_id);
 
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame);
 
