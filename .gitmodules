@@ -62,4 +62,3 @@
 [submodule "assets/proto"]
 	path = assets/proto
 	url = https://github.com/flipperdevices/bsb-protobuf.git
-	branch = imihajlow/616-state-publisher

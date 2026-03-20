@@ -9,6 +9,7 @@
 #include <wifi/wifi_common.h>
 #include <power/power_service/power.h>
 #include <matter/matter.h>
+#include <toolbox/shared_ptr.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +27,7 @@ typedef enum StatePublisherTransportClass {
     StatePublisherTransportClassMax,
 } StatePublisherTransportClass;
 
-typedef void (*StatePublisherPublishCb)(const void* data, size_t data_size, void* context);
+typedef void (*StatePublisherPublishCb)(SharedPtr* data, size_t data_size, void* context);
 
 typedef size_t StatePublisherTransportHandle;
 

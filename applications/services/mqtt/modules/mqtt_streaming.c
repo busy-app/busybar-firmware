@@ -15,7 +15,7 @@
 
 #define EXPIRY_INTERVAL_DEFAULT_S (60)
 
-static void mqtt_streaming_publish_callback(const void* data, size_t data_size, void* context);
+static void mqtt_streaming_publish_callback(SharedPtr* data, size_t data_size, void* context);
 
 static void mqtt_streaming_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
@@ -114,25 +114,29 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
     }
 }
 
-static void mqtt_streaming_publish_callback(const void* data, size_t data_size, void* context) {
+static void mqtt_publish_done_callback(void* data) {
+    SharedPtr* shared = data;
+    shared_ptr_release(shared);
+}
+
+static void mqtt_streaming_publish_callback(SharedPtr* data, size_t data_size, void* context) {
     MqttStreamingSrv* instance = context;
+
+    shared_ptr_acquire(data);
 
     furi_assert(instance->response_topic);
     furi_assert(furi_string_size(instance->response_topic));
-
-    void* owned_data = malloc(data_size);
-    memcpy(owned_data, data, data_size);
 
     mqtt_publish_ex(
         instance->mqtt,
         PUB_QOS,
         furi_string_get_cstr(instance->response_topic),
-        owned_data,
+        data->inner,
         data_size,
         NULL,
         0,
-        free,
-        owned_data);
+        mqtt_publish_done_callback,
+        data);
 }
 
 static MqttStreamingSrv* mqtt_streaming_alloc(void) {

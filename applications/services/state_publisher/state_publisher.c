@@ -340,20 +340,21 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     for(size_t i = 0; i != buf.size; ++i) {
         furi_string_cat_printf(dump, "%02hhX", buf.data[i]);
     }
-    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(dump));
+    // FURI_LOG_D(TAG, "%s", furi_string_get_cstr(dump));
     furi_string_free(dump);
 
+    SharedPtr* data = shared_ptr_alloc_plain(buf.data);
     {
         furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
         for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
             Transport* t = instance->transports + i;
             if(t->valid && (t->flags & message->update.stream_flags)) {
-                t->cb(buf.data, buf.size, t->cb_context);
+                t->cb(data, buf.size, t->cb_context);
             }
         }
         furi_mutex_release(instance->transports_mutex);
     }
-    dyn_buffer_destroy(&buf);
+    shared_ptr_release(data);
 
     free_state_update(update);
     UNUSED(instance);
