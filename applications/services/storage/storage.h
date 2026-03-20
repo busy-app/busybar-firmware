@@ -23,7 +23,7 @@ extern "C" {
 #define APP_DATA_PATH(path)   STORAGE_APP_DATA_PATH_PREFIX "/" path
 #define APP_ASSETS_PATH(path) STORAGE_APP_ASSETS_PATH_PREFIX "/" path
 
-#define SHARED_ASSETS_PATH(path) EXT_PATH("apps_assets/shared/" path)
+#define SHARED_ASSETS_PATH(path) EXT_PATH("shared/" path)
 #define SHARED_ANIM_PATH(path)   SHARED_ASSETS_PATH("animations/" path)
 #define SHARED_IMG_PATH(path)    SHARED_ASSETS_PATH("images/" path)
 
