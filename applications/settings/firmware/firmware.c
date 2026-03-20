@@ -189,10 +189,7 @@ int32_t firmware_settings_entry(void* argument) {
     } else {
         FirmwareSettings* instance = firmware_settings_alloc();
 
-        FuriThread* thread = furi_thread_get_current();
         furi_event_loop_run(instance->event_loop);
-
-        furi_thread_set_signal_callback(thread, NULL, NULL);
 
         firmware_settings_free(instance);
     }

@@ -46,6 +46,7 @@ static void firmware_settings_check_scene_prepare_failure_result(FirmwareSetting
     instance->check_result_preset.back_image_path = SHARED_IMG_PATH("error_back_11x11.bin");
     furi_string_set(
         instance->check_result_preset.back_primary_text, "Unable to check\nfor update");
+    furi_string_reset(instance->check_result_preset.back_detail_text);
 }
 
 static void firmware_settings_check_scene_update_check_callback(const void* item, void* context) {
