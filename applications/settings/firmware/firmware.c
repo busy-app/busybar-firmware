@@ -17,7 +17,14 @@ static bool firmware_settings_input_callback(const InputEvent* event, void* cont
         is_consumed = true;
     }
 
-    if(is_consumed) furi_message_queue_put(instance->input_queue, event, FuriWaitForever);
+    if(is_consumed) {
+        FuriStatus input_queue_status = furi_message_queue_put(
+            instance->input_queue, event, furi_ms_to_ticks(INPUT_QUEUE_TIMEOUT_MS));
+
+        if(input_queue_status != FuriStatusOk) {
+            FURI_LOG_E(TAG, "Failed to put an item into input queue.");
+        }
+    }
 
     return is_consumed;
 }
@@ -194,7 +201,10 @@ int32_t firmware_settings_entry(void* argument) {
 }
 
 void firmware_settings_internal_fire_event(FirmwareSettings* instance, uint32_t event) {
-    furi_assert(instance);
+    FuriStatus event_queue_status = furi_message_queue_put(
+        instance->event_queue, &event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
 
-    furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
+    if(event_queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Failed to put an item into event queue.");
+    }
 }
