@@ -8,7 +8,7 @@
 
 #include <inttypes.h>
 
-#define BACK_EXTAS_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
+#define BACK_DETAIL_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
 
 typedef enum {
     UpdateUiDownloadSceneEventUpdateStateChange = UpdateUiEventSceneEventsStart,
@@ -22,7 +22,7 @@ typedef struct {
     FlexLayout* back_layout;
     Label* back_percent_label;
     ProgressBar* back_progress_bar;
-    Label* back_extras_label;
+    Label* back_detail_label;
 
     FuriStateSub* update_state_subscription;
 } UpdateUiDownloadScene;
@@ -135,19 +135,19 @@ static void update_ui_download_scene_on_enter(void* context) {
         scene->back_progress_bar = progress_bar_alloc(flex_layout_get_base(scene->back_layout));
         widget_set_height(progress_bar_get_base(scene->back_progress_bar), 8);
 
-        FlexBox* back_extras_container = flex_box_alloc(flex_layout_get_base(scene->back_layout));
-        flex_box_set_flow(back_extras_container, FlexBoxFlowRow);
-        flex_box_set_align(back_extras_container, FlexBoxAlignCenter, FlexBoxAlignCenter);
-        flex_box_set_spacing(back_extras_container, 2);
-        widget_set_align(flex_box_get_base(back_extras_container), AlignCenter);
+        FlexBox* back_detail_container = flex_box_alloc(flex_layout_get_base(scene->back_layout));
+        flex_box_set_flow(back_detail_container, FlexBoxFlowRow);
+        flex_box_set_align(back_detail_container, FlexBoxAlignCenter, FlexBoxAlignCenter);
+        flex_box_set_spacing(back_detail_container, 2);
+        widget_set_align(flex_box_get_base(back_detail_container), AlignCenter);
 
-        scene->back_extras_label = label_alloc(flex_box_get_base(back_extras_container));
-        label_set_text_color(scene->back_extras_label, BACK_EXTAS_LABEL_TEXT_COLOR);
-        label_set_text_font_size(scene->back_extras_label, LabelFontSizeSmall);
-        label_set_text(scene->back_extras_label, "To cancel update press");
+        scene->back_detail_label = label_alloc(flex_box_get_base(back_detail_container));
+        label_set_text_color(scene->back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
+        label_set_text_font_size(scene->back_detail_label, LabelFontSizeSmall);
+        label_set_text(scene->back_detail_label, "To cancel update press");
 
-        Image* back_extras_image = image_alloc(flex_box_get_base(back_extras_container));
-        image_set_source(back_extras_image, THIS_IMG_PATH("arrow_back_11x11.bin"));
+        Image* back_detail_image = image_alloc(flex_box_get_base(back_detail_container));
+        image_set_source(back_detail_image, THIS_IMG_PATH("arrow_back_11x11.bin"));
     });
 
     scene->update_state_subscription = furi_state_subscribe(

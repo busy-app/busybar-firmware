@@ -19,7 +19,7 @@ typedef struct {
 
     UpdateUiSceneIdx startup_scene_idx;
 
-    bool is_ui_session_active;
+    bool is_updater_session_active;
 } UpdateUiStartup;
 
 /* thread implementation */
@@ -195,7 +195,7 @@ static void update_ui_startup_state_callback(const void* item, void* context) {
 
     switch(state->event) {
     case UpdaterUpdateEventSessionStop:
-        startup_instance->is_ui_session_active = false;
+        startup_instance->is_updater_session_active = false;
         return;
 
     case UpdaterUpdateEventActionBegin:
@@ -205,7 +205,7 @@ static void update_ui_startup_state_callback(const void* item, void* context) {
         return;
     }
 
-    if(startup_instance->is_ui_session_active) return;
+    if(startup_instance->is_updater_session_active) return;
 
     UpdateUiSceneIdx startup_scene_idx;
     switch(state->action) {
@@ -234,7 +234,7 @@ static void update_ui_startup_state_callback(const void* item, void* context) {
         return;
     }
 
-    startup_instance->is_ui_session_active = true;
+    startup_instance->is_updater_session_active = true;
     startup_instance->startup_scene_idx = startup_scene_idx;
 
     FURI_LOG_T(TAG, "Spawning UI thread...");
@@ -252,7 +252,7 @@ void update_ui_startup(void) {
     UpdateUiStartup* startup_instance = malloc(sizeof(*startup_instance));
     startup_instance->exit_thread_semaphore = furi_semaphore_alloc(1, 0);
     startup_instance->join_thread_semaphore = furi_semaphore_alloc(1, 1);
-    startup_instance->is_ui_session_active = false;
+    startup_instance->is_updater_session_active = false;
 
     /* persistent state subscription - don't close the record */
     Updater* updater = furi_record_open(RECORD_UPDATER);

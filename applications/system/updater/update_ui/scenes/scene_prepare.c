@@ -72,9 +72,9 @@ static void update_ui_prepare_scene_on_enter(void* context) {
         AnimPlayer* back_anim = anim_player_alloc(flex_box_get_base(scene->back_box));
         anim_player_set_source(back_anim, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
 
-        Label* back_primary_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text(back_primary_label, "Preparing update...");
-        label_set_text_align(back_primary_label, TextAlignCenter);
+        Label* back_label = label_alloc(flex_box_get_base(scene->back_box));
+        label_set_text(back_label, "Preparing update...");
+        label_set_text_align(back_label, TextAlignCenter);
     });
 
     scene->update_state_subscription = furi_state_subscribe(

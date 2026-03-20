@@ -75,7 +75,7 @@ static void update_ui_failure_scene_on_enter(void* context) {
         FuriEventLoopTimerTypeOnce,
         instance);
 
-    furi_event_loop_timer_start(scene->exit_timer, SCENE_EXIT_TIMEOUT_MS);
+    furi_event_loop_timer_start(scene->exit_timer, furi_ms_to_ticks(SCENE_EXIT_TIMEOUT_MS));
 }
 
 static void update_ui_failure_scene_on_exit(void* context) {
