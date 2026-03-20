@@ -24,6 +24,9 @@
 
 #define FURI_HAL_NS4168_HPF Ns4168Hpf_65Hz
 
+#define FURI_HAL_SAI_SAMPLE_RATE     (44100)
+#define FURI_HAL_SAI_INITIAL_SAMPLES (8)
+
 typedef struct {
     FuriHalSaiCallback callback;
     void* callback_context;
@@ -165,6 +168,23 @@ static bool furi_hal_sai_stop_dma(void) {
     return true;
 }
 
+typedef enum {
+    FuriHalSaiPinDriverPeripheral,
+    FuriHalSaiPinDriverManual,
+} FuriHalSaiPinDriver;
+
+static void furi_hal_sai_init_pins(FuriHalSaiPinDriver driver) {
+    GpioMode mode = (driver == FuriHalSaiPinDriverManual) ? GpioModeOutputPushPull :
+                                                            GpioModeAltFunctionPushPull;
+    GpioAltFn alt_fn = (driver == FuriHalSaiPinDriverManual) ? GpioAltFnUnused : GpioAltFn13SAI1;
+
+    furi_hal_gpio_init_ex(&gpio_i2s_sd, mode, GpioPullNo, GpioSpeedLow, alt_fn);
+    furi_hal_gpio_init_ex(&gpio_i2s_fs, mode, GpioPullNo, GpioSpeedLow, alt_fn);
+#ifndef FURI_HAL_CLOCK_MCO
+    furi_hal_gpio_init_ex(&gpio_i2s_sck, mode, GpioPullNo, GpioSpeedLow, alt_fn);
+#endif
+}
+
 bool furi_hal_sai_init(void) {
     // Init the low level hardware : GPIO, CLOCK, NVIC and DMA
     LL_RCC_SetSAIClockSource(LL_RCC_SAI1_CLKSOURCE_PLL1);
@@ -172,14 +192,7 @@ bool furi_hal_sai_init(void) {
     // Enable SAI peripheral clock
     furi_hal_bus_enable(FuriHalBusSAI1);
 
-    furi_hal_gpio_init_ex(
-        &gpio_i2s_sd, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
-    furi_hal_gpio_init_ex(
-        &gpio_i2s_fs, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
-#ifndef FURI_HAL_CLOCK_MCO
-    furi_hal_gpio_init_ex(
-        &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
-#endif
+    furi_hal_sai_init_pins(FuriHalSaiPinDriverPeripheral);
 
     furi_hal_sai.ns4168 = ns4168_alloc(&gpio_audio_en);
     ns4168_init(furi_hal_sai.ns4168);
@@ -304,8 +317,41 @@ void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {
     furi_hal_sai.callback_context = context;
 }
 
-void furi_hal_sai_start(void) {
+void furi_hal_sai_enable_amplifier(void) {
+    FURI_CRITICAL_ENTER();
+
     ns4168_power_on(furi_hal_sai.ns4168, FURI_HAL_NS4168_HPF);
+
+    // giving the DAC several initial samples seems to get rid of:
+    //   a) the power-up click and
+    //   b) the click when actual data is received
+    furi_hal_sai_init_pins(FuriHalSaiPinDriverManual);
+    furi_hal_gpio_write(&gpio_i2s_sd, false);
+    const size_t bit_period = 1'000'000 / FURI_HAL_SAI_SAMPLE_RATE;
+
+    for(size_t sample = 0; sample < FURI_HAL_SAI_INITIAL_SAMPLES; sample++) {
+        furi_hal_gpio_write(&gpio_i2s_fs, sample % 2 == 1);
+
+        for(size_t bit = 0; bit < 16; bit++) {
+            furi_hal_gpio_write(&gpio_i2s_sck, true);
+            furi_delay_us(bit_period);
+            furi_hal_gpio_write(&gpio_i2s_sck, false);
+            furi_delay_us(bit_period);
+        }
+    }
+
+    furi_hal_sai_init_pins(FuriHalSaiPinDriverPeripheral);
+
+    FURI_CRITICAL_EXIT();
+}
+
+void furi_hal_sai_disable_amplifier(void) {
+    FURI_CRITICAL_ENTER();
+    ns4168_power_off(furi_hal_sai.ns4168);
+    FURI_CRITICAL_EXIT();
+}
+
+void furi_hal_sai_start(void) {
     FURI_CRITICAL_ENTER();
     furi_hal_sai_start_dma();
     furi_check(furi_hal_sai_enable());
@@ -317,5 +363,4 @@ void furi_hal_sai_stop(void) {
     furi_check(furi_hal_sai_disable());
     furi_check(furi_hal_sai_stop_dma());
     FURI_CRITICAL_EXIT();
-    ns4168_power_off(furi_hal_sai.ns4168);
 }

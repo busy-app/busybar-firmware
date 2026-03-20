@@ -37,7 +37,7 @@ static void this_prepare_battery_low_result(ThisInstance* instance) {
         furi_string_set(instance->result_preset.back_primary_text, "Charge your BUSY Bar");
     }
 
-    instance->result_preset.back_image_path = THIS_IMG_PATH("error_back_11x11.bin");
+    instance->result_preset.back_image_path = SHARED_IMG_PATH("error_back_11x11.bin");
     furi_string_set(instance->result_preset.back_auxiliary_text, "40% needed to start update");
 
     instance->result_preset.timeout = FuriWaitForever;
@@ -97,13 +97,16 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
         switch(event->event) {
         case ThisSceneEventInstall:
             UpdaterStatus session_status = updater_session_start(instance->updater);
-
             if(session_status == UpdaterStatusOk) {
-                scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxDownload);
+                updater_install_from_url(
+                    instance->updater,
+                    furi_string_get_cstr(instance->update_info.url),
+                    furi_string_get_cstr(instance->update_info.sha256));
             } else if(session_status == UpdaterStatusBatteryLow) {
                 this_prepare_battery_low_result(instance);
                 scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
             }
+
             return true;
 
         case ThisSceneEventCancel:
