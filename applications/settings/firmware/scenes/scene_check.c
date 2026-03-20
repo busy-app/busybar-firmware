@@ -4,9 +4,14 @@
 #include <gui/modules/label.h>
 #include <gui/modules/anim_player.h>
 
+#include <furi_hal_cortex.h>
+
+#define CHECK_TIMEOUT (10e6)
+
 typedef enum {
     ThisSceneEventAvailable = ThisEventSceneEventsStart,
-    ThisSceneEventNotAvailable
+    ThisSceneEventNotAvailable,
+    ThisSceneEventFailure,
 } ThisSceneEvent;
 
 typedef struct {
@@ -14,6 +19,7 @@ typedef struct {
     FlexBox* back_box;
 
     FuriStateSub* check_subscription;
+    FuriHalCortexTimer timeout_timer;
 } ThisScene;
 
 static inline ThisScene* this_get_scene(ThisInstance* instance) {
@@ -34,15 +40,41 @@ static void this_prepare_up_to_date_result(ThisInstance* instance) {
     instance->result_preset.timeout = 3000;
 }
 
+static void this_prepare_failure_result(ThisInstance* instance) {
+    instance->result_preset.front_image_path = SHARED_IMG_PATH("error_front_8x8.bin");
+    furi_string_set(instance->result_preset.front_text, "Unable to check");
+
+    instance->result_preset.back_image_path = SHARED_IMG_PATH("error_back_11x11.bin");
+    furi_string_set(instance->result_preset.back_primary_text, "Unable to check\nfor update");
+
+    instance->result_preset.timeout = 3000;
+}
+
 static void this_check_callback(const void* item, void* context) {
     ThisInstance* instance = context;
     const UpdaterCheckState* _item = item;
 
     if(_item->event == UpdaterCheckEventStop) {
-        settings_firmware_app_fire_event(
-            instance,
-            (_item->result == UpdaterCheckResultAvailable) ? ThisSceneEventAvailable :
-                                                             ThisSceneEventNotAvailable);
+        ThisSceneEvent event;
+
+        switch(_item->result) {
+        case UpdaterCheckResultAvailable:
+            event = ThisSceneEventAvailable;
+            break;
+
+        case UpdaterCheckResultNotAvailable:
+            event = ThisSceneEventNotAvailable;
+            break;
+
+        case UpdaterCheckResultFailure:
+            event = ThisSceneEventFailure;
+            break;
+
+        default:
+            furi_crash();
+        }
+
+        settings_firmware_app_fire_event(instance, event);
     }
 }
 
@@ -83,6 +115,7 @@ static void this_scene_on_enter(void* context) {
     FuriState* check_state = updater_get_check_state(instance->updater);
     scene->check_subscription = furi_state_subscribe(check_state, this_check_callback, instance);
 
+    scene->timeout_timer = furi_hal_cortex_timer_get(CHECK_TIMEOUT);
     updater_check_for_update(instance->updater);
 }
 
@@ -104,6 +137,7 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
+    ThisScene* scene = this_get_scene(instance);
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
@@ -114,6 +148,16 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
         case ThisSceneEventNotAvailable:
             this_prepare_up_to_date_result(instance);
             scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
+            return true;
+
+        case ThisSceneEventFailure:
+            if(furi_hal_cortex_timer_is_expired(scene->timeout_timer)) {
+                this_prepare_failure_result(instance);
+                scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
+            } else {
+                updater_check_for_update(instance->updater);
+            }
+
             return true;
 
         default:

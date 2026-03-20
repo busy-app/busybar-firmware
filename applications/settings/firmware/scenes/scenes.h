@@ -7,7 +7,6 @@ typedef enum {
     ThisSceneIdxSettings,
     ThisSceneIdxDialog,
     ThisSceneIdxCheck,
-    ThisSceneIdxDownload,
     ThisSceneIdxResult,
 
     ThisSceneIdxsCount,
