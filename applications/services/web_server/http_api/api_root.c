@@ -375,12 +375,12 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_busy_callback,
     },
     {
-        .uri = "matter",
+        .uri = "smart_home",
         .method = "*",
         .type = HttpHandlerCustom,
-        .ctx_alloc = http_api_matter_alloc,
-        .ctx_free = http_api_matter_free,
-        .on_request = http_api_matter_callback,
+        .ctx_alloc = http_api_smart_home_alloc,
+        .ctx_free = http_api_smart_home_free,
+        .on_request = http_api_smart_home_callback,
     },
 };
 
