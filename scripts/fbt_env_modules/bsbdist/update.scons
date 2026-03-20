@@ -1,4 +1,15 @@
+from enum import IntFlag
+
 Import("U5_ENV", "SIL_ENV", "DIST_ENV")
+
+
+# Must match UpdateManifestSecurityFlag in update_manifest.h
+class UpdateManifestSecurityFlag(IntFlag):
+    NwpSigned = 1 << 0
+    M4Signed = 1 << 1
+    NwpEncrypted = 1 << 2
+    M4Encrypted = 1 << 3
+
 
 dist_env = DIST_ENV
 u5_env = U5_ENV
@@ -159,6 +170,12 @@ if sil_sign_keystore:
         BUNDLE_SIL_FW=signed_fw_rps[0],
         BUNDLE_RESOURCES=fw_env["RESOURCES_ROOT"],
         BUNDLE_SIL_RADIO_FW=signed_nwp_rps[0],
+        BUNDLE_SECURITY_FLAGS=str(
+            int(
+                UpdateManifestSecurityFlag.NwpSigned
+                | UpdateManifestSecurityFlag.M4Signed
+            )
+        ),
     )
 
     signed_update_tar = signed_bundle_env.UpdateBundle(

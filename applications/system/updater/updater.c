@@ -18,6 +18,10 @@
 #include <toolbox/fetch/fetch_loader.h>
 #include <toolbox/sha256_calc.h>
 
+#if defined(SRV_SL_INFO)
+#include <sl_info/sl_info.h>
+#endif
+
 #define TAG "Updater"
 
 #define MESSAGE_QUEUE_ITEMS_COUNT 8
@@ -573,10 +577,53 @@ static UpdaterStatus do_installation_prepare(Updater* instance, UpdaterMessage* 
             break;
         }
 
+        FURI_LOG_D(TAG, "Checking security flags...");
+
+        const UpdateManifest* manifest = update_config_get_manifest(config);
+
+#if defined(SRV_SL_INFO)
+        {
+            uint32_t manifest_flags = updater_manifest_get_security_flags(manifest);
+            uint32_t device_flags = 0;
+
+            const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
+            const char* value = NULL;
+
+            if(sl_info_get_value(sl_info, "sl_nwp_signature", &value) == SlInfoStatusOk) {
+                if(strcmp(value, "true") == 0) {
+                    device_flags |= UpdateManifestSecurityFlagNwpSigned;
+                }
+            }
+
+            value = NULL;
+            if(sl_info_get_value(sl_info, "sl_m4_signature", &value) == SlInfoStatusOk) {
+                if(strcmp(value, "true") == 0) {
+                    device_flags |= UpdateManifestSecurityFlagM4Signed;
+                }
+            }
+
+            furi_record_close(RECORD_SL_INFO);
+
+            const uint32_t signing_mask = UpdateManifestSecurityFlagNwpSigned |
+                                          UpdateManifestSecurityFlagM4Signed;
+
+            if((manifest_flags & signing_mask) != (device_flags & signing_mask)) {
+                FURI_LOG_E(
+                    TAG,
+                    "Security mismatch: manifest=0x%lx, device=0x%lx",
+                    manifest_flags,
+                    device_flags);
+                update_status = UpdaterStatusInstallationPrepareSecurityMismatch;
+                break;
+            }
+
+            FURI_LOG_I(TAG, "Security flags OK (0x%lx)", manifest_flags);
+        }
+#endif
+
         FURI_LOG_D(TAG, "Setting up session config...");
 
         UpdaterSessionConfig session_config;
-        const UpdateManifest* manifest = update_config_get_manifest(config);
         updater_session_config_compose(manifest, &session_config);
         if(!updater_session_config_save(&session_config)) {
             FURI_LOG_E(TAG, "Failed to set up session config");
@@ -1104,6 +1151,7 @@ static const char* const status_strings[] = {
 
     [UpdaterStatusInstallationPrepareManifestNotFound] = "Manifest not found",
     [UpdaterStatusInstallationPrepareManifestInvalid] = "Failed to validate manifest",
+    [UpdaterStatusInstallationPrepareSecurityMismatch] = "Bundle security mismatch",
     [UpdaterStatusInstallationPrepareSessionConfigSetupFailure] = "Failed to save session config",
     [UpdaterStatusInstallationPreparePointerSetupFailure] = "Failed to write pointer file",
 

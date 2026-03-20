@@ -23,6 +23,7 @@ def _update_bundle_action(target, source, env):
         ("BUNDLE_SIL_RADIO_FW", "--sil-radio-fw"),
         ("BUNDLE_RESOURCES", "--resources"),
         ("BUNDLE_BKP_RESOURCES", "--bkp-resources"),
+        ("BUNDLE_SECURITY_FLAGS", "--security-flags"),
     ]:
         val = env.get(env_key)
         if val:
