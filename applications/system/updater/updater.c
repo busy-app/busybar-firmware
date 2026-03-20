@@ -41,6 +41,7 @@ struct Updater {
     FuriSemaphore* update_lock;
     FuriState* update_state;
 
+#ifndef FW_CFG_recovery
     FetchLoader* download_loader;
     FuriMessageQueue* download_queue;
 
@@ -61,7 +62,8 @@ struct Updater {
 #ifdef SRV_SNTP
     FuriEventLoopTimer* autoupdate_timer;
     FuriSemaphore* autoupdate_semaphore;
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
+#endif /* FW_CFG_recovery */
 };
 
 typedef struct {
@@ -168,6 +170,10 @@ static UpdaterStatus invoke_sync(Updater* instance, UpdaterMessage* message) {
 }
 
 static void custom_event_callback(uint32_t events, void* context) {
+#ifdef FW_CFG_recovery
+    UNUSED(events);
+    UNUSED(context);
+#else /* FW_CFG_recovery */
     Updater* instance = context;
 
     if(events & CustomEventUpdateCheckSuccess) {
@@ -176,9 +182,15 @@ static void custom_event_callback(uint32_t events, void* context) {
     } else if(events & CustomEventUpdateCheckFailure) {
         furi_event_loop_timer_restart(instance->check_timer);
     }
+#endif /* FW_CFG_recovery */
 }
 
 static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info, void* context) {
+#ifdef FW_CFG_recovery
+    UNUSED(is_success);
+    UNUSED(update_info);
+    UNUSED(context);
+#else /* FW_CFG_recovery */
     Updater* instance = context;
 
     furi_event_loop_set_custom_event(
@@ -208,16 +220,24 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
     check_state->event = UpdaterCheckEventStop;
 
     furi_state_release(instance->check_state);
+#endif /* FW_CFG_recovery */
 }
 
 static void check_timer_callback(void* context) {
+#ifdef FW_CFG_recovery
+    UNUSED(context);
+#else /* FW_CFG_recovery */
     invoke_async(context, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
+#endif /* FW_CFG_recovery */
 }
 
 static void autoupdate_timer_callback(void* context) {
-    furi_assert(context);
-
-#ifdef SRV_SNTP
+#ifdef FW_CFG_recovery
+    UNUSED(context);
+#else /* FW_CFG_recovery */
+#ifndef SRV_SNTP
+    UNUSED(context);
+#else /* SRV_SNTP */
     Updater* instance = context;
 
     FURI_LOG_D(TAG, "Autoupdate: starting check...");
@@ -279,12 +299,18 @@ static void autoupdate_timer_callback(void* context) {
         FURI_LOG_W(
             TAG, "Autoupdate: failed to start (%s)", updater_get_status_string(session_status));
     }
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
+#endif /* FW_CFG_recovery */
 }
 
 static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* message) {
     UNUSED(message);
 
+#ifdef FW_CFG_recovery
+    UNUSED(instance);
+
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     bool is_check_start_successful = update_checker_run(
         instance->update_checker,
         instance->settings.check_url,
@@ -297,6 +323,7 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
     }
 
     return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
+#endif /* FW_CFG_recovery */
 }
 
 static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message) {
@@ -330,6 +357,7 @@ static UpdaterStatus do_set_settings(Updater* instance, UpdaterMessage* message)
 
     instance->settings = *message->as_set_settings.set_settings;
 
+#ifndef FW_CFG_recovery
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
 
@@ -340,14 +368,17 @@ static UpdaterStatus do_set_settings(Updater* instance, UpdaterMessage* message)
     } else {
         furi_event_loop_timer_stop(instance->autoupdate_timer);
     }
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
+#endif /* FW_CFG_recovery */
 
     return UpdaterStatusOk;
 }
 
 static void download_status_callback(const FetchLoaderStatus* status, void* context) {
-    furi_assert(context);
-
+#ifdef FW_CFG_recovery
+    UNUSED(status);
+    UNUSED(context);
+#else /* FW_CFG_recovery */
     Updater* instance = context;
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
@@ -356,22 +387,28 @@ static void download_status_callback(const FetchLoaderStatus* status, void* cont
     update_state->as_download.received_size = status->received_download_size;
     update_state->as_download.speed_bytes_per_sec = status->speed_bytes_per_sec;
     furi_state_release(instance->update_state);
+#endif /* FW_CFG_recovery */
 }
 
 static void download_state_callback(const FuriString* state, void* context) {
-    furi_assert(context);
-
+#ifdef FW_CFG_recovery
+    UNUSED(state);
+    UNUSED(context);
+#else /* FW_CFG_recovery */
     Updater* instance = context;
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
     update_state->event = UpdaterUpdateEventDetailChange;
     strncpy(update_state->detail, furi_string_get_cstr(state), sizeof(update_state->detail));
     furi_state_release(instance->update_state);
+#endif /* FW_CFG_recovery */
 }
 
 static void download_done_callback(FetchLoaderDoneStatus done_status, void* context) {
-    furi_assert(context);
-
+#ifdef FW_CFG_recovery
+    UNUSED(done_status);
+    UNUSED(context);
+#else /* FW_CFG_recovery */
     Updater* instance = context;
 
     UpdaterStatus update_status;
@@ -400,9 +437,16 @@ static void download_done_callback(FetchLoaderDoneStatus done_status, void* cont
             .status = update_status,
         },
         FuriWaitForever);
+#endif /* FW_CFG_recovery */
 }
 
 static UpdaterStatus do_download(Updater* instance, UpdaterMessage* message) {
+#ifdef FW_CFG_recovery
+    UNUSED(instance);
+    UNUSED(message);
+
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     const char* url = furi_string_get_cstr(message->as_download.url);
     const char* path = furi_string_get_cstr(message->as_download.path);
 
@@ -455,9 +499,16 @@ static UpdaterStatus do_download(Updater* instance, UpdaterMessage* message) {
     instance->download_loader = NULL;
 
     return download_message.status;
+#endif /* FW_CFG_recovery */
 }
 
 static UpdaterStatus do_verify_bundle_sha(Updater* instance, UpdaterMessage* message) {
+#ifdef FW_CFG_recovery
+    UNUSED(instance);
+    UNUSED(message);
+
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     const char* tar_path = furi_string_get_cstr(message->as_verify_bundle_sha.tar_path);
     const char* sha = furi_string_get_cstr(message->as_verify_bundle_sha.sha);
 
@@ -488,9 +539,16 @@ static UpdaterStatus do_verify_bundle_sha(Updater* instance, UpdaterMessage* mes
     }
 
     return update_status;
+#endif /* FW_CFG_recovery */
 }
 
 static UpdaterStatus do_unpack(Updater* instance, UpdaterMessage* message) {
+#ifdef FW_CFG_recovery
+    UNUSED(instance);
+    UNUSED(message);
+
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     const char* tar_path = furi_string_get_cstr(message->as_unpack.tar_path);
     const char* staging_path = furi_string_get_cstr(message->as_unpack.staging_path);
 
@@ -540,6 +598,7 @@ static UpdaterStatus do_unpack(Updater* instance, UpdaterMessage* message) {
     furi_string_free(message->as_unpack.staging_path);
 
     return update_status;
+#endif /* FW_CFG_recovery */
 }
 
 static UpdaterStatus do_installation_prepare(Updater* instance, UpdaterMessage* message) {
@@ -657,6 +716,11 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
 }
 
 static int32_t install_from_url_thread_callback(void* context) {
+#ifdef FW_CFG_recovery
+    UNUSED(context);
+
+    return 0;
+#else /* FW_CFG_recovery */
     Updater* instance = context;
 
     UpdaterStatus status;
@@ -692,7 +756,7 @@ static int32_t install_from_url_thread_callback(void* context) {
                 break;
             }
         }
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
 
         updater_installation_apply(instance, true);
     } while(false);
@@ -700,6 +764,7 @@ static int32_t install_from_url_thread_callback(void* context) {
     updater_session_stop(instance);
 
     return 0;
+#endif /* FW_CFG_recovery */
 }
 
 static void install_from_url_thread_state_callback(
@@ -708,9 +773,14 @@ static void install_from_url_thread_state_callback(
     void* context) {
     UNUSED(context);
 
+#ifdef FW_CFG_recovery
+    UNUSED(thread);
+    UNUSED(state);
+#else /* FW_CFG_recovery */
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
     }
+#endif /* FW_CFG_recovery */
 }
 
 const char* updater_get_status_string(UpdaterStatus status) {
@@ -726,13 +796,18 @@ FuriState* updater_get_update_state(Updater* instance) {
 FuriState* updater_get_check_state(Updater* instance) {
     furi_check(instance);
 
+#ifdef FW_CFG_recovery
+    return NULL;
+#else /* FW_CFG_recovery */
     return instance->check_state;
+#endif /* FW_CFG_recovery */
 }
 
 void updater_get_check_info(Updater* instance, UpdateCheckInfo* info) {
     furi_check(instance);
     furi_check(info);
 
+#ifndef FW_CFG_recovery
     furi_mutex_acquire(instance->check_info_mutex, FuriWaitForever);
 
     if(info->version) {
@@ -756,6 +831,7 @@ void updater_get_check_info(Updater* instance, UpdateCheckInfo* info) {
     }
 
     furi_mutex_release(instance->check_info_mutex);
+#endif /* FW_CFG_recovery */
 }
 
 UpdaterStatus updater_get_allowance_status(Updater* instance) {
@@ -804,6 +880,13 @@ UpdaterStatus
     updater_download(Updater* instance, const char* url, const char* path, bool do_wait) {
     furi_check(instance);
     furi_check(url);
+
+#ifdef FW_CFG_recovery
+    UNUSED(path);
+    UNUSED(do_wait);
+
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
 
     furi_message_queue_reset(instance->download_queue);
@@ -818,17 +901,20 @@ UpdaterStatus
     };
 
     return (do_wait) ? invoke_sync(instance, &message) : invoke_async(instance, &message);
+#endif /* FW_CFG_recovery */
 }
 
 void updater_abort_download(Updater* instance) {
     furi_check(instance);
 
+#ifndef FW_CFG_recovery
     furi_message_queue_put(
         instance->download_queue,
         &(const DownloadQueueMessage){
             .is_abort_request = true,
         },
         0);
+#endif /* FW_CFG_recovery */
 }
 
 UpdaterStatus updater_verify_bundle_sha(
@@ -838,6 +924,13 @@ UpdaterStatus updater_verify_bundle_sha(
     bool do_wait) {
     furi_check(instance);
     furi_check(sha);
+
+#ifdef FW_CFG_recovery
+    UNUSED(tar_path);
+    UNUSED(do_wait);
+
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
 
     UpdaterMessage message = {
@@ -850,6 +943,7 @@ UpdaterStatus updater_verify_bundle_sha(
     };
 
     return (do_wait) ? invoke_sync(instance, &message) : invoke_async(instance, &message);
+#endif /* FW_CFG_recovery */
 }
 
 UpdaterStatus updater_unpack(
@@ -859,6 +953,14 @@ UpdaterStatus updater_unpack(
     FuriString* manifest_path,
     bool do_wait) {
     furi_check(instance);
+#ifdef FW_CFG_recovery
+    UNUSED(tar_path);
+    UNUSED(staging_path);
+    UNUSED(manifest_path);
+    UNUSED(do_wait);
+
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
 
     UpdaterMessage message = {
@@ -873,6 +975,7 @@ UpdaterStatus updater_unpack(
     };
 
     return (do_wait) ? invoke_sync(instance, &message) : invoke_async(instance, &message);
+#endif /* FW_CFG_recovery */
 }
 
 UpdaterStatus
@@ -912,6 +1015,12 @@ static void install_from_url_internal(
     const char* url,
     const char* sha256,
     bool is_autoupdate) {
+#ifdef FW_CFG_recovery
+    UNUSED(instance);
+    UNUSED(url);
+    UNUSED(sha256);
+    UNUSED(is_autoupdate);
+#else /* FW_CFG_recovery */
     furi_string_set(instance->install_url, url);
 
     if(sha256) {
@@ -931,19 +1040,28 @@ static void install_from_url_internal(
     furi_thread_set_state_context(thread, instance);
     furi_thread_set_state_callback(thread, install_from_url_thread_state_callback);
     furi_thread_start(thread);
+#endif /* FW_CFG_recovery */
 }
 
 void updater_install_from_url(Updater* instance, const char* url, const char* sha256) {
     furi_check(instance);
-    furi_check(url);
 
+#ifdef FW_CFG_recovery
+    UNUSED(url);
+    UNUSED(sha256);
+#else /* FW_CFG_recovery */
     install_from_url_internal(instance, url, sha256, false);
+#endif /* FW_CFG_recovery */
 }
 
 UpdaterStatus updater_check_for_update(Updater* instance) {
     furi_check(instance);
 
+#ifdef FW_CFG_recovery
+    return UpdaterStatusUnknownFailure;
+#else /* FW_CFG_recovery */
     return invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
+#endif /* FW_CFG_recovery */
 }
 
 void updater_pause_autoupdates(Updater* instance) {
@@ -951,7 +1069,7 @@ void updater_pause_autoupdates(Updater* instance) {
 
 #ifdef SRV_SNTP
     furi_check(furi_semaphore_acquire(instance->autoupdate_semaphore, 0) == FuriStatusOk);
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
 }
 
 void updater_resume_autoupdates(Updater* instance) {
@@ -959,7 +1077,7 @@ void updater_resume_autoupdates(Updater* instance) {
 
 #ifdef SRV_SNTP
     furi_semaphore_release(instance->autoupdate_semaphore);
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
 }
 
 const char* updater_get_active_version(void) {
@@ -1011,6 +1129,17 @@ static Updater* updater_alloc(void) {
     instance->update_lock = furi_semaphore_alloc(1, 1);
     instance->update_state = furi_state_alloc(sizeof(UpdaterUpdateState));
 
+#ifdef FW_CFG_recovery
+    UNUSED(custom_event_callback);
+    UNUSED(check_done_callback);
+    UNUSED(check_timer_callback);
+    UNUSED(download_status_callback);
+    UNUSED(download_state_callback);
+    UNUSED(download_done_callback);
+    UNUSED(install_from_url_thread_callback);
+    UNUSED(install_from_url_thread_state_callback);
+    UNUSED(install_from_url_internal);
+#else /* FW_CFG_recovery */
     instance->download_loader = NULL;
     instance->download_queue = furi_message_queue_alloc(1, sizeof(DownloadQueueMessage));
 
@@ -1027,15 +1156,16 @@ static Updater* updater_alloc(void) {
 
     instance->install_url = furi_string_alloc();
     instance->install_sha256 = furi_string_alloc();
+#endif /* FW_CFG_recovery */
 
 #ifdef SRV_SNTP
     instance->autoupdate_timer = furi_event_loop_timer_alloc(
         instance->event_loop, autoupdate_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
 
     instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);
-#else // SRV_SNTP
+#else /* SRV_SNTP */
     UNUSED(autoupdate_timer_callback);
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -1044,8 +1174,10 @@ static Updater* updater_alloc(void) {
         message_queue_callback,
         instance);
 
+#ifndef FW_CFG_recovery
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, custom_event_callback, instance);
+#endif /* FW_CFG_recovery */
 
     furi_state_set(
         instance->update_state,
@@ -1055,6 +1187,7 @@ static Updater* updater_alloc(void) {
             .detail = "",
         });
 
+#ifndef FW_CFG_recovery
     furi_state_set(
         instance->check_state,
         &(const UpdaterCheckState){
@@ -1065,13 +1198,16 @@ static Updater* updater_alloc(void) {
     update_checker_set_done_callback(instance->update_checker, check_done_callback, instance);
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
+#endif /* FW_CFG_recovery */
 
+#ifndef FW_CFG_recovery
 #ifdef SRV_SNTP
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
             instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
     }
-#endif // SRV_SNTP
+#endif /* SRV_SNTP */
+#endif /* FW_CFG_recovery */
 
     furi_record_create(RECORD_UPDATER, instance);
 
