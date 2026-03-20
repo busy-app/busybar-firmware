@@ -30,7 +30,9 @@ App(
     appid="system_apps_on_start",
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
-    provides=[],
+    provides=[
+        "update_ui",
+    ],
     targets=["f20", "f21", "f22"],
 )
 

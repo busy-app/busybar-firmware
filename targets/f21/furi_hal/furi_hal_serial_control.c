@@ -182,6 +182,8 @@ void furi_hal_serial_control_init(void) {
     furi_hal_serial_control->log_config_serial_id = FuriHalSerialIdMax;
     // Start control plane thread
     furi_thread_start(furi_hal_serial_control->thread);
+    // Set the UART for logging output
+    furi_hal_serial_control_set_logging_config(FuriHalSerialIdUsart6, 230400);
 }
 
 void furi_hal_serial_control_deinit(void) {
