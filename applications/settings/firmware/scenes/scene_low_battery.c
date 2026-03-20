@@ -7,9 +7,9 @@
 #define BACK_DETAIL_LABEL_TEXT_COLOR ((Color)COLOR_MAKE_RGB(0x88, 0x88, 0x88))
 
 typedef enum {
-    ThisSceneEventPowerChargeAmountUpdate = ThisEventSceneEventsStart,
-    ThisSceneEventPowerUsbConnectionStateUpdate,
-} ThisSceneEvent;
+    FirmwareSettingsLowBatterySceneEventChargeAmountUpdate = FirmwareSettingsEventSceneEventsStart,
+    FirmwareSettingsLowBatterySceneEventUsbConnectionStateUpdate,
+} FirmwareSettingsLowBatterySceneEvent;
 
 typedef struct {
     FlexBox* front_box;
@@ -20,39 +20,44 @@ typedef struct {
     Label* back_primary_label;
 
     FuriPubSubSubscription* power_event_subscription;
-} ThisScene;
+} FirmwareSettingsLowBatteryScene;
 
 typedef enum {
-    ThisScenePresetIdxUsbConnected,
-    ThisScenePresetIdxUsbDisconnected,
+    FirmwareSettingsLowBatteryScenePresetIdxUsbConnected,
+    FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected,
 
-    ThisScenePresetIdxsCount
-} ThisScenePresetIdx;
+    FirmwareSettingsLowBatteryScenePresetIdxsCount
+} FirmwareSettingsLowBatteryScenePresetIdx;
 
 typedef struct {
     const char* front_image_path;
     const char* front_text;
 
     const char* back_primary_text;
-} ThisScenePreset;
+} FirmwareSettingsLowBatteryScenePreset;
 
-static const ThisScenePreset scene_presets[];
+static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery_scene_presets[];
 
-static inline ThisScene* get_scene(ThisInstance* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxLowBattery);
+static inline FirmwareSettingsLowBatteryScene*
+    firmware_settings_low_battery_scene_get(FirmwareSettings* instance) {
+    return scene_manager_get_scene_data(
+        instance->scene_manager, FirmwareSettingsSceneIdxLowBattery);
 }
 
-static void power_event_callback(const void* message, void* context) {
+static void
+    firmware_settings_low_battery_scene_power_event_callback(const void* message, void* context) {
     const PowerEvent* event = message;
-    ThisInstance* instance = context;
+    FirmwareSettings* instance = context;
 
     switch(event->type) {
     case PowerEventChargeAmountUpdate:
-        settings_firmware_app_fire_event(instance, ThisSceneEventPowerChargeAmountUpdate);
+        firmware_settings_internal_fire_event(
+            instance, FirmwareSettingsLowBatterySceneEventChargeAmountUpdate);
         break;
 
     case PowerEventUsbConnectionStateUpdate:
-        settings_firmware_app_fire_event(instance, ThisSceneEventPowerUsbConnectionStateUpdate);
+        firmware_settings_internal_fire_event(
+            instance, FirmwareSettingsLowBatterySceneEventUsbConnectionStateUpdate);
         break;
 
     default:
@@ -60,13 +65,15 @@ static void power_event_callback(const void* message, void* context) {
     }
 }
 
-static void on_power_usb_connection_state_update(ThisInstance* instance) {
-    ThisScene* scene = get_scene(instance);
+static void firmware_settings_low_battery_scene_on_usb_connection_state_update(
+    FirmwareSettings* instance) {
+    FirmwareSettingsLowBatteryScene* scene = firmware_settings_low_battery_scene_get(instance);
 
-    const ThisScenePreset* scene_preset =
-        &scene_presets
-            [power_is_usb_connected(instance->power) ? ThisScenePresetIdxUsbConnected :
-                                                       ThisScenePresetIdxUsbDisconnected];
+    const FirmwareSettingsLowBatteryScenePreset* scene_preset =
+        &firmware_settings_low_battery_scene_presets
+            [power_is_usb_connected(instance->power) ?
+                 FirmwareSettingsLowBatteryScenePresetIdxUsbConnected :
+                 FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected];
 
     with_gui(instance->gui, {
         image_set_source(scene->front_image, scene_preset->front_image_path);
@@ -76,17 +83,20 @@ static void on_power_usb_connection_state_update(ThisInstance* instance) {
     });
 }
 
-static void scene_on_enter(void* context) {
-    ThisInstance* instance = context;
-    ThisScene* scene = get_scene(instance);
+static void firmware_settings_low_battery_scene_on_enter(void* context) {
+    FirmwareSettings* instance = context;
+    FirmwareSettingsLowBatteryScene* scene = firmware_settings_low_battery_scene_get(instance);
 
-    scene->power_event_subscription =
-        furi_pubsub_subscribe(power_get_pubsub(instance->power), power_event_callback, instance);
+    scene->power_event_subscription = furi_pubsub_subscribe(
+        power_get_pubsub(instance->power),
+        firmware_settings_low_battery_scene_power_event_callback,
+        instance);
 
-    const ThisScenePreset* scene_preset =
-        &scene_presets
-            [power_is_usb_connected(instance->power) ? ThisScenePresetIdxUsbConnected :
-                                                       ThisScenePresetIdxUsbDisconnected];
+    const FirmwareSettingsLowBatteryScenePreset* scene_preset =
+        &firmware_settings_low_battery_scene_presets
+            [power_is_usb_connected(instance->power) ?
+                 FirmwareSettingsLowBatteryScenePresetIdxUsbConnected :
+                 FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected];
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -124,9 +134,9 @@ static void scene_on_enter(void* context) {
     });
 }
 
-static void scene_on_exit(void* context) {
-    ThisInstance* instance = context;
-    ThisScene* scene = get_scene(instance);
+static void firmware_settings_low_battery_scene_on_exit(void* context) {
+    FirmwareSettings* instance = context;
+    FirmwareSettingsLowBatteryScene* scene = firmware_settings_low_battery_scene_get(instance);
 
     furi_pubsub_unsubscribe(power_get_pubsub(instance->power), scene->power_event_subscription);
 
@@ -136,19 +146,20 @@ static void scene_on_exit(void* context) {
     });
 }
 
-static bool scene_on_event(const SceneManagerEvent* event, void* context) {
-    ThisInstance* instance = context;
+static bool
+    firmware_settings_low_battery_scene_on_event(const SceneManagerEvent* event, void* context) {
+    FirmwareSettings* instance = context;
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisSceneEventPowerChargeAmountUpdate:
+        case FirmwareSettingsLowBatterySceneEventChargeAmountUpdate:
             if(updater_get_allowance_status(instance->updater) != UpdaterStatusBatteryLow) {
                 scene_manager_previous_scene(instance->scene_manager);
             }
             return true;
 
-        case ThisSceneEventPowerUsbConnectionStateUpdate:
-            on_power_usb_connection_state_update(instance);
+        case FirmwareSettingsLowBatterySceneEventUsbConnectionStateUpdate:
+            firmware_settings_low_battery_scene_on_usb_connection_state_update(instance);
             return true;
 
         default:
@@ -159,15 +170,15 @@ static bool scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene settings_firmware_internal_scene_low_battery = {
-    .enter_callback = scene_on_enter,
-    .exit_callback = scene_on_exit,
-    .event_callback = scene_on_event,
-    .data_size = sizeof(ThisScene),
+const Scene firmware_settings_internal_scene_low_battery = {
+    .enter_callback = firmware_settings_low_battery_scene_on_enter,
+    .exit_callback = firmware_settings_low_battery_scene_on_exit,
+    .event_callback = firmware_settings_low_battery_scene_on_event,
+    .data_size = sizeof(FirmwareSettingsLowBatteryScene),
 };
 
-static const ThisScenePreset scene_presets[] = {
-    [ThisScenePresetIdxUsbConnected] =
+static const FirmwareSettingsLowBatteryScenePreset firmware_settings_low_battery_scene_presets[] = {
+    [FirmwareSettingsLowBatteryScenePresetIdxUsbConnected] =
         {
             /* front layout */
             .front_image_path = THIS_IMG_PATH("charging_battery_front_8x8.bin"),
@@ -177,7 +188,7 @@ static const ThisScenePreset scene_presets[] = {
             .back_primary_text = "Battery is charging...",
         },
 
-    [ThisScenePresetIdxUsbDisconnected] =
+    [FirmwareSettingsLowBatteryScenePresetIdxUsbDisconnected] =
         {
             /* front layout */
             .front_image_path = THIS_IMG_PATH("low_battery_front_8x8.bin"),
@@ -188,4 +199,6 @@ static const ThisScenePreset scene_presets[] = {
         },
 };
 
-static_assert(COUNT_OF(scene_presets) == ThisScenePresetIdxsCount);
+static_assert(
+    COUNT_OF(firmware_settings_low_battery_scene_presets) ==
+    FirmwareSettingsLowBatteryScenePresetIdxsCount);

@@ -22,8 +22,8 @@ extern "C" {
 #define THIS_IMG_PATH(path)    THIS_ASSETS_PATH("images") "/" path
 
 typedef enum {
-    ThisEventSceneEventsStart,
-} ThisEvent;
+    FirmwareSettingsEventSceneEventsStart,
+} FirmwareSettingsEvent;
 
 typedef struct {
     const char* front_image_path;
@@ -32,7 +32,7 @@ typedef struct {
     const char* back_image_path;
     FuriString* back_primary_text;
     FuriString* back_detail_text;
-} ThisCheckResultScenePreset;
+} FirmwareSettingsCheckResultScenePreset;
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -46,7 +46,7 @@ typedef struct {
     Power* power;
 
     UpdateCheckInfo update_info;
-    ThisCheckResultScenePreset check_result_preset;
+    FirmwareSettingsCheckResultScenePreset check_result_preset;
 
     /* front layout */
     Widget* front_scene_window;
@@ -55,9 +55,9 @@ typedef struct {
     FlexLayout* back_container;
     NavBar* back_nav_bar;
     Widget* back_scene_window;
-} ThisInstance;
+} FirmwareSettings;
 
-void settings_firmware_app_fire_event(ThisInstance* instance, uint32_t event);
+void firmware_settings_internal_fire_event(FirmwareSettings* instance, uint32_t event);
 
 #ifdef __cplusplus
 }

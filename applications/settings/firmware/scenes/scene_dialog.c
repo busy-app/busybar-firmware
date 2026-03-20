@@ -5,36 +5,39 @@
 #include <gui/modules/dialog.h>
 
 typedef enum {
-    ThisSceneEventInstall = ThisEventSceneEventsStart,
-    ThisSceneEventCancel
-} ThisSceneEvent;
+    FirmwareSettingsDialogSceneEventInstall = FirmwareSettingsEventSceneEventsStart,
+    FirmwareSettingsDialogSceneEventCancel
+} FirmwareSettingsDialogSceneEvent;
 
 typedef struct {
     Dialog* front_dialog;
     Dialog* back_dialog;
-} ThisScene;
+} FirmwareSettingsDialogScene;
 
-static inline ThisScene* get_scene(ThisInstance* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxDialog);
+static inline FirmwareSettingsDialogScene*
+    firmware_settings_dialog_scene_get(FirmwareSettings* instance) {
+    return scene_manager_get_scene_data(instance->scene_manager, FirmwareSettingsSceneIdxDialog);
 }
 
-static void dialog_option_callback(uint8_t result, void* context) {
-    settings_firmware_app_fire_event(
-        context, result ? ThisSceneEventCancel : ThisSceneEventInstall);
+static void firmware_settings_dialog_scene_option_callback(uint8_t result, void* context) {
+    firmware_settings_internal_fire_event(
+        context,
+        result ? FirmwareSettingsDialogSceneEventCancel : FirmwareSettingsDialogSceneEventInstall);
 }
 
-static void scene_on_enter(void* context) {
+static void firmware_settings_dialog_scene_on_enter(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsDialogScene* scene = firmware_settings_dialog_scene_get(instance);
 
     updater_get_check_info(instance->updater, &instance->update_info);
 
     with_gui(instance->gui, {
         /* front layout setup */
         scene->front_dialog = dialog_alloc(instance->front_scene_window);
-        dialog_set_callback(scene->front_dialog, dialog_option_callback, instance);
+        dialog_set_callback(
+            scene->front_dialog, firmware_settings_dialog_scene_option_callback, instance);
         dialog_set_text(scene->front_dialog, "Update available");
         dialog_set_options(scene->front_dialog, "Install", "Cancel");
         dialog_set_option_colors(
@@ -51,11 +54,11 @@ static void scene_on_enter(void* context) {
     });
 }
 
-static void scene_on_exit(void* context) {
+static void firmware_settings_dialog_scene_on_exit(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsDialogScene* scene = firmware_settings_dialog_scene_get(instance);
 
     with_gui(instance->gui, {
         dialog_free(scene->back_dialog);
@@ -63,14 +66,15 @@ static void scene_on_exit(void* context) {
     });
 }
 
-static bool scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool
+    firmware_settings_dialog_scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
+    FirmwareSettings* instance = context;
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisSceneEventInstall:
+        case FirmwareSettingsDialogSceneEventInstall:
             UpdaterStatus session_status = updater_session_start(instance->updater);
             if(session_status == UpdaterStatusOk) {
                 updater_install_from_url(
@@ -78,14 +82,16 @@ static bool scene_on_event(const SceneManagerEvent* event, void* context) {
                     furi_string_get_cstr(instance->update_info.url),
                     furi_string_get_cstr(instance->update_info.sha256));
             } else if(session_status == UpdaterStatusBatteryLow) {
-                scene_manager_next_scene(instance->scene_manager, ThisSceneIdxLowBattery);
+                scene_manager_next_scene(
+                    instance->scene_manager, FirmwareSettingsSceneIdxLowBattery);
             }
             return true;
 
-        case ThisSceneEventCancel:
+        case FirmwareSettingsDialogSceneEventCancel:
             if(!scene_manager_search_and_switch_to_previous_scene(
-                   instance->scene_manager, ThisSceneIdxMain)) {
-                scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxMain);
+                   instance->scene_manager, FirmwareSettingsSceneIdxMain)) {
+                scene_manager_replace_current_scene(
+                    instance->scene_manager, FirmwareSettingsSceneIdxMain);
             }
             return true;
 
@@ -97,9 +103,9 @@ static bool scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene settings_firmware_internal_scene_dialog = {
-    .enter_callback = scene_on_enter,
-    .exit_callback = scene_on_exit,
-    .event_callback = scene_on_event,
-    .data_size = sizeof(ThisScene),
+const Scene firmware_settings_internal_scene_dialog = {
+    .enter_callback = firmware_settings_dialog_scene_on_enter,
+    .exit_callback = firmware_settings_dialog_scene_on_exit,
+    .event_callback = firmware_settings_dialog_scene_on_event,
+    .data_size = sizeof(FirmwareSettingsDialogScene),
 };

@@ -13,22 +13,24 @@ typedef struct {
     FlexBox* back_box;
 
     FuriEventLoopTimer* timeout_timer;
-} ThisScene;
+} FirmwareSettingsCheckResultScene;
 
-static inline ThisScene* get_scene(ThisInstance* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxCheckResult);
+static inline FirmwareSettingsCheckResultScene*
+    firmware_settings_check_result_scene_get(FirmwareSettings* instance) {
+    return scene_manager_get_scene_data(
+        instance->scene_manager, FirmwareSettingsSceneIdxCheckResult);
 }
 
-static void timout_timer_callback(void* context) {
-    ThisInstance* instance = context;
+static void firmware_settings_check_result_scene_timeout_callback(void* context) {
+    FirmwareSettings* instance = context;
     scene_manager_previous_scene(instance->scene_manager);
 }
 
-static void scene_on_enter(void* context) {
+static void firmware_settings_check_result_scene_on_enter(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsCheckResultScene* scene = firmware_settings_check_result_scene_get(instance);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -71,15 +73,18 @@ static void scene_on_enter(void* context) {
     });
 
     scene->timeout_timer = furi_event_loop_timer_alloc(
-        instance->event_loop, timout_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+        instance->event_loop,
+        firmware_settings_check_result_scene_timeout_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
     furi_event_loop_timer_start(scene->timeout_timer, furi_ms_to_ticks(SCENE_EXIT_TIMEOUT_MS));
 }
 
-static void scene_on_exit(void* context) {
+static void firmware_settings_check_result_scene_on_exit(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsCheckResultScene* scene = firmware_settings_check_result_scene_get(instance);
 
     furi_event_loop_timer_free(scene->timeout_timer);
 
@@ -89,16 +94,17 @@ static void scene_on_exit(void* context) {
     });
 }
 
-static bool scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool
+    firmware_settings_check_result_scene_on_event(const SceneManagerEvent* event, void* context) {
     UNUSED(event);
     UNUSED(context);
 
     return false;
 }
 
-const Scene settings_firmware_internal_scene_check_result = {
-    .enter_callback = scene_on_enter,
-    .exit_callback = scene_on_exit,
-    .event_callback = scene_on_event,
-    .data_size = sizeof(ThisScene),
+const Scene firmware_settings_internal_scene_check_result = {
+    .enter_callback = firmware_settings_check_result_scene_on_enter,
+    .exit_callback = firmware_settings_check_result_scene_on_exit,
+    .event_callback = firmware_settings_check_result_scene_on_event,
+    .data_size = sizeof(FirmwareSettingsCheckResultScene),
 };

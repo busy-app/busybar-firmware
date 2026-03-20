@@ -3,61 +3,14 @@
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
-#define INPUT_QUEUE_CAPACITY 8
-#define EVENT_QUEUE_CAPACITY 8
+#define INPUT_QUEUE_CAPACITY   8
+#define INPUT_QUEUE_TIMEOUT_MS 3000
 
-static bool thread_signal_callback(uint32_t signal, void* argument, void* context) {
-    UNUSED(argument);
+#define EVENT_QUEUE_CAPACITY   8
+#define EVENT_QUEUE_TIMEOUT_MS 3000
 
-    furi_assert(context);
-
-    ThisInstance* instance = context;
-
-    switch(signal) {
-    case FuriSignalExit:
-        furi_event_loop_stop(instance->event_loop);
-        return true;
-
-    default:
-        return false;
-    }
-}
-
-static void input_queue_callback(FuriEventLoopObject* object, void* context) {
-    UNUSED(object);
-
-    furi_assert(context);
-
-    ThisInstance* instance = context;
-
-    InputEvent event;
-    while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
-        if(event.type == InputTypeShort && event.key == InputKeyBack) {
-            if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_APP_NAME);
-            }
-        }
-    }
-}
-
-static void event_queue_callback(FuriEventLoopObject* object, void* context) {
-    UNUSED(object);
-
-    furi_assert(context);
-
-    ThisInstance* instance = context;
-
-    uint32_t event;
-    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
-        scene_manager_handle_custom_event(instance->scene_manager, event);
-    }
-}
-
-static bool gui_input_callback(const InputEvent* event, void* context) {
-    furi_assert(event);
-    furi_assert(context);
-
-    ThisInstance* instance = context;
+static bool firmware_settings_input_callback(const InputEvent* event, void* context) {
+    FirmwareSettings* instance = context;
 
     bool is_consumed = false;
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
@@ -69,14 +22,44 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
     return is_consumed;
 }
 
-static ThisInstance* this_alloc(void) {
-    ThisInstance* instance = malloc(sizeof(*instance));
+static void firmware_settings_input_queue_callback(FuriEventLoopObject* object, void* context) {
+    UNUSED(object);
+
+    furi_assert(context);
+
+    FirmwareSettings* instance = context;
+
+    InputEvent event;
+    while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
+        if(event.type == InputTypeShort && event.key == InputKeyBack) {
+            if(!scene_manager_handle_back_event(instance->scene_manager)) {
+                desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_APP_NAME);
+            }
+        }
+    }
+}
+
+static void firmware_settings_event_queue_callback(FuriEventLoopObject* object, void* context) {
+    UNUSED(object);
+
+    furi_assert(context);
+
+    FirmwareSettings* instance = context;
+
+    uint32_t event;
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
+        scene_manager_handle_custom_event(instance->scene_manager, event);
+    }
+}
+
+static FirmwareSettings* firmware_settings_alloc(void) {
+    FirmwareSettings* instance = malloc(sizeof(*instance));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_CAPACITY, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_CAPACITY, sizeof(uint32_t));
-    instance->scene_manager =
-        scene_manager_alloc(settings_firmware_internal_scenes, ThisSceneIdxsCount, instance);
+    instance->scene_manager = scene_manager_alloc(
+        firmware_settings_internal_scenes, FirmwareSettingsSceneIdxsCount, instance);
 
     instance->gui = furi_record_open(RECORD_GUI);
     instance->desktop = furi_record_open(RECORD_DESKTOP);
@@ -97,7 +80,7 @@ static ThisInstance* this_alloc(void) {
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, gui_input_callback, instance);
+        gui_layer_add_input_callback(layer, firmware_settings_input_callback, instance);
 
         Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_scene_window = widget_alloc(front_root);
@@ -120,14 +103,14 @@ static ThisInstance* this_alloc(void) {
         instance->event_loop,
         instance->input_queue,
         FuriEventLoopEventIn,
-        input_queue_callback,
+        firmware_settings_input_queue_callback,
         instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->event_queue,
         FuriEventLoopEventIn,
-        event_queue_callback,
+        firmware_settings_event_queue_callback,
         instance);
 
     UpdaterCheckState updater_check_state;
@@ -135,18 +118,19 @@ static ThisInstance* this_alloc(void) {
 
     scene_manager_next_scene(
         instance->scene_manager,
-        (updater_check_state.result == UpdaterCheckResultAvailable) ? ThisSceneIdxDialog :
-                                                                      ThisSceneIdxMain);
+        (updater_check_state.result == UpdaterCheckResultAvailable) ?
+            FirmwareSettingsSceneIdxDialog :
+            FirmwareSettingsSceneIdxMain);
 
     return instance;
 }
 
-static void this_free(ThisInstance* instance) {
+static void firmware_settings_free(FirmwareSettings* instance) {
     scene_manager_free(instance->scene_manager);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer, gui_input_callback);
+        gui_layer_remove_input_callback(layer, firmware_settings_input_callback);
 
         widget_free(instance->front_scene_window);
         flex_layout_free(instance->back_container);
@@ -176,7 +160,7 @@ static void this_free(ThisInstance* instance) {
     free(instance);
 }
 
-static void this_setup_app_descriptor(SettingsAppDescriptor* descriptor) {
+static void firmware_settings_setup_descriptor(SettingsAppDescriptor* descriptor) {
     furi_string_set_str(descriptor->front_title, "Firmware");
     furi_string_set_str(descriptor->back_title, "Firmware");
     furi_string_set_str(descriptor->front_icon, THIS_IMG_PATH("microchip_front_8x8.bin"));
@@ -192,25 +176,24 @@ static void this_setup_app_descriptor(SettingsAppDescriptor* descriptor) {
     }
 }
 
-int32_t settings_firmware_app_entry(void* argument) {
+int32_t firmware_settings_entry(void* argument) {
     if(argument) {
-        this_setup_app_descriptor(argument);
+        firmware_settings_setup_descriptor(argument);
     } else {
-        ThisInstance* instance = this_alloc();
+        FirmwareSettings* instance = firmware_settings_alloc();
 
         FuriThread* thread = furi_thread_get_current();
-        furi_thread_set_signal_callback(thread, thread_signal_callback, instance);
         furi_event_loop_run(instance->event_loop);
 
         furi_thread_set_signal_callback(thread, NULL, NULL);
 
-        this_free(instance);
+        firmware_settings_free(instance);
     }
 
     return 0;
 }
 
-void settings_firmware_app_fire_event(ThisInstance* instance, uint32_t event) {
+void firmware_settings_internal_fire_event(FirmwareSettings* instance, uint32_t event) {
     furi_assert(instance);
 
     furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
