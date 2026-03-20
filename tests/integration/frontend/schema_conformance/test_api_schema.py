@@ -28,7 +28,7 @@ from hypothesis import HealthCheck, settings
 from .conftest import SAFE_WRITE_OPERATION_IDS, SKIP_OPERATION_IDS
 
 # Lazy schema: resolves the 'schemathesis_schema' fixture from conftest.py
-_schema = schemathesis.pytest.from_fixture("schemathesis_schema")
+_schema = schemathesis.from_pytest_fixture("schemathesis_schema")
 _get_operations_schema = _schema.include(
     method="GET",
     func=lambda ctx: ctx.operation.operation_id not in SKIP_OPERATION_IDS,
