@@ -2208,10 +2208,18 @@ components:
     TimezoneInfo:
       type: object
       properties:
-        timezone:
+        name:
           type: string
-          description: Timezone name
-          example: "Berlin"
+          description: "Time zone name"
+          example: "Bangalore"
+        offset:
+          type: string
+          description: "Time zone offset from UTC"
+          example: "+05:30"
+        abbr:
+          type: string
+          description: "Time zone abbreviation"
+          example: "IST"
       required:
         - timezone
 
@@ -2740,18 +2748,6 @@ components:
           items:
             type: object
             properties:
-              name:
-                type: string
-                description: "Time zone name"
-                example: "Bangalore"
-              offset:
-                type: string
-                description: "Time zone offset from UTC"
-                example: "+05:30"
-              abbr:
-                type: string
-                description: "Time zone abbreviation"
-                example: "IST"
 
     SmartHomePairingInfo:
       type: object
