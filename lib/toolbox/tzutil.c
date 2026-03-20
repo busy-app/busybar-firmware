@@ -18,7 +18,7 @@ static int compare_zone_info(const void* p1, const void* p2) {
     return strcmp(z1->name, z2->name);
 }
 
-bool tzutil_info_by_name(const char* name, const DateTime* dt, TzutilTzInfo* out) {
+bool tzutil_get_info_by_name(const char* name, const DateTime* dt, TzutilTzInfo* out) {
     furi_check(name);
     furi_check(dt);
     furi_check(out);
@@ -39,7 +39,7 @@ TzutilTzInfoList tzutil_compile_zone_list(const DateTime* dt) {
     for(const char* name = utz_zone_names; name && i != utz_num_zone_names;
         name = utz_next_zone_name(name), ++i) {
         TzutilTzInfo* info = zone_infos + i;
-        if(!tzutil_info_by_name(name, dt, info)) {
+        if(!tzutil_get_info_by_name(name, dt, info)) {
             // should never happen
             FURI_LOG_E(TAG, "Cannot get zone %s", name);
             furi_crash("utz_get_zone_by_name");

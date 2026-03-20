@@ -29,4 +29,4 @@ TzutilTzInfoList tzutil_compile_zone_list(const DateTime* dt);
 
 void tzutil_info_list_free(const TzutilTzInfoList* list);
 
-bool tzutil_info_by_name(const char* name, const DateTime* dt, TzutilTzInfo* out);
+bool tzutil_get_info_by_name(const char* name, const DateTime* dt, TzutilTzInfo* out);

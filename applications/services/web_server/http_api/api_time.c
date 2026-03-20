@@ -175,7 +175,7 @@ static bool api_time_get_timezone_callback(
 
         DateTime now = furi_hal_rtc_get_datetime().dt;
         TzutilTzInfo info;
-        if(!tzutil_info_by_name(settings.timezone.name, &now, &info)) break;
+        if(!tzutil_get_info_by_name(settings.timezone.name, &now, &info)) break;
 
         response = format_zone_info_json(&info);
 
