@@ -80,15 +80,25 @@ static void intercom_rx_state_callback(const void* item, void* context) {
     }
 }
 
+static FURI_ALWAYS_INLINE void
+    intercom_rx_process_frame(Intercom* instance, const IntercomFrame* frame) {
+    const IntercomChannelId channel_id = frame->channel_id;
+
+    if(channel_id < IntercomChannelIdMax) {
+        const IntercomChannel* channel = &instance->channels[channel_id];
+        intercom_channel_call_callback(channel, frame);
+    } else {
+        intercom_meta_process_frame(instance, frame);
+    }
+}
+
 static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
     INTERCOM_LOG_D("Frame received");
 
     const IntercomFrame* rx_frame = &instance->rx_frame;
 
     if(intercom_frame_is_valid(rx_frame)) {
-        const IntercomChannelId channel_id = rx_frame->channel_id;
-        const IntercomChannel* channel = &instance->channels[channel_id];
-        intercom_channel_call_callback(channel, rx_frame);
+        intercom_rx_process_frame(instance, rx_frame);
 
     } else {
         intercom_set_status(instance, IntercomStatusErrorFraming);

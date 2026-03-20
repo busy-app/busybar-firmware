@@ -187,11 +187,11 @@ size_t
     const uint32_t timeout_ticks = furi_ms_to_ticks(timeout);
     const uint32_t deadline_ticks = furi_get_tick() + timeout_ticks;
 
-    if(!intercom_channel_await_peer_ready(channel, timeout_ticks)) {
+    if(!intercom_channel_wait_for_other_side(channel, timeout_ticks)) {
         return 0;
     }
 
-    Intercom* instance = channel->intercom;
+    Intercom* instance = channel->owner;
     const IntercomChannelId channel_id = channel - instance->channels;
 
     size_t sent_data_size = 0;
@@ -222,7 +222,6 @@ IntercomChannel* intercom_channel_open(
     void* context) {
     furi_check(instance);
     furi_check(channel_id < IntercomChannelIdMax);
-    furi_check(channel_id != IntercomChannelIdMeta);
 
     IntercomChannel* channel = &instance->channels[channel_id];
     intercom_channel_set_callback(channel, callback, context);

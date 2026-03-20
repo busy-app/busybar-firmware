@@ -34,18 +34,11 @@ typedef enum {
     IntercomCustomEventDataAvailable = 1UL << 2,
 } IntercomCustomEvent;
 
-/**
- * @brief Flags for `IntercomChannel` `flags` field
- */
-typedef enum {
-    IntercomChannelFlagPeerReady = (1 << 0), //<! Same channel on other chip is ready to receive
-} IntercomChannelFlag;
-
 struct IntercomChannel {
-    Intercom* intercom;
+    Intercom* owner;
     FuriEventFlag* flags;
     IntercomRxCallback rx_callback;
-    void* callback_context;
+    void* rx_callback_context;
 };
 
 struct Intercom {
@@ -80,18 +73,22 @@ bool intercom_sync_serial(FuriHalSerialHandle* serial);
 
 // intercom_channel.c:
 
-void intercom_channel_init(IntercomChannel* channel, Intercom* intercom);
+void intercom_channel_init(IntercomChannel* channel, Intercom* owner);
 
 void intercom_channel_set_callback(
     IntercomChannel* channel,
     IntercomRxCallback callback,
     void* context);
 
-void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* rx_frame);
+void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* frame);
 
 void intercom_channel_send_ready(IntercomChannel* channel);
 
-bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeout);
+bool intercom_channel_wait_for_other_side(IntercomChannel* channel, uint32_t timeout);
+
+// intercom_meta.c: (TODO: implement the file)
+
+void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame);
 
 // intercom_util.c
 
