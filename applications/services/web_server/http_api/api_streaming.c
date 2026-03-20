@@ -7,6 +7,7 @@
 
 #define TAG "Stream"
 
+#define STREAM_DEBUG
 #ifdef STREAM_DEBUG
 #define STREAM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
 #define STREAM_LOG_W(...) FURI_LOG_W(TAG, __VA_ARGS__)
@@ -345,6 +346,7 @@ bool http_api_streaming_ws_callback(
     void* ctx) {
     furi_assert(ctx);
 
+    STREAM_LOG_D("ws_callback");
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     ApiStreamingCtx* instance = ctx;
@@ -455,6 +457,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
 }
 
 void* http_api_streaming_ws_alloc(void) {
+    STREAM_LOG_D("alloc");
     ApiStreamingCtx* instance = malloc(sizeof(ApiStreamingCtx));
     instance->clients_lock = furi_mutex_alloc(FuriMutexTypeNormal);
     StreamClientsList_init(instance->clients);
@@ -467,6 +470,7 @@ void* http_api_streaming_ws_alloc(void) {
 }
 
 void http_api_streaming_ws_free(void* ctx) {
+    STREAM_LOG_D("free");
     furi_assert(ctx);
     ApiStreamingCtx* instance = ctx;
     StreamClientsList_clear(instance->clients);

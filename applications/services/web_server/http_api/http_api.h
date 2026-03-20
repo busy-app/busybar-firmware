@@ -91,6 +91,15 @@ bool http_api_status_callback(
 void* http_api_status_alloc(void);
 void http_api_status_free(void* ctx);
 
+// Status streaming
+void* http_api_status_ws_alloc(void);
+void http_api_status_ws_free(void* ctx);
+bool http_api_status_ws_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
 // Wifi
 void* http_api_wifi_alloc(void);
 void http_api_wifi_free(void* ctx);

@@ -14,7 +14,6 @@ typedef struct SharedPtr {
     SharedPtrInnerDestructor destructor;
 } SharedPtr;
 
-
 /**
  * Allocate a new shared pointer. The pointer is already acquired once.
  *
