@@ -18,6 +18,7 @@ App(
         "gui",
         "front_display",
         "back_display",
+        "font_registry",
         "power_srv",
         "status_bar",
         "brightness_control",

@@ -59,6 +59,9 @@
 [submodule "lib/zlib"]
 	path = lib/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "lib/stb/stb_repo"]
+	path = lib/stb/stb_repo
+	url = https://github.com/nothings/stb
 [submodule "assets/proto"]
 	path = assets/proto
 	url = https://github.com/flipperdevices/bsb-protobuf.git

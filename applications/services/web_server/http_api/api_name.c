@@ -8,17 +8,21 @@
 #define TAG "HttpName"
 
 static bool http_api_name_parse(const char* payload, FuriString* output) {
-    bool result = false;
-    cJSON* json = cJSON_Parse(payload);
-    if(json != NULL) {
-        cJSON* item = cJSON_GetObjectItem(json, "name");
-        if(item != NULL) {
-            furi_string_set_str(output, cJSON_GetStringValue(item));
-            result = true;
+    cJSON* json_root = cJSON_Parse(payload);
+
+    bool is_successful = false;
+    if(cJSON_IsObject(json_root)) {
+        cJSON* name_item = cJSON_GetObjectItem(json_root, "name");
+
+        if(cJSON_IsString(name_item)) {
+            furi_string_set_str(output, name_item->valuestring);
+            is_successful = true;
         }
-        cJSON_Delete(json);
     }
-    return result;
+
+    cJSON_Delete(json_root);
+
+    return is_successful;
 }
 
 bool http_api_name_callback(

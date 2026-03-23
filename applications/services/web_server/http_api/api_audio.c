@@ -43,7 +43,9 @@ static bool api_audio_play_callback(
         furi_string_cat_printf(file_path, "/%.*s", var_len, temp_str);
 
         Audio* audio = furi_record_open(RECORD_AUDIO);
+        audio_enable(audio);
         success = audio_play_file(audio, furi_string_get_cstr(file_path));
+        audio_disable(audio);
         furi_record_close(RECORD_AUDIO);
 
     } while(0);

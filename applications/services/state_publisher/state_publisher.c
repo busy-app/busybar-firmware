@@ -207,7 +207,7 @@ static StatePublisher* state_publisher_alloc(void) {
     instance->screen_streamer_front = screen_streamer_alloc(
         GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
     // instance->screen_streamer_back =
-        // screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
+    // screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
 
     instance->transports_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     bzero(instance->transports, sizeof(instance->transports));
@@ -239,7 +239,7 @@ static void update_screen_streamer_outputs(StatePublisher* instance) {
             screen_streamer_enable_output(
                 instance->screen_streamer_front, transport_class, frame_interval_ms);
             // screen_streamer_enable_output(
-                // instance->screen_streamer_back, transport_class, frame_interval_ms);
+            // instance->screen_streamer_back, transport_class, frame_interval_ms);
         } else {
             screen_streamer_disable_output(instance->screen_streamer_front, transport_class);
             // screen_streamer_disable_output(instance->screen_streamer_back, transport_class);

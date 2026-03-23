@@ -7,6 +7,7 @@
 #include <gui/widget.h>
 #include <gui/gui.h>
 #include <toolbox/color.h>
+#include <font_registry/fonts.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -151,9 +152,9 @@ uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_pp
  * @brief Set font of label text.
  * 
  * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] font what to set the font to
+ * @param[in] font_path path to font file
  */
-void label_set_font(Label* instance, GuiFont font);
+void label_set_font(Label* instance, const char* font_path);
 
 #ifdef __cplusplus
 }

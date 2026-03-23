@@ -8,7 +8,7 @@
 #define MY_ITEM_CLASS   (&submenu_item_lvgl_class)
 #define MY_CURSOR_CLASS (&submenu_cursor_lvgl_class)
 
-#define SYM_ARROW_RIGHT "▹"
+#define SYM_ARROW_RIGHT ">"
 
 #define SCROLL_ANIM_DURATION_MS (0)
 

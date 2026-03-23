@@ -1,6 +1,7 @@
 Import("env")
 
 for libname in [
+    "stb",
     "internal_assets",
     "drivers",
     "tinyusb",

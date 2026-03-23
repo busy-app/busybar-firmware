@@ -14,6 +14,7 @@
 
 struct LinkPinView {
     Widget base;
+    FontRegistry* font_registry;
     lv_obj_t* code_label;
     AnimPlayer* loading_spinner;
     Countdown* code_timer;
@@ -27,6 +28,7 @@ const lv_obj_class_t link_pin_view_front_lvgl_class;
 static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -57,7 +59,7 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_img_set_src(lock_image, IMG_PATH("lock_front_12x12.bin"));
     lv_obj_align(lock_image, LV_ALIGN_RIGHT_MID, 0, 0);
 
-    const lv_font_t* font = &lv_font_bf_7x10;
+    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
 
     instance->code_label = lv_label_create(code_cont);
     lv_label_set_text(instance->code_label, "");
@@ -75,9 +77,30 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
 }
 
+static void link_pin_view_front_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    LV_UNUSED(class_p);
+    LinkPinView* instance = (LinkPinView*)obj;
+
+    font_registry_unload_font(
+        instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
+
+    furi_record_close(RECORD_FONT_REGISTRY);
+}
+
+static void link_pin_view_back_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    LV_UNUSED(class_p);
+    LinkPinView* instance = (LinkPinView*)obj;
+
+    font_registry_unload_font(
+        instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
+
+    furi_record_close(RECORD_FONT_REGISTRY);
+}
+
 static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -107,13 +130,13 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     lv_img_set_src(lock_image, IMG_PATH("lock_back_11x11.bin"));
     lv_obj_align(lock_image, LV_ALIGN_BOTTOM_RIGHT, 0, -1);
 
-    const lv_font_t* font = &lv_font_bf_7x10;
+    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
 
     instance->code_label = lv_label_create(code_cont);
     lv_label_set_text(instance->code_label, "");
     lv_obj_set_style_text_color(instance->code_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_font(instance->code_label, font, LV_PART_MAIN);
-    lv_obj_align(instance->code_label, LV_ALIGN_BOTTOM_LEFT, 0, 1);
+    lv_obj_align(instance->code_label, LV_ALIGN_LEFT_MID, 0, 1);
     lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->loading_spinner = anim_player_alloc((Widget*)code_cont);
@@ -194,6 +217,7 @@ void link_pin_view_set_callback(LinkPinView* instance, LinkPinCallback callback,
 const lv_obj_class_t link_pin_view_front_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = link_pin_view_front_lvgl_constructor,
+    .destructor_cb = link_pin_view_front_lvgl_destructor,
     .name = "widget-link-pin-view-front",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
@@ -203,6 +227,7 @@ const lv_obj_class_t link_pin_view_front_lvgl_class = {
 const lv_obj_class_t link_pin_view_back_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = link_pin_view_back_lvgl_constructor,
+    .destructor_cb = link_pin_view_back_lvgl_destructor,
     .name = "widget-link-pin-view-back",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
