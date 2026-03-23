@@ -1,7 +1,7 @@
 #include "http_api.h"
-#include <toolbox/dyn_buffer.h>
 #include <state_publisher/state_publisher.h>
 #include <furi/core/message_queue.h>
+
 #define TAG "StatusStream"
 
 #define STREAM_DEBUG
@@ -28,7 +28,6 @@
 
 typedef enum {
     ClientStateHandshake,
-    ClientStateIdle,
     ClientStateActive,
     ClientStateRequestingPing,
     ClientStateWaitingPong,
@@ -72,15 +71,23 @@ static void client_heartbeat_timer_callback(void* ctx) {
 
     Client* client = ctx;
 
-    ClientState new_state = ClientStateInvalid;
-    if(client->state != ClientStateWaitingPong && client->state != ClientStateInvalid) {
-        new_state = ClientStateRequestingPing;
-    } else if(client->state == ClientStateWaitingPong) {
-        new_state = ClientStateInvalid;
+    switch(client->state) {
+    case ClientStateActive:
+        client_set_state(client, ClientStateRequestingPing);
+        mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
+        break;
+    case ClientStateWaitingPong:
+        STREAM_LOG_W("pong timeout");
+        client_set_state(client, ClientStateInvalid);
+        mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
+        break;
+    case ClientStateRequestingPing:
+    case ClientStateInvalid:
+    case ClientStateHandshake:
+        // should never happen
+        furi_assert(false);
+        break;
     }
-
-    client_set_state(client, new_state);
-    mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
 }
 
 static void client_publish_callback(SharedPtr* data, size_t data_size, void* context) {
@@ -121,13 +128,14 @@ static Client* client_alloc(StatusStreaming* instance, struct mg_connection* con
 static inline void client_free(Client* client, StatusStreaming* streaming_ctx) {
     if(client->valid) {
         switch(client->state) {
-        case ClientStateIdle:
         case ClientStateActive:
         case ClientStateRequestingPing:
         case ClientStateWaitingPong:
         case ClientStateInvalid: {
-            state_publisher_del_transport(
-                streaming_ctx->state_publisher, client->active.transport_handle);
+            if(client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
+                state_publisher_del_transport(
+                    streaming_ctx->state_publisher, client->active.transport_handle);
+            }
             mg_timer_free(&client->conn->mgr->timers, client->active.heartbeat_timer);
             free(client->active.heartbeat_timer);
             DataMessage msg;
@@ -160,13 +168,7 @@ static void client_connection_open(struct mg_connection* conn) {
         client);
     client->active.queue =
         furi_message_queue_alloc(MAX_PUBLISH_MESSAGES_COUNT, sizeof(DataMessage));
-
-    client->active.transport_handle = state_publisher_add_transport(
-        instance->state_publisher,
-        StatePublisherTransportClassWebSocket,
-        FRAME_INTERVAL_MS,
-        client_publish_callback,
-        client);
+    client->active.transport_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
 
     STREAM_LOG_D("Add client %ld", conn->id);
 }
@@ -215,22 +217,53 @@ static void client_send_frame(struct mg_connection* conn, void* data, size_t len
     }
 }
 
+static void client_set_enabled(Client* client, bool enabled) {
+    furi_assert(client);
+
+    STREAM_LOG_D("set enabled = %u", enabled ? 1 : 0);
+
+    bool was_enabled = client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
+    if(enabled && !was_enabled) {
+        client->active.transport_handle = state_publisher_add_transport(
+            client->parent->state_publisher,
+            StatePublisherTransportClassWebSocket,
+            FRAME_INTERVAL_MS,
+            client_publish_callback,
+            client);
+    } else if(was_enabled && !enabled) {
+        state_publisher_del_transport(
+            client->parent->state_publisher, client->active.transport_handle);
+    }
+}
+
 static void client_on_message(struct mg_connection* conn, struct mg_ws_message* ws_msg) {
     furi_assert(conn);
 
     ConnectionContext* conn_ctx = (void*)conn->data;
     Client* client = conn_ctx->context;
 
-    if(WEBSOCKET_PING(ws_msg->flags)) {
-        STREAM_LOG_D("PING");
-        client_set_state(client, ClientStateActive);
-        client->active.heartbeat_timer->expire = mg_now() + CLIENT_HEARTBEAT_INTERVAL_MS;
-    } else if(WEBSOCKET_PONG(ws_msg->flags)) {
+    switch(client->state) {
+    case ClientStateHandshake:
+    case ClientStateInvalid:
+        furi_assert(false);
+        break;
+    default:
+        break;
+    }
+
+    if(WEBSOCKET_PONG(ws_msg->flags)) {
         STREAM_LOG_D("PONG");
         client_set_state(client, ClientStateActive);
         client->active.heartbeat_timer->expire = mg_now() + CLIENT_HEARTBEAT_INTERVAL_MS;
     } else if(WEBSOCKET_TEXT(ws_msg->flags)) {
         STREAM_LOG_D("MSG");
+
+        bool enabled = false;
+        if(mg_json_get_bool(ws_msg->data, "$.enable", &enabled)) {
+            client_set_enabled(client, enabled);
+        } else {
+            FURI_LOG_E(TAG, "bad request");
+        }
     }
 }
 
