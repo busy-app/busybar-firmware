@@ -1,7 +1,8 @@
 #include "intercom_i.h"
 
-#define TAG "IntercomRxSrv"
+#define TAG "IntercomRx"
 
+#define INTERCOM_RX_THREAD_NAME       TAG "Srv"
 #define INTERCOM_RX_THREAD_STACK_SIZE (2048)
 
 typedef enum {
@@ -103,7 +104,7 @@ static int32_t intercom_rx_thread(void* arg) {
 
 void intercom_start_rx_thread(Intercom* instance) {
     FuriThread* rx_thread = furi_thread_alloc_service(
-        TAG, INTERCOM_RX_THREAD_STACK_SIZE, intercom_rx_thread, instance);
+        INTERCOM_RX_THREAD_NAME, INTERCOM_RX_THREAD_STACK_SIZE, intercom_rx_thread, instance);
 
     furi_state_subscribe(instance->state, intercom_rx_state_callback, rx_thread);
 

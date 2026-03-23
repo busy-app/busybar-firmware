@@ -1,6 +1,6 @@
 #include "intercom_i.h"
 
-#define TAG "IntercomSrv"
+#define TAG "Intercom"
 
 // Called in ISR context
 static void intercom_serial_tx_callback(
