@@ -92,6 +92,8 @@ const char* intercom_channel_get_name(IntercomChannelId channel_id);
 
 void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channel_id);
 
+void intercom_meta_send_ping(Intercom* instacne);
+
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame);
 
 // intercom_util.c

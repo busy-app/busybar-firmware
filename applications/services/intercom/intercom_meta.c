@@ -6,7 +6,7 @@
 
 typedef enum {
     IntercomMetaFrameTypeChannelReady,
-    IntercomMetaFrameTypeKeepAlive,
+    IntercomMetaFrameTypePing,
     IntercomMetaFrameTypeMax,
 } IntercomMetaFrameType;
 
@@ -33,17 +33,37 @@ static void intercom_meta_handle_channel_ready(
     FURI_LOG_D(TAG, "OTHER side ready: %s", intercom_channel_get_name(channel_id));
 }
 
+static void intercom_meta_handle_ping_received(Intercom* instance) {
+    UNUSED(instance);
+    // TODO: React to this somehow?
+    FURI_LOG_D(TAG, "Ping received");
+}
+
+static void intercom_meta_send_frame(Intercom* instance, const IntercomMetaFrame* frame) {
+    const size_t tx_size = intercom_tx_internal(
+        instance, INTERCOM_META_CHANNEL_ID, frame, sizeof(IntercomMetaFrame), FuriWaitForever);
+    furi_check(tx_size == sizeof(IntercomMetaFrame));
+}
+
 void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channel_id) {
     const IntercomMetaFrame frame = {
         .type = IntercomMetaFrameTypeChannelReady,
         .channel_ready.channel_id = channel_id,
     };
 
-    const size_t tx_size = intercom_tx_internal(
-        instance, INTERCOM_META_CHANNEL_ID, &frame, sizeof(frame), FuriWaitForever);
-    furi_check(tx_size == sizeof(frame));
+    intercom_meta_send_frame(instance, &frame);
 
     FURI_LOG_D(TAG, "THIS side ready: %s", intercom_channel_get_name(channel_id));
+}
+
+void intercom_meta_send_ping(Intercom* instance) {
+    const IntercomMetaFrame frame = {
+        .type = IntercomMetaFrameTypePing,
+    };
+
+    intercom_meta_send_frame(instance, &frame);
+
+    FURI_LOG_D(TAG, "Ping sent");
 }
 
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame) {
@@ -54,8 +74,8 @@ void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame)
 
     if(type == IntercomMetaFrameTypeChannelReady) {
         intercom_meta_handle_channel_ready(instance, &meta_frame->channel_ready);
-    } else if(type == IntercomMetaFrameTypeKeepAlive) {
-        // TODO: Implement keepalive
+    } else if(type == IntercomMetaFrameTypePing) {
+        intercom_meta_handle_ping_received(instance);
     } else {
         furi_crash("Invalid IntercomMetaFrameType");
     }
