@@ -6,6 +6,14 @@
 #define DEVICE_NAME_MQTT_PREFIX "state"
 #define DEVICE_NAME_KEY         "name"
 
+static const char* device_name_error_message[DeviceNameValidationStatusMax] = {
+    [DeviceNameValidationStatusOk] = "Ok",
+    [DeviceNameValidationStatusEmpty] = "Name is empty",
+    [DeviceNameValidationStatusTooLong] = "Name is too long",
+    [DeviceNameValidationStatusDisallowedChar] = "Name contains disallowed character",
+    [DeviceNameValidationStatusOnlySpaces] = "Name consists of only spaces",
+};
+
 typedef void (*DeviceNameMessageHandler)(DeviceName* instance, const DeviceNameMessage* message);
 
 static void device_name_publish_mqtt_message(DeviceName* instance) {
@@ -29,14 +37,6 @@ static void device_name_publish_pubsub_event(DeviceName* instance) {
     furi_pubsub_publish(instance->pubsub, &event);
 }
 
-static const char* device_name_set_error_message[DeviceNameValidationStatusMax] = {
-    [DeviceNameValidationStatusOk] = "Ok",
-    [DeviceNameValidationStatusEmpty] = "Name is empty",
-    [DeviceNameValidationStatusTooLong] = "Name is too long",
-    [DeviceNameValidationStatusDisallowedChar] = "Name contains disallowed character",
-    [DeviceNameValidationStatusOnlySpaces] = "Name consists of only spaces",
-};
-
 static void device_name_set_handler(DeviceName* instance, const DeviceNameMessage* message) {
     const DeviceNameMessageSetName* set_name_message = &message->data.set_name;
     furi_assert(set_name_message->name);
@@ -49,7 +49,7 @@ static void device_name_set_handler(DeviceName* instance, const DeviceNameMessag
             device_name_validate(furi_string_get_cstr(set_name_message->name));
         if(status != DeviceNameValidationStatusOk) {
             success = false;
-            furi_string_printf(set_name_message->error, device_name_set_error_message[status]);
+            furi_string_printf(set_name_message->error, device_name_error_message[status]);
             break;
         }
 
