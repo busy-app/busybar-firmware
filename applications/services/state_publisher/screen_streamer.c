@@ -123,7 +123,6 @@ void screen_streamer_enable_output(
         output->frame_interval_ms = frame_interval_ms;
         output->is_valid = true;
     }
-    output->frame_interval_ms = frame_interval_ms;
     output->last_frame_timestamp_ms = 0;
     output->last_hash = 0;
     output->last_frame_skipped = false;
