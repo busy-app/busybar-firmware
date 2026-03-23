@@ -10,17 +10,14 @@ typedef struct {
     ClockView* front_clock;
 
     MirrorCard* back_card;
-} ThisScene;
+} ClockSceneClock;
 
-static inline ThisScene* this_get_scene(ThisInstance* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxClock);
-}
-
-static void this_scene_on_enter(void* context) {
+static void clock_scene_clock_on_enter(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    Clock* instance = context;
+    ClockSceneClock* scene =
+        scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxClock);
 
     SntpSettings* sntp_settings = malloc(sizeof(*sntp_settings));
     sntp_get_settings(instance->sntp, sntp_settings);
@@ -47,11 +44,12 @@ static void this_scene_on_enter(void* context) {
     free(sntp_settings);
 }
 
-static void this_scene_on_exit(void* context) {
+static void clock_scene_clock_on_exit(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    Clock* instance = context;
+    ClockSceneClock* scene =
+        scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxClock);
 
     with_gui(instance->gui, {
         clock_view_free(scene->front_clock);
@@ -59,15 +57,16 @@ static void this_scene_on_exit(void* context) {
     });
 }
 
-static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool clock_scene_clock_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    Clock* instance = context;
+    ClockSceneClock* scene =
+        scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxClock);
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisEventTimerUpdate:
+        case ClockEventTimerUpdate:
             LocalTime local_time = sntp_get_local_time(instance->sntp);
             with_gui(instance->gui, {
                 clock_view_set_date_time(scene->front_clock, &local_time.dt);
@@ -86,9 +85,9 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene clock_app_scene_clock = {
-    .enter_callback = this_scene_on_enter,
-    .exit_callback = this_scene_on_exit,
-    .event_callback = this_scene_on_event,
-    .data_size = sizeof(ThisScene),
+const Scene clock_internal_scene_clock = {
+    .enter_callback = clock_scene_clock_on_enter,
+    .exit_callback = clock_scene_clock_on_exit,
+    .event_callback = clock_scene_clock_on_event,
+    .data_size = sizeof(ClockSceneClock),
 };

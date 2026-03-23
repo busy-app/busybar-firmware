@@ -24,17 +24,17 @@ extern "C" {
 #define THIS_ANIM_PATH(path)   THIS_ASSETS_PATH("animations") "/" path
 
 typedef enum {
-    ThisEventTimerUpdate,
+    ClockEventTimerUpdate,
 
-    ThisEventSceneEventsStart,
-} ThisEvent;
+    ClockEventSceneEventsStart,
+} ClockEvent;
 
 typedef struct {
     bool do_skip_menu;
-} ThisArguments;
+} ClockArguments;
 
 typedef struct {
-    ThisArguments arguments;
+    ClockArguments arguments;
 
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
@@ -56,9 +56,9 @@ typedef struct {
     FlexLayout* back_container;
     NavBar* back_nav_bar;
     Widget* back_scene_window;
-} ThisInstance;
+} Clock;
 
-void clock_app_fire_event(ThisInstance* instance, uint32_t event);
+void clock_internal_fire_event(Clock* instance, uint32_t event);
 
 #ifdef __cplusplus
 }
