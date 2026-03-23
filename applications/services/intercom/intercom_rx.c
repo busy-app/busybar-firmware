@@ -12,47 +12,6 @@ typedef enum {
 #define INTERCOM_RX_THREAD_FLAGS_ALL \
     (IntercomRxThreadFlagFrameReceived | IntercomRxThreadFlagErrorOccurred)
 
-#ifdef SRV_INTERCOM_WATCHDOG
-
-#include "intercom_watchdog.h"
-
-typedef struct {
-    IntercomWatchdog* watchdog;
-    FuriHalSerialHandle* serial;
-} IntercomRxWatchdogCtx;
-
-static FURI_ALWAYS_INLINE void intercom_rx_watchdog_begin(const IntercomRxWatchdogCtx* ctx) {
-    intercom_watchdog_arm(ctx->watchdog);
-}
-
-static FURI_ALWAYS_INLINE void intercom_rx_watchdog_end(const IntercomRxWatchdogCtx* ctx) {
-    if(furi_hal_serial_rx_available(ctx->serial)) {
-        // Some more data is already in FIFO, re-arm watchdog
-        intercom_watchdog_arm(ctx->watchdog);
-    } else {
-        // No data in FIFO yet, disarm watchdog for now
-        intercom_watchdog_disarm(ctx->watchdog);
-    }
-}
-
-#define WATCHDOG_INIT(instance)                                 \
-    const IntercomRxWatchdogCtx _ctx = {                        \
-        .watchdog = furi_record_open(RECORD_INTERCOM_WATCHDOG), \
-        .serial = instance->serial,                             \
-    }
-
-#define WATCHDOG_BEGIN() intercom_rx_watchdog_begin(&_ctx)
-
-#define WATCHDOG_END() intercom_rx_watchdog_end(&_ctx)
-
-#else
-
-#define WATCHDOG_INIT(instance) UNUSED(instance)
-#define WATCHDOG_BEGIN()
-#define WATCHDOG_END()
-
-#endif // SRV_INTERCOM_WATCHDOG
-
 // Called in ISR context
 static void intercom_serial_rx_callback(
     FuriHalSerialHandle* handle,
@@ -131,13 +90,10 @@ static int32_t intercom_rx_thread(void* arg) {
     Intercom* instance = arg;
 
     intercom_rx_init_serial(instance);
-    WATCHDOG_INIT(instance);
 
     for(;;) {
         intercom_rx_wait_for_data(instance);
-        WATCHDOG_BEGIN();
         intercom_rx_process_data(instance);
-        WATCHDOG_END();
     }
 
     return 0;
