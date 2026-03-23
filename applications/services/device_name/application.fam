@@ -7,5 +7,5 @@ App(
     targets=["f20", "f21", "f22"],
     cdefines=["SRV_DEVICE_NAME"],
     requires=["storage"],
-    order=50,
+    order=45,
 )

@@ -5,7 +5,7 @@ static bool device_name_settings_v1_name_is_valid_cb(
     const char* value) {
     UNUSED(setting);
 
-    return device_name_validate_cstr(value, NULL);
+    return device_name_validate(value) == DeviceNameValidationStatusOk;
 }
 
 static const SettingProviderStringInterface device_name_settings_v1_name_interface = {

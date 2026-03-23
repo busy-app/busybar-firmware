@@ -1,9 +1,7 @@
 #pragma once
 
 #include <setting_provider.h>
-#include "../helpers/device_name_validator.h"
-
-#define DEVICE_NAME_MAX_SIZE (DEVICE_NAME_MAX_LENGTH + 1)
+#include "../device_name_validator.h"
 
 typedef enum {
     DeviceNameSettingsV1IdxName,

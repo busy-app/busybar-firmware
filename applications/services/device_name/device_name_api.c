@@ -11,8 +11,8 @@ void device_name_get(DeviceName* instance, FuriString* name) {
     furi_check(name);
 
     DeviceNameMessage message = {
-        .type = DeviceNameMessageTypeGet,
-        .data.get =
+        .type = DeviceNameMessageTypeGetName,
+        .data.get_name =
             {
                 .name = name,
             },
@@ -27,8 +27,8 @@ bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) 
     bool result = false;
 
     DeviceNameMessage message = {
-        .type = DeviceNameMessageTypeSet,
-        .data.set =
+        .type = DeviceNameMessageTypeSetName,
+        .data.set_name =
             {
                 .name = name,
                 .error = error,

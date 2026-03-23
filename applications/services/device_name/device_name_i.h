@@ -28,25 +28,25 @@ struct DeviceName {
 };
 
 typedef enum {
-    DeviceNameMessageTypeGet,
-    DeviceNameMessageTypeSet,
-    DeviceNameMessageTypeMqttUpdate,
+    DeviceNameMessageTypeGetName,
+    DeviceNameMessageTypeSetName,
+    DeviceNameMessageTypeMqttPublish,
     DeviceNameMessageTypeMax,
 } DeviceNameMessageType;
 
 typedef struct {
     FuriString* name;
-} DeviceNameMessageGet;
+} DeviceNameMessageGetName;
 
 typedef struct {
     FuriString* name;
     FuriString* error;
     bool* result;
-} DeviceNameMessageSet;
+} DeviceNameMessageSetName;
 
 typedef union {
-    DeviceNameMessageGet get;
-    DeviceNameMessageSet set;
+    DeviceNameMessageGetName get_name;
+    DeviceNameMessageSetName set_name;
 } DeviceNameMessageData;
 
 typedef struct {

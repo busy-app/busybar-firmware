@@ -30,8 +30,19 @@ typedef struct DeviceName DeviceName;
 /**
  * @brief Device name event type (published via FuriPubSub on rename)
  */
+typedef enum {
+    DeviceNameEventTypeNameChanged,
+} DeviceNameEventType;
+
 typedef struct {
-    const char* name; /**< New device name (valid only within callback context) */
+    const char* name;
+} DeviceNameEventNameChanged;
+
+typedef struct {
+    DeviceNameEventType type;
+    union {
+        DeviceNameEventNameChanged name_changed;
+    };
 } DeviceNameEvent;
 
 /**
@@ -55,6 +66,9 @@ bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error);
 
 /**
  * @brief Get PubSub instance which indicates that name was changed
+
+ * Use furi_pubsub_subscribe() to subscribe to the Device Name service events.
+ * The delivered events will be of type DeviceNameEvent.
  *
  * @param[in] instance Device name service instance
  * @returns pubsub instance available for subscription

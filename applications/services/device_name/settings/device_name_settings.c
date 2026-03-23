@@ -12,10 +12,10 @@ bool device_name_settings_load(DeviceNameSettings* settings) {
     SettingProvider* provider = setting_provider_alloc(
         DEVICE_NAME_SETTINGS_FILE_PATH, DEVICE_NAME_SETTINGS_VERSION, NULL, 0);
 
-    bool is_successful = setting_provider_load(provider, &DEVICE_NAME_SETTINGS_ROOT, settings);
+    const bool success = setting_provider_load(provider, &DEVICE_NAME_SETTINGS_ROOT, settings);
     setting_provider_free(provider);
 
-    return is_successful;
+    return success;
 }
 
 bool device_name_settings_save(const DeviceNameSettings* settings) {
