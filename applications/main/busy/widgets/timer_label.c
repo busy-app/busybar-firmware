@@ -6,10 +6,6 @@
 
 #define MY_CLASS (&timer_label_lvgl_class)
 
-#define FONT_REGULAR   (&lv_font_ark_numerals_regular_10)
-#define FONT_CONDENSED (&lv_font_ark_numerals_condensed_10)
-#define FONT_SMALLNUM  (&lv_font_ark_numerals_small_10)
-
 #define BLINK_START_S         (3)
 #define BLINK_INTERVAL_MS     (333)
 #define BLINK_INTERVAL_REV_MS (1000 - BLINK_INTERVAL_MS)
@@ -40,10 +36,14 @@ struct TimerLabel {
     lv_color_t countdown_base_color;
     lv_color_t countdown_blink_color;
 
+    const lv_font_t* font_regular;
+    const lv_font_t* font_condensed;
+    const lv_font_t* font_small_num;
+
     bool is_hidden;
 };
 
-const lv_obj_class_t timer_label_lvgl_class;
+static const lv_obj_class_t timer_label_lvgl_class;
 
 // LVGL-specific code
 
@@ -106,10 +106,9 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_style_blend_mode(instance->bg_gradient, LV_BLEND_MODE_MULTIPLY, LV_PART_MAIN);
 
     instance->main_layout = lv_obj_create(obj);
-    lv_obj_align(instance->main_layout, LV_ALIGN_LEFT_MID, BG_GRAD_WIDTH_PX, 0);
+    lv_obj_set_x(instance->main_layout, BG_GRAD_WIDTH_PX);
     lv_obj_set_size(instance->main_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(instance->main_layout, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_style_pad_row(instance->main_layout, 1, LV_PART_MAIN);
 
     instance->countdown_base_color = lv_color_white();
     instance->countdown_blink_color = lv_color_white();
@@ -118,16 +117,37 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_size(instance->top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_column(instance->top_layout, 1, LV_PART_MAIN);
+    lv_obj_set_style_margin_ver(instance->top_layout, -1, LV_PART_MAIN);
 
     instance->main_label = lv_label_create(instance->top_layout);
     lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);
 
+    FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_regular = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7);
+    instance->font_condensed = font_registry_load_font(font_registry, FONT_BUSY_CONDENSED_7);
+    instance->font_small_num = font_registry_load_font(font_registry, FONT_BUSY_SUPERSCRIPT_7);
+    furi_record_close(RECORD_FONT_REGISTRY);
+
     instance->seconds_label = lv_label_create(instance->top_layout);
-    lv_obj_set_style_text_font(instance->seconds_label, FONT_SMALLNUM, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->seconds_label, instance->font_small_num, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
 
     instance->bottom_label = lv_label_create(instance->main_layout);
     lv_label_set_text(instance->bottom_label, "LEFT");
+}
+
+static void timer_label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    TimerLabel* instance = (TimerLabel*)obj;
+
+    FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+
+    font_registry_unload_font(font_registry, instance->font_regular);
+    font_registry_unload_font(font_registry, instance->font_condensed);
+    font_registry_unload_font(font_registry, instance->font_small_num);
+
+    furi_record_close(RECORD_FONT_REGISTRY);
 }
 
 static void timer_label_to_countdown(TimerLabel* instance) {
@@ -224,11 +244,11 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
     const uint32_t m = S_TO_M(time_s - H_TO_S(h));
     const uint32_t s = time_s - H_TO_S(h) - M_TO_S(m);
 
+    const lv_font_t* main_label_font = instance->font_regular;
+
     if(h) {
         if(h >= 10) {
-            lv_obj_set_style_text_font(instance->main_label, FONT_CONDENSED, LV_PART_MAIN);
-        } else {
-            lv_obj_set_style_text_font(instance->main_label, FONT_REGULAR, LV_PART_MAIN);
+            main_label_font = instance->font_condensed;
         }
 
         lv_label_set_text_fmt(instance->main_label, "%lu:%02lu", h, m);
@@ -238,10 +258,11 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
 
     } else {
         lv_label_set_text_fmt(instance->main_label, "%02lu:%02lu", m, s);
-        lv_obj_set_style_text_font(instance->main_label, FONT_REGULAR, LV_PART_MAIN);
 
         lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
     }
+
+    lv_obj_set_style_text_font(instance->main_label, main_label_font, LV_PART_MAIN);
 
     if(time_s == COUNTDOWN_START_S) {
         timer_label_to_countdown(instance);
@@ -303,9 +324,10 @@ void timer_label_hide(TimerLabel* instance, bool enable_animation) {
 
 // LVGL class descriptor
 
-const lv_obj_class_t timer_label_lvgl_class = {
+static const lv_obj_class_t timer_label_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = timer_label_lvgl_constructor,
+    .destructor_cb = timer_label_lvgl_destructor,
     .name = "widget-timer-label",
     .width_def = MAIN_WIDTH_PX,
     .height_def = LV_PCT(100),

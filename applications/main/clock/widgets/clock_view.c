@@ -19,6 +19,7 @@ struct ClockView {
 
     bool show_seconds;
     bool show_date;
+    FontRegistry* font_registry;
 };
 
 const lv_obj_class_t clock_view_lvgl_class;
@@ -55,6 +56,8 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     ClockView* instance = (ClockView*)obj;
 
+    instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+
     instance->primary_container = lv_obj_create(obj);
     lv_obj_set_flex_flow(instance->primary_container, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
@@ -80,14 +83,32 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_size(instance->text_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     instance->text_label_time = lv_label_create(instance->text_container);
-    lv_obj_set_style_text_font(instance->text_label_time, &lv_busy_bold_7px, LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->text_label_time,
+        font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7),
+        LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->text_label_time, lv_color_white(), LV_PART_MAIN);
 
     instance->text_label_date = lv_label_create(instance->text_container);
     lv_obj_set_style_translate_y(instance->text_label_date, -2, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->text_label_date, &lv_font_bf_4x5, LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->text_label_date,
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5),
+        LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->text_label_date, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_opa(instance->text_label_date, LV_OPA_50, LV_PART_MAIN);
+}
+
+static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    ClockView* instance = (ClockView*)obj;
+
+    font_registry_unload_font(
+        instance->font_registry,
+        lv_obj_get_style_text_font(instance->text_label_date, LV_PART_MAIN));
+
+    furi_record_close(RECORD_FONT_REGISTRY);
 }
 
 /* internals */
@@ -181,6 +202,7 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
 const lv_obj_class_t clock_view_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = clock_view_lvgl_constructor,
+    .destructor_cb = clock_view_lvgl_destructor,
     .name = "widget-clock-view",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,

@@ -33,7 +33,6 @@ static void scene_main_on_enter(void* context) {
 
     with_gui(app->gui, {
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
-        FuriString* app_name = furi_string_alloc();
 
         for(GuiDisplayId display = 0; display < GuiDisplayIdMax; display++) {
             Widget* window = (display == GuiDisplayIdFront) ? app->front_scene_window :
@@ -42,23 +41,11 @@ static void scene_main_on_enter(void* context) {
 
             for(uint32_t i = 0; i < FLIPPER_DEBUG_APPS_COUNT; i++) {
                 const FlipperInternalApplication* debug_app = &FLIPPER_DEBUG_APPS[i];
-                SubmenuItemCallback callback = scene_main_submenu_item_callback;
-                furi_string_set_str(app_name, debug_app->name);
-
-                if(display == GuiDisplayIdFront) {
-                    callback = NULL;
-                } else if(display == GuiDisplayIdBack) {
-                    furi_string_to_upper_in_place(app_name);
-                } else {
-                    furi_crash();
-                }
-
-                submenu_add_item(
-                    scene->submenus[display], furi_string_get_cstr(app_name), i, callback, app);
+                SubmenuItemCallback callback =
+                    (i == GuiDisplayIdFront) ? scene_main_submenu_item_callback : NULL;
+                submenu_add_item(scene->submenus[display], debug_app->name, i, callback, app);
             }
         }
-
-        furi_string_free(app_name);
     });
 
     scene->desktop = furi_record_open(RECORD_DESKTOP);

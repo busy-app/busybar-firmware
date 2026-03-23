@@ -7,4 +7,5 @@ App(
     stack_size=4 * 1024,
     order=10,
     targets=["f20", "f21", "f22"],
+    cdefines=["APP_SETTINGS_WIFI"],
 )

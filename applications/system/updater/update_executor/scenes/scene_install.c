@@ -61,7 +61,7 @@ static void install_scene_on_enter(void* context) {
         widget_set_height(progress_bar_get_base(data->back_progress_bar), 8);
 
         data->back_extras_label = label_alloc(flex_layout_get_base(data->back_flex));
-        label_set_text_font_size(data->back_extras_label, LabelFontSizeSmall);
+        label_set_font(data->back_extras_label, FONT_BUSY_REGULAR_7);
         label_set_text_color(
             data->back_extras_label, (Color)COLOR_MAKE_HEX(BACK_EXTRAS_LABEL_COLOR));
 

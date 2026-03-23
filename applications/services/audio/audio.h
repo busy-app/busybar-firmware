@@ -42,6 +42,9 @@ FuriPubSub* audio_get_pubsub(Audio* audio);
  *
  * If this function is called when a file is already playing, the new file
  * will start playing immediately without waiting for the playback to end.
+ * 
+ * If this function is called within 100ms after calling `audio_enable`,
+ * playback will be delayed until this period passes.
  *
  * @param[in,out] instance pointer to the Audio instance
  * @param[in] file_name full path to the file location on the storage
@@ -76,6 +79,24 @@ void audio_set_volume(Audio* instance, float volume);
  *
  */
 float audio_get_volume(Audio* instance);
+
+/**
+ * @brief Enables audio playback.
+ * 
+ * @param[in] instance pointer to the Audio instance
+ */
+void audio_enable(Audio* instance);
+
+/**
+ * @brief Disables audio playback.
+ * 
+ * If a file is currently being played, the service will be disabled after the
+ * file finishes. In other words, calling `disable` right after `play` is
+ * allowed for convenience.
+ * 
+ * @param[in] instance pointer to the Audio instance
+ */
+void audio_disable(Audio* instance);
 
 #ifdef __cplusplus
 }
