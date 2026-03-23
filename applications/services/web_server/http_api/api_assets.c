@@ -20,9 +20,8 @@ static void api_assets_upload_data_callback(struct mg_connection* conn, struct m
 
     bool do_close_file = false;
 
-    if(upload_ctx->file == NULL) {
-        return;
-    }
+    if(upload_ctx == NULL) return;
+    if(upload_ctx->file == NULL) return;
 
     if((data->len > 0) && (upload_ctx->file)) {
         // Write file chunk
@@ -133,6 +132,8 @@ static bool api_assets_upload_headers_callback(
     } else {
         MG_REPLY_BAD_REQUEST(conn);
         conn->is_draining = 1;
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        conn_ctx->context = NULL;
     }
 
     furi_string_free(file_path);
