@@ -1,9 +1,9 @@
 #include "../unit_tests.h"
-#include <device_name/device_name_validator.h>
+#include <device_name/device_name_i.h>
 
 typedef struct {
     const char* name;
-    DeviceNameValidationStatus status;
+    DeviceNameError status;
 } DeviceNameTestDisallowedName;
 
 MU_TEST(device_name_test_validation_basic) {
@@ -18,33 +18,33 @@ MU_TEST(device_name_test_validation_basic) {
     static DeviceNameTestDisallowedName disallowed_names[] = {
         {
             .name = "21chr, just ovr limit",
-            .status = DeviceNameValidationStatusTooLong,
+            .status = DeviceNameErrorTooLong,
         },
         {
             .name = "Very very very very very very very very very long name",
-            .status = DeviceNameValidationStatusTooLong,
+            .status = DeviceNameErrorTooLong,
         },
         {
             .name = "            ",
-            .status = DeviceNameValidationStatusOnlySpaces,
+            .status = DeviceNameErrorOnlySpaces,
         },
         {
             .name = " ",
-            .status = DeviceNameValidationStatusOnlySpaces,
+            .status = DeviceNameErrorOnlySpaces,
         },
         {
             .name = "",
-            .status = DeviceNameValidationStatusEmpty,
+            .status = DeviceNameErrorEmpty,
         },
         {
             .name = "БИЗИ Бар",
-            .status = DeviceNameValidationStatusDisallowedChar,
+            .status = DeviceNameErrorIllegalChar,
         },
 
     };
 
     for(size_t i = 0; i < COUNT_OF(allowed_names); i++) {
-        mu_assert_int_eq(DeviceNameValidationStatusOk, device_name_validate(allowed_names[i]));
+        mu_assert_int_eq(DeviceNameErrorNone, device_name_validate(allowed_names[i]));
     }
 
     for(size_t i = 0; i < COUNT_OF(disallowed_names); i++) {

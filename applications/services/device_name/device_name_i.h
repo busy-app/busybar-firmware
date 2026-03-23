@@ -39,9 +39,8 @@ typedef struct {
 } DeviceNameMessageGetName;
 
 typedef struct {
-    FuriString* name;
-    FuriString* error;
-    bool* result;
+    const FuriString* name;
+    DeviceNameError* status;
 } DeviceNameMessageSetName;
 
 typedef union {
@@ -54,6 +53,8 @@ typedef struct {
     DeviceNameMessageType type;
     DeviceNameMessageData data;
 } DeviceNameMessage;
+
+DeviceNameError device_name_validate(const char* name);
 
 #ifdef __cplusplus
 }

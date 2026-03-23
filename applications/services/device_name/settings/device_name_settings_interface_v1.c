@@ -1,11 +1,13 @@
 #include "device_name_settings_interface_v1.h"
 
+#include "../device_name_i.h"
+
 static bool device_name_settings_v1_name_is_valid_cb(
     const SettingProviderSetting* setting,
     const char* value) {
     UNUSED(setting);
 
-    return device_name_validate(value) == DeviceNameValidationStatusOk;
+    return device_name_validate(value) == DeviceNameErrorNone;
 }
 
 static const SettingProviderStringInterface device_name_settings_v1_name_interface = {

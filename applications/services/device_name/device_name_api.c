@@ -20,24 +20,23 @@ void device_name_get(DeviceName* instance, FuriString* name) {
     device_name_send_message(instance, &message);
 }
 
-bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) {
+DeviceNameError device_name_set(DeviceName* instance, const FuriString* name) {
     furi_check(instance);
     furi_check(name);
 
-    bool result = false;
+    DeviceNameError status = DeviceNameErrorNone;
 
     DeviceNameMessage message = {
         .type = DeviceNameMessageTypeSetName,
         .data.set_name =
             {
                 .name = name,
-                .error = error,
-                .result = &result,
+                .status = &status,
             },
     };
     device_name_send_message(instance, &message);
 
-    return result;
+    return status;
 }
 
 FuriPubSub* device_name_get_pubsub(DeviceName* instance) {

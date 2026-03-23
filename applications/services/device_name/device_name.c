@@ -1,20 +1,50 @@
 #include "device_name_i.h"
 
-#include "device_name_validator.h"
 #include <cjson/cJSON.h>
 
 #define DEVICE_NAME_MQTT_PREFIX "state"
 #define DEVICE_NAME_KEY         "name"
 
-static const char* device_name_error_message[DeviceNameValidationStatusMax] = {
-    [DeviceNameValidationStatusOk] = "Ok",
-    [DeviceNameValidationStatusEmpty] = "Name is empty",
-    [DeviceNameValidationStatusTooLong] = "Name is too long",
-    [DeviceNameValidationStatusDisallowedChar] = "Name contains disallowed character",
-    [DeviceNameValidationStatusOnlySpaces] = "Name consists of only spaces",
-};
-
 typedef void (*DeviceNameMessageHandler)(DeviceName* instance, const DeviceNameMessage* message);
+
+static bool device_name_validate_char(char c) {
+    static const char* const allowed_special_chars = " !()-_=+;:,.?'|@#$%^&*[]{}/\\\"<>";
+
+    bool allowed_ascii = isalnum(c) || strchr(allowed_special_chars, c);
+    bool utf8 = c >= 128;
+    bool null = c == 0;
+    return allowed_ascii && !utf8 && !null;
+}
+
+DeviceNameError device_name_validate(const char* name) {
+    furi_assert(name);
+
+    if(strnlen(name, DEVICE_NAME_MAX_SIZE) == 0) {
+        return DeviceNameErrorEmpty;
+    }
+
+    if(strnlen(name, DEVICE_NAME_MAX_SIZE) > DEVICE_NAME_MAX_LENGTH) {
+        return DeviceNameErrorTooLong;
+    }
+
+    bool only_contains_spaces = true;
+
+    for(size_t i = 0; i < strlen(name); i++) {
+        char c = name[i];
+
+        if(c != ' ') only_contains_spaces = false;
+
+        if(!device_name_validate_char(c)) {
+            return DeviceNameErrorIllegalChar;
+        }
+    }
+
+    if(only_contains_spaces) {
+        return DeviceNameErrorOnlySpaces;
+    }
+
+    return DeviceNameErrorNone;
+}
 
 static void device_name_publish_mqtt_message(DeviceName* instance) {
     cJSON* json = cJSON_CreateObject();
@@ -40,18 +70,13 @@ static void device_name_publish_pubsub_event(DeviceName* instance) {
 static void device_name_set_handler(DeviceName* instance, const DeviceNameMessage* message) {
     const DeviceNameMessageSetName* set_name_message = &message->data.set_name;
     furi_assert(set_name_message->name);
-    furi_assert(set_name_message->error);
+    furi_assert(set_name_message->status);
 
-    bool success = false;
+    DeviceNameError status = DeviceNameErrorNone;
 
     do {
-        const DeviceNameValidationStatus status =
-            device_name_validate(furi_string_get_cstr(set_name_message->name));
-        if(status != DeviceNameValidationStatusOk) {
-            success = false;
-            furi_string_printf(set_name_message->error, device_name_error_message[status]);
-            break;
-        }
+        status = device_name_validate(furi_string_get_cstr(set_name_message->name));
+        if(status != DeviceNameErrorNone) break;
 
         snprintf(
             instance->settings.name,
@@ -59,8 +84,7 @@ static void device_name_set_handler(DeviceName* instance, const DeviceNameMessag
             furi_string_get_cstr(set_name_message->name));
 
         if(!device_name_settings_save(&instance->settings)) {
-            if(set_name_message->error)
-                furi_string_set_str(set_name_message->error, "Failed to save name");
+            status = DeviceNameErrorSaveFailed;
             break;
         }
         FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(set_name_message->name));
@@ -69,10 +93,9 @@ static void device_name_set_handler(DeviceName* instance, const DeviceNameMessag
 
         device_name_publish_pubsub_event(instance);
 
-        success = true;
     } while(false);
 
-    *set_name_message->result = success;
+    *set_name_message->status = status;
 }
 
 static void

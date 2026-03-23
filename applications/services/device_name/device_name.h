@@ -28,6 +28,19 @@ extern "C" {
 typedef struct DeviceName DeviceName;
 
 /**
+ * @brief Validation status returned by device_name_set().
+ */
+typedef enum {
+    DeviceNameErrorNone, /**< Name is valid and was applied successfully */
+    DeviceNameErrorEmpty, /**< Name is empty */
+    DeviceNameErrorTooLong, /**< Name exceeds the maximum allowed length */
+    DeviceNameErrorIllegalChar, /**< Name contains illegal characters */
+    DeviceNameErrorOnlySpaces, /**< Name consists only of spaces */
+    DeviceNameErrorSaveFailed, /**< Failed to save new name */
+    DeviceNameErrorMax, /**< Special value, internal use */
+} DeviceNameError;
+
+/**
  * @brief Device name event type (published via FuriPubSub on rename)
  */
 typedef enum {
@@ -57,12 +70,13 @@ void device_name_get(DeviceName* instance, FuriString* name);
 /**
  * @brief Set new device name
  *
+ * Validates the provided name and, if valid, persists it and publishes it.
+ *
  * @param[in] instance Device name service instance
- * @param[in] name New device name
- * @param[out] error If present, contains error message for failure case, when NULL ignored
- * @returns true on success, false when failed to set name. More details in error string
+ * @param[in] name New device name to set
+ * @return DeviceNameErrorNone on success, error otherwise
  */
-bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error);
+DeviceNameError device_name_set(DeviceName* instance, const FuriString* name);
 
 /**
  * @brief Get PubSub instance which indicates that name was changed
