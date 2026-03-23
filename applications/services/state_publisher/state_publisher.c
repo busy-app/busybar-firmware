@@ -49,7 +49,7 @@ struct StatePublisher {
     FuriThreadId main_thread_id;
 
     ScreenStreamer* screen_streamer_front;
-    ScreenStreamer* screen_streamer_back;
+    // ScreenStreamer* screen_streamer_back;
 
     Power* power;
     Audio* audio;
@@ -206,8 +206,8 @@ static StatePublisher* state_publisher_alloc(void) {
 
     instance->screen_streamer_front = screen_streamer_alloc(
         GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
-    instance->screen_streamer_back =
-        screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
+    // instance->screen_streamer_back =
+        // screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
 
     instance->transports_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     bzero(instance->transports, sizeof(instance->transports));
@@ -215,7 +215,7 @@ static StatePublisher* state_publisher_alloc(void) {
     subscribe(instance);
 
     screen_streamer_start(instance->screen_streamer_front);
-    screen_streamer_start(instance->screen_streamer_back);
+    // screen_streamer_start(instance->screen_streamer_back);
 
     furi_record_create(RECORD_STATE_PUBLISHER, instance);
 
@@ -238,11 +238,11 @@ static void update_screen_streamer_outputs(StatePublisher* instance) {
         if(enabled) {
             screen_streamer_enable_output(
                 instance->screen_streamer_front, transport_class, frame_interval_ms);
-            screen_streamer_enable_output(
-                instance->screen_streamer_back, transport_class, frame_interval_ms);
+            // screen_streamer_enable_output(
+                // instance->screen_streamer_back, transport_class, frame_interval_ms);
         } else {
             screen_streamer_disable_output(instance->screen_streamer_front, transport_class);
-            screen_streamer_disable_output(instance->screen_streamer_back, transport_class);
+            // screen_streamer_disable_output(instance->screen_streamer_back, transport_class);
         }
     }
 }
