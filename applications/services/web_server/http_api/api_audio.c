@@ -30,7 +30,7 @@ static bool api_audio_play_callback(
             break;
         }
 
-        int var_len = mg_http_get_var(&msg->query, "app_id", temp_str, sizeof(temp_str));
+        int var_len = mg_http_get_var(&msg->query, "application_name", temp_str, sizeof(temp_str));
         if(var_len <= 0) {
             return false;
         }

@@ -77,7 +77,7 @@ static bool api_assets_upload_parse_parameters(struct mg_str* params_str, FuriSt
 
     char temp_str[FILE_NAME_LEN_MAX];
 
-    int var_len = mg_http_get_var(params_str, "app_id", temp_str, sizeof(temp_str));
+    int var_len = mg_http_get_var(params_str, "application_name", temp_str, sizeof(temp_str));
     if(var_len <= 0) {
         return false;
     }
@@ -165,7 +165,8 @@ static bool api_assets_delete_callback(
 
         char app_id_str[FILE_NAME_LEN_MAX];
 
-        int var_len = mg_http_get_var(&msg->query, "app_id", app_id_str, sizeof(app_id_str));
+        int var_len =
+            mg_http_get_var(&msg->query, "application_name", app_id_str, sizeof(app_id_str));
         if(var_len <= 0) {
             MG_REPLY_BAD_REQUEST(conn);
             break;
