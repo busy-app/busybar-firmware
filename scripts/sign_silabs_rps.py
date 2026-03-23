@@ -72,10 +72,10 @@ def sign_rps(commander, keystore, input_rps, output_rps):
         "rps",
         "convert",
         output_rps,
+        "--mic",
+        keystore,
         "--sign",
         keystore,
-        "--sha",
-        "SHA-256",
         app_flag,
         input_rps,
     ]
