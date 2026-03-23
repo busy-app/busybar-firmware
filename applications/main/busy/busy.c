@@ -188,6 +188,8 @@ static BusyApp* busy_alloc(const char* arg) {
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
     }
 
+    audio_enable(instance->audio);
+
     furi_record_create(RECORD_BUSY_APP, instance);
     return instance;
 }
@@ -197,6 +199,8 @@ static void busy_free(BusyApp* instance) {
         // Workaround: wait before all users close the record
         furi_delay_ms(1);
     }
+
+    audio_disable(instance->audio);
 
     busy_timer_stop(instance->busy_timer);
 
