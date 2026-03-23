@@ -67,6 +67,7 @@ void intercom_meta_send_ping(Intercom* instance) {
 }
 
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame) {
+    furi_assert(frame->channel_id == INTERCOM_META_CHANNEL_ID);
     furi_assert(frame->data_size == sizeof(IntercomMetaFrame));
 
     const IntercomMetaFrame* meta_frame = (const IntercomMetaFrame*)frame->data;
