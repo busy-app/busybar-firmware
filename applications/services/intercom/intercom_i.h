@@ -88,11 +88,15 @@ void intercom_channel_mark_as_ready(IntercomChannel* channel);
 
 const char* intercom_channel_get_name(IntercomChannelId channel_id);
 
+// intercom_heartbeat.h:
+
+void intercom_start_heartbeat_thread(Intercom* instance);
+
 // intercom_meta.c:
 
 void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channel_id);
 
-void intercom_meta_send_ping(Intercom* instacne);
+void intercom_meta_send_heartbeat(Intercom* instacne);
 
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame);
 

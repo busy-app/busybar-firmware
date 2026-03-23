@@ -6,7 +6,7 @@
 
 typedef enum {
     IntercomMetaFrameTypeChannelReady,
-    IntercomMetaFrameTypePing,
+    IntercomMetaFrameTypeHeartbeat,
     IntercomMetaFrameTypeMax,
 } IntercomMetaFrameType;
 
@@ -33,10 +33,10 @@ static void intercom_meta_handle_channel_ready(
     FURI_LOG_D(TAG, "OTHER side ready: %s", intercom_channel_get_name(channel_id));
 }
 
-static void intercom_meta_handle_ping_received(Intercom* instance) {
+static void intercom_meta_handle_heartbeat_received(Intercom* instance) {
     UNUSED(instance);
     // TODO: React to this somehow?
-    FURI_LOG_D(TAG, "Ping received");
+    FURI_LOG_D(TAG, "Heartbeat received");
 }
 
 static void intercom_meta_send_frame(Intercom* instance, const IntercomMetaFrame* frame) {
@@ -56,14 +56,14 @@ void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channe
     FURI_LOG_D(TAG, "THIS side ready: %s", intercom_channel_get_name(channel_id));
 }
 
-void intercom_meta_send_ping(Intercom* instance) {
+void intercom_meta_send_heartbeat(Intercom* instance) {
     const IntercomMetaFrame frame = {
-        .type = IntercomMetaFrameTypePing,
+        .type = IntercomMetaFrameTypeHeartbeat,
     };
 
     intercom_meta_send_frame(instance, &frame);
 
-    FURI_LOG_D(TAG, "Ping sent");
+    FURI_LOG_D(TAG, "Heartbeat sent");
 }
 
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame) {
@@ -75,8 +75,8 @@ void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame)
 
     if(type == IntercomMetaFrameTypeChannelReady) {
         intercom_meta_handle_channel_ready(instance, &meta_frame->channel_ready);
-    } else if(type == IntercomMetaFrameTypePing) {
-        intercom_meta_handle_ping_received(instance);
+    } else if(type == IntercomMetaFrameTypeHeartbeat) {
+        intercom_meta_handle_heartbeat_received(instance);
     } else {
         furi_crash("Invalid IntercomMetaFrameType");
     }

@@ -46,6 +46,7 @@ static void intercom_begin_operation(Intercom* instance) {
     furi_hal_serial_dma_init(instance->serial);
 
     intercom_start_rx_thread(instance);
+    intercom_start_heartbeat_thread(instance);
     // Begin serving API requests
     furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
 }
