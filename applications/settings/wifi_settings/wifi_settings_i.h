@@ -55,6 +55,8 @@ typedef struct {
     NavBar* back_nav_bar;
 
     WifiModel* model;
+
+    const char* parent_app_id;
 } WifiSettings;
 
 void wifi_settings_send_custom_event(WifiSettings* instance, uint32_t event);

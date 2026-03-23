@@ -162,8 +162,6 @@ static void settings_free(SettingsApp* instance) {
 }
 
 int32_t settings_app(void* arg) {
-    UNUSED(arg);
-
     SettingsApp* instance = settings_alloc(arg);
     furi_event_loop_run(instance->event_loop);
     settings_free(instance);

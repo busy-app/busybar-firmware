@@ -86,7 +86,7 @@ static bool account_scene_error_on_event(const SceneManagerEvent* event, void* c
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case SceneEventOpenWifiSettings:
-            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
+            account_settings_open_wifi_settings(instance);
             consumed = true;
             break;
 

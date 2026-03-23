@@ -160,7 +160,7 @@ static void sound_settings_free(SoundSettings* instance) {
 }
 
 int32_t sound_settings_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
         VolumeModel* model = volume_model_alloc();
         SettingsAppDescriptor* descriptor = arg;
 

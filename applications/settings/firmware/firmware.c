@@ -191,7 +191,7 @@ static void this_setup_app_descriptor(SettingsAppDescriptor* descriptor) {
 }
 
 int32_t settings_firmware_app_entry(void* argument) {
-    if(argument) {
+    if(settings_app_descriptor_is_valid(argument)) {
         this_setup_app_descriptor(argument);
     } else {
         ThisInstance* instance = this_alloc();

@@ -73,6 +73,8 @@ void account_settings_send_custom_event(AccountSettings* instance, uint32_t even
 
 void account_settings_get_short_email(AccountSettings* instance, FuriString* mail_str);
 
+void account_settings_open_wifi_settings(AccountSettings* instance);
+
 #ifdef __cplusplus
 }
 #endif

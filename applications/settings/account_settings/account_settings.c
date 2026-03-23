@@ -195,7 +195,7 @@ static AccountSettings* account_settings_alloc() {
         scene_manager_next_scene(instance->scene_manager, SceneIdLinkedInfo);
     } else {
         if(wifi_info.state == WifiStateDisconnected) {
-            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
+            account_settings_open_wifi_settings(instance);
         } else {
             AccountModelState state = account_model_get_state(instance->model);
             if(state == AccountModelStateConnectedNotLinked) {
@@ -240,7 +240,7 @@ static void account_settings_free(AccountSettings* instance) {
 }
 
 int32_t account_settings_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
         AccountModel* model = account_model_alloc();
         bool is_linked = account_model_is_linked(model);
 
@@ -291,4 +291,9 @@ void account_settings_send_custom_event(AccountSettings* instance, uint32_t even
 
     furi_check(
         furi_message_queue_put(instance->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
+}
+
+void account_settings_open_wifi_settings(AccountSettings* instance) {
+    furi_assert(instance);
+    desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, THIS_SETTINGS_APP);
 }

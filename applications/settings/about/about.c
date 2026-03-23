@@ -151,7 +151,7 @@ static void about_free(About* instance) {
 }
 
 int32_t about_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
         SettingsAppDescriptor* descriptor = arg;
         furi_string_set_str(descriptor->front_title, "About");
         furi_string_set_str(descriptor->back_title, "About");

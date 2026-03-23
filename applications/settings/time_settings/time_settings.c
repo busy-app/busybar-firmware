@@ -137,7 +137,7 @@ static void time_settings_free(TimeSettings* instance) {
 }
 
 int32_t time_settings_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
         SettingsAppDescriptor* descriptor = arg;
 
         furi_string_set_str(descriptor->front_title, "Time");

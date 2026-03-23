@@ -39,6 +39,11 @@ static void matter_settings_input_queue_callback(FuriEventLoopObject* object, vo
     }
 }
 
+static void matter_settings_open_wifi_settings(MatterSettings* instance) {
+    furi_assert(instance);
+    desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, THIS_SETTINGS_APP);
+}
+
 static void matter_settings_event_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
@@ -57,7 +62,7 @@ static void matter_settings_event_queue_callback(FuriEventLoopObject* object, vo
             scene_manager_replace_current_scene(instance->scene_manager, event_to_scene[event]);
 
         } else if(event == AppEventRequiredWifiNotAvailable) {
-            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
+            matter_settings_open_wifi_settings(instance);
 
         } else {
             scene_manager_handle_custom_event(instance->scene_manager, event);
@@ -201,7 +206,7 @@ static void matter_settings_free(MatterSettings* instance) {
 }
 
 int32_t matter_settings_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
         SettingsAppDescriptor* descriptor = arg;
 
         furi_string_set_str(descriptor->front_title, "Smart home");

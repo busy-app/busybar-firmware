@@ -75,7 +75,7 @@ static bool account_scene_not_linked_menu_on_event(const SceneManagerEvent* even
             consumed = true;
             break;
         case AppEventWifiDisconnected:
-            desktop_replace_current_app(instance->desktop, WIFI_SETTINGS_APP, NULL);
+            account_settings_open_wifi_settings(instance);
             consumed = true;
             break;
         default:

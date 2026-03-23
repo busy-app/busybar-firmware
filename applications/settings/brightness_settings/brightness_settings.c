@@ -160,7 +160,7 @@ static void brightness_settings_free(BrightnessSettings* instance) {
 }
 
 int32_t brightness_settings_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
         BrightnessModel* model = brightness_model_alloc();
         SettingsAppDescriptor* descriptor = arg;
 

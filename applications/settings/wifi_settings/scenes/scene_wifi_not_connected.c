@@ -63,7 +63,7 @@ static bool wifi_scene_not_connected_on_event(const SceneManagerEvent* event, vo
         }
 
     } else if(event->type == SceneManagerEventTypeBack) {
-        desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
+        desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, instance->parent_app_id);
         consumed = true;
     }
 

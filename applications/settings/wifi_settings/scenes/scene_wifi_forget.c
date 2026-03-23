@@ -70,7 +70,8 @@ static bool wifi_scene_forget_on_event(const SceneManagerEvent* event, void* con
         switch(event->event) {
         case SceneEventConfirm:
             wifi_model_forget(instance->model);
-            desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
+            desktop_replace_current_app(
+                instance->desktop, MAIN_SETTINGS_APP, instance->parent_app_id);
             consumed = true;
             break;
         case SceneEventCancel:

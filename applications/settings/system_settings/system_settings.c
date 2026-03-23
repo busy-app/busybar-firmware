@@ -156,7 +156,7 @@ static void system_settings_free(SystemSettings* instance) {
 }
 
 int32_t system_settings_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
         SettingsAppDescriptor* descriptor = arg;
         furi_string_set_str(descriptor->front_title, "System");
         furi_string_set_str(descriptor->back_title, "System");

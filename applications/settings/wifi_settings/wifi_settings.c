@@ -78,8 +78,9 @@ static void wifi_settings_wifi_state_callback(void* context) {
     wifi_settings_send_custom_event(instance, AppEventWifiStateChange);
 }
 
-static WifiSettings* wifi_settings_alloc() {
+static WifiSettings* wifi_settings_alloc(const char* parent_app_id) {
     WifiSettings* instance = malloc(sizeof(WifiSettings));
+    instance->parent_app_id = parent_app_id;
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(4, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(4, sizeof(uint32_t));
@@ -167,11 +168,12 @@ static void wifi_settings_free(WifiSettings* instance) {
 }
 
 int32_t wifi_settings_entry(void* arg) {
-    if(arg) {
+    if(settings_app_descriptor_is_valid(arg)) {
+        SettingsAppDescriptor* descriptor = arg;
+
         WifiModel* wifi_model = wifi_model_alloc();
         WifiModelState wifi_state = wifi_model_get_state(wifi_model);
 
-        SettingsAppDescriptor* descriptor = arg;
         furi_string_set_str(descriptor->front_title, "Wi-Fi");
         furi_string_set_str(descriptor->back_title, "Wi-Fi");
         if(wifi_state == WifiModelStateDisconnected) {
@@ -189,7 +191,14 @@ int32_t wifi_settings_entry(void* arg) {
         return 0;
     }
 
-    WifiSettings* instance = wifi_settings_alloc();
+    const char* parent_app_id = THIS_SETTINGS_APP;
+    if(arg) {
+        if(((char*)arg)[0] != '\0') {
+            parent_app_id = arg;
+        }
+    }
+
+    WifiSettings* instance = wifi_settings_alloc(parent_app_id);
     FuriThread* thread = furi_thread_get_current();
     furi_thread_set_signal_callback(thread, wifi_settings_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
