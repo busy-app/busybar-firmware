@@ -92,6 +92,8 @@ static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
 
     } else {
         intercom_set_status(instance, IntercomStatusErrorFraming);
+        intercom_dump_frame(rx_frame);
+        furi_thread_suspend(furi_thread_get_current_id());
     }
 }
 

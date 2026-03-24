@@ -362,6 +362,20 @@ static bool api_update_raw_hdr_callback(
     return true;
 }
 
+static bool api_update_raw_request_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    MG_REPLY_BAD_REQUEST(conn);
+
+    return true;
+}
+
 static bool api_update_check_callback(
     FuriString* path,
     HttpMethod method,
@@ -864,6 +878,7 @@ static const HttpHandler api_update_handlers[] = {
         .uri = "",
         .method = HttpMethodAny,
         .type = HttpHandlerCustom,
+        .on_request = api_update_raw_request_callback,
         .on_headers = api_update_raw_hdr_callback,
     },
 };

@@ -64,6 +64,20 @@ void furi_hal_sai_set_buffer(const int16_t* buffer, uint32_t buffer_depth);
 void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context);
 
 /**
+ * @brief Enables the DAC/amplifier unit
+ * 
+ * It must be enabled for any sound to come out. If any non-zero data is fed
+ * into it within 100 ms after enabling, the output will be distorted with
+ * clicks.
+ */
+void furi_hal_sai_enable_amplifier(void);
+
+/**
+ * @brief Disables the DAC/amplifier unit
+ */
+void furi_hal_sai_disable_amplifier(void);
+
+/**
  * @brief Start transferring sample data via SAI.
  *
  * @warning Before calling this function, a buffer MUST be set using furi_hal_set_buffer() and,

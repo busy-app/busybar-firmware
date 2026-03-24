@@ -189,6 +189,46 @@ static FuriString* generate_zone_list_json(const TzutilTzInfoList* infos) {
     return r;
 }
 
+static bool api_time_get_timezone_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool success = false;
+    FuriString* response = NULL;
+
+    do {
+        Sntp* sntp = furi_record_open(RECORD_SNTP);
+        SntpSettings settings;
+        sntp_get_settings(sntp, &settings);
+        furi_record_close(RECORD_SNTP);
+
+        DateTime now = furi_hal_rtc_get_datetime().dt;
+        TzutilTzInfo info;
+        if(!tzutil_get_info_by_name(settings.timezone.name, &now, &info)) break;
+
+        response = format_zone_info_json(&info);
+
+        success = true;
+    } while(false);
+
+    if(success) {
+        furi_check(response);
+        MG_REPLY_OK_BODY(conn, "%s", furi_string_get_cstr(response));
+        furi_string_free(response);
+    } else {
+        furi_check(!response);
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
 static bool api_time_get_timezone_list_callback(
     FuriString* path,
     HttpMethod method,

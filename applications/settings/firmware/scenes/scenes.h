@@ -3,14 +3,14 @@
 #include <gui/scene_manager.h>
 
 typedef enum {
-    ThisSceneIdxMain,
-    ThisSceneIdxSettings,
-    ThisSceneIdxDialog,
-    ThisSceneIdxCheck,
-    ThisSceneIdxDownload,
-    ThisSceneIdxResult,
+    FirmwareSettingsSceneIdxMain,
+    FirmwareSettingsSceneIdxSettings,
+    FirmwareSettingsSceneIdxCheck,
+    FirmwareSettingsSceneIdxCheckResult,
+    FirmwareSettingsSceneIdxDialog,
+    FirmwareSettingsSceneIdxLowBattery,
 
-    ThisSceneIdxsCount,
-} ThisSceneIdx;
+    FirmwareSettingsSceneIdxsCount,
+} FirmwareSettingsSceneIdx;
 
-extern const Scene* const settings_firmware_app_scenes[];
+extern const Scene* const firmware_settings_internal_scenes[];

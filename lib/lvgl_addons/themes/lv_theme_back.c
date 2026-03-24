@@ -1,5 +1,6 @@
 #include "lv_theme_back.h"
 #include "lv_theme_common.h"
+#include <font_registry/font_registry.h>
 
 #define COLOR_BG_NORMAL   lv_color_black()
 #define COLOR_FG_NORMAL   lv_color_hex(0xAAAAAA)
@@ -47,8 +48,8 @@ typedef struct {
 
     lv_style_t mirror_card;
 
-    lv_style_t title_card;
     lv_style_t title_card_label;
+    lv_style_t title_card_container;
 
     lv_style_t slider_view;
     lv_style_t slider_view_bar;
@@ -70,7 +71,7 @@ typedef struct {
     my_theme_styles_t styles;
 } my_theme_t;
 
-static void style_init(my_theme_t* theme) {
+static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_init(&theme->styles.screen);
     lv_style_set_bg_opa(&theme->styles.screen, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.screen, COLOR_BG_NORMAL);
@@ -124,7 +125,7 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.menu_arrow);
     lv_style_set_pad_left(&theme->styles.menu_arrow, MENU_ITEM_PAD_HOR / 2);
-    lv_style_set_text_font(&theme->styles.menu_arrow, theme->base.font_small);
+    lv_style_set_text_font(&theme->styles.menu_arrow, theme->base.font_normal);
 
     lv_style_init(&theme->styles.submenu_item);
     lv_style_set_pad_hor(&theme->styles.submenu_item, MENU_ITEM_PAD_HOR);
@@ -163,10 +164,16 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.dialog_text_main);
     lv_style_set_flex_grow(&theme->styles.dialog_text_main, 1);
+    lv_style_set_text_font(
+        &theme->styles.dialog_text_main,
+        font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7));
 
     lv_style_init(&theme->styles.dialog_text_sub);
     lv_style_set_flex_grow(&theme->styles.dialog_text_sub, 0);
     lv_style_set_max_width(&theme->styles.dialog_text_sub, LV_PCT(60));
+    lv_style_set_text_font(
+        &theme->styles.dialog_text_sub,
+        font_registry_load_font(font_registry, FONT_BUSY_REGULAR_7));
 
     lv_style_init(&theme->styles.dialog_option);
     lv_style_set_width(&theme->styles.dialog_option, LV_PCT(100));
@@ -181,12 +188,17 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_ver(&theme->styles.mirror_card, 4);
     lv_style_set_radius(&theme->styles.mirror_card, MENU_ITEM_RADIUS);
 
-    lv_style_init(&theme->styles.title_card);
-    lv_style_set_pad_column(&theme->styles.title_card, 6);
-    lv_style_set_text_font(&theme->styles.title_card, &lv_font_ark_regular_20);
-
     lv_style_init(&theme->styles.title_card_label);
-    lv_style_set_translate_y(&theme->styles.title_card_label, 2);
+    lv_style_set_text_color(&theme->styles.title_card_label, COLOR_FG_FOCUSED);
+    lv_style_set_text_font(
+        &theme->styles.title_card_label,
+        font_registry_load_font(font_registry, FONT_BUSY_REGULAR_14));
+
+    lv_style_init(&theme->styles.title_card_container);
+    lv_style_set_layout(&theme->styles.title_card_container, LV_LAYOUT_FLEX);
+    lv_style_set_flex_flow(&theme->styles.title_card_container, LV_FLEX_FLOW_ROW);
+    lv_style_set_flex_cross_place(&theme->styles.title_card_container, LV_FLEX_ALIGN_CENTER);
+    lv_style_set_pad_column(&theme->styles.title_card_container, 6);
 
     lv_style_init(&theme->styles.qr_code_card);
     lv_style_set_radius(&theme->styles.qr_code_card, QR_CODE_CARD_RADIUS);
@@ -233,8 +245,9 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.status_view_header);
     lv_style_set_align(&theme->styles.status_view_header, LV_ALIGN_CENTER);
-    lv_style_set_y(&theme->styles.status_view_header, 2);
+    lv_style_set_y(&theme->styles.status_view_header, 12);
     lv_style_set_text_color(&theme->styles.status_view_header, COLOR_FG_FOCUSED);
+    lv_style_set_text_align(&theme->styles.status_view_header, LV_TEXT_ALIGN_CENTER);
 
     lv_style_init(&theme->styles.status_view_additional_text);
     lv_style_set_align(&theme->styles.status_view_additional_text, LV_ALIGN_CENTER);
@@ -353,11 +366,11 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &mirror_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.mirror_card, LV_PART_MAIN);
 
-    } else if(lv_obj_check_type(obj, &title_card_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.title_card, LV_PART_MAIN);
-
     } else if(lv_obj_check_type(obj, &title_card_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.title_card_label, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &title_card_container_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.title_card_container, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &qr_code_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.qr_code_card, LV_PART_MAIN);
@@ -395,21 +408,32 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &countdown_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+
+    } else if(lv_obj_check_type(obj, &theme_picker_arrow_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+
 #endif // APP_BUSY
+
+#ifdef APP_SETTINGS_WIFI
+    } else if(lv_obj_check_type(obj, &wifi_info_view_arrow_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+
+#endif // APP_SETTINGS_WIFI
     }
 }
 
 // Public API
 lv_theme_t* lv_theme_back_alloc(lv_display_t* disp) {
     my_theme_t* theme = malloc(sizeof(my_theme_t));
+    FontRegistry* font_registry = furi_record_open(RECORD_FONT_REGISTRY);
 
     theme->base.disp = disp;
-    theme->base.font_small = &lv_font_tiny5_8;
-    theme->base.font_normal = &lv_font_ark_regular_10;
-    theme->base.font_large = &lv_font_ark_regular_10;
+    theme->base.font_small = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_5);
+    theme->base.font_normal = font_registry_load_font(font_registry, FONT_BUSY_REGULAR_9);
+    theme->base.font_large = font_registry_load_font(font_registry, FONT_BUSY_BOLD_10);
     theme->base.apply_cb = theme_apply_callback;
 
-    style_init(theme);
+    style_init(theme, font_registry);
 
     return (lv_theme_t*)theme;
 }

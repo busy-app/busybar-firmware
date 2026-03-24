@@ -65,6 +65,16 @@ static void mqtt_account_link_token_message_callback(const MqttMessage* message,
     if(email) free(email);
 }
 
+static void mqtt_account_unlink_message_callback(const MqttMessage* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    Mqtt* instance = context;
+
+    FURI_LOG_I(TAG, "Received unlink message from cloud");
+    mqtt_account_unlink(instance);
+}
+
 void mqtt_account_init(Mqtt* instance) {
     mqtt_subscribe_internal(
         instance,
@@ -81,4 +91,25 @@ void mqtt_account_init(Mqtt* instance) {
         "link/token",
         mqtt_account_link_token_message_callback,
         instance);
+
+    mqtt_subscribe_internal(
+        instance,
+        MqttScopeSession,
+        MqttQosAtLeastOnce,
+        "gone",
+        mqtt_account_unlink_message_callback,
+        instance);
+}
+
+void mqtt_account_unlink(Mqtt* instance) {
+    furi_assert(instance);
+
+    mqtt_connection_close(instance, true);
+    mqtt_reset_saved_state(instance);
+
+    MqttEvent pub_event = {
+        .type = MqttEventTypeUnlinked,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &pub_event);
 }

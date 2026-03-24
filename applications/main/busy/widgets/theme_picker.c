@@ -5,12 +5,11 @@
 #include <gui/modules/image.h>
 #include <gui/modules/anim_player.h>
 
-#define MY_CLASS (&theme_picker_lvgl_class)
+#define MY_CLASS       (&theme_picker_lvgl_class)
+#define MY_ARROW_CLASS (&theme_picker_arrow_lvgl_class)
 
-#define SYM_ARROW_LEFT      "◃"
-#define SYM_ARROW_RIGHT     "▹"
-#define SYM_ARROW_LEFT_BIG  "<"
-#define SYM_ARROW_RIGHT_BIG ">"
+#define SYM_ARROW_LEFT  "<"
+#define SYM_ARROW_RIGHT ">"
 
 struct ThemePicker {
     Widget base;
@@ -25,6 +24,7 @@ struct ThemePicker {
 };
 
 const lv_obj_class_t theme_picker_lvgl_class;
+const lv_obj_class_t theme_picker_arrow_lvgl_class;
 
 // Function prototypes
 
@@ -46,13 +46,9 @@ static lv_obj_t* theme_picker_create_decoration(lv_obj_t* parent, bool reverse) 
         shadow, reverse ? lv_color_black() : lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_blend_mode(shadow, LV_BLEND_MODE_MULTIPLY, LV_PART_MAIN);
 
-    lv_obj_t* arrow = lv_label_create(deco);
+    lv_obj_t* arrow = lv_obj_class_create_obj(&theme_picker_arrow_lvgl_class, deco);
 
-    if(lv_theme_get_font_normal(parent) == &lv_font_tiny5_8) {
-        lv_label_set_text(arrow, reverse ? SYM_ARROW_RIGHT : SYM_ARROW_LEFT);
-    } else {
-        lv_label_set_text(arrow, reverse ? SYM_ARROW_RIGHT_BIG : SYM_ARROW_LEFT_BIG);
-    }
+    lv_label_set_text(arrow, reverse ? SYM_ARROW_RIGHT : SYM_ARROW_LEFT);
 
     lv_obj_set_style_text_color(arrow, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_align(arrow, reverse ? LV_ALIGN_RIGHT_MID : LV_ALIGN_LEFT_MID, LV_PART_MAIN);
@@ -196,4 +192,11 @@ const lv_obj_class_t theme_picker_lvgl_class = {
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(ThemePicker),
+};
+
+const lv_obj_class_t theme_picker_arrow_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "theme-picker-arrow",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
 };

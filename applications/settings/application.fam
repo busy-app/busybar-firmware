@@ -7,7 +7,7 @@ App(
         "brightness_settings",
         "sound_settings",
         "debug_app_list",
-        "firmware",
+        "firmware_settings",
         "matter_settings",
         "ble_settings",
         "wifi_settings",

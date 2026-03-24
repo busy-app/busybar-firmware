@@ -8,6 +8,7 @@
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <furi_hal_rtc.h>
+#include <font_registry/fonts.h>
 #include <brightness_control/brightness_control.h>
 
 #define TAG "HttpDisplay"
@@ -29,21 +30,26 @@ static bool api_display_draw_parse_text_element(
         canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
         if(!canvas_element->text.text_str) break;
 
-        canvas_element->text.font = GuiFontTiny5_8;
         canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
 
         char* font_name = mg_json_get_str(json_element, "$.font");
         if(!font_name) break;
-        static const char* const font_names[GuiFontMax] = {
-            [GuiFontBf4x5] = "small",
-            [GuiFontBf5x7] = "medium",
-            [GuiFontBf5x7CondensedNumerals] = "medium_condensed",
-            [GuiFontBf7x10] = "big",
+        static const char* const font_names[] = {
+            "small",
+            "medium",
+            "medium_condensed",
+            "big",
         };
-        size_t font = value_index_string(font_name, font_names, COUNT_OF(font_names));
-        canvas_element->text.font = font;
+        static const char* const font_paths[] = {
+            FONT_BUSY_REGULAR_5,
+            FONT_BUSY_REGULAR_7,
+            FONT_BUSY_CONDENSED_7,
+            FONT_BUSY_BOLD_10,
+        };
+        const char* font_path =
+            value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
+        canvas_element->text.font_path = strdup(font_path);
         free(font_name);
-        if(font == 0) break;
 
         char* color_hex = mg_json_get_str(json_element, "$.color");
         if(color_hex) {

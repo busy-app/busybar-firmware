@@ -52,5 +52,3 @@ struct Gui {
     GuiDisplay displays[GuiDisplayIdMax];
     GuiLayer layers[GuiLayerIdMax];
 };
-
-const lv_font_t* gui_font_to_lvgl(GuiFont font);

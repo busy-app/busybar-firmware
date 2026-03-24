@@ -27,6 +27,7 @@ App(
     requires=[
         "gui",
         "storage",
+        "font_registry",
     ],
     stack_size=2 * 1024,
     order=300,
@@ -39,6 +40,8 @@ App(
     apptype=FlipperAppType.SERVICE,
     sources=[
         "updater.c",
+        "updater_normal.c",
+        "updater_recovery.c",
         "settings/*.c",
         "helpers/rps.c",
         "helpers/update_parser.c",
@@ -49,10 +52,27 @@ App(
     requires=[
         "storage",
         "power_srv",
-        "network",
         "cli_commands_target_specific",
     ],
     stack_size=4 * 1024,
     order=310,
+    targets=["f20", "f21", "f22"],
+)
+
+App(
+    appid="update_ui",
+    name="UpdateUI",
+    apptype=FlipperAppType.STARTUP,
+    sources=[
+        "update_ui/update_ui.c",
+        "update_ui/scenes/*.c",
+    ],
+    entry_point="update_ui_startup",
+    requires=[
+        "gui",
+        "updater",
+    ],
+    stack_size=1 * 1024,
+    order=320,
     targets=["f20", "f21", "f22"],
 )

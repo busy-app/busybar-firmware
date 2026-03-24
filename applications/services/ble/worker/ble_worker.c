@@ -1233,7 +1233,7 @@ bool ble_worker_forget_pairing() {
 }
 
 bool ble_worker_pairing_exists() {
-    return ble_security_rpa_present(ble_worker_instance->security_data);
+    return ble_security_pairing_present(ble_worker_instance->security_data);
 }
 
 void ble_worker_set_name(const char* new_name) {
