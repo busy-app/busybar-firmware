@@ -35,7 +35,7 @@ static void this_scene_on_enter(void* context) {
     ThisInstance* instance = context;
     ThisScene* data = this_get_scene(instance);
 
-    LocalTime local_time = sntp_get_local_time(instance->sntp);
+    LocalTime local_time = time_get_local_time(instance->time);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -98,7 +98,7 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case ThisEventTimerUpdate:
-            LocalTime local_time = sntp_get_local_time(instance->sntp);
+            LocalTime local_time = time_get_local_time(instance->time);
             with_gui(instance->gui, {
                 clock_view_set_date_time(scene->front_clock, &local_time.dt);
             });

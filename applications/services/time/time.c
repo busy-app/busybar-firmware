@@ -7,81 +7,81 @@
 #include <furi_hal_rtc.h>
 #include <api_lock.h>
 
-#define TAG "SntpSvc"
+#define TAG "TimeSvc"
 
-#define SNTP_S_TO_MS(x) ((x) * 1000)
-#define SNTP_M_TO_S(x)  ((x) * 60)
+#define TIME_S_TO_MS(x) ((x) * 1000)
+#define TIME_M_TO_S(x)  ((x) * 60)
 
-#define SNTP_MAX_MESSAGES 4
-
-typedef enum {
-    SntpCustomEventUpdateSuccess = 1 << 0,
-    SntpCustomEventUpdateFailure = 1 << 1,
-} SntpCustomEvent;
+#define TIME_MAX_MESSAGES 4
 
 typedef enum {
-    SntpMessageTypeGetSettings,
-    SntpMessageTypeSetSettings,
-    SntpMessageTypeGetLocalTime,
-
-    SntpMessageTypesCount,
-} SntpMessageType;
+    TimeCustomEventUpdateSuccess = 1 << 0,
+    TimeCustomEventUpdateFailure = 1 << 1,
+} TimeCustomEvent;
 
 typedef enum {
-    SntpStateBoot,
-    SntpStateInSync,
-    SntpStateRetry,
-} SntpState;
+    TimeMessageTypeGetSettings,
+    TimeMessageTypeSetSettings,
+    TimeMessageTypeGetLocalTime,
+
+    TimeMessageTypesCount,
+} TimeMessageType;
+
+typedef enum {
+    TimeStateBoot,
+    TimeStateInSync,
+    TimeStateRetry,
+} TimeState;
 
 typedef struct {
-    SntpMessageType type;
+    TimeMessageType type;
     FuriApiLock lock;
     bool* is_success;
 
     union {
-        SntpSettings* get_settings;
-        const SntpSettings* set_settings;
+        TimeSettings* get_settings;
+        const TimeSettings* set_settings;
         LocalTime* local_time;
     };
-} SntpMessage;
+} TimeMessage;
 
-typedef bool (*SntpMessageHandler)(Sntp* instance, SntpMessage* message);
+typedef bool (*TimeMessageHandler)(Time* instance, TimeMessage* message);
 
-struct Sntp {
+struct Time {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     FuriMessageQueue* message_queue;
 
-    SntpSettings settings;
-    SntpState state;
+    TimeSettings settings;
+    TimeState state;
     bool is_time_update_ongoing;
 };
 
-static const SntpMessageHandler message_handlers[];
+static const TimeMessageHandler message_handlers[];
 
-static void time_update_callback(Sntp* instance, bool is_success) {
+static void time_update_callback(Time* instance, bool is_success) {
     furi_event_loop_set_custom_event(
         instance->event_loop,
-        is_success ? SntpCustomEventUpdateSuccess : SntpCustomEventUpdateFailure);
+        is_success ? TimeCustomEventUpdateSuccess : TimeCustomEventUpdateFailure);
 }
 
 static void time_update_timer_callback(void* context) {
-    Sntp* instance = context;
+    Time* instance = context;
 
     if(!instance->is_time_update_ongoing) {
         instance->is_time_update_ongoing = true;
-        sntp_time_update_run(instance, time_update_callback);
+        time_update_run(instance, time_update_callback);
     }
 }
 
-static bool do_get_settings(Sntp* instance, SntpMessage* message) {
+static bool do_get_settings(Time* instance, TimeMessage* message) {
     *message->get_settings = instance->settings;
 
     return true;
 }
 
-static bool do_set_settings(Sntp* instance, SntpMessage* message) {
-    if(!sntp_settings_save(message->set_settings)) return false;
+static bool do_set_settings(Time* instance, TimeMessage* message) {
+    if(!time_settings_save(message->set_settings)) return false;
 
     instance->settings = *message->set_settings;
 
@@ -94,7 +94,7 @@ static bool do_set_settings(Sntp* instance, SntpMessage* message) {
     return true;
 }
 
-static bool do_get_local_time(Sntp* instance, SntpMessage* message) {
+static bool do_get_local_time(Time* instance, TimeMessage* message) {
     DateTimeMs dt = furi_hal_rtc_get_datetime();
 
     utz_offset_t offset;
@@ -111,9 +111,9 @@ static bool do_get_local_time(Sntp* instance, SntpMessage* message) {
 static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
-    Sntp* instance = context;
+    Time* instance = context;
 
-    SntpMessage message;
+    TimeMessage message;
     furi_check(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk);
 
     bool handler_result = message_handlers[message.type](instance, &message);
@@ -123,45 +123,45 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
 }
 
 static void custom_event_callback(uint32_t events, void* context) {
-    Sntp* instance = context;
+    Time* instance = context;
 
-    if(events & SntpCustomEventUpdateSuccess) {
+    if(events & TimeCustomEventUpdateSuccess) {
         FURI_LOG_D(TAG, "SNTP time update successful");
 
         instance->is_time_update_ongoing = false;
 
         if(instance->settings.is_enabled) {
             furi_event_loop_timer_start(
-                instance->timer, SNTP_S_TO_MS(instance->settings.background_sync_interval));
-            instance->state = SntpStateInSync;
+                instance->timer, TIME_S_TO_MS(instance->settings.background_sync_interval));
+            instance->state = TimeStateInSync;
         }
-    } else if(events & SntpCustomEventUpdateFailure) {
+    } else if(events & TimeCustomEventUpdateFailure) {
         FURI_LOG_E(TAG, "SNTP time update failed");
 
         instance->is_time_update_ongoing = false;
 
         if(instance->settings.is_enabled) {
             furi_event_loop_timer_start(
-                instance->timer, SNTP_S_TO_MS(instance->settings.retry_sync_interval));
-            instance->state = SntpStateRetry;
+                instance->timer, TIME_S_TO_MS(instance->settings.retry_sync_interval));
+            instance->state = TimeStateRetry;
         }
     }
 }
 
-static void sntp_send_message(Sntp* instance, const SntpMessage* message) {
+static void time_send_message(Time* instance, const TimeMessage* message) {
     furi_check(
         furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
 
     if(message->lock) api_lock_wait_unlock_and_free(message->lock);
 }
 
-Sntp* sntp_alloc() {
-    Sntp* instance = malloc(sizeof(Sntp));
+Time* time_alloc() {
+    Time* instance = malloc(sizeof(Time));
 
-    instance->state = SntpStateBoot;
+    instance->state = TimeStateBoot;
     instance->is_time_update_ongoing = false;
     instance->event_loop = furi_event_loop_alloc();
-    instance->message_queue = furi_message_queue_alloc(SNTP_MAX_MESSAGES, sizeof(SntpMessage));
+    instance->message_queue = furi_message_queue_alloc(TIME_MAX_MESSAGES, sizeof(TimeMessage));
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, time_update_timer_callback, FuriEventLoopTimerTypeOnce, instance);
 
@@ -175,90 +175,90 @@ Sntp* sntp_alloc() {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, custom_event_callback, instance);
 
-    sntp_settings_load(&instance->settings);
+    time_settings_load(&instance->settings);
 
     if(instance->settings.is_enabled)
-        furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_delay));
+        furi_event_loop_timer_start(instance->timer, TIME_S_TO_MS(instance->settings.boot_delay));
 
-    furi_record_create(RECORD_SNTP, instance);
+    furi_record_create(RECORD_TIME, instance);
 
     return instance;
 }
 
-void sntp_get_settings(const Sntp* instance, SntpSettings* settings) {
+void time_get_settings(const Time* instance, TimeSettings* settings) {
     furi_check(instance);
     furi_check(settings);
 
-    const SntpMessage message = {
-        .type = SntpMessageTypeGetSettings,
+    const TimeMessage message = {
+        .type = TimeMessageTypeGetSettings,
         .lock = api_lock_alloc_locked(),
         .is_success = NULL,
 
         .get_settings = settings,
     };
 
-    sntp_send_message((Sntp*)instance, &message);
+    time_send_message((Time*)instance, &message);
 }
 
-bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
+bool time_set_settings(Time* instance, const TimeSettings* settings) {
     furi_check(instance);
     furi_check(settings);
 
     bool is_success;
-    const SntpMessage message = {
-        .type = SntpMessageTypeSetSettings,
+    const TimeMessage message = {
+        .type = TimeMessageTypeSetSettings,
         .lock = api_lock_alloc_locked(),
         .is_success = &is_success,
 
         .set_settings = settings,
     };
 
-    sntp_send_message(instance, &message);
+    time_send_message(instance, &message);
 
     return is_success;
 }
 
-time_t sntp_get_timestamp(void) {
+time_t time_get_timestamp(void) {
     return furi_hal_rtc_get_timestamp();
     ;
 }
 
-time_t sntp_get_timestamp_ms(void) {
+time_t time_get_timestamp_ms(void) {
     return furi_hal_rtc_get_timestamp_ms();
 }
 
-LocalTime sntp_get_local_time(Sntp* instance) {
+LocalTime time_get_local_time(Time* instance) {
     furi_check(instance);
 
     LocalTime result;
-    const SntpMessage message = {
-        .type = SntpMessageTypeGetLocalTime,
+    const TimeMessage message = {
+        .type = TimeMessageTypeGetLocalTime,
         .lock = api_lock_alloc_locked(),
         .is_success = NULL,
 
         .local_time = &result,
     };
 
-    sntp_send_message(instance, &message);
+    time_send_message(instance, &message);
 
     return result;
 }
 
-int32_t sntp_srv(void* p) {
+int32_t time_srv(void* p) {
     UNUSED(p);
 
     FURI_LOG_I(TAG, "Service starting...");
 
-    Sntp* instance = sntp_alloc();
+    Time* instance = time_alloc();
     furi_event_loop_run(instance->event_loop);
 
     return 0;
 }
 
-static const SntpMessageHandler message_handlers[] = {
-    [SntpMessageTypeGetSettings] = do_get_settings,
-    [SntpMessageTypeSetSettings] = do_set_settings,
-    [SntpMessageTypeGetLocalTime] = do_get_local_time,
+static const TimeMessageHandler message_handlers[] = {
+    [TimeMessageTypeGetSettings] = do_get_settings,
+    [TimeMessageTypeSetSettings] = do_set_settings,
+    [TimeMessageTypeGetLocalTime] = do_get_local_time,
 };
 
-static_assert(COUNT_OF(message_handlers) == SntpMessageTypesCount);
+static_assert(COUNT_OF(message_handlers) == TimeMessageTypesCount);
