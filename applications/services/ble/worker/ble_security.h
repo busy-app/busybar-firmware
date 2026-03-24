@@ -99,8 +99,8 @@ bool ble_security_rpa_enable(BleSecurityData* security);
 bool ble_security_rpa_disable();
 
 /**
- * @brief Check if RPA key exists or not
+ * @brief Check if pairing LTK key exists or not
  * 
  * @return True if exists, otherwise false
  */
-bool ble_security_rpa_present(BleSecurityData* security);
+bool ble_security_pairing_present(BleSecurityData* security);

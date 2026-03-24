@@ -33,32 +33,37 @@ static void this_scene_on_enter(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* data = this_get_scene(instance);
+    ThisScene* scene = this_get_scene(instance);
 
     LocalTime local_time = sntp_get_local_time(instance->sntp);
 
+    SntpSettings* sntp_settings = malloc(sizeof(*sntp_settings));
+    sntp_get_settings(instance->sntp, sntp_settings);
+
     with_gui(instance->gui, {
         /* front layout setup */
-        data->front_container = widget_alloc(instance->front_scene_window);
+        scene->front_container = widget_alloc(instance->front_scene_window);
 
-        data->front_clock = clock_view_alloc(data->front_container);
-        widget_set_align(clock_view_get_base(data->front_clock), AlignLeftMid);
-        widget_set_padding(clock_view_get_base(data->front_clock), 1, 0, 0, 0);
+        scene->front_clock = clock_view_alloc(scene->front_container);
+        widget_set_align(clock_view_get_base(scene->front_clock), AlignLeftMid);
+        widget_set_padding(clock_view_get_base(scene->front_clock), 1, 0, 0, 0);
 
-        clock_view_set_date_time(data->front_clock, &local_time.dt);
+        clock_view_set_show_seconds(scene->front_clock, false);
+        clock_view_set_time_format(scene->front_clock, sntp_settings->time_format);
+        clock_view_set_date_time(scene->front_clock, &local_time.dt);
 
-        AnimMenu* front_menu = anim_menu_alloc(data->front_container);
+        AnimMenu* front_menu = anim_menu_alloc(scene->front_container);
         anim_menu_set_source(front_menu, SHARED_ANIM_PATH("start_menu_31x16.anim"), 2);
         widget_set_align(anim_menu_get_base(front_menu), AlignRightMid);
 
-        OverlapFader* front_fader = overlap_fader_alloc(data->front_container);
+        OverlapFader* front_fader = overlap_fader_alloc(scene->front_container);
         widget_set_width(overlap_fader_get_base(front_fader), 10);
         overlap_fader_align_to(front_fader, anim_menu_get_base(front_menu), OverlapFaderSideLeft);
 
         /* back layout setup */
-        data->back_menu = menu_alloc(instance->back_scene_window);
+        scene->back_menu = menu_alloc(instance->back_scene_window);
         menu_add_item(
-            data->back_menu,
+            scene->back_menu,
             "Start",
             NULL,
             SHARED_IMG_PATH("start_11x11.bin"),
@@ -66,7 +71,7 @@ static void this_scene_on_enter(void* context) {
             clock_scene_start_menu_callback,
             instance);
         menu_add_item(
-            data->back_menu,
+            scene->back_menu,
             "Setup",
             NULL,
             SHARED_IMG_PATH("setup_11x11.bin"),
@@ -74,18 +79,20 @@ static void this_scene_on_enter(void* context) {
             clock_scene_start_menu_callback,
             instance);
     });
+
+    free(sntp_settings);
 }
 
 static void this_scene_on_exit(void* context) {
     furi_assert(context);
 
     ThisInstance* instance = context;
-    ThisScene* data = this_get_scene(instance);
+    ThisScene* scene = this_get_scene(instance);
 
     with_gui(instance->gui, {
-        widget_free(data->front_container);
+        widget_free(scene->front_container);
 
-        menu_free(data->back_menu);
+        menu_free(scene->back_menu);
     });
 }
 

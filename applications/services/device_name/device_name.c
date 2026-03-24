@@ -1,25 +1,11 @@
-#include "device_name.h"
 #include "device_name_i.h"
 
-#include <storage/storage.h>
-#include <toolbox/path.h>
+#include <cjson/cJSON.h>
 
-#define TAG "Name"
+#define DEVICE_NAME_MQTT_PREFIX "state"
+#define DEVICE_NAME_KEY         "name"
 
-#define MAX_NAME_LENGTH (20U)
-
-#define SETTINGS_PATH  EXT_PATH("apps_data/settings")
-#define NAME_FILE_PATH SETTINGS_PATH "/name.txt"
-
-#define DEVICE_NAME_SET_ERROR(error, format, ...)                   \
-    ({                                                              \
-        if(error) furi_string_printf(error, format, ##__VA_ARGS__); \
-    })
-
-struct DeviceName {
-    FuriMutex* lock;
-    FuriPubSub* on_change;
-};
+typedef void (*DeviceNameMessageHandler)(DeviceName* instance, const DeviceNameMessage* message);
 
 static bool device_name_validate_char(char c) {
     static const char* const allowed_special_chars = " !()-_=+;:,.?'|@#$%^&*[]{}/\\\"<>";
@@ -30,170 +16,171 @@ static bool device_name_validate_char(char c) {
     return allowed_ascii && !utf8 && !null;
 }
 
-bool device_name_validate(FuriString* name, FuriString* error) {
+DeviceNameError device_name_validate(const char* name) {
     furi_assert(name);
 
-    if(furi_string_empty(name)) {
-        DEVICE_NAME_SET_ERROR(error, "Name is empty");
-        return false;
+    if(strnlen(name, DEVICE_NAME_MAX_SIZE) == 0) {
+        return DeviceNameErrorEmpty;
     }
 
-    if(furi_string_size(name) > MAX_NAME_LENGTH) {
-        DEVICE_NAME_SET_ERROR(error, "Name exceeds %d characters", MAX_NAME_LENGTH);
-        return false;
+    if(strnlen(name, DEVICE_NAME_MAX_SIZE) > DEVICE_NAME_MAX_LENGTH) {
+        return DeviceNameErrorTooLong;
     }
 
     bool only_contains_spaces = true;
 
-    for(size_t i = 0; i < furi_string_size(name); i++) {
-        char c = furi_string_get_char(name, i);
+    for(size_t i = 0; i < strlen(name); i++) {
+        char c = name[i];
 
         if(c != ' ') only_contains_spaces = false;
 
         if(!device_name_validate_char(c)) {
-            DEVICE_NAME_SET_ERROR(error, "Disallowed character: %c", c);
-            return false;
+            return DeviceNameErrorIllegalChar;
         }
     }
 
     if(only_contains_spaces) {
-        DEVICE_NAME_SET_ERROR(error, "Name can't consist of only spaces");
-        return false;
+        return DeviceNameErrorOnlySpaces;
     }
 
-    return true;
+    return DeviceNameErrorNone;
 }
 
-static bool settings_dir_create_if_not_exist(Storage* storage) {
-    FuriString* dir_path = furi_string_alloc_set(SETTINGS_PATH);
-    bool result = path_recursive_create_dir(storage, dir_path) == FSE_OK;
-    furi_string_free(dir_path);
-    return result;
+static void device_name_publish_mqtt_message(DeviceName* instance) {
+    cJSON* json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "name", instance->settings.name);
+    char* json_text = cJSON_PrintUnformatted(json);
+    furi_check(json_text);
+
+    cJSON_Delete(json);
+
+    mqtt_publish(
+        instance->mqtt, MqttQosAtLeastOnce, DEVICE_NAME_MQTT_PREFIX, json_text, strlen(json_text));
+    free(json_text);
 }
 
-static bool device_name_save_config(Storage* storage, FuriString* name) {
-    bool result = false;
-    File* file = storage_file_alloc(storage);
+static void device_name_publish_pubsub_event(DeviceName* instance) {
+    DeviceNameEvent event = {
+        .type = DeviceNameEventTypeNameChanged,
+        .name_changed.name = instance->settings.name,
+    };
+    furi_pubsub_publish(instance->pubsub, &event);
+}
+
+static void device_name_set_handler(DeviceName* instance, const DeviceNameMessage* message) {
+    const DeviceNameMessageSetName* set_name_message = &message->data.set_name;
+    furi_assert(set_name_message->name);
+    furi_assert(set_name_message->error);
+
+    DeviceNameError error = DeviceNameErrorNone;
+
     do {
-        if(!settings_dir_create_if_not_exist(storage)) {
-            FURI_LOG_W(TAG, "Unable to create settings dir");
-            break;
-        }
+        error = device_name_validate(furi_string_get_cstr(set_name_message->name));
+        if(error != DeviceNameErrorNone) break;
 
-        if(!storage_file_open(file, NAME_FILE_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
-            FURI_LOG_W(TAG, "Unable to create name file");
-            break;
-        }
+        snprintf(
+            instance->settings.name,
+            sizeof(instance->settings.name),
+            furi_string_get_cstr(set_name_message->name));
 
-        if(!storage_file_write(file, furi_string_get_cstr(name), furi_string_size(name))) {
-            FURI_LOG_W(TAG, "Unable to write name");
+        if(!device_name_settings_save(&instance->settings)) {
+            error = DeviceNameErrorSaveFailed;
             break;
         }
-        result = true;
+        FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(set_name_message->name));
+
+        device_name_publish_mqtt_message(instance);
+
+        device_name_publish_pubsub_event(instance);
+
     } while(false);
-    storage_file_free(file);
 
-    return result;
+    *set_name_message->error = error;
 }
 
-static bool device_name_read_config(Storage* storage, FuriString* name) {
-    bool result = false;
-    File* file = storage_file_alloc(storage);
-    do {
-        if(!storage_file_open(file, NAME_FILE_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_W(TAG, "Unable to open file config");
-            break;
-        }
+static void
+    device_name_publish_name_handler(DeviceName* instance, const DeviceNameMessage* message) {
+    UNUSED(message);
 
-        uint64_t file_size = storage_file_size(file);
-        if(file_size == 0) {
-            FURI_LOG_W(TAG, "File is empty");
-            break;
-        }
-
-        char buf[MAX_NAME_LENGTH + 1] = {0};
-        size_t name_size = MIN(file_size, MAX_NAME_LENGTH);
-
-        if(!storage_file_read(file, buf, name_size)) {
-            FURI_LOG_W(TAG, "Unable to read name from file");
-            break;
-        }
-        furi_string_set_str(name, buf);
-
-        if(!device_name_validate(name, NULL)) {
-            FURI_LOG_W(TAG, "Disallowed device name in storage");
-            break;
-        }
-
-        result = true;
-    } while(false);
-    storage_file_free(file);
-    return result;
+    device_name_publish_mqtt_message(instance);
 }
 
-void device_name_get(DeviceName* instance, FuriString* name) {
-    furi_assert(instance);
-    furi_assert(name);
+static void device_name_get_handler(DeviceName* instance, const DeviceNameMessage* message) {
+    furi_string_set_str(message->data.get_name.name, instance->settings.name);
+}
 
-    furi_mutex_acquire(instance->lock, FuriWaitForever);
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+static const DeviceNameMessageHandler device_name_handlers[DeviceNameMessageTypeMax] = {
+    [DeviceNameMessageTypeGetName] = device_name_get_handler,
+    [DeviceNameMessageTypeSetName] = device_name_set_handler,
+    [DeviceNameMessageTypeMqttPublish] = device_name_publish_name_handler,
+};
 
-    if(!storage_file_exists(storage, NAME_FILE_PATH) || !device_name_read_config(storage, name)) {
-        furi_string_set_str(name, DEVICE_NAME_DEFAULT);
-        FURI_LOG_I(TAG, "Default name used");
+static void device_name_message_queue_callback(FuriEventLoopObject* object, void* context) {
+    DeviceName* instance = context;
+    furi_assert(object == instance->queue);
 
-        if(!device_name_save_config(storage, name)) {
-            FURI_LOG_E(TAG, "Failed to save name");
-        }
+    DeviceNameMessage message = {};
+    furi_check(furi_message_queue_get(instance->queue, &message, FuriWaitForever) == FuriStatusOk);
+    furi_assert(message.type < DeviceNameMessageTypeMax);
+
+    device_name_handlers[message.type](instance, &message);
+
+    if(message.api_lock) {
+        api_lock_unlock(message.api_lock);
     }
-
-    furi_record_close(RECORD_STORAGE);
-    furi_mutex_release(instance->lock);
 }
 
-bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) {
-    furi_assert(instance);
-    furi_assert(name);
+static void device_name_mqtt_events_pubsub_callback(const void* msg, void* context) {
+    furi_assert(msg);
+    furi_assert(context);
 
-    bool result = false;
-    furi_mutex_acquire(instance->lock, FuriWaitForever);
+    DeviceName* instance = context;
+    const MqttEvent* mqtt_event = msg;
 
-    do {
-        if(!device_name_validate(name, error)) break;
-
-        Storage* storage = furi_record_open(RECORD_STORAGE);
-        if(device_name_save_config(storage, name)) {
-            FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(name));
-            result = true;
-            furi_pubsub_publish(instance->on_change, name);
-        } else {
-            DEVICE_NAME_SET_ERROR(error, "Failed to save name");
-        }
-        furi_record_close(RECORD_STORAGE);
-    } while(false);
-
-    furi_mutex_release(instance->lock);
-    return result;
+    if((mqtt_event->type == MqttEventTypeStatusChanged) &&
+       (mqtt_event->status_changed.status == MqttStatusConnectedLinked)) {
+        DeviceNameMessage message = {
+            .api_lock = NULL,
+            .type = DeviceNameMessageTypeMqttPublish,
+        };
+        furi_check(
+            furi_message_queue_put(instance->queue, &message, FuriWaitForever) == FuriStatusOk);
+    }
 }
 
-FuriPubSub* device_name_get_pubsub(DeviceName* instance) {
-    furi_assert(instance);
-    return instance->on_change;
-}
-
-int device_name_startup(void* arg) {
-    UNUSED(arg);
-
+static DeviceName* device_name_alloc(void) {
     DeviceName* instance = malloc(sizeof(DeviceName));
-    instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->on_change = furi_pubsub_alloc();
+
+    instance->event_loop = furi_event_loop_alloc();
+    instance->queue = furi_message_queue_alloc(1, sizeof(DeviceNameMessage));
+    instance->pubsub = furi_pubsub_alloc();
+
+    device_name_settings_load(&instance->settings);
+    FURI_LOG_I(TAG, "Device name: %s", instance->settings.name);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->queue,
+        FuriEventLoopEventIn,
+        device_name_message_queue_callback,
+        instance);
+
+    instance->mqtt = furi_record_open(RECORD_MQTT);
+    instance->mqtt_events_pubsub = mqtt_get_pubsub(instance->mqtt);
+    furi_pubsub_subscribe(
+        instance->mqtt_events_pubsub, device_name_mqtt_events_pubsub_callback, instance);
 
     furi_record_create(RECORD_DEVICE_NAME, instance);
 
-    FuriString* name = furi_string_alloc();
-    device_name_get(instance, name);
-    FURI_LOG_I(TAG, "Device name: %s", furi_string_get_cstr(name));
-    furi_string_free(name);
+    return instance;
+}
+
+int32_t device_name_srv(void* arg) {
+    UNUSED(arg);
+
+    DeviceName* instance = device_name_alloc();
+
+    furi_event_loop_run(instance->event_loop);
 
     return 0;
 }

@@ -1,5 +1,4 @@
 #include "../clock_i.h"
-#include "../settings/settings.h"
 
 #include <gui/modules/var_item_list.h>
 
@@ -12,7 +11,6 @@ typedef struct {
     VarItemList* back_list;
 
     FuriMutex* settings_mutex;
-    ClockSettings settings;
 } ThisScene;
 
 static inline ThisScene* this_get_scene(ThisInstance* instance) {
@@ -24,7 +22,7 @@ static void this_list_show_date_callback(VarItem* item, void* context) {
     ThisScene* scene = this_get_scene(instance);
 
     furi_mutex_acquire(scene->settings_mutex, FuriWaitForever);
-    scene->settings.show_date = var_item_get_value(item);
+    instance->settings.show_date = var_item_get_value(item);
     furi_mutex_release(scene->settings_mutex);
 
     clock_app_fire_event(instance, ThisSceneEventChange);
@@ -35,7 +33,7 @@ static void this_list_show_seconds_callback(VarItem* item, void* context) {
     ThisScene* scene = this_get_scene(instance);
 
     furi_mutex_acquire(scene->settings_mutex, FuriWaitForever);
-    scene->settings.show_seconds = var_item_get_value(item);
+    instance->settings.show_seconds = var_item_get_value(item);
     furi_mutex_release(scene->settings_mutex);
 
     clock_app_fire_event(instance, ThisSceneEventChange);
@@ -48,7 +46,6 @@ static void this_scene_on_enter(void* context) {
     ThisScene* scene = this_get_scene(instance);
 
     scene->settings_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    clock_settings_load(&scene->settings);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -56,22 +53,22 @@ static void this_scene_on_enter(void* context) {
 
         VarItem* front_show_date_item = var_item_list_add_switch(
             scene->front_list, "Show date", this_list_show_date_callback, instance);
-        var_item_set_value(front_show_date_item, scene->settings.show_date);
+        var_item_set_value(front_show_date_item, instance->settings.show_date);
 
         VarItem* front_show_seconds_item = var_item_list_add_switch(
             scene->front_list, "Show seconds", this_list_show_seconds_callback, instance);
-        var_item_set_value(front_show_seconds_item, scene->settings.show_seconds);
+        var_item_set_value(front_show_seconds_item, instance->settings.show_seconds);
 
         /* back layout setup */
         scene->back_list = var_item_list_alloc(instance->back_scene_window);
 
         VarItem* back_show_date_item =
             var_item_list_add_switch(scene->back_list, "Show date", NULL, NULL);
-        var_item_set_value(back_show_date_item, scene->settings.show_date);
+        var_item_set_value(back_show_date_item, instance->settings.show_date);
 
         VarItem* back_show_seconds_item =
             var_item_list_add_switch(scene->back_list, "Show seconds", NULL, NULL);
-        var_item_set_value(back_show_seconds_item, scene->settings.show_seconds);
+        var_item_set_value(back_show_seconds_item, instance->settings.show_seconds);
     });
 }
 
@@ -99,7 +96,7 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
         switch(event->event) {
         case ThisSceneEventChange:
             furi_mutex_acquire(scene->settings_mutex, FuriWaitForever);
-            ClockSettings settings = scene->settings;
+            ClockSettings settings = instance->settings;
             furi_mutex_release(scene->settings_mutex);
 
             clock_settings_save(&settings);

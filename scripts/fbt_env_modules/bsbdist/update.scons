@@ -1,169 +1,96 @@
+from enum import IntFlag
+
 Import("U5_ENV", "SIL_ENV", "DIST_ENV")
+
+
+# Must match UpdateManifestSecurityFlag in update_manifest.h
+class UpdateManifestSecurityFlag(IntFlag):
+    NwpSigned = 1 << 0
+    M4Signed = 1 << 1
+    NwpEncrypted = 1 << 2
+    M4Encrypted = 1 << 3
+    U5Encrypted = 1 << 4
+
 
 dist_env = DIST_ENV
 u5_env = U5_ENV
 sil_env = SIL_ENV
+fw_env = u5_env["FW_ENV"]
 
-base_args = [
-    "${PYTHON3}",
-    dist_env.Real("#scripts/update_bundle.py"),
-    "--target",
-    u5_env.subst("$TARGET_HW"),
-    "--stage",
-    u5_env["UPD_ENV"]["FW_BIN"][0],
-    "--dfu",
-    u5_env["FW_ENV"]["FW_DFU"][0],
-    "--sil-fw",
-    sil_env["FW_ENV"]["FW_RPS"][0],
+# Environment with update bundle builder, configured with common bundle parameters
+bundle_env = dist_env.Clone(
+    tools=["bsb_update_bundle"],
+    BUNDLE_TARGET_HW=u5_env.subst("$TARGET_HW"),
+    BUNDLE_STAGE=u5_env["UPD_ENV"]["FW_BIN"][0],
+    BUNDLE_DFU=fw_env["FW_DFU"][0],
+    BUNDLE_SIL_FW=sil_env["FW_ENV"]["FW_RPS"][0],
+)
+
+# Common dependencies shared by all bundle variants
+base_deps = [
+    u5_env["UPD_ENV"]["FW_BIN"],
+    fw_env["FW_DFU"],
+    sil_env["FW_ENV"]["FW_RPS"],
 ]
 
-tar_args = ["--output-tar", "$TARGET"]
-tgz_args = ["--output-tgz", "$TARGET"]
+# --- Full update bundle (with resources + radio firmware) ---
 
-res_args = [
-    "--resources",
-    u5_env["FW_ENV"]["RESOURCES_ROOT"],
-    "--sil-radio-fw",
-    dist_env.Real(sil_env["SI917_NWP_STACK"]),  # FIXME
-]
-
-bkp_args = ["--bkp-resources", u5_env["FW_ENV"]["BKP_RESOURCES_ROOT"]]
-
-update_tar = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tar"),
-    None,
-    [base_args + tar_args + res_args],
+full_env = bundle_env.Clone(
+    BUNDLE_RESOURCES=fw_env["RESOURCES_ROOT"],
+    BUNDLE_SIL_RADIO_FW=dist_env.Real(sil_env["SI917_NWP_STACK"]),
 )
 
-Depends(
+update_tar = full_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/update_${F_TARGET_HW}"),
+    [],
+)
+Depends(update_tar, base_deps + [fw_env["FW_RESOURCES_MANIFEST"]])
+
+update_tgz = bundle_env.CompressBundle(
+    fw_env.File("${BUILD_DIR}/update_${F_TARGET_HW}.tgz"),
     update_tar,
-    [
-        u5_env["UPD_ENV"]["FW_BIN"],
-        u5_env["FW_ENV"]["FW_DFU"],
-        u5_env["FW_ENV"]["FW_RESOURCES_MANIFEST"],
-        sil_env["FW_ENV"]["FW_RPS"],
-    ],
 )
 
-update_tgz = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tgz"),
-    update_tar,
-    action=[
-        [
-            "${PYTHON3}",
-            "-m", 
-            "gzip", 
-            "--best", 
-            "${SOURCE}"
-        ],
-        Move("${TARGET}", "${SOURCE}.gz")
-    ]
+bundle_env.FlashOverHttp("flash_usb", update_tgz)
+bundle_env.FlashOverHttp("flash_usb_tar", update_tar)
+
+# --- Minimal update bundle (no resources, no radio firmware) ---
+
+min_update_tar = bundle_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/min_update_${F_TARGET_HW}"),
+    [],
 )
+Depends(min_update_tar, base_deps)
 
-dist_env.PhonyTarget(
-    "flash_usb",
-    [
-        [
-            "${PYTHON3}",
-            dist_env.Real("#scripts/update_over_http.py"),
-            "--file",
-            "${SOURCE}",
-        ]
-    ],
-    source=update_tgz,
-)
-
-dist_env.PhonyTarget(
-    "flash_usb_tar",
-    [
-        [
-            "${PYTHON3}",
-            dist_env.Real("#scripts/update_over_http.py"),
-            "--file",
-            "${SOURCE}",
-        ]
-    ],
-    source=update_tar,
-)
-
-
-# Tar without radio firmware for minimal update package
-min_update_tar = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tar"),
-    None,
-    [base_args + tar_args],
-)
-
-Depends(
+min_update_tgz = bundle_env.CompressBundle(
+    fw_env.File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tgz"),
     min_update_tar,
-    [
-        u5_env["UPD_ENV"]["FW_BIN"],
-        u5_env["FW_ENV"]["FW_DFU"],
-        sil_env["FW_ENV"]["FW_RPS"],
-    ],
 )
 
-min_update_tgz = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tgz"),
-    min_update_tar,
-    action=[
-        [
-            "${PYTHON3}",
-            "-m", 
-            "gzip", 
-            "--best", 
-            "${SOURCE}"
-        ],
-        Move("${TARGET}", "${SOURCE}.gz")
-    ]
+bundle_env.FlashOverHttp("flash_usb_min", min_update_tgz)
+bundle_env.FlashOverHttp("flash_usb_min_tar", min_update_tar)
+
+# --- Recovery bundle (with resources + radio firmware + bkp resources) ---
+
+bkp_env = full_env.Clone(
+    BUNDLE_BKP_RESOURCES=fw_env["BKP_RESOURCES_ROOT"],
 )
 
-
-dist_env.PhonyTarget(
-    "flash_usb_min",
-    [
-        [
-            "${PYTHON3}",
-            dist_env.Real("#scripts/update_over_http.py"),
-            "--file",
-            "${SOURCE}",
-        ]
-    ],
-    source=min_update_tgz,
+bkp_tar = bkp_env.UpdateBundle(
+    fw_env.File("${BUILD_DIR}/bkp_${F_TARGET_HW}"),
+    [],
 )
-
-dist_env.PhonyTarget(
-    "flash_usb_min_tar",
-    [
-        [
-            "${PYTHON3}",
-            dist_env.Real("#scripts/update_over_http.py"),
-            "--file",
-            "${SOURCE}",
-        ]
-    ],
-    source=min_update_tar,
-)
-
-# Recovery firmware including BKP assets
-update_bkp_tgz = dist_env.Command(
-    u5_env["FW_ENV"].File("${BUILD_DIR}/bkp_${F_TARGET_HW}.tgz"),
-    None,
-    [base_args + tgz_args + res_args + bkp_args],
-)
-
 Depends(
-    update_bkp_tgz,
-    [
-        u5_env["UPD_ENV"]["FW_BIN"],
-        u5_env["FW_ENV"]["FW_DFU"],
-        u5_env["FW_ENV"]["FW_RESOURCES_MANIFEST"],
-        u5_env["FW_ENV"]["FW_BKP_RESOURCES"],
-        sil_env["FW_ENV"]["FW_RPS"],
-    ],
+    bkp_tar,
+    base_deps + [fw_env["FW_RESOURCES_MANIFEST"], fw_env["FW_BKP_RESOURCES"]],
 )
 
-# Dist folder
+update_bkp_tgz = bundle_env.CompressBundle(
+    fw_env.File("${BUILD_DIR}/bkp_${F_TARGET_HW}.tgz"),
+    bkp_tar,
+)
+
+# --- Dist folder ---
 
 dist_flavor = "".join(
     ["C" if u5_env["COMPACT"] else "", "D" if u5_env["DEBUG"] else ""]
@@ -175,103 +102,128 @@ if dist_flavor:
 
 dist_dir = u5_env.Dir(dist_dir_path)
 
-installs = []
-installs.extend(
-    (
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}.tar")
-            ),
-            update_tar,
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}.tgz")
-            ),
-            update_tgz,
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-bkp-${DIST_SUFFIX}.tgz")
-            ),
-            update_bkp_tgz,
-        ),
-        # U5 firmware artifacts
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-firmware-${DIST_SUFFIX}.elf")
-            ),
-            u5_env["FW_ENV"]["FW_ELF"][0],
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-firmware-${DIST_SUFFIX}.dfu")
-            ),
-            u5_env["FW_ENV"]["FW_DFU"][0],
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-firmware-${DIST_SUFFIX}.bin")
-            ),
-            u5_env["FW_ENV"]["FW_BIN"][0],
-        ),
-        # Updater artifacts
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-updater-${DIST_SUFFIX}.elf")
-            ),
-            u5_env["UPD_ENV"]["FW_ELF"][0],
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-updater-${DIST_SUFFIX}.dfu")
-            ),
-            u5_env["UPD_ENV"]["FW_DFU"][0],
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-updater-${DIST_SUFFIX}.bin")
-            ),
-            u5_env["UPD_ENV"]["FW_BIN"][0],
-        ),
-        # Silabs artifacts
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-sil_firmware-${DIST_SUFFIX}.rps")
-            ),
-            sil_env["FW_ENV"]["FW_RPS"][0],
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-sil_firmware-${DIST_SUFFIX}.elf")
-            ),
-            sil_env["FW_ENV"]["FW_ELF"][0],
-        ),
-        InstallAs(
-            dist_dir.File(
-                u5_env.subst("busybar-${F_TARGET_HW}-sil_nwp-${DIST_SUFFIX}.rps")
-            ),
-            sil_env["FW_ENV"]["SI917_NWP_STACK"],
-        ),
-    )
-)
 
+def _dist_file(name, ext):
+    return dist_dir.File(
+        u5_env.subst(f"busybar-${{F_TARGET_HW}}-{name}-${{DIST_SUFFIX}}.{ext}")
+    )
+
+
+installs = [
+    # Update bundles
+    InstallAs(_dist_file("update", "tar"), update_tar),
+    InstallAs(_dist_file("update", "tgz"), update_tgz),
+    InstallAs(_dist_file("bkp", "tgz"), update_bkp_tgz),
+    # U5 firmware artifacts
+    InstallAs(_dist_file("firmware", "elf"), fw_env["FW_ELF"][0]),
+    InstallAs(_dist_file("firmware", "dfu"), fw_env["FW_DFU"][0]),
+    InstallAs(_dist_file("firmware", "bin"), fw_env["FW_BIN"][0]),
+    # Updater artifacts
+    InstallAs(_dist_file("updater", "elf"), u5_env["UPD_ENV"]["FW_ELF"][0]),
+    InstallAs(_dist_file("updater", "dfu"), u5_env["UPD_ENV"]["FW_DFU"][0]),
+    InstallAs(_dist_file("updater", "bin"), u5_env["UPD_ENV"]["FW_BIN"][0]),
+    # Silabs artifacts
+    InstallAs(_dist_file("sil_firmware", "rps"), sil_env["FW_ENV"]["FW_RPS"][0]),
+    InstallAs(_dist_file("sil_firmware", "elf"), sil_env["FW_ENV"]["FW_ELF"][0]),
+    InstallAs(_dist_file("sil_nwp", "rps"), sil_env["FW_ENV"]["SI917_NWP_STACK"]),
+]
+
+# Resources zip
 zip_env = dist_env.Clone(tools=["zip"])
 resources_zip = zip_env.Zip(
-    dist_dir.File(u5_env.subst("busybar-${F_TARGET_HW}-resources-${DIST_SUFFIX}.zip")),
-    u5_env["FW_ENV"]["RESOURCES_ROOT"],
-    ZIPROOT=u5_env["FW_ENV"]["RESOURCES_ROOT"],
+    _dist_file("resources", "zip"),
+    fw_env["RESOURCES_ROOT"],
+    ZIPROOT=fw_env["RESOURCES_ROOT"],
 )
-Depends(resources_zip, u5_env["FW_ENV"]["FW_RESOURCES_MANIFEST"])
+Depends(resources_zip, fw_env["FW_RESOURCES_MANIFEST"])
 Alias("resources_dist", resources_zip)
 installs.append(resources_zip)
 
-
 Default(installs)
 
-dist_env.Alias(
-    "update_bundle",
-    update_tar,
-)
-
+dist_env.Alias("update_bundle", update_tar)
 dist_env.Alias("dist", installs)
+
+# --- Signed builds (only when SI917_SIGN_KEYSTORE is provided) ---
+
+sil_sign_keystore = sil_env.subst("${SI917_SIGN_KEYSTORE}")
+if sil_sign_keystore:
+    sign_env = dist_env.Clone(
+        tools=["fwsign_silabs"],
+        SI917_SIGN_KEYSTORE=sil_sign_keystore,
+        COMMANDER_CLI=sil_env.subst("${COMMANDER_CLI}"),
+    )
+
+    # Sign firmware RPS
+    signed_fw_rps = sign_env.RPSSign(
+        fw_env.File("${BUILD_DIR}/sil_firmware_signed.rps"),
+        sil_env["FW_ENV"]["FW_RPS"][0],
+    )
+
+    # Sign NWP stack RPS
+    signed_nwp_rps = sign_env.RPSSign(
+        fw_env.File("${BUILD_DIR}/sil_nwp_signed.rps"),
+        dist_env.File(sil_env["SI917_NWP_STACK"]),
+    )
+
+    # Signed update bundle (full, with resources + signed Silabs firmwares)
+    signed_bundle_env = bundle_env.Clone(
+        BUNDLE_SIL_FW=signed_fw_rps[0],
+        BUNDLE_RESOURCES=fw_env["RESOURCES_ROOT"],
+        BUNDLE_SIL_RADIO_FW=signed_nwp_rps[0],
+        BUNDLE_SECURITY_FLAGS=str(
+            int(
+                UpdateManifestSecurityFlag.NwpSigned
+                | UpdateManifestSecurityFlag.M4Signed
+            )
+        ),
+    )
+
+    signed_update_tar = signed_bundle_env.UpdateBundle(
+        fw_env.File("${BUILD_DIR}/update_signed_${F_TARGET_HW}"),
+        [],
+    )
+    Depends(
+        signed_update_tar,
+        base_deps + [fw_env["FW_RESOURCES_MANIFEST"], signed_fw_rps, signed_nwp_rps],
+    )
+
+    signed_update_tgz = bundle_env.CompressBundle(
+        fw_env.File("${BUILD_DIR}/update_signed_${F_TARGET_HW}.tgz"),
+        signed_update_tar,
+    )
+
+    # Signed recovery bundle (full + bkp resources + signed Silabs firmwares)
+    signed_bkp_env = signed_bundle_env.Clone(
+        BUNDLE_BKP_RESOURCES=fw_env["BKP_RESOURCES_ROOT"],
+    )
+
+    signed_bkp_tar = signed_bkp_env.UpdateBundle(
+        fw_env.File("${BUILD_DIR}/bkp_signed_${F_TARGET_HW}"),
+        [],
+    )
+    Depends(
+        signed_bkp_tar,
+        base_deps
+        + [
+            fw_env["FW_RESOURCES_MANIFEST"],
+            fw_env["FW_BKP_RESOURCES"],
+            signed_fw_rps,
+            signed_nwp_rps,
+        ],
+    )
+
+    signed_bkp_tgz = bundle_env.CompressBundle(
+        fw_env.File("${BUILD_DIR}/bkp_signed_${F_TARGET_HW}.tgz"),
+        signed_bkp_tar,
+    )
+
+    signed_installs = [
+        InstallAs(_dist_file("update_signed", "tar"), signed_update_tar),
+        InstallAs(_dist_file("update_signed", "tgz"), signed_update_tgz),
+        InstallAs(_dist_file("bkp_signed", "tgz"), signed_bkp_tgz),
+        InstallAs(_dist_file("sil_firmware_signed", "rps"), signed_fw_rps),
+        InstallAs(_dist_file("sil_nwp_signed", "rps"), signed_nwp_rps),
+    ]
+
+    dist_env.Alias("dist_signed", signed_installs)

@@ -1,0 +1,23 @@
+name: Cleanup signing keystore
+description: Remove the signing keystore file created during the build
+
+inputs:
+  keystore_path:
+    description: Path to the keystore file to remove
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Wipe keystore file
+      if: always()
+      shell: bash
+      run: |
+        set -euo pipefail
+        KEYSTORE="${{ inputs.keystore_path }}"
+        if [[ -f "$KEYSTORE" ]]; then
+          shred -u "$KEYSTORE" 2>/dev/null || rm -f "$KEYSTORE"
+          echo "Keystore file removed: $KEYSTORE"
+        else
+          echo "Keystore file not found (already cleaned or never created): $KEYSTORE"
+        fi
