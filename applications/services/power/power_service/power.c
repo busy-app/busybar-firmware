@@ -364,6 +364,8 @@ static void power_update_info(Power* power) {
     Bq25798AdcValues adc_val = {0};
     furi_check(bq25798_get_adc_values(POWER_I2C, &adc_val));
 
+    power->charger_enabled = bq25798_is_charge_enabled(POWER_I2C);
+
     furi_hal_i2c_release(POWER_I2C);
 
 #if 0
