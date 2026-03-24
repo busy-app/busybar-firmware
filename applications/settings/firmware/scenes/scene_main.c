@@ -3,28 +3,29 @@
 #include <gui/modules/submenu.h>
 
 typedef enum {
-    ThisSceneEventCheckForUpdate = ThisEventSceneEventsStart,
-    ThisSceneEventSettings,
-} ThisSceneEvent;
+    FirmwareSettingsMainSceneEventCheckForUpdate = FirmwareSettingsEventSceneEventsStart,
+    FirmwareSettingsMainSceneEventSettings,
+} FirmwareSettingsMainSceneEvent;
 
 typedef struct {
     Submenu* front_submenu;
     Submenu* back_submenu;
-} ThisScene;
+} FirmwareSettingsMainScene;
 
-static inline ThisScene* this_get_scene(ThisInstance* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxMain);
+static inline FirmwareSettingsMainScene*
+    firmware_settings_main_scene_get(FirmwareSettings* instance) {
+    return scene_manager_get_scene_data(instance->scene_manager, FirmwareSettingsSceneIdxMain);
 }
 
-static void this_submenu_item_callback(uint32_t index, void* context) {
-    settings_firmware_app_fire_event(context, index);
+static void firmware_settings_main_scene_submenu_callback(uint32_t index, void* context) {
+    firmware_settings_internal_fire_event(context, index);
 }
 
-static void this_scene_on_enter(void* context) {
+static void firmware_settings_main_scene_on_enter(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsMainScene* scene = firmware_settings_main_scene_get(instance);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -33,15 +34,15 @@ static void this_scene_on_enter(void* context) {
         submenu_add_item(
             scene->front_submenu,
             "Check for update",
-            ThisSceneEventCheckForUpdate,
-            this_submenu_item_callback,
+            FirmwareSettingsMainSceneEventCheckForUpdate,
+            firmware_settings_main_scene_submenu_callback,
             instance);
 
         submenu_add_item(
             scene->front_submenu,
             "Settings",
-            ThisSceneEventSettings,
-            this_submenu_item_callback,
+            FirmwareSettingsMainSceneEventSettings,
+            firmware_settings_main_scene_submenu_callback,
             instance);
 
         /* back layout setup */
@@ -51,11 +52,11 @@ static void this_scene_on_enter(void* context) {
     });
 }
 
-static void this_scene_on_exit(void* context) {
+static void firmware_settings_main_scene_on_exit(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsMainScene* scene = firmware_settings_main_scene_get(instance);
 
     with_gui(instance->gui, {
         submenu_free(scene->back_submenu);
@@ -63,19 +64,19 @@ static void this_scene_on_exit(void* context) {
     });
 }
 
-static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool firmware_settings_main_scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
+    FirmwareSettings* instance = context;
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisSceneEventCheckForUpdate:
-            scene_manager_next_scene(instance->scene_manager, ThisSceneIdxCheck);
+        case FirmwareSettingsMainSceneEventCheckForUpdate:
+            scene_manager_next_scene(instance->scene_manager, FirmwareSettingsSceneIdxCheck);
             return true;
 
-        case ThisSceneEventSettings:
-            scene_manager_next_scene(instance->scene_manager, ThisSceneIdxSettings);
+        case FirmwareSettingsMainSceneEventSettings:
+            scene_manager_next_scene(instance->scene_manager, FirmwareSettingsSceneIdxSettings);
 
             with_gui(instance->gui, {
                 nav_bar_push_location(instance->back_nav_bar, "SETTINGS");
@@ -90,9 +91,9 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene settings_firmware_app_scene_main = {
-    .enter_callback = this_scene_on_enter,
-    .exit_callback = this_scene_on_exit,
-    .event_callback = this_scene_on_event,
-    .data_size = sizeof(ThisScene),
+const Scene firmware_settings_internal_scene_main = {
+    .enter_callback = firmware_settings_main_scene_on_enter,
+    .exit_callback = firmware_settings_main_scene_on_exit,
+    .event_callback = firmware_settings_main_scene_on_event,
+    .data_size = sizeof(FirmwareSettingsMainScene),
 };
