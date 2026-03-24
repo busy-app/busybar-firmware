@@ -16,12 +16,12 @@ typedef struct {
 } SettingsSceneTimezone;
 
 static void scene_timezone_on_submenu_item(uint32_t index, void* context) {
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     time_settings_send_custom_event(instance, index);
 }
 
 static void scene_timezone_fill_submenu(
-    TimeSettingsUi* instance,
+    TimeSettingsApp* instance,
     Submenu* menu,
     const TzutilTzInfoList* list,
     bool do_set_callbacks,
@@ -41,7 +41,7 @@ static void scene_timezone_fill_submenu(
     submenu_set_selected_item_index(menu, selected_index);
 }
 
-static size_t get_current_timezone_index(TimeSettingsUi* instance) {
+static size_t get_current_timezone_index(TimeSettingsApp* instance) {
     SettingsSceneTimezone* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
     TimeSettings time_settings;
@@ -58,7 +58,7 @@ static size_t get_current_timezone_index(TimeSettingsUi* instance) {
 static void scene_timezone_on_enter(void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneTimezone* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
 
@@ -80,7 +80,7 @@ static void scene_timezone_on_enter(void* context) {
 static void scene_timezone_on_exit(void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneTimezone* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
 
@@ -95,7 +95,7 @@ static void scene_timezone_on_exit(void* context) {
 static bool scene_timezone_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {

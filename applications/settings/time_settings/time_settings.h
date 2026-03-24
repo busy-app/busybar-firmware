@@ -46,9 +46,9 @@ typedef struct {
 
     Time* time;
 
-} TimeSettingsUi;
+} TimeSettingsApp;
 
-void time_settings_send_custom_event(TimeSettingsUi* instance, uint32_t event);
+void time_settings_send_custom_event(TimeSettingsApp* instance, uint32_t event);
 
 #ifdef __cplusplus
 }

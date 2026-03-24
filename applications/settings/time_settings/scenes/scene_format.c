@@ -15,7 +15,7 @@ const char* time_settings_format_names[TimeSettingTimeFormatCount] =
     {[TimeSettingTimeFormat24h] = "24h", [TimeSettingTimeFormat12h] = "12h"};
 
 static void scene_main_on_changed(VarItem* item, void* context) {
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
 
     TimeSettings time_settings;
     time_get_settings(instance->time, &time_settings);
@@ -28,7 +28,7 @@ static void scene_main_on_changed(VarItem* item, void* context) {
 static void scene_format_on_enter(void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneFormat* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFormat);
 
@@ -63,7 +63,7 @@ static void scene_format_on_enter(void* context) {
 static void scene_format_on_exit(void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneFormat* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFormat);
 
@@ -77,7 +77,7 @@ static void scene_format_on_exit(void* context) {
 static bool scene_format_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {

@@ -8,7 +8,7 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
 
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
@@ -25,7 +25,7 @@ static void event_queue_callback(FuriEventLoopObject* object, void* context) {
 
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
 
     uint32_t event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
@@ -37,7 +37,7 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == InputTypeShort) {
@@ -54,8 +54,8 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static TimeSettingsUi* time_settings_alloc(void) {
-    TimeSettingsUi* instance = malloc(sizeof(TimeSettingsUi));
+static TimeSettingsApp* time_settings_alloc(void) {
+    TimeSettingsApp* instance = malloc(sizeof(TimeSettingsApp));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
@@ -110,7 +110,7 @@ static TimeSettingsUi* time_settings_alloc(void) {
     return instance;
 }
 
-static void time_settings_free(TimeSettingsUi* instance) {
+static void time_settings_free(TimeSettingsApp* instance) {
     scene_manager_free(instance->scene_manager);
 
     with_gui(instance->gui, {
@@ -148,7 +148,7 @@ int32_t time_settings_entry(void* arg) {
         return 0;
     }
 
-    TimeSettingsUi* instance = time_settings_alloc();
+    TimeSettingsApp* instance = time_settings_alloc();
     FuriThread* thread = furi_thread_get_current();
     furi_event_loop_run(instance->event_loop);
     furi_thread_set_signal_callback(thread, NULL, NULL);
@@ -157,7 +157,7 @@ int32_t time_settings_entry(void* arg) {
     return 0;
 }
 
-void time_settings_send_custom_event(TimeSettingsUi* instance, uint32_t event) {
+void time_settings_send_custom_event(TimeSettingsApp* instance, uint32_t event) {
     furi_assert(instance);
 
     furi_check(

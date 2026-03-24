@@ -22,7 +22,7 @@ enum MenuId {
 };
 
 static void scene_menu_on_submenu_item(uint32_t index, void* context) {
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     UNUSED(instance);
 
     switch(index) {
@@ -40,7 +40,7 @@ static void scene_menu_on_submenu_item(uint32_t index, void* context) {
 static void scene_menu_on_enter(void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneMenu* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMenu);
 
     TimeSettings time_settings;
@@ -89,7 +89,7 @@ static void scene_menu_on_enter(void* context) {
 static void scene_menu_on_exit(void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneMenu* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMenu);
 
     with_gui(instance->gui, {
@@ -101,7 +101,7 @@ static void scene_menu_on_exit(void* context) {
 static bool scene_menu_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    TimeSettingsUi* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
