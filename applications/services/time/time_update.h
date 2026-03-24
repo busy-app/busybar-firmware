@@ -8,7 +8,7 @@ extern "C" {
 
 typedef void (*TimeTimeUpdateCallback)(Time* instance, bool is_success);
 
-void time_time_update_run(Time* instance, TimeTimeUpdateCallback callback);
+void time_update_run(Time* instance, TimeTimeUpdateCallback callback);
 
 #ifdef __cplusplus
 }

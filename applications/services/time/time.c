@@ -17,6 +17,7 @@
 typedef enum {
     TimeCustomEventUpdateSuccess = 1 << 0,
     TimeCustomEventUpdateFailure = 1 << 1,
+    TimeCustomEventWifiConnected = 1 << 2,
 } TimeCustomEvent;
 
 typedef enum {
@@ -55,6 +56,9 @@ struct Time {
     TimeSettings settings;
     TimeState state;
     bool is_time_update_ongoing;
+
+    Wifi* wifi;
+    WifiState last_state; //<! only accessed by external thread in `time_wifi_callback`
 };
 
 static const TimeMessageHandler message_handlers[];
@@ -65,12 +69,29 @@ static void time_update_callback(Time* instance, bool is_success) {
         is_success ? TimeCustomEventUpdateSuccess : TimeCustomEventUpdateFailure);
 }
 
+static void time_do_update(Time* instance) {
+    furi_assert(instance);
+    if(instance->is_time_update_ongoing) return;
+    instance->is_time_update_ongoing = true;
+    time_update_run(instance, time_update_callback);
+}
+
 static void time_update_timer_callback(void* context) {
     Time* instance = context;
+    FURI_LOG_T(TAG, "updating: background timer fired");
+    time_do_update(instance);
+}
 
-    if(!instance->is_time_update_ongoing) {
-        instance->is_time_update_ongoing = true;
-        time_update_run(instance, time_update_callback);
+static void time_wifi_callback(const void* item, void* context) {
+    Time* instance = context;
+    const WifiInfo* wifi_info = item;
+
+    if(wifi_info->state == instance->last_state) return;
+    instance->last_state = wifi_info->state;
+
+    if(wifi_info->state == WifiStateConnected) {
+        FURI_LOG_T(TAG, "updating: wi-fi connected");
+        furi_event_loop_set_custom_event(instance->event_loop, TimeCustomEventWifiConnected);
     }
 }
 
@@ -135,6 +156,7 @@ static void custom_event_callback(uint32_t events, void* context) {
                 instance->timer, TIME_S_TO_MS(instance->settings.background_sync_interval));
             instance->state = TimeStateInSync;
         }
+
     } else if(events & TimeCustomEventUpdateFailure) {
         FURI_LOG_E(TAG, "SNTP time update failed");
 
@@ -145,6 +167,10 @@ static void custom_event_callback(uint32_t events, void* context) {
                 instance->timer, TIME_S_TO_MS(instance->settings.retry_sync_interval));
             instance->state = TimeStateRetry;
         }
+    }
+
+    if(events & TimeCustomEventWifiConnected) {
+        time_do_update(instance);
     }
 }
 
@@ -179,6 +205,9 @@ Time* time_alloc() {
 
     if(instance->settings.is_enabled)
         furi_event_loop_timer_start(instance->timer, TIME_S_TO_MS(instance->settings.boot_delay));
+
+    instance->wifi = furi_record_open(RECORD_WIFI);
+    furi_state_subscribe(wifi_get_state(instance->wifi), time_wifi_callback, instance);
 
     furi_record_create(RECORD_TIME, instance);
 
