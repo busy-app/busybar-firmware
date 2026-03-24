@@ -364,10 +364,12 @@ static bool api_update_raw_hdr_callback(
 
 static bool api_update_raw_request_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(path);
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
