@@ -59,15 +59,15 @@ bool http_api_name_callback(
             }
 
             DeviceName* dev_name = furi_record_open(RECORD_DEVICE_NAME);
-            DeviceNameError status = device_name_set(dev_name, name);
-            furi_assert(status < DeviceNameErrorMax);
+            DeviceNameError error = device_name_set(dev_name, name);
+            furi_assert(error < DeviceNameErrorMax);
 
             furi_record_close(RECORD_DEVICE_NAME);
 
-            if(status == DeviceNameErrorNone) {
+            if(error == DeviceNameErrorNone) {
                 MG_REPLY_OK(conn);
             } else {
-                MG_REPLY_ERROR(conn, 400, device_name_error_message[status]);
+                MG_REPLY_ERROR(conn, 400, device_name_error_message[error]);
             }
         } while(false);
 
