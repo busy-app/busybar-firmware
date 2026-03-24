@@ -17,36 +17,57 @@
 #if defined(SRV_SL_INFO)
 typedef struct {
     const char* key;
+    const char* enabled_value; // value that means "flag is active"
     uint32_t flag;
 } SlInfoSecurityMapping;
 
 static const SlInfoSecurityMapping sl_security_mappings[] = {
-    {"sl_nwp_signature", UpdateManifestSecurityFlagNwpSigned},
-    {"sl_m4_signature", UpdateManifestSecurityFlagM4Signed},
-    {"sl_nwp_encryption", UpdateManifestSecurityFlagNwpEncrypted},
-    {"sl_m4_encryption", UpdateManifestSecurityFlagM4Encrypted},
+    {"sl_nwp_signature", "true", UpdateManifestSecurityFlagNwpSigned},
+    {"sl_m4_signature", "true", UpdateManifestSecurityFlagM4Signed},
+    {"sl_nwp_encrypt", NULL, UpdateManifestSecurityFlagNwpEncrypted},
+    {"sl_m4_encrypt", "true", UpdateManifestSecurityFlagM4Encrypted},
 };
 
-static uint32_t updater_get_device_security_flags(void) {
+static bool updater_get_device_security_flags(uint32_t* flags_out) {
     uint32_t device_flags = 0;
+    bool is_ready = true;
     const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
 
     for(size_t i = 0; i < COUNT_OF(sl_security_mappings); i++) {
         const char* value = NULL;
-        if(sl_info_get_value(sl_info, sl_security_mappings[i].key, &value) == SlInfoStatusOk) {
-            if(strcmp(value, "true") == 0) {
-                device_flags |= sl_security_mappings[i].flag;
+        SlInfoStatus status = sl_info_get_value(sl_info, sl_security_mappings[i].key, &value);
+        if(status == SlInfoStatusNotReady) {
+            is_ready = false;
+            break;
+        }
+        if(status == SlInfoStatusOk) {
+            const char* expected = sl_security_mappings[i].enabled_value;
+            if(expected) {
+                if(strcmp(value, expected) == 0) {
+                    device_flags |= sl_security_mappings[i].flag;
+                }
+            } else {
+                // For mode-style values (e.g. "none"/"ctr"/"xts"), any value other than "none" means enabled
+                if(strcmp(value, "none") != 0) {
+                    device_flags |= sl_security_mappings[i].flag;
+                }
             }
         }
     }
 
     furi_record_close(RECORD_SL_INFO);
-    return device_flags;
+    *flags_out = device_flags;
+    return is_ready;
 }
 
 static UpdaterStatus updater_verify_security_flags(const UpdateManifest* manifest) {
     const uint32_t manifest_flags = updater_manifest_get_security_flags(manifest);
-    const uint32_t device_flags = updater_get_device_security_flags();
+
+    uint32_t device_flags = 0;
+    if(!updater_get_device_security_flags(&device_flags)) {
+        FURI_LOG_W(TAG, "SL info not ready, skipping security check");
+        return UpdaterStatusOk;
+    }
 
     const uint32_t check_mask =
         UpdateManifestSecurityFlagNwpSigned | UpdateManifestSecurityFlagM4Signed |
