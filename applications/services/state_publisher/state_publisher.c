@@ -26,6 +26,8 @@
 
 #define MAX_TRANSPORTS 16
 
+#define HEARTBEAT_INTERVAL_MS 991
+
 typedef enum {
     StreamFlagMQTT = 1 << StatePublisherTransportClassMQTT,
     StreamFlagWebSocket = 1 << StatePublisherTransportClassWebSocket,
@@ -50,6 +52,8 @@ struct StatePublisher {
 
     ScreenStreamer* screen_streamer_front;
     // ScreenStreamer* screen_streamer_back;
+
+    FuriEventLoopTimer* heartbeat_timer;
 
     Power* power;
     Audio* audio;
@@ -106,6 +110,8 @@ static void publish_audio(StatePublisher* instance);
 static void publish_matter(StatePublisher* instance);
 static void publish_update_check(StatePublisher* instance, const UpdaterCheckState* check_state);
 static void publish_busy_timer(StatePublisher* instance);
+
+static void heartbeat_timer_callback(void* context);
 
 void screen_streamer_callback(
     GuiDisplayId display,
@@ -202,6 +208,9 @@ static StatePublisher* state_publisher_alloc(void) {
         message_queue_callback,
         instance);
 
+    instance->heartbeat_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, heartbeat_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+
     instance->gui = furi_record_open(RECORD_GUI);
 
     instance->screen_streamer_front = screen_streamer_alloc(
@@ -216,6 +225,9 @@ static StatePublisher* state_publisher_alloc(void) {
 
     screen_streamer_start(instance->screen_streamer_front);
     // screen_streamer_start(instance->screen_streamer_back);
+
+    furi_event_loop_timer_start(
+        instance->heartbeat_timer, furi_ms_to_ticks(HEARTBEAT_INTERVAL_MS));
 
     furi_record_create(RECORD_STATE_PUBLISHER, instance);
 
@@ -325,7 +337,7 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     BSB_State_StateUpdate* update = message->update.data;
     BSB_State_State state = {
         .timestamp = sntp_get_timestamp_ms(),
-        .updates_count = 1,
+        .updates_count = update ? 1 : 0,
         .updates = (BSB_State_StateUpdate*)update,
     };
 
@@ -356,8 +368,9 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     }
     shared_ptr_release(data);
 
-    free_state_update(update);
-    UNUSED(instance);
+    if(update) {
+        free_state_update(update);
+    }
     return true;
 }
 
@@ -956,4 +969,9 @@ void screen_streamer_callback(
     update->state.frame.data->size = frame->data_size;
     memcpy(&update->state.frame.data->bytes, frame->data, frame->data_size);
     schedule_state_update(instance, update, stream_flags);
+}
+
+static void heartbeat_timer_callback(void* context) {
+    StatePublisher* instance = context;
+    schedule_state_update(instance, NULL, StreamFlagAll);
 }
