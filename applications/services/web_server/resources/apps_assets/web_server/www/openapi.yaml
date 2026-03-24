@@ -1048,6 +1048,26 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/status/ws:
+    get:
+      tags:
+        - Streaming
+      summary: Device status streaming WebSocket endpoint
+      description: |
+        WebSocket connection for real-time device status and screen streaming.
+        Upgrade from HTTP to WebSocket protocol is required.
+        After connection, client must enable streaming by sending JSON: {"enabled": true}
+      operationId: connectWebSocket
+      responses:
+        "101":
+          description: WebSocket connection established
+        "400":
+          description: Exceed max clients count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/wifi/status:
     get:
       tags:
