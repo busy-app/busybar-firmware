@@ -7,6 +7,7 @@
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/mirror_card.h>
+#include <gui/modules/transition_overlay.h>
 #include <audio/audio.h>
 #include <status_lights/status_lights.h>
 #include <matter/matter.h>
@@ -26,7 +27,6 @@
 
 #include "widgets/timer_label.h"
 #include "widgets/timer_indicator.h"
-#include "widgets/transition_overlay.h"
 
 #define TAG "Busy"
 

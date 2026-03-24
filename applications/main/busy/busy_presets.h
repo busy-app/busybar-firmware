@@ -5,9 +5,10 @@
 
 #include <toolbox/color.h>
 
+#include <gui/modules/transition_overlay.h>
+
 #include "widgets/timer_label.h"
 #include "widgets/timer_indicator.h"
-#include "widgets/transition_overlay.h"
 
 typedef enum {
     BusyTransitionTypeDefault,
