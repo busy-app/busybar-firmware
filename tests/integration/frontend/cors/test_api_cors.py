@@ -56,8 +56,8 @@ API_ENDPOINTS = [
     "/api/busy/snapshot",
     "/api/busy/profiles/busy",
     "/api/busy/profiles/custom",
-    "/api/matter/commissioning",
-    "/api/matter/endpoint/1",
+    "/api/smart_home/pairing",
+    "/api/smart_home/switch",
 ]
 
 

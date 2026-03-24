@@ -126,14 +126,14 @@ from .busy import (
     BusySnapshotResponse,
 )
 
-# Matter API
+# Smart Home API
 from .matter import (
-    CommissioningStatus,
-    MatterAPI,
-    MatterCommissioningPayload,
-    MatterCommissioningResponse,
-    MatterEndpointState,
-    MatterResultResponse,
+    PairingStatus,
+    SmartHomeAPI,
+    SmartHomePairingPayload,
+    SmartHomePairingResponse,
+    SmartHomeSwitchState,
+    SmartHomeResultResponse,
 )
 
 __all__ = [
@@ -203,10 +203,10 @@ __all__ = [
     "BusyProfileResponse",
     "BusyBarSettings",
     "BusyResultResponse",
-    "MatterAPI",
-    "MatterCommissioningResponse",
-    "MatterCommissioningPayload",
-    "MatterEndpointState",
-    "MatterResultResponse",
-    "CommissioningStatus",
+    "SmartHomeAPI",
+    "SmartHomePairingResponse",
+    "SmartHomePairingPayload",
+    "SmartHomeSwitchState",
+    "SmartHomeResultResponse",
+    "PairingStatus",
 ]

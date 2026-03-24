@@ -1,12 +1,12 @@
 """
-Matter API client and Pydantic models.
+Smart Home API client and Pydantic models.
 
 Endpoints:
-- GET /api/matter/commissioning
-- POST /api/matter/commissioning
-- DELETE /api/matter/commissioning
-- GET /api/matter/endpoint/1
-- POST /api/matter/endpoint/1
+- GET /api/smart_home/pairing
+- POST /api/smart_home/pairing
+- DELETE /api/smart_home/pairing
+- GET /api/smart_home/switch
+- POST /api/smart_home/switch
 """
 
 from __future__ import annotations
@@ -21,38 +21,37 @@ from .base import BaseAPI
 # === Response Models ===
 
 
-class CommissioningStatus(BaseModel):
-    """Commissioning status details."""
+class PairingStatus(BaseModel):
+    """Pairing status details."""
 
     value: Literal["never_started", "started", "completed_successfully", "failed"]
     timestamp: str | None = None
 
 
-class MatterCommissioningResponse(BaseModel):
-    """Response from GET /api/matter/commissioning."""
+class SmartHomePairingResponse(BaseModel):
+    """Response from GET /api/smart_home/pairing."""
 
     fabric_count: int
-    latest_commissioning_status: CommissioningStatus
+    latest_pairing_status: PairingStatus
 
 
-class MatterCommissioningPayload(BaseModel):
-    """Response from POST /api/matter/commissioning."""
+class SmartHomePairingPayload(BaseModel):
+    """Response from POST /api/smart_home/pairing."""
 
     available_until: str
     qr_code: str
     manual_code: str
 
 
-class MatterEndpointState(BaseModel):
-    """Response from GET /api/matter/endpoint/1."""
+class SmartHomeSwitchState(BaseModel):
+    """Response from GET /api/smart_home/switch."""
 
-    type: Literal["switch"]
     state: bool
     startup: str | None = None
 
 
-class MatterResultResponse(BaseModel):
-    """Generic matter operation result."""
+class SmartHomeResultResponse(BaseModel):
+    """Generic smart home operation result."""
 
     result: str
 
@@ -60,42 +59,42 @@ class MatterResultResponse(BaseModel):
 # === API Client ===
 
 
-class MatterAPI(BaseAPI):
+class SmartHomeAPI(BaseAPI):
     """
-    Matter API client.
+    Smart Home API client.
 
     Endpoints:
-    - GET /api/matter/commissioning - Get commissioning status
-    - POST /api/matter/commissioning - Start commissioning
-    - DELETE /api/matter/commissioning - Erase all commissioning
-    - GET /api/matter/endpoint/1 - Get endpoint 1 state
-    - POST /api/matter/endpoint/1 - Set endpoint 1 state
+    - GET /api/smart_home/pairing - Get pairing status
+    - POST /api/smart_home/pairing - Start pairing
+    - DELETE /api/smart_home/pairing - Erase all pairing info
+    - GET /api/smart_home/switch - Get switch state
+    - POST /api/smart_home/switch - Set switch state
     """
 
-    def get_commissioning(self) -> MatterCommissioningResponse:
-        """Get Matter commissioning status."""
-        return self.get("/api/matter/commissioning", MatterCommissioningResponse)
+    def get_pairing(self) -> SmartHomePairingResponse:
+        """Get smart home pairing status."""
+        return self.get("/api/smart_home/pairing", SmartHomePairingResponse)
 
-    def start_commissioning(self):
-        """Start Matter commissioning. Returns payload or 503 error."""
-        return self.post_raw("/api/matter/commissioning", data=b"")
+    def start_pairing(self):
+        """Start smart home pairing. Returns payload or 503 error."""
+        return self.post_raw("/api/smart_home/pairing", data=b"")
 
-    def erase_commissioning(self):
-        """Erase all Matter commissioning info."""
-        return self.delete_raw("/api/matter/commissioning")
+    def erase_pairing(self):
+        """Erase all smart home pairing info."""
+        return self.delete_raw("/api/smart_home/pairing")
 
-    def get_endpoint_state(self) -> MatterEndpointState:
-        """Get Matter endpoint 1 state."""
-        return self.get("/api/matter/endpoint/1", MatterEndpointState)
+    def get_switch_state(self) -> SmartHomeSwitchState:
+        """Get smart home switch state."""
+        return self.get("/api/smart_home/switch", SmartHomeSwitchState)
 
-    def set_endpoint_state(self, state: bool):
+    def set_switch_state(self, state: bool):
         """
-        Set Matter endpoint 1 state.
+        Set smart home switch state.
 
         Args:
             state: Switch state (true/false)
         """
         return self.post_raw(
-            "/api/matter/endpoint/1",
-            json={"type": "switch", "state": state},
+            "/api/smart_home/switch",
+            json={"state": state},
         )

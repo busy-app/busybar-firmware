@@ -9,7 +9,7 @@ from clients.api.system import DeviceInfo, FirmwareInfo, TimezoneResponse, Timez
 def time_settings_guard(system_api: SystemAPI):
     """Restore device time and timezone after a test."""
     original_time = system_api.get_time().timestamp
-    original_tz = system_api.get_timezone().timezone
+    original_tz = system_api.get_timezone().name
 
     yield original_time, original_tz
 
@@ -158,7 +158,8 @@ class TestTimeAPI:
         """Test GET /api/time/timezone endpoint"""
         response = system_api.get_timezone()
 
-        assert response.timezone
+        assert response.name
+        assert response.offset
 
     @allure.title("GET /api/time/tzlist")
     @pytest.mark.api
