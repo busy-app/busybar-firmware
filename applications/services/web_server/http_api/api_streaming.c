@@ -7,7 +7,6 @@
 
 #define TAG "Stream"
 
-#define STREAM_DEBUG
 #ifdef STREAM_DEBUG
 #define STREAM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
 #define STREAM_LOG_W(...) FURI_LOG_W(TAG, __VA_ARGS__)
