@@ -48,7 +48,8 @@ MU_TEST(device_name_test_validation_basic) {
     }
 
     for(size_t i = 0; i < COUNT_OF(disallowed_names); i++) {
-        mu_assert_int_eq(false, device_name_validate(disallowed_names[i].name));
+        mu_assert_int_eq(
+            disallowed_names[i].status, device_name_validate(disallowed_names[i].name));
     }
 }
 
