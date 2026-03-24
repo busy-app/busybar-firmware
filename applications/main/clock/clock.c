@@ -95,7 +95,9 @@ static bool clock_input_callback(const InputEvent* event, void* context) {
         FuriStatus queue_status =
             furi_message_queue_put(instance->input_queue, event, INPUT_QUEUE_TIMEOUT_MS);
 
-        if(queue_status != FuriStatusOk) FURI_LOG_E(TAG, "Input queue failure");
+        if(queue_status != FuriStatusOk) {
+            FURI_LOG_E(TAG, "Failed to put an item into input queue.");
+        }
 
         return true;
     }
@@ -237,5 +239,7 @@ void clock_internal_fire_event(Clock* instance, uint32_t event) {
     FuriStatus queue_status =
         furi_message_queue_put(instance->event_queue, &event, EVENT_QUEUE_TIMEOUT_MS);
 
-    if(queue_status != FuriStatusOk) FURI_LOG_E(TAG, "Event queue failure");
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Failed to put an item into event queue.");
+    }
 }
