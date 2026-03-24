@@ -35,8 +35,7 @@ static void intercom_meta_handle_channel_ready(
 
 static void intercom_meta_handle_heartbeat_received(Intercom* instance) {
     UNUSED(instance);
-    // TODO: React to this somehow?
-    FURI_LOG_D(TAG, "Heartbeat received");
+    INTERCOM_LOG_D("Heartbeat received");
 }
 
 static void intercom_meta_send_frame(Intercom* instance, const IntercomMetaFrame* frame) {
@@ -63,7 +62,7 @@ void intercom_meta_send_heartbeat(Intercom* instance) {
 
     intercom_meta_send_frame(instance, &frame);
 
-    FURI_LOG_D(TAG, "Heartbeat sent");
+    INTERCOM_LOG_D(TAG, "Heartbeat sent");
 }
 
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame) {
