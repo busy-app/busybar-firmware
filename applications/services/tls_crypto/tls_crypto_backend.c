@@ -53,11 +53,18 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
         furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
 
     if(hal_status == FuriHalCryptoStatusOk) {
+        const FuriHalCryptoWrappingMode wrap_mode = key->header.flags & FuriHalCryptoKeyFlagWrap ?
+                                                        FuriHalCryptoWrappingModeOn :
+                                                        FuriHalCryptoWrappingModeOff;
+        if(wrap_mode == FuriHalCryptoWrappingModeOff) {
+            FURI_LOG_W(TAG, "Using unwrapped private key");
+        }
+
         FuriHalCryptoEcdsa* sign_ctx = furi_hal_crypto_ecdsa_sign_init(
             FuriHalCryptoEcdsaModeSha256,
             key->data,
             FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
-            FuriHalCryptoWrappingModeOff);
+            wrap_mode);
 
         const TlsCryptoMessage* message = &sign_message_request->message;
         TlsCryptoSignature* signature = &sign_message_response->signature;
