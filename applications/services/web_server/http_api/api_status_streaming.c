@@ -13,7 +13,7 @@
 #endif
 
 #define MAX_CLIENTS_COUNT          (4)
-#define MAX_PUBLISH_MESSAGES_COUNT (4)
+#define MAX_PUBLISH_MESSAGES_COUNT (8)
 
 #define FRAME_QUEUE_TIMEOUT          (10)
 #define FRAME_INTERVAL_MS            (100)
