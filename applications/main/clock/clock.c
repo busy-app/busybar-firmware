@@ -139,6 +139,10 @@ static Clock* clock_alloc(const char* arguments) {
         Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_scene_window = widget_alloc(front_root);
 
+        instance->front_transition_overlay = transition_overlay_alloc(front_root);
+        transition_overlay_set_pressed_widget(
+            instance->front_transition_overlay, instance->front_scene_window);
+
         Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
 

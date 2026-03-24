@@ -17,6 +17,18 @@ typedef struct {
     Menu* back_menu;
 } ClockSceneMain;
 
+static const TransitionOverlayPreset clock_scene_main_start_transition_overlay_preset = {
+    .type = TransitionOverlayTypeMask,
+    .blend_mode = TransitionOverlayBlendModeAdd,
+    .timings =
+        {
+            .in_ms = 100,
+            .out_ms = 1000,
+        },
+    .effect = TransitionOverlayEffectPress,
+    .mask.file_path = SHARED_ANIM_PATH("transition_select_72x16.anim"),
+};
+
 static void clock_scene_main_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
 
@@ -113,6 +125,11 @@ static bool clock_scene_main_on_event(const SceneManagerEvent* event, void* cont
             with_gui(instance->gui, {
                 widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
             });
+
+            transition_overlay_set_preset(
+                instance->front_transition_overlay,
+                &clock_scene_main_start_transition_overlay_preset);
+            transition_overlay_show(instance->front_transition_overlay);
 
             scene_manager_next_scene(instance->scene_manager, ClockSceneIdxClock);
             return true;

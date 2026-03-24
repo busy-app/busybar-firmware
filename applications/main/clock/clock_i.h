@@ -12,6 +12,7 @@
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
+#include <gui/modules/transition_overlay.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +51,7 @@ typedef struct {
     ClockSettings settings;
 
     /* Front layout */
+    TransitionOverlay* front_transition_overlay;
     Widget* front_scene_window;
 
     /* Back layout */
