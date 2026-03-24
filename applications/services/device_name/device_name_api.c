@@ -24,19 +24,19 @@ DeviceNameError device_name_set(DeviceName* instance, const FuriString* name) {
     furi_check(instance);
     furi_check(name);
 
-    DeviceNameError status = DeviceNameErrorNone;
+    DeviceNameError error = DeviceNameErrorNone;
 
     DeviceNameMessage message = {
         .type = DeviceNameMessageTypeSetName,
         .data.set_name =
             {
                 .name = name,
-                .status = &status,
+                .error = &error,
             },
     };
     device_name_send_message(instance, &message);
 
-    return status;
+    return error;
 }
 
 FuriPubSub* device_name_get_pubsub(DeviceName* instance) {

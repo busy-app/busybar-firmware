@@ -70,13 +70,13 @@ static void device_name_publish_pubsub_event(DeviceName* instance) {
 static void device_name_set_handler(DeviceName* instance, const DeviceNameMessage* message) {
     const DeviceNameMessageSetName* set_name_message = &message->data.set_name;
     furi_assert(set_name_message->name);
-    furi_assert(set_name_message->status);
+    furi_assert(set_name_message->error);
 
-    DeviceNameError status = DeviceNameErrorNone;
+    DeviceNameError error = DeviceNameErrorNone;
 
     do {
-        status = device_name_validate(furi_string_get_cstr(set_name_message->name));
-        if(status != DeviceNameErrorNone) break;
+        error = device_name_validate(furi_string_get_cstr(set_name_message->name));
+        if(error != DeviceNameErrorNone) break;
 
         snprintf(
             instance->settings.name,
@@ -84,7 +84,7 @@ static void device_name_set_handler(DeviceName* instance, const DeviceNameMessag
             furi_string_get_cstr(set_name_message->name));
 
         if(!device_name_settings_save(&instance->settings)) {
-            status = DeviceNameErrorSaveFailed;
+            error = DeviceNameErrorSaveFailed;
             break;
         }
         FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(set_name_message->name));
@@ -95,7 +95,7 @@ static void device_name_set_handler(DeviceName* instance, const DeviceNameMessag
 
     } while(false);
 
-    *set_name_message->status = status;
+    *set_name_message->error = error;
 }
 
 static void

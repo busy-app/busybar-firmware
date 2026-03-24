@@ -40,7 +40,7 @@ typedef struct {
 
 typedef struct {
     const FuriString* name;
-    DeviceNameError* status;
+    DeviceNameError* error;
 } DeviceNameMessageSetName;
 
 typedef union {
