@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 12.0.0
+  version: 13.0.0
   contact:
     name: tbd
 
@@ -2793,7 +2793,7 @@ components:
       properties:
         state:
           type: boolean
-          description: 'State of emulated switch.'
+          description: "State of emulated switch."
           example: false
         startup:
           type: string
@@ -2802,7 +2802,7 @@ components:
             - "on"
             - toggle
             - last
-          description: 'State of emulated switch on startup. Never sent by the server, but can be specified by the client.'
+          description: "State of emulated switch on startup. Never sent by the server, but can be specified by the client."
 
 tags:
   - name: System
