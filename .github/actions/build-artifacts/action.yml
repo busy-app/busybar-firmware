@@ -39,6 +39,10 @@ inputs:
     description: Generate sha256 sums for produced artifacts
     required: false
     default: "true"
+  signing_keystore:
+    description: Path to commander-cli keystore JSON for signing Silabs RPS files. Leave empty to skip signing.
+    required: false
+    default: ""
 
 outputs:
   artifact_path:
@@ -146,7 +150,13 @@ runs:
           # shellcheck disable=SC2206
           ARGS+=( ${FBT_EXTRA_ARGS} )
         fi
-        bash ./fbt "${ARGS[@]}" dist
+        TARGETS=(dist)
+        SIGNING_KEYSTORE="${{ inputs.signing_keystore }}"
+        if [[ -n "$SIGNING_KEYSTORE" ]]; then
+          ARGS+=("SI917_SIGN_KEYSTORE=${SIGNING_KEYSTORE}")
+          TARGETS+=(dist_signed)
+        fi
+        bash ./fbt "${ARGS[@]}" "${TARGETS[@]}"
 
     - name: Build recovery DFU
       shell: bash

@@ -35,6 +35,7 @@ typedef enum {
 
     UpdaterStatusInstallationPrepareManifestNotFound, /**< Update manifest file not found */
     UpdaterStatusInstallationPrepareManifestInvalid, /**< Manifest file validation failed */
+    UpdaterStatusInstallationPrepareSecurityMismatch, /**< Bundle security flags don't match device */
     UpdaterStatusInstallationPrepareSessionConfigSetupFailure, /**< Failed to save session configuration */
     UpdaterStatusInstallationPreparePointerSetupFailure, /**< Failed to write pointer file */
 

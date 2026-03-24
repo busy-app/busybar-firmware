@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scenes/scenes.h"
+#include "settings/settings.h"
 
 #include <gui/gui.h>
 #include <time/time.h>
@@ -45,6 +46,8 @@ typedef struct {
     Time* time;
     Desktop* desktop;
     Updater* updater;
+
+    ClockSettings settings;
 
     /* Front layout */
     Widget* front_scene_window;
