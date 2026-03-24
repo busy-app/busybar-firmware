@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { decodeStateMessage, type StateMessage } from '@/util/stateStreamMessage';
 
 export const useStateStreamStore = defineStore('stateStream', () => {
   const deviceStore = useDeviceStore();
@@ -8,7 +9,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
   const websocket = ref<WebSocket | null>(null);
 
-  type DataCallback = (data: Uint8Array) => void;
+  type DataCallback = (data: StateMessage) => void;
   type StopCallback = () => void;
 
   // const restartTimeout = ref<NodeJS.Timeout | null>(null);
@@ -25,8 +26,12 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     };
 
     websocket.value.onmessage = event => {
-      const data = new Uint8Array(event.data);
-      dataCallback(data);
+      try {
+        const data = decodeStateMessage(event.data);
+        dataCallback(data);
+      } catch (error) {
+        console.error('State publisher websocket decode error', error);
+      }
 
       /* if (restartTimeout.value) {
         clearTimeout(restartTimeout.value);

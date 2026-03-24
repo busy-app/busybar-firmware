@@ -6,7 +6,7 @@
     <UContainer>
       <UButton
         label="start state streaming"
-        @click="stateStreamStore.startStateStream(console.log, console.error)"
+        @click="stateStreamStore.startStateStream(logDecodedState, console.error)"
       />
       <UButton
         label="stop state streaming"
@@ -82,6 +82,15 @@ async function init () {
     }
   }
   shouldLoadDefaultPage.value = true;
+}
+
+function logDecodedState (data: StateMessage) {
+  const updatesWithoutFrames = data.updates.filter(update => !update.frame);
+  if (updatesWithoutFrames.length > 0) {
+    console.log(updatesWithoutFrames);
+  } else {
+    console.log('incoming frame');
+  }
 }
 
 onMounted(async () => {
