@@ -4,6 +4,14 @@
     class="w-screen min-h-screen px-4 sm:px-6 py-4"
   >
     <UContainer>
+      <UButton
+        label="start state streaming"
+        @click="stateStreamStore.startStateStream(console.log, console.error)"
+      />
+      <UButton
+        label="stop state streaming"
+        @click="stateStreamStore.stopStateStream()"
+      />
       <template v-if="shouldLoadDefaultPage">
         <DefaultLayoutHeader />
         <DefaultLayoutPreview class="pb-6" />
@@ -43,6 +51,7 @@
 const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
+const stateStreamStore = useStateStreamStore();
 
 if (!useRuntimeConfig().public.disablePolling) {
   deviceStore.setRefreshInterval();
