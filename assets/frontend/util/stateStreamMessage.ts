@@ -12,6 +12,15 @@ export interface ProtoMessage {
   [key: string]: ProtoValue;
 }
 
+export interface StateFrameMessage extends ProtoMessage {
+  screen?: 'FRONT' | 'BACK';
+  width?: number;
+  height?: number;
+  encoding?: 'PLAIN' | 'RUN_LENGTH' | 'DEFLATE' | 'DEFLATE_RUN_LENGTH';
+  pixelFormat?: 'RGB888' | 'L8' | 'L4';
+  data?: Uint8Array;
+}
+
 export interface StateUpdatePayloadMap {
   deviceName: ProtoMessage;
   power: ProtoMessage;
@@ -22,7 +31,7 @@ export interface StateUpdatePayloadMap {
   updateCheck: ProtoMessage;
   timezone: ProtoMessage;
   matter: ProtoMessage;
-  frame: ProtoMessage;
+  frame: StateFrameMessage;
   input: ProtoMessage;
   timer: ProtoMessage;
 }
@@ -40,7 +49,7 @@ export interface StateUpdateMessage extends ProtoMessage {
   updateCheck?: ProtoMessage;
   timezone?: ProtoMessage;
   matter?: ProtoMessage;
-  frame?: ProtoMessage;
+  frame?: StateFrameMessage;
   input?: ProtoMessage;
   timer?: ProtoMessage;
 }
@@ -59,6 +68,37 @@ const conversionOptions: IConversionOptions = {
 };
 
 let stateType: Type | null = null;
+
+function normalizeFrameMessage (frame: ProtoMessage | undefined): StateFrameMessage | undefined {
+  if (!frame) {
+    return undefined;
+  }
+
+  return {
+    ...frame,
+    screen: (frame.screen as StateFrameMessage['screen']) ?? 'FRONT',
+    encoding: (frame.encoding as StateFrameMessage['encoding']) ?? 'PLAIN',
+    pixelFormat: (frame.pixelFormat as StateFrameMessage['pixelFormat']) ?? 'RGB888'
+  };
+}
+
+function normalizeStateUpdate (update: StateUpdateMessage): StateUpdateMessage {
+  if (update.state !== 'frame') {
+    return update;
+  }
+
+  return {
+    ...update,
+    frame: normalizeFrameMessage(update.frame)
+  };
+}
+
+function normalizeStateMessage (message: StateMessage): StateMessage {
+  return {
+    ...message,
+    updates: (message.updates ?? []).map(update => normalizeStateUpdate(update as StateUpdateMessage))
+  };
+}
 
 function getStateType (): Type {
   if (!stateType) {
@@ -82,7 +122,7 @@ export function decodeStateMessage (message: ArrayBuffer | Uint8Array): StateMes
   const type = getStateType();
   const decodedMessage = type.decode(normalizeBinaryMessage(message));
 
-  return type.toObject(decodedMessage, conversionOptions) as StateMessage;
+  return normalizeStateMessage(type.toObject(decodedMessage, conversionOptions) as StateMessage);
 }
 
 export function getStateUpdatePayload (update: StateUpdateMessage): ProtoMessage | undefined {

@@ -4,14 +4,6 @@
     class="w-screen min-h-screen px-4 sm:px-6 py-4"
   >
     <UContainer>
-      <UButton
-        label="start state streaming"
-        @click="stateStreamStore.startStateStream(logDecodedState, console.error)"
-      />
-      <UButton
-        label="stop state streaming"
-        @click="stateStreamStore.stopStateStream()"
-      />
       <template v-if="shouldLoadDefaultPage">
         <DefaultLayoutHeader />
         <DefaultLayoutPreview class="pb-6" />
@@ -84,25 +76,44 @@ async function init () {
   shouldLoadDefaultPage.value = true;
 }
 
-function logDecodedState (data: StateMessage) {
-  const updatesWithoutFrames = data.updates.filter(update => !update.frame);
-  if (updatesWithoutFrames.length > 0) {
-    console.log(updatesWithoutFrames);
-  } else {
-    console.log('incoming frame');
+function logStateUpdates (message: StateMessage) {
+  for (const update of message.updates) {
+    console.log(update.state, update); // log the raw protobuf message for now
   }
+}
+
+async function initStateStream () {
+  try {
+    await stateStreamStore.startStateStream(logStateUpdates, console.error);
+  } catch (error) {
+    console.error('Error starting state stream:', error);
+    toast.add({
+      id: 'state-stream-error',
+      title: 'Error starting state stream',
+      description: error instanceof Error ? error.message : 'An error occurred while starting the state stream.',
+      color: 'error',
+      duration: 5000
+    });
+  }
+}
+
+async function handleDeviceReconnected () {
+  await init();
+  await initStateStream();
 }
 
 onMounted(async () => {
   await init();
-  window.addEventListener('device-reconnected', init);
+  await initStateStream();
+  window.addEventListener('device-reconnected', handleDeviceReconnected);
   window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 
 onBeforeUnmount(() => {
   deviceStore.clearRefreshInterval();
   firmwareStore.clearAutoUpdateBackgroundCheckInterval();
-  window.removeEventListener('device-reconnected', init);
+  stateStreamStore.stopStateStream();
+  window.removeEventListener('device-reconnected', handleDeviceReconnected);
   window.removeEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 </script>
