@@ -89,6 +89,7 @@ App(
         "ble",
         "tls_crypto",
         "sl_info",
+        "supervisor",
     ],
     targets=["f64", "f65"],
 )
