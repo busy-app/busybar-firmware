@@ -116,7 +116,9 @@ class TimeResponse(BaseModel):
 class TimezoneResponse(BaseModel):
     """Response from GET /api/time/timezone."""
 
-    timezone: str
+    name: str
+    offset: str
+    abbr: str | None = None
 
 
 class TimezoneItem(BaseModel):
