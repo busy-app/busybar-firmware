@@ -4,6 +4,7 @@
 
 #include <furi_hal_version.h>
 #include <cjson/cJSON.h>
+#include <sl_info/sl_info.h>
 
 #define TAG "UpdateParser"
 
@@ -29,9 +30,33 @@
         snprintf(target, sizeof(target), "f%u", furi_hal_version_get_hw_target()); \
         target;                                                                    \
     })
-#define UPDATE_PARSER_BRANCH_FILE_NAME_FW_FOUND "update_tgz"
+#define UPDATE_PARSER_BRANCH_FILE_NAME_FW_UNSIGNED "update_tgz"
+#define UPDATE_PARSER_BRANCH_FILE_NAME_FW_SIGNED   "update_signed_tgz"
 
-static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMetadata* metadata) {
+static const char* update_parser_get_file_type(void) {
+#if defined(SRV_SL_INFO)
+    const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
+    const char* value = NULL;
+    const char* file_type = UPDATE_PARSER_BRANCH_FILE_NAME_FW_UNSIGNED;
+
+    if(sl_info_get_value(sl_info, "sl_m4_signature", &value) == SlInfoStatusOk) {
+        if(strcmp(value, "true") == 0) {
+            file_type = UPDATE_PARSER_BRANCH_FILE_NAME_FW_SIGNED;
+        }
+    }
+
+    furi_record_close(RECORD_SL_INFO);
+    return file_type;
+#else
+    return UPDATE_PARSER_BRANCH_FILE_NAME_FW_UNSIGNED;
+#endif
+}
+
+static bool parse_update_json(
+    cJSON* json_root,
+    const char* branch_id,
+    const char* file_type,
+    UpdateMetadata* metadata) {
     bool is_success = false;
 
     do {
@@ -120,7 +145,7 @@ static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMet
                     if(!cJSON_IsString(type)) {
                         continue;
                     }
-                    if(strcmp(type->valuestring, UPDATE_PARSER_BRANCH_FILE_NAME_FW_FOUND) != 0) {
+                    if(strcmp(type->valuestring, file_type) != 0) {
                         continue;
                     }
 
@@ -195,7 +220,9 @@ bool update_parser_metadata_parse(
         }
 
         cJSON* root = cJSON_Parse(file_buffer);
-        is_success = parse_update_json(root, branch_id, metadata);
+        const char* file_type = update_parser_get_file_type();
+        FURI_LOG_I(TAG, "Using update file type: %s", file_type);
+        is_success = parse_update_json(root, branch_id, file_type, metadata);
 
         cJSON_Delete(root);
         free(file_buffer);
