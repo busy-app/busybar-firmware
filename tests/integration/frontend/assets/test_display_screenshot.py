@@ -5,6 +5,7 @@ Draws known content to the display, captures a screenshot via /api/screen,
 and compares the raw pixel data against a saved reference frame.
 """
 
+import os
 from pathlib import Path
 from time import sleep
 
@@ -184,8 +185,25 @@ def _draw_and_capture(
     return streaming_api.get_screen_bytes(display=display)
 
 
-def _assert_screenshot_matches(actual: bytes, reference: bytes, label: str):
-    """Compare captured frame against reference with allure reporting."""
+def _assert_screenshot_matches(
+    actual: bytes,
+    reference: bytes,
+    label: str,
+    ref_path: Path | None = None,
+    update_refs: bool = False,
+):
+    """Compare captured frame against reference with allure reporting.
+
+    When *update_refs* is True (or the ``UPDATE_REFS`` env-var is set), the
+    captured frame is written back to *ref_path* instead of being compared.
+    """
+    if update_refs or os.environ.get("UPDATE_REFS"):
+        if ref_path is None:
+            raise ValueError(f"{label}: ref_path must be provided in update mode")
+        ref_path.write_bytes(actual)
+        print(f"Updated reference: {ref_path}")
+        return
+
     assert len(actual) == len(reference), (
         f"{label}: size mismatch {len(actual)} != {len(reference)}"
     )
@@ -231,14 +249,18 @@ class TestDisplayScreenshot:
         expected_size: int,
         assets_api: AssetsAPI,
         streaming_api: StreamingAPI,
+        update_refs: bool,
     ):
         """Draw text on display and compare screenshot against reference."""
         ref_path = ASSETS_DIR / ref_filename
-        assert ref_path.exists(), f"Reference frame not found: {ref_path}"
-        reference = ref_path.read_bytes()
-        assert len(reference) == expected_size, (
-            f"Reference file size mismatch: {len(reference)} != {expected_size}"
-        )
+        if not update_refs and not os.environ.get("UPDATE_REFS"):
+            assert ref_path.exists(), f"Reference frame not found: {ref_path}"
+            reference = ref_path.read_bytes()
+            assert len(reference) == expected_size, (
+                f"Reference file size mismatch: {len(reference)} != {expected_size}"
+            )
+        else:
+            reference = b""
 
         try:
             with allure.step(f"Draw test content on display {display_id}"):
@@ -247,7 +269,10 @@ class TestDisplayScreenshot:
 
             with allure.step("Capture and compare"):
                 actual = streaming_api.get_screen_bytes(display=display_id)
-                _assert_screenshot_matches(actual, reference, f"Display {display_id}")
+                _assert_screenshot_matches(
+                    actual, reference, f"Display {display_id}",
+                    ref_path=ref_path, update_refs=update_refs,
+                )
         finally:
             assets_api.clear_display()
 
@@ -285,11 +310,15 @@ class TestDisplayAlignment:
         align: str,
         assets_api: AssetsAPI,
         streaming_api: StreamingAPI,
+        update_refs: bool,
     ):
         """Draw text with given alignment and compare against reference frame."""
         ref_path = ASSETS_DIR / f"ref_align_{align}.raw"
-        assert ref_path.exists(), f"Reference not found: {ref_path}"
-        reference = ref_path.read_bytes()
+        if not update_refs and not os.environ.get("UPDATE_REFS"):
+            assert ref_path.exists(), f"Reference not found: {ref_path}"
+            reference = ref_path.read_bytes()
+        else:
+            reference = b""
 
         try:
             with allure.step(f"Draw 'X' at ({ALIGN_ANCHOR_X},{ALIGN_ANCHOR_Y}) align={align}"):
@@ -299,7 +328,10 @@ class TestDisplayAlignment:
                 actual = _draw_and_capture(
                     assets_api, streaming_api, "align_test", [element],
                 )
-            _assert_screenshot_matches(actual, reference, f"Alignment '{align}'")
+            _assert_screenshot_matches(
+                actual, reference, f"Alignment '{align}'",
+                ref_path=ref_path, update_refs=update_refs,
+            )
         finally:
             assets_api.clear_display()
 

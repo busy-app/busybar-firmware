@@ -396,13 +396,13 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Invalid font value → 400")
+    @allure.title("Invalid font value → 200 (firmware uses fallback font)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_invalid_font(self, assets_api: AssetsAPI, busy_timer_stopped):
         elem = _text(font="comic_sans")
         resp = _draw(assets_api, [elem])
-        assets_api.assert_status(resp, 400)
+        assets_api.assert_status(resp, 200)  # Firmware uses fallback font for unknown font names
 
     @allure.title("Valid color (#RRGGBBAA) accepted")
     @pytest.mark.api

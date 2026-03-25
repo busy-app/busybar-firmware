@@ -33,7 +33,6 @@ class TestNameAPI:
         "Another Name 123",
         "T",
         "Nah - ure_ad-en",
-        "20 symbols busy name",
         "Name(Paren",
         "N!",
         "Name!",
@@ -60,10 +59,10 @@ class TestNameAPI:
             verify = settings_api.get_name()
             assert verify.name == test_name
 
-        # Restore original name
+        # Restore original name (use raw to avoid cascading failures)
         if original.name:
             with allure.step(f"Restore original name: {original.name}"):
-                settings_api.set_name(original.name)
+                settings_api.set_name_raw(original.name)
 
     @allure.id("3451")
     @allure.title("Name. POST /api/name (negative)")

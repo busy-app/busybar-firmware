@@ -39,6 +39,7 @@ on:
 permissions:
   contents: read
   checks: write
+  pull-requests: write
   id-token: write
 
 env:
@@ -170,17 +171,21 @@ jobs:
       - name: Run smoke tests
         id: smoke_tests
         run: |
+          set +e
           cd tests
-          export BSB_FIRMWARE_PATH=${{ github.workspace }}
-          # python debug_reset_test.py
           python3 -m pytest . -v \
             --alluredir=allure-results \
             --clean-alluredir \
-            --ignore=playwright-automation \
             --junitxml=test-results.xml
-
-        continue-on-error: true
+          PYTEST_EXIT=$?
+          # 0 = all passed, 1 = some failed — both mean tests ran successfully
+          # 2+ = collection error, internal error, no tests collected, etc.
+          if [ $PYTEST_EXIT -ge 2 ]; then
+            echo "Pytest failed to run properly (exit code $PYTEST_EXIT)"
+            exit $PYTEST_EXIT
+          fi
         env:
+          BSB_FIRMWARE_PATH: ${{ github.workspace }}
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
           WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
@@ -202,11 +207,16 @@ jobs:
         continue-on-error: true
         run: |
           cd tests
-          allurectl upload allure-results \
+          OUTPUT=$(allurectl upload allure-results \
             --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
+            --launch-name "BSB Firmware - Integration Tests - ${{ inputs.branch_name || github.head_ref || github.ref_name }} - ${GITHUB_SHA::7}" 2>&1) || true
+          echo "$OUTPUT"
+          LAUNCH_ID=$(echo "$OUTPUT" | grep -oP 'Launch \[\K[0-9]+' | head -1)
+          if [ -n "$LAUNCH_ID" ]; then
+            echo "allure_launch_url=${{ secrets.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> $GITHUB_OUTPUT
+          fi
 
       - name: 'Configure AWS CLI'
         if: always()
@@ -232,6 +242,87 @@ jobs:
             echo "Log file not found: $LOG_FILE"
           fi
 
+      - name: Comment PR with failed tests
+        if: always() && github.event.pull_request.number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JUNIT_XML: tests/test-results.xml
+          ALLURE_URL: ${{ steps.allure_upload.outputs.allure_launch_url }}
+        run: |
+          set -euo pipefail
+
+          # Parse JUnit XML and build markdown comment
+          COMMENT_BODY=$(python3 -c "
+          import xml.etree.ElementTree as ET, sys, os
+
+          xml_path = os.environ['JUNIT_XML']
+          if not os.path.exists(xml_path):
+              print('> **Integration Tests**: results file not found')
+              sys.exit(0)
+
+          tree = ET.parse(xml_path)
+          root = tree.getroot()
+
+          # pytest 7+ uses <testsuites> root with <testsuite> children
+          total = failures = errors = skipped = 0
+          for suite in root.iter('testsuite'):
+              total += int(suite.attrib.get('tests', 0))
+              failures += int(suite.attrib.get('failures', 0))
+              errors += int(suite.attrib.get('errors', 0))
+              skipped += int(suite.attrib.get('skipped', 0))
+          passed = total - failures - errors - skipped
+
+          failed_tests = []
+          for tc in root.iter('testcase'):
+              fail = tc.find('failure')
+              err = tc.find('error')
+              if fail is not None or err is not None:
+                  name = tc.attrib.get('classname', '') + '::' + tc.attrib.get('name', '')
+                  msg = (fail if fail is not None else err).attrib.get('message', '')[:200]
+                  failed_tests.append((name, msg))
+
+          allure_url = os.environ.get('ALLURE_URL', '')
+          lines = []
+          if failures + errors == 0:
+              header = f'### Integration Tests: all {passed} passed'
+          else:
+              header = f'### Integration Tests: {failures + errors} failed / {passed} passed / {total} total'
+          lines.append(header)
+
+          if allure_url:
+              lines.append(f'[Allure Report]({allure_url})')
+
+          if failed_tests:
+              lines.append('')
+              lines.append('<details>')
+              lines.append(f'<summary>{len(failed_tests)} failed tests</summary>')
+              lines.append('')
+              lines.append('| Test | Error |')
+              lines.append('|------|-------|')
+              for name, msg in failed_tests[:30]:
+                  safe_msg = msg.replace('|', '\\\\|').replace('\n', ' ')
+                  lines.append(f'| \`{name}\` | {safe_msg} |')
+              if len(failed_tests) > 30:
+                  lines.append(f'| ... | +{len(failed_tests) - 30} more |')
+              lines.append('')
+              lines.append('</details>')
+
+          print('\n'.join(lines))
+          ")
+
+          # Find and update existing comment or create new one
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          MARKER="### Integration Tests:"
+          EXISTING=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" | head -1)
+
+          if [ -n "$EXISTING" ]; then
+            gh api "repos/${{ github.repository }}/issues/comments/${EXISTING}" \
+              -X PATCH -f body="$COMMENT_BODY"
+          else
+            gh pr comment "$PR_NUMBER" --body "$COMMENT_BODY"
+          fi
+
       - name: Create Job Summary
         if: always()
         run: |
@@ -254,3 +345,56 @@ jobs:
           echo "- [Allure TestOps](${{ secrets.ALLURE_TESTOPS_URL }}/project/${{ secrets.ALLURE_PROJECT_ID }})" >> $GITHUB_STEP_SUMMARY
           echo "- [This Run Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html)" >> $GITHUB_STEP_SUMMARY
           echo "- [Latest Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY
+
+      - name: 'Comment PR on crash'
+        if: always() && github.event.pull_request.number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CRASH_FLAG="$RUNNER_LOG_DIR/latest/crash_detected.flag"
+          [ -f "$CRASH_FLAG" ] || exit 0
+
+          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          PUBLIC_BASE="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/integration-tests/$RUN_ID"
+
+          PROCESSOR=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['processor'])" "$CRASH_FLAG")
+          TRACE_STATUS=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['trace_status'])" "$CRASH_FLAG")
+          CRASH_LINE=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['crash_line'][:3000])" "$CRASH_FLAG")
+
+          TRACE_LINKS=""
+          for trace_file in "$RUNNER_LOG_DIR/latest"/crash_trace_*.log; do
+            [ -f "$trace_file" ] || continue
+            BASENAME=$(basename "$trace_file")
+            TRACE_LINKS="${TRACE_LINKS}- [${BASENAME}](${PUBLIC_BASE}/${BASENAME})"$'\n'
+          done
+
+          read -r -d '' COMMENT_BODY <<EOF || true
+          ### 🚨 Crash Detected (${PROCESSOR})
+
+          **Trace status:** ${TRACE_STATUS} | **Runner:** ${RUNNER_NAME}
+
+          <details>
+          <summary>Crash log</summary>
+
+          \`\`\`
+          ${CRASH_LINE}
+          \`\`\`
+
+          </details>
+
+          **Traces:**
+          ${TRACE_LINKS}
+          [Runner log](${PUBLIC_BASE}/runlog.log)
+          EOF
+
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          MARKER="### 🚨 Crash Detected"
+          EXISTING=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" | head -1)
+
+          if [ -n "$EXISTING" ]; then
+            gh api "repos/${{ github.repository }}/issues/comments/${EXISTING}" \
+              -X PATCH -f body="$COMMENT_BODY"
+          else
+            gh pr comment "$PR_NUMBER" --body "$COMMENT_BODY"
+          fi

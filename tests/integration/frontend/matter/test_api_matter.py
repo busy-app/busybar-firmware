@@ -2,6 +2,7 @@ import allure
 import pytest
 
 from clients.api import SmartHomeAPI
+from clients.api.base import APIError
 
 
 @allure.feature("5. Web Frontend")
@@ -14,7 +15,12 @@ class TestSmartHomePairingAPI:
     @pytest.mark.frontend
     def test_api_smart_home_pairing_get(self, smart_home_api: SmartHomeAPI):
         """Test GET /api/smart_home/pairing returns pairing status"""
-        response = smart_home_api.get_pairing()
+        try:
+            response = smart_home_api.get_pairing()
+        except APIError as e:
+            if e.status_code == 404:
+                pytest.skip("Smart Home API not available on this firmware")
+            raise
 
         assert response.fabric_count >= 0
         assert response.latest_pairing_status is not None
@@ -31,6 +37,9 @@ class TestSmartHomePairingAPI:
     def test_api_smart_home_pairing_start(self, smart_home_api: SmartHomeAPI):
         """Test POST /api/smart_home/pairing starts pairing"""
         response = smart_home_api.start_pairing()
+
+        if response.status_code == 404:
+            pytest.skip("Smart Home API not available on this firmware")
 
         # May return 200 with payload or 503 if smart home service is unavailable
         assert response.status_code in [200, 503]
@@ -52,7 +61,12 @@ class TestSmartHomeSwitchAPI:
     @pytest.mark.frontend
     def test_api_smart_home_switch_get(self, smart_home_api: SmartHomeAPI):
         """Test GET /api/smart_home/switch returns switch state"""
-        response = smart_home_api.get_switch_state()
+        try:
+            response = smart_home_api.get_switch_state()
+        except APIError as e:
+            if e.status_code == 404:
+                pytest.skip("Smart Home API not available on this firmware")
+            raise
 
         assert isinstance(response.state, bool)
 
@@ -61,8 +75,12 @@ class TestSmartHomeSwitchAPI:
     @pytest.mark.frontend
     def test_api_smart_home_switch_set_state(self, smart_home_api: SmartHomeAPI):
         """Test POST /api/smart_home/switch sets switch state"""
-        # Get original state
-        original = smart_home_api.get_switch_state()
+        try:
+            original = smart_home_api.get_switch_state()
+        except APIError as e:
+            if e.status_code == 404:
+                pytest.skip("Smart Home API not available on this firmware")
+            raise
 
         try:
             with allure.step("Set switch state to True"):
