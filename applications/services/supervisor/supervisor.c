@@ -426,6 +426,9 @@ static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStat
 
     if(status != IntercomStatusErrorSync && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         if(furi_get_tick() > furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS)) {
+            FURI_LOG_I(TAG, "Rebooting...");
+            furi_delay_ms(100);
+
             power_reboot(instance->power, PowerRebootNormal);
         }
     }
