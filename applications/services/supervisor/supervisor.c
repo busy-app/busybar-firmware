@@ -12,6 +12,8 @@
 #define SUPERVISOR_BATTERY_LOW_TIMEOUT_MS 5000
 #define SUPERVISOR_BATTERY_TIME_TO_DIE_S  30
 
+#define SUPERVISOR_REBOOT_GRACE_PERIOD_MS (30000)
+
 typedef struct Supervisor Supervisor;
 
 typedef void (*SupervisorGuiOkCb)(Supervisor* supervisor);
@@ -423,8 +425,9 @@ static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStat
     FURI_LOG_E(TAG, "Intercom error received: 0x%X", status);
 
     if(status != IntercomStatusErrorSync && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
-        // TODO: Implement reboot count to avoid infinite bootloops
-        power_reboot(instance->power, PowerRebootNormal);
+        if(furi_get_tick() > furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS)) {
+            power_reboot(instance->power, PowerRebootNormal);
+        }
     }
 
     supervisor_update_warning(&instance->gui, SupervisorWarningTypeIntercomError, true);
