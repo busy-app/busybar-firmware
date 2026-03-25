@@ -89,6 +89,8 @@ static void clock_scene_main_on_enter(void* context) {
     });
 
     free(sntp_settings);
+
+    transition_overlay_start(instance->front_transition_overlay);
 }
 
 static void clock_scene_main_on_exit(void* context) {

@@ -12,6 +12,17 @@ typedef struct {
     MirrorCard* back_card;
 } ClockSceneClock;
 
+static const TransitionOverlayPreset clock_scene_clock_back_transition_overlay_preset = {
+    .type = TransitionOverlayTypeColor,
+    .blend_mode = TransitionOverlayBlendModeNormal,
+    .timings =
+        {
+            .in_ms = 200,
+            .out_ms = 200,
+        },
+    .mask.color = COLOR_MAKE_HEX(0x000000),
+};
+
 static void clock_scene_clock_on_enter(void* context) {
     furi_assert(context);
 
@@ -83,6 +94,10 @@ static bool clock_scene_clock_on_event(const SceneManagerEvent* event, void* con
         with_gui(instance->gui, {
             widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
         });
+
+        transition_overlay_set_preset(
+            instance->front_transition_overlay, &clock_scene_clock_back_transition_overlay_preset);
+        transition_overlay_show(instance->front_transition_overlay);
     }
 
     return false;
