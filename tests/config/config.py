@@ -51,48 +51,38 @@ class Config:
         os.path.join(BSB_FIRMWARE_PATH, ".openocd.lock") if BSB_FIRMWARE_PATH else "/tmp/.openocd.lock"
     )
 
-    # Cloud settings
-    CLOUD_BASE_URL: str = os.getenv("CLOUD_BASE_URL", "")
-    CLOUD_EMAIL: str = os.getenv("CLOUD_EMAIL", "")
-    CLOUD_PASSWORD: str = os.getenv("CLOUD_PASSWORD", "")
-    CLOUD_BASIC_USER: str = os.getenv("CLOUD_BASIC_USER", "")
-    CLOUD_BASIC_PASSWORD: str = os.getenv("CLOUD_BASIC_PASSWORD", "")
-
     @classmethod
-    def validate_paths(cls) -> list[str]:
+    def validate_paths(cls) -> None:
         """
-        Validate that firmware-related files and directories exist.
+        Validate that all required files and directories exist.
 
-        Returns:
-            List of warning messages for missing paths (empty if all OK).
+        Raises:
+            FileNotFoundError: If any required path does not exist.
         """
-        warnings: list[str] = []
+        missing_paths: list[str] = []
 
         # Check base firmware directory
         firmware_base = Path(cls.BSB_FIRMWARE_PATH)
         if not firmware_base.is_dir():
-            warnings.append(f"BSB_FIRMWARE_PATH not found: {firmware_base}")
-            return warnings
+            missing_paths.append(f"BSB_FIRMWARE_PATH: {firmware_base}")
 
         # Check firmware-relative paths (only if base exists)
-        relative_paths = {
-            "FIRMWARE_ELF": cls.FIRMWARE_ELF,
-            "PLATFORM_JSON": cls.PLATFORM_JSON,
-            "TOOLCHAIN_ENV": cls.TOOLCHAIN_ENV,
-            "OPENOCD_TARGET": cls.OPENOCD_TARGET,
-        }
+        if firmware_base.is_dir():
+            relative_paths = {
+                "FIRMWARE_ELF": cls.FIRMWARE_ELF,
+                "PLATFORM_JSON": cls.PLATFORM_JSON,
+                "TOOLCHAIN_ENV": cls.TOOLCHAIN_ENV,
+                "OPENOCD_TARGET": cls.OPENOCD_TARGET,
+            }
 
-        for name, rel_path in relative_paths.items():
-            full_path = firmware_base / rel_path
-            if not full_path.exists():
-                warnings.append(f"{name}: {full_path}")
+            for name, rel_path in relative_paths.items():
+                full_path = firmware_base / rel_path
+                if not full_path.exists():
+                    missing_paths.append(f"{name}: {full_path}")
 
-        return warnings
-
-    @classmethod
-    def device_reset_available(cls) -> bool:
-        """Check if device reset via OpenOCD is available."""
-        return len(cls.validate_paths()) == 0
+        if missing_paths:
+            error_msg = "Required paths not found:\n  - " + "\n  - ".join(missing_paths)
+            raise FileNotFoundError(error_msg)
 
 
 config = Config()

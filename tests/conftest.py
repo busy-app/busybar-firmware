@@ -20,9 +20,18 @@ from utils.device_flasher import DeviceFlasher
 
 # API client imports
 from clients.api import (
-    SystemAPI, WifiAPI, StorageAPI, AssetsAPI, AccountAPI,
-    BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI,
-    BusyAPI, SmartHomeAPI
+    SystemAPI,
+    WifiAPI,
+    StorageAPI,
+    AssetsAPI,
+    AccountAPI,
+    BleAPI,
+    SettingsAPI,
+    InputAPI,
+    StreamingAPI,
+    UpdateAPI,
+    BusyAPI,
+    SmartHomeAPI,
 )
 from config.config import Config
 
@@ -160,14 +169,13 @@ def pytest_configure(config):
     """Pytest configuration"""
     logger.info("Configuring pytest")
 
-    # Validate firmware paths (non-fatal — tests can run without device reset)
-    path_warnings = Config.validate_paths()
-    if path_warnings:
-        for w in path_warnings:
-            logger.warning(f"Path check: {w}")
-        logger.warning("Device reset via OpenOCD will be unavailable")
-    else:
+    # Validate required file paths exist before running tests
+    try:
+        Config.validate_paths()
         logger.info("All required paths validated successfully")
+    except FileNotFoundError as e:
+        logger.error(f"Path validation failed: {e}")
+        raise pytest.UsageError(str(e))
 
     # Allure TestOps integration
     allure_testops_url = os.getenv("ALLURE_TESTOPS_URL")
@@ -197,7 +205,6 @@ def pytest_configure(config):
         "feature_cli: Feature 6. CLI",
         "feature_web_frontend: Feature 5. Web Frontend",
         "connection_test: Fresh connection tests",
-        "cloud_link: Cloud Link tests",
     ]
 
     for marker in markers:
@@ -478,18 +485,8 @@ def pytest_runtest_setup(item):
 
 @pytest.fixture(scope="session")
 def device_flasher():
-    """Session-scoped device flasher for on-demand resets.
-
-    Returns None if BSB_FIRMWARE_PATH is not configured (e.g. when running
-    from a standalone test repo without a firmware checkout).
-    """
+    """Session-scoped device flasher for on-demand resets."""
     from config.config import config
-    if not Config.device_reset_available():
-        logger.warning(
-            "Device flasher unavailable — BSB_FIRMWARE_PATH not configured. "
-            "Device reset on crash will be skipped."
-        )
-        return None
     flasher = DeviceFlasher(
         device_ip=config.BUSYBAR_IP,
         firmware_dir=config.BSB_FIRMWARE_PATH,
@@ -531,18 +528,15 @@ def device_health_monitor(request, device_flasher):
 
     Before test:
     - Check if device is reachable
-    - If not reachable, reset and wait for recovery (requires device_flasher)
+    - If not reachable, reset and wait for recovery
 
     After test:
     - Check for crash flag
     - Check if test failed with ConnectionError
-    - If either, reset device for next test (requires device_flasher)
-
-    When device_flasher is None (no firmware checkout), crash detection still
-    works but device reset is skipped.
+    - If either, reset device for next test
     """
-    # Pre-test: ensure device is reachable (only if flasher available)
-    if device_flasher and not device_flasher.check_device_available():
+    # Pre-test: ensure device is reachable
+    if not device_flasher.check_device_available():
         logger.warning("Device unreachable before test, resetting...")
         with allure.step("Resetting unreachable device before test"):
             if not device_flasher.reset_and_wait():
@@ -560,7 +554,7 @@ def device_health_monitor(request, device_flasher):
         request.node._crash_info = crash_info
 
     # Check device availability after test
-    if device_flasher and not device_flasher.check_device_available():
+    if not device_flasher.check_device_available():
         logger.warning("Device unreachable after test!")
         request.node._device_unavailable = True
         # Attempt recovery for next test
@@ -568,7 +562,7 @@ def device_health_monitor(request, device_flasher):
             device_flasher.reset_and_wait()
 
     # Check if test failed with connection error
-    if device_flasher and hasattr(request.node, "_connection_error"):
+    if hasattr(request.node, "_connection_error"):
         logger.warning("Test failed with connection error, resetting device...")
         with allure.step("Resetting device after connection error"):
             device_flasher.reset_and_wait()

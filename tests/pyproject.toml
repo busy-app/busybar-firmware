@@ -31,7 +31,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --strict-markers --alluredir=allure-results --clean-alluredir"
-testpaths = ["."]
+testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
     "cli: marks tests as CLI command tests",

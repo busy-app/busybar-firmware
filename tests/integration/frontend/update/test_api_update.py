@@ -64,10 +64,7 @@ class TestUpdateAPI:
     @pytest.mark.frontend
     def test_api_update_check_post(self, update_api: UpdateAPI):
         """Test POST /api/update/check endpoint starts update check"""
-        response = update_api.check_raw()
-        if response.status_code == 400:
-            pytest.skip("Update service unavailable (device not connected to cloud)")
-        assert response.status_code in [200, 409]
+        update_api.check()
 
     @allure.id("3531")
     @allure.title("GET /api/update/changelog (missing version)")
@@ -115,10 +112,7 @@ class TestUpdateAPI:
     @pytest.mark.frontend
     def test_api_update_abort_download(self, update_api: UpdateAPI):
         """Test POST /api/update/abort_download endpoint"""
-        response = update_api.abort_download_raw()
-        if response.status_code == 400:
-            pytest.skip("Update service unavailable (device not connected to cloud)")
-        assert response.ok
+        update_api.abort_download()
 
 
 @allure.feature("5. Web Frontend")
@@ -159,13 +153,10 @@ class TestAutoupdateAPI:
             "interval_end": "06:00",
         }
 
-        with allure.step("Set test autoupdate settings"):
-            response = update_api.set_autoupdate_raw(test_settings)
-            if response.status_code == 400:
-                pytest.skip("Update service unavailable (device not connected to cloud)")
-            assert response.ok
-
         try:
+            with allure.step("Set test autoupdate settings"):
+                update_api.set_autoupdate(test_settings)
+
             with allure.step("Verify settings were applied"):
                 updated = update_api.get_autoupdate()
                 assert updated.is_enabled == test_settings["is_enabled"]
@@ -173,7 +164,7 @@ class TestAutoupdateAPI:
                 assert updated.interval_end == "06:00"
         finally:
             with allure.step("Restore original settings"):
-                update_api.set_autoupdate_raw({
+                update_api.set_autoupdate({
                     "is_enabled": original.is_enabled,
                     "interval_start": original.interval_start,
                     "interval_end": original.interval_end,
@@ -220,8 +211,6 @@ class TestUpdateStatusFlow:
                 name="Check Response",
                 attachment_type=allure.attachment_type.TEXT
             )
-            if response.status_code == 400:
-                pytest.skip("Update service unavailable (device not connected to cloud)")
             assert response.status_code in [200, 409]  # 409 if check already in progress
 
         with allure.step("3. Verify check is in progress or completed"):
@@ -261,9 +250,7 @@ class TestUpdateStatusFlow:
 
             if not status.check.is_available:
                 # Try to trigger a check
-                response = update_api.check_raw()
-                if response.status_code == 400:
-                    pytest.skip("Update service unavailable (device not connected to cloud)")
+                response = update_api.check()
                 check_result = update_api.wait_for_check_complete(timeout=30)
                 if not check_result.is_available:
                     pytest.skip("No update available to test install flow")
@@ -273,8 +260,6 @@ class TestUpdateStatusFlow:
 
         with allure.step("2. Start install"):
             install_response = update_api.install(version)
-            if install_response.status_code == 400:
-                pytest.skip("Install service unavailable (returned 400)")
             allure.attach(
                 f"Install triggered for version: {version}\nStatus code: {install_response.status_code}",
                 name="Install Trigger",
