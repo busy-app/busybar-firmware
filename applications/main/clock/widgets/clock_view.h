@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gui/widget.h>
-#include <sntp/settings/time_format.h>
+#include <time/settings/time_format.h>
 
 #include <datetime.h>
 
@@ -21,7 +21,7 @@ void clock_view_set_show_seconds(ClockView* instance, bool show_seconds);
 
 void clock_view_set_show_date(ClockView* instance, bool show_date);
 
-void clock_view_set_time_format(ClockView* instance, SntpSettingTimeFormat time_format);
+void clock_view_set_time_format(ClockView* instance, TimeSettingTimeFormat time_format);
 
 void clock_view_set_date_time(ClockView* instance, const DateTime* date_time);
 
