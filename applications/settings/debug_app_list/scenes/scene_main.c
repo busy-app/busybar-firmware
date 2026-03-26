@@ -42,7 +42,7 @@ static void scene_main_on_enter(void* context) {
             for(uint32_t i = 0; i < FLIPPER_DEBUG_APPS_COUNT; i++) {
                 const FlipperInternalApplication* debug_app = &FLIPPER_DEBUG_APPS[i];
                 SubmenuItemCallback callback =
-                    (i == GuiDisplayIdFront) ? scene_main_submenu_item_callback : NULL;
+                    (display == GuiDisplayIdFront) ? scene_main_submenu_item_callback : NULL;
                 submenu_add_item(scene->submenus[display], debug_app->name, i, callback, app);
             }
         }
