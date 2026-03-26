@@ -98,6 +98,12 @@ static bool clock_scene_clock_on_event(const SceneManagerEvent* event, void* con
         transition_overlay_set_preset(
             instance->front_transition_overlay, &clock_scene_clock_back_transition_overlay_preset);
         transition_overlay_show(instance->front_transition_overlay);
+
+        if(!scene_manager_previous_scene(instance->scene_manager)) {
+            scene_manager_next_scene(instance->scene_manager, ClockSceneIdxMain);
+        }
+
+        return true;
     }
 
     return false;

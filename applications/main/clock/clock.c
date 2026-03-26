@@ -176,15 +176,18 @@ static Clock* clock_alloc(const char* arguments) {
 
     furi_event_loop_timer_start(instance->timer, furi_ms_to_ticks(TIMER_INTERVAL_MS));
 
-    scene_manager_next_scene(instance->scene_manager, ClockSceneIdxMain);
-
+    ClockSceneIdx initial_scene_idx;
     if(instance->arguments.do_skip_menu) {
         with_gui(instance->gui, {
             widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
         });
 
-        scene_manager_next_scene(instance->scene_manager, ClockSceneIdxClock);
+        initial_scene_idx = ClockSceneIdxClock;
+    } else {
+        initial_scene_idx = ClockSceneIdxMain;
     }
+
+    scene_manager_next_scene(instance->scene_manager, initial_scene_idx);
 
     return instance;
 }
