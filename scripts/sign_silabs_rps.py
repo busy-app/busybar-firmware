@@ -14,6 +14,9 @@ import os
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 
 
 def find_commander_cli(user_path=None):
@@ -93,11 +96,84 @@ def sign_rps(commander, keystore, input_rps, output_rps):
     return 0
 
 
+def build_signing_service_url(service_url, profile_name):
+    parsed = urllib.parse.urlsplit(service_url)
+    query = urllib.parse.urlencode({"profile_name": profile_name})
+    if parsed.query:
+        query = f"{parsed.query}&{query}"
+    return urllib.parse.urlunsplit(parsed._replace(query=query))
+
+
+def _multipart_body(filename, data, boundary):
+    header = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
+        "Content-Type: application/octet-stream\r\n\r\n"
+    ).encode()
+    footer = f"\r\n--{boundary}--\r\n".encode()
+    return header + data + footer
+
+
+def sign_rps_via_service(service_url, token, profile_name, input_rps, output_rps):
+    with open(input_rps, "rb") as src:
+        input_data = src.read()
+
+    boundary = "bsb-signing-service-boundary"
+    body = _multipart_body(os.path.basename(input_rps), input_data, boundary)
+    request = urllib.request.Request(
+        build_signing_service_url(service_url, profile_name),
+        data=body,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "Content-Length": str(len(body)),
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(request) as response:
+            signed_data = response.read()
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode(errors="replace")
+        print(
+            f"Error signing {input_rps} via signing service: HTTP {exc.code}",
+            file=sys.stderr,
+        )
+        if error_body:
+            print(error_body, file=sys.stderr)
+        return 1
+    except urllib.error.URLError as exc:
+        print(
+            f"Error connecting to signing service for {input_rps}: {exc}",
+            file=sys.stderr,
+        )
+        return 1
+
+    with open(output_rps, "wb") as dst:
+        dst.write(signed_data)
+    return 0
+
+
+def resolve_signing_mode(args):
+    service_values = [args.service_url, args.service_token, args.profile]
+    if any(service_values):
+        if not all(service_values):
+            raise ValueError(
+                "service signing requires --service-url, --token, and --profile"
+            )
+        return "service"
+    if args.keystore:
+        return "local"
+    raise ValueError(
+        "either --keystore or the service signing options must be provided"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Sign Silicon Labs RPS firmware files")
     parser.add_argument(
         "--keystore",
-        required=True,
         help="Path to JSON keystore file for signing",
     )
     parser.add_argument(
@@ -115,11 +191,42 @@ def main():
         default=None,
         help="Path to commander-cli executable (auto-detected if not specified)",
     )
+    parser.add_argument(
+        "--service-url",
+        default=None,
+        help="Signing service /api/v1/sign endpoint URL",
+    )
+    parser.add_argument(
+        "--token",
+        dest="service_token",
+        default=None,
+        help="Bearer token for the signing service",
+    )
+    parser.add_argument(
+        "--profile",
+        default=None,
+        help="Signing-service profile name to use",
+    )
     args = parser.parse_args()
 
     if not os.path.isfile(args.input):
         print(f"Error: input file not found: {args.input}", file=sys.stderr)
         return 1
+
+    try:
+        mode = resolve_signing_mode(args)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+    if mode == "service":
+        return sign_rps_via_service(
+            args.service_url,
+            args.service_token,
+            args.profile,
+            args.input,
+            args.output,
+        )
 
     if not os.path.isfile(args.keystore):
         print(f"Error: keystore file not found: {args.keystore}", file=sys.stderr)

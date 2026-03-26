@@ -22,7 +22,7 @@ enum MenuId {
 };
 
 static void scene_menu_on_submenu_item(uint32_t index, void* context) {
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     UNUSED(instance);
 
     switch(index) {
@@ -40,17 +40,17 @@ static void scene_menu_on_submenu_item(uint32_t index, void* context) {
 static void scene_menu_on_enter(void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneMenu* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMenu);
 
-    SntpSettings sntp_settings;
-    sntp_get_settings(instance->sntp, &sntp_settings);
+    TimeSettings time_settings;
+    time_get_settings(instance->time, &time_settings);
 
     DateTime now = furi_hal_rtc_get_datetime().dt;
     utz_offset_t _offset;
-    const char* letters = utz_get_current_offset(&sntp_settings.timezone, &now, &_offset);
+    const char* letters = utz_get_current_offset(&time_settings.timezone, &now, &_offset);
     char zone_abbr[8];
-    snprintf(zone_abbr, sizeof(zone_abbr), sntp_settings.timezone.abrev_formatter, letters);
+    snprintf(zone_abbr, sizeof(zone_abbr), time_settings.timezone.abrev_formatter, letters);
 
     char front_tz_text[18];
     snprintf(front_tz_text, sizeof(front_tz_text), "Time zone%7.7s>", zone_abbr);
@@ -61,13 +61,13 @@ static void scene_menu_on_enter(void* context) {
         front_time_format_text,
         sizeof(front_time_format_text),
         "Time format%6.6s>",
-        time_settings_format_names[sntp_settings.time_format]);
+        time_settings_format_names[time_settings.time_format]);
     char back_time_format_text[25];
     snprintf(
         back_time_format_text,
         sizeof(back_time_format_text),
         "Time format%10.10s>",
-        time_settings_format_names[sntp_settings.time_format]);
+        time_settings_format_names[time_settings.time_format]);
 
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
@@ -89,7 +89,7 @@ static void scene_menu_on_enter(void* context) {
 static void scene_menu_on_exit(void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneMenu* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMenu);
 
     with_gui(instance->gui, {
@@ -101,7 +101,7 @@ static void scene_menu_on_exit(void* context) {
 static bool scene_menu_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {

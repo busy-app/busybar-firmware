@@ -1,7 +1,7 @@
 #include "updater_i.h"
 #include "updater_paths.h"
 
-#include <sntp/sntp.h>
+#include <time/time.h>
 
 #include <furi_hal_nvm.h>
 #include <toolbox/path.h>
@@ -79,9 +79,9 @@ static void check_timer_callback(void* context) {
 }
 
 static void autoupdate_timer_callback(void* context) {
-#ifndef SRV_SNTP
+#ifndef SRV_TIME
     UNUSED(context);
-#else /* SRV_SNTP */
+#else /* SRV_TIME */
     Updater* instance = context;
 
     FURI_LOG_D(TAG, "Autoupdate: starting check...");
@@ -96,9 +96,9 @@ static void autoupdate_timer_callback(void* context) {
         return;
     }
 
-    Sntp* sntp = furi_record_open(RECORD_SNTP);
-    LocalTime local_time = sntp_get_local_time(sntp);
-    furi_record_close(RECORD_SNTP);
+    Time* time = furi_record_open(RECORD_TIME);
+    LocalTime local_time = time_get_local_time(time);
+    furi_record_close(RECORD_TIME);
 
     int time_minutes = local_time.dt.hour * 60 + local_time.dt.minute;
     int interval_start = instance->settings.autoupdate_interval_start;
@@ -143,7 +143,7 @@ static void autoupdate_timer_callback(void* context) {
         FURI_LOG_W(
             TAG, "Autoupdate: failed to start (%s)", updater_get_status_string(session_status));
     }
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 }
 
 UpdaterStatus updater_internal_do_check_for_update(Updater* instance, UpdaterMessage* message) {
@@ -383,14 +383,14 @@ static int32_t install_from_url_thread_callback(void* context) {
             break;
         }
 
-#ifdef SRV_SNTP
+#ifdef SRV_TIME
         if(instance->install_is_autoupdate) {
             if(furi_semaphore_get_space(instance->autoupdate_semaphore) > 0) {
                 FURI_LOG_I(TAG, "Autoupdate: installation aborted, paused by user");
                 break;
             }
         }
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 
         updater_installation_apply(instance, true);
     } while(false);
@@ -566,31 +566,31 @@ UpdaterStatus updater_check_for_update(Updater* instance) {
 void updater_pause_autoupdates(Updater* instance) {
     furi_check(instance);
 
-#ifdef SRV_SNTP
+#ifdef SRV_TIME
     furi_check(furi_semaphore_acquire(instance->autoupdate_semaphore, 0) == FuriStatusOk);
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 }
 
 void updater_resume_autoupdates(Updater* instance) {
     furi_check(instance);
 
-#ifdef SRV_SNTP
+#ifdef SRV_TIME
     furi_semaphore_release(instance->autoupdate_semaphore);
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 }
 
 void updater_internal_settings_change_build_specific(Updater* instance) {
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
 
-#ifdef SRV_SNTP
+#ifdef SRV_TIME
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
             instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
     } else {
         furi_event_loop_timer_stop(instance->autoupdate_timer);
     }
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 }
 
 void updater_internal_setup_build_specific(Updater* instance) {
@@ -611,14 +611,14 @@ void updater_internal_setup_build_specific(Updater* instance) {
     instance->install_url = furi_string_alloc();
     instance->install_sha256 = furi_string_alloc();
 
-#ifdef SRV_SNTP
+#ifdef SRV_TIME
     instance->autoupdate_timer = furi_event_loop_timer_alloc(
         instance->event_loop, autoupdate_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
 
     instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);
-#else /* SRV_SNTP */
+#else /* SRV_TIME */
     UNUSED(autoupdate_timer_callback);
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, custom_event_callback, instance);
@@ -634,12 +634,12 @@ void updater_internal_setup_build_specific(Updater* instance) {
     furi_event_loop_timer_start(
         instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
 
-#ifdef SRV_SNTP
+#ifdef SRV_TIME
     if(instance->settings.autoupdate_enabled) {
         furi_event_loop_timer_start(
             instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
     }
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 }
 
 #endif /* FW_CFG_recovery */
