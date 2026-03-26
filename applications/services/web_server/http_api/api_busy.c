@@ -25,13 +25,7 @@ static BusyTimerProfileId api_busy_find_profile_id_by_path(const FuriString* nam
     return id;
 }
 
-static bool api_busy_get_snapshot_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(path);
-    UNUSED(ctx);
+static void api_busy_get_snapshot(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
 
     BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
@@ -44,18 +38,9 @@ static bool api_busy_get_snapshot_callback(
 
     MG_REPLY_OK_BODY(conn, json_text);
     free(json_text);
-
-    return true;
 }
 
-static bool api_busy_set_snapshot_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(path);
-    UNUSED(ctx);
-
+static void api_busy_set_snapshot(struct mg_connection* conn, struct mg_http_message* msg) {
     bool success = false;
     const char* error_msg;
 
@@ -78,16 +63,30 @@ static bool api_busy_set_snapshot_callback(
     } else {
         MG_REPLY_ERROR(conn, 400, error_msg);
     }
+}
+
+static bool api_busy_snapshot_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(ctx);
+
+    if(method == HttpMethodGet) {
+        api_busy_get_snapshot(conn, msg);
+    } else if(method == HttpMethodPut) {
+        api_busy_set_snapshot(conn, msg);
+    }
 
     return true;
 }
 
-static bool api_busy_get_profile_callback(
+static void api_busy_get_profile(
     FuriString* path,
     struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
+    struct mg_http_message* msg) {
     UNUSED(msg);
 
     const BusyTimerProfileId profile_id = api_busy_find_profile_id_by_path(path);
@@ -106,17 +105,12 @@ static bool api_busy_get_profile_callback(
     } else {
         MG_REPLY_ERROR(conn, 400, "Invalid profile slot name");
     }
-
-    return true;
 }
 
-static bool api_busy_set_profile_callback(
+static void api_busy_set_profile(
     FuriString* path,
     struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
-
+    struct mg_http_message* msg) {
     bool success = false;
     const char* error_msg;
 
@@ -146,6 +140,21 @@ static bool api_busy_set_profile_callback(
     } else {
         MG_REPLY_ERROR(conn, 400, error_msg);
     }
+}
+
+static bool api_busy_profile_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(method == HttpMethodGet) {
+        api_busy_get_profile(path, conn, msg);
+    } else if(method == HttpMethodPut) {
+        api_busy_set_profile(path, conn, msg);
+    }
 
     return true;
 }
@@ -153,27 +162,15 @@ static bool api_busy_set_profile_callback(
 static const HttpHandler handlers_busy[] = {
     {
         .uri = "snapshot",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPut,
         .type = HttpHandlerCustom,
-        .on_request = api_busy_get_snapshot_callback,
-    },
-    {
-        .uri = "snapshot",
-        .method = "PUT",
-        .type = HttpHandlerCustom,
-        .on_request = api_busy_set_snapshot_callback,
+        .on_request = api_busy_snapshot_callback,
     },
     {
         .uri = "profiles",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPut,
         .type = HttpHandlerCustom,
-        .on_request = api_busy_get_profile_callback,
-    },
-    {
-        .uri = "profiles",
-        .method = "PUT",
-        .type = HttpHandlerCustom,
-        .on_request = api_busy_set_profile_callback,
+        .on_request = api_busy_profile_callback,
     },
 };
 
@@ -198,9 +195,10 @@ void http_api_busy_free(void* ctx) {
 
 bool http_api_busy_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiBusyCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

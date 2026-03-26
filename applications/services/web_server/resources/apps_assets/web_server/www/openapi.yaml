@@ -2,12 +2,13 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 12.0.0
+  version: 13.0.0
   contact:
     name: tbd
 
 security:
   - ApiKeyAuth: []
+  - {}
 
 paths:
   /api/version:
@@ -1319,14 +1320,14 @@ paths:
         - Account
       summary: Get MQTT status info
       description: Retrieves MQTT status
-      operationId: getAccountState
+      operationId: getAccountStatus
       responses:
         "200":
           description: Data retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountState"
+                $ref: "#/components/schemas/AccountStatus"
 
   /api/account/profile:
     get:
@@ -2486,10 +2487,10 @@ components:
           type: string
           example: "12345678-9abc-def0-1234-56789abcdef0"
 
-    AccountState:
+    AccountStatus:
       type: object
       properties:
-        state:
+        status:
           type: string
           example: "connected"
           enum: ["error", "disconnected", "connected"]
@@ -2541,19 +2542,23 @@ components:
       type: object
       properties:
         snapshot:
-          oneOf:
-            - $ref: "#/components/schemas/BusySnapshotNotStarted"
-            - $ref: "#/components/schemas/BusySnapshotInfinite"
-            - $ref: "#/components/schemas/BusySnapshotSimple"
-            - $ref: "#/components/schemas/BusySnapshotInterval"
-        busy_bar_settings:
-          $ref: "#/components/schemas/BusyBarSettings"
+          allOf:
+            - oneOf:
+                - $ref: "#/components/schemas/BusySnapshotNotStarted"
+                - $ref: "#/components/schemas/BusySnapshotInfinite"
+                - $ref: "#/components/schemas/BusySnapshotSimple"
+                - $ref: "#/components/schemas/BusySnapshotInterval"
+            - type: object
+              properties:
+                busy_bar_settings:
+                  $ref: "#/components/schemas/BusyBarSettings"
+              required:
+                - busy_bar_settings
         snapshot_timestamp_ms:
           type: integer
           example: 1761582532251
       required:
         - snapshot
-        - busy_bar_settings
         - snapshot_timestamp_ms
 
     BusySnapshotNotStarted:

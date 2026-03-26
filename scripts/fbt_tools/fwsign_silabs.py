@@ -7,19 +7,35 @@ def _rps_sign_action(target, source, env):
     import subprocess
     import sys
 
+    service_url = env.subst("${SI917_SIGN_SERVICE_URL}")
+    service_token = env.subst("${SI917_SIGN_SERVICE_TOKEN}")
+    service_profile = env.subst("${SI917_SIGN_SERVICE_PROFILE}")
+
     args = [
         sys.executable,
         env.subst("${SIGN_SILABS_SCRIPT}"),
-        "--keystore",
-        env.subst("${SI917_SIGN_KEYSTORE}"),
         "--input",
         source[0].abspath,
         "--output",
         target[0].abspath,
     ]
 
+    if service_url and service_token and service_profile:
+        args.extend(
+            [
+                "--service-url",
+                service_url,
+                "--token",
+                service_token,
+                "--profile",
+                service_profile,
+            ]
+        )
+    else:
+        args.extend(["--keystore", env.subst("${SI917_SIGN_KEYSTORE}")])
+
     commander = env.subst("${COMMANDER_CLI}")
-    if commander:
+    if commander and not (service_url and service_token and service_profile):
         args.extend(["--commander", commander])
 
     return subprocess.run(args).returncode
@@ -28,6 +44,9 @@ def _rps_sign_action(target, source, env):
 def generate(env):
     env.SetDefault(
         SIGN_SILABS_SCRIPT=env.Real("${FBT_SCRIPT_DIR}/sign_silabs_rps.py"),
+        SI917_SIGN_SERVICE_URL="",
+        SI917_SIGN_SERVICE_TOKEN="",
+        SI917_SIGN_SERVICE_PROFILE="",
     )
 
     if not env["VERBOSE"]:
