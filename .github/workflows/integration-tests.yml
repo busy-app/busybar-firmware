@@ -218,51 +218,8 @@ jobs:
 
       - name: 'Comment PR on crash'
         if: always() && github.event.pull_request.number
-        run: |
-          CRASH_FLAG="$RUNNER_LOG_DIR/latest/crash_detected.flag"
-          [ -f "$CRASH_FLAG" ] || exit 0
-
-          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
-          PUBLIC_BASE="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/integration-tests/$RUN_ID"
-
-          PROCESSOR=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['processor'])" "$CRASH_FLAG")
-          TRACE_STATUS=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['trace_status'])" "$CRASH_FLAG")
-          CRASH_LINE=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['crash_line'][:3000])" "$CRASH_FLAG")
-
-          TRACE_LINKS=""
-          for trace_file in "$RUNNER_LOG_DIR/latest"/crash_trace_*.log; do
-            [ -f "$trace_file" ] || continue
-            BASENAME=$(basename "$trace_file")
-            TRACE_LINKS="${TRACE_LINKS}- [${BASENAME}](${PUBLIC_BASE}/${BASENAME})"$'\n'
-          done
-
-          read -r -d '' COMMENT_BODY <<EOF || true
-          ### 🚨 Crash Detected (${PROCESSOR})
-
-          **Trace status:** ${TRACE_STATUS} | **Runner:** ${RUNNER_NAME}
-
-          <details>
-          <summary>Crash log</summary>
-
-          \`\`\`
-          ${CRASH_LINE}
-          \`\`\`
-
-          </details>
-
-          **Traces:**
-          ${TRACE_LINKS}
-          [Runner log](${PUBLIC_BASE}/runlog.log)
-          EOF
-
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          MARKER="### 🚨 Crash Detected"
-          EXISTING=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
-            --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" | head -1)
-
-          if [ -n "$EXISTING" ]; then
-            gh api "repos/${{ github.repository }}/issues/comments/${EXISTING}" \
-              -X PATCH -f body="$COMMENT_BODY"
-          else
-            gh pr comment "$PR_NUMBER" --body "$COMMENT_BODY"
-          fi
+        continue-on-error: true
+        env:
+          CRASH_FLAG: ${{ env.RUNNER_LOG_DIR }}/latest/crash_detected.flag
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 tests/utils/report_test_results.py

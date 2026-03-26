@@ -112,6 +112,50 @@ def build_job_summary(results: dict | None, allure_url: str, firmware_url: str, 
     return "\n".join(lines)
 
 
+def build_crash_comment(flag_path: str) -> str | None:
+    if not flag_path or not os.path.exists(flag_path):
+        return None
+
+    try:
+        with open(flag_path) as f:
+            data = json.load(f)
+    except Exception:
+        return None
+
+    if not data:
+        return None
+
+    processor = data.get("processor", "unknown")
+    trace_status = data.get("trace_status", "unknown")
+    crash_line = (data.get("crash_line") or "")[:3000]
+    s3_urls = data.get("s3_urls")
+    runner_name = os.environ.get("RUNNER_NAME", "unknown")
+
+    lines = []
+    lines.append(f"### 🚨 Crash Detected ({processor})")
+    lines.append("")
+    lines.append(f"**Trace status:** {trace_status} | **Runner:** {runner_name}")
+    lines.append("")
+    lines.append("<details>")
+    lines.append("<summary>Crash log</summary>")
+    lines.append("")
+    lines.append("```")
+    lines.append(crash_line)
+    lines.append("```")
+    lines.append("")
+    lines.append("</details>")
+    lines.append("")
+    lines.append("**Traces and logs:**")
+
+    if s3_urls:
+        for key, url in s3_urls.items():
+            lines.append(f"- [{key}]({url})")
+    else:
+        lines.append("URLs not available")
+
+    return "\n".join(lines)
+
+
 def post_or_update_pr_comment(comment_body: str, marker: str):
     pr_number = os.environ.get("PR_NUMBER", "")
     repo = os.environ.get("GITHUB_REPOSITORY", "")
@@ -155,18 +199,27 @@ def main():
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY", "")
     pr_number = os.environ.get("PR_NUMBER", "")
 
-    results = parse_junit(junit_xml) if junit_xml else None
+    # Test results (only when JUNIT_XML is provided)
+    if junit_xml:
+        results = parse_junit(junit_xml)
 
-    # Job Summary
-    summary = build_job_summary(results, allure_url, firmware_url, branch)
-    if summary_file:
-        with open(summary_file, "a") as f:
-            f.write(summary + "\n")
+        # Job Summary
+        summary = build_job_summary(results, allure_url, firmware_url, branch)
+        if summary_file:
+            with open(summary_file, "a") as f:
+                f.write(summary + "\n")
 
-    # PR Comment
-    if pr_number:
-        comment = build_pr_comment(results, allure_url)
-        post_or_update_pr_comment(comment, "### Integration Tests:")
+        # PR Comment
+        if pr_number:
+            comment = build_pr_comment(results, allure_url)
+            post_or_update_pr_comment(comment, "### Integration Tests:")
+
+    # Crash PR Comment
+    crash_flag = os.environ.get("CRASH_FLAG", "")
+    if pr_number and crash_flag:
+        crash_comment = build_crash_comment(crash_flag)
+        if crash_comment:
+            post_or_update_pr_comment(crash_comment, "### 🚨 Crash Detected")
 
 
 if __name__ == "__main__":
