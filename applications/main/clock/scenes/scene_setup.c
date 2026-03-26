@@ -3,8 +3,8 @@
 #include <gui/modules/var_item_list.h>
 
 typedef enum {
-    ThisSceneEventChange = ClockEventSceneEventsStart,
-} ThisSceneEvent;
+    ClockSceneSetupEventChange = ClockEventSceneEventsStart,
+} ClockSceneSetupEvent;
 
 typedef struct {
     VarItemList* front_list;
@@ -22,7 +22,7 @@ static void clock_scene_setup_list_show_date_callback(VarItem* item, void* conte
     instance->settings.show_date = var_item_get_value(item);
     furi_mutex_release(scene->settings_mutex);
 
-    clock_internal_fire_event(instance, ThisSceneEventChange);
+    clock_internal_fire_event(instance, ClockSceneSetupEventChange);
 }
 
 static void clock_scene_setup_list_show_seconds_callback(VarItem* item, void* context) {
@@ -34,7 +34,7 @@ static void clock_scene_setup_list_show_seconds_callback(VarItem* item, void* co
     instance->settings.show_seconds = var_item_get_value(item);
     furi_mutex_release(scene->settings_mutex);
 
-    clock_internal_fire_event(instance, ThisSceneEventChange);
+    clock_internal_fire_event(instance, ClockSceneSetupEventChange);
 }
 
 static void clock_scene_setup_on_enter(void* context) {
@@ -98,7 +98,7 @@ static bool clock_scene_setup_on_event(const SceneManagerEvent* event, void* con
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisSceneEventChange:
+        case ClockSceneSetupEventChange:
             furi_mutex_acquire(scene->settings_mutex, FuriWaitForever);
             ClockSettings settings = instance->settings;
             furi_mutex_release(scene->settings_mutex);

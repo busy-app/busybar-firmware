@@ -98,7 +98,7 @@ static void mirror_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_style_text_color(instance->footer_secondary_label, lv_color_black(), LV_PART_MAIN);
 }
 
-static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void mirror_card_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     MirrorCard* instance = (MirrorCard*)obj;
@@ -171,7 +171,7 @@ void mirror_card_set_footer_secondary_text(MirrorCard* instance, const char* sec
 const lv_obj_class_t mirror_card_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = mirror_card_lvgl_constructor,
-    .destructor_cb = clock_view_lvgl_destructor,
+    .destructor_cb = mirror_card_lvgl_destructor,
     .name = "widget-mirror-card",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

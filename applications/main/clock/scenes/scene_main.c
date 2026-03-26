@@ -8,7 +8,7 @@
 typedef enum {
     ClockSceneMainEventStart = ClockEventSceneEventsStart,
     ClockSceneMainEventSetup,
-} ClockSceneMainEventIdx;
+} ClockSceneMainEvent;
 
 typedef struct {
     Widget* front_container;
