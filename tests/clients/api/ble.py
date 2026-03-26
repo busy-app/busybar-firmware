@@ -59,4 +59,4 @@ class BleAPI(BaseAPI):
 
     def remove_pairing(self) -> requests.Response:
         """Remove BLE pairing. May return 200 or 503."""
-        return self.delete("/api/ble/pairing")
+        return self.delete_raw("/api/ble/pairing")

@@ -29,6 +29,14 @@ TEST_WIFI_SECURITY = os.environ.get("TEST_WIFI_SECURITY", "WPA2")
 # === Response Models ===
 
 
+class WifiIpInfo(BaseModel):
+    """IP configuration returned in wifi status."""
+
+    address: str | None = None
+    gateway: str | None = None
+    netmask: str | None = None
+
+
 class WifiStatusResponse(BaseModel):
     """Response from GET /api/wifi/status."""
 
@@ -36,6 +44,8 @@ class WifiStatusResponse(BaseModel):
         "unknown", "disconnected", "connected",
         "connecting", "disconnecting", "reconnecting"
     ]
+    ssid: str | None = None
+    ip_config: WifiIpInfo | None = None
 
 
 class WifiNetwork(BaseModel):
