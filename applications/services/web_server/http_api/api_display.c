@@ -350,15 +350,7 @@ static size_t api_display_active_priority(void) {
     return priority;
 }
 
-static bool api_display_draw_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_message* msg) {
     CanvasElementsArray_t elements_array;
     CanvasElementsArray_init(elements_array);
 
@@ -446,19 +438,9 @@ static bool api_display_draw_callback(
 
     CanvasElementsArray_clear(elements_array);
     if(app_id) free(app_id);
-    return true;
 }
 
-static bool api_display_delete_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(msg);
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_message* msg) {
     char app_id_buf[64];
     int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id_buf, sizeof(app_id_buf));
     const char* app_id = (app_id_len >= 1) ? app_id_buf : NULL;
@@ -477,19 +459,29 @@ static bool api_display_delete_callback(
     furi_record_close(RECORD_LOADER);
     MG_REPLY_OK(conn);
     furi_string_free(app_name);
+}
+
+static bool api_display_draw_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodPost) {
+        api_display_canvas_draw(conn, msg);
+    } else if(method == HttpMethodDelete) {
+        api_display_canvas_clear(conn, msg);
+    }
 
     return true;
 }
 
-static bool api_display_get_brightness_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
+static void api_display_get_brightness(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* json_str = furi_string_alloc();
 
@@ -506,19 +498,9 @@ static bool api_display_get_brightness_callback(
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
     furi_string_free(json_str);
-    return true;
 }
 
-static bool api_display_set_brightness_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(msg);
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_display_set_brightness(struct mg_connection* conn, struct mg_http_message* msg) {
     bool success = false;
     do {
         if(msg->query.len == 0) break;
@@ -557,6 +539,23 @@ static bool api_display_set_brightness_callback(
     } else {
         MG_REPLY_BAD_REQUEST(conn);
     }
+}
+
+static bool api_display_brightness_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodGet) {
+        api_display_get_brightness(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_display_set_brightness(conn, msg);
+    }
 
     return true;
 }
@@ -564,27 +563,15 @@ static bool api_display_set_brightness_callback(
 static const HttpHandler handlers_display[] = {
     {
         .uri = "draw",
-        .method = "POST",
+        .method = HttpMethodPost | HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_request = api_display_draw_callback,
     },
     {
-        .uri = "draw",
-        .method = "DELETE",
-        .type = HttpHandlerCustom,
-        .on_request = api_display_delete_callback,
-    },
-    {
         .uri = "brightness",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
-        .on_request = api_display_get_brightness_callback,
-    },
-    {
-        .uri = "brightness",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_display_set_brightness_callback,
+        .on_request = api_display_brightness_callback,
     },
 };
 
@@ -611,9 +598,10 @@ void http_api_display_free(void* ctx) {
 
 bool http_api_display_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiDisplayCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

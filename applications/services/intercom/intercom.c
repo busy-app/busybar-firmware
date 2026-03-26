@@ -1,6 +1,6 @@
 #include "intercom_i.h"
 
-#define TAG "IntercomSrv"
+#define TAG "Intercom"
 
 // Called in ISR context
 static void intercom_serial_tx_callback(
@@ -46,6 +46,7 @@ static void intercom_begin_operation(Intercom* instance) {
     furi_hal_serial_dma_init(instance->serial);
 
     intercom_start_rx_thread(instance);
+    intercom_start_heartbeat_thread(instance);
     // Begin serving API requests
     furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
 }
@@ -187,11 +188,11 @@ size_t
     const uint32_t timeout_ticks = furi_ms_to_ticks(timeout);
     const uint32_t deadline_ticks = furi_get_tick() + timeout_ticks;
 
-    if(!intercom_channel_await_peer_ready(channel, timeout_ticks)) {
+    if(!intercom_channel_wait_until_ready(channel, timeout_ticks)) {
         return 0;
     }
 
-    Intercom* instance = channel->intercom;
+    Intercom* instance = channel->owner;
     const IntercomChannelId channel_id = channel - instance->channels;
 
     size_t sent_data_size = 0;
@@ -222,11 +223,11 @@ IntercomChannel* intercom_channel_open(
     void* context) {
     furi_check(instance);
     furi_check(channel_id < IntercomChannelIdMax);
-    furi_check(channel_id != IntercomChannelIdMeta);
 
     IntercomChannel* channel = &instance->channels[channel_id];
     intercom_channel_set_callback(channel, callback, context);
-    intercom_channel_send_ready(channel);
+
+    intercom_meta_activate_channel(instance, channel_id);
 
     return channel;
 }

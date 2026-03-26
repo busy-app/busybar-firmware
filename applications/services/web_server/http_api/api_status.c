@@ -171,10 +171,12 @@ static const struct {
 
 bool http_api_status_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(msg);
+    UNUSED(method);
 
     ApiStatusCtx* context = ctx;
     furi_assert(context);

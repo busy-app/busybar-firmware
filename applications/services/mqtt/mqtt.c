@@ -88,10 +88,10 @@ static Mqtt* mqtt_alloc(void) {
     mqtt_api_init(instance);
     mqtt_account_init(instance);
 
+    furi_record_create(RECORD_MQTT, instance);
+
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, instance);
-
-    furi_record_create(RECORD_MQTT, instance);
 
     return instance;
 }
