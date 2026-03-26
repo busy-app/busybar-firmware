@@ -12,39 +12,49 @@
 #define DEFAULT_HARDWARE_VERSION        4
 #define DEFAULT_HARDWARE_VERSION_STRING "4.F22.B7.C2"
 
+typedef MatterStatus (*MatterApiMessageHandler)(MatterSrv* instance, MatterApiMessageData* data);
+
+static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax];
+
 // =========
 // Utilities
 // =========
 
-static bool matter_pick_frame_of_type(
+static MatterStatus matter_wait_for_response(
     MatterSrv* matter,
     MatterIntercomFrameType type,
     void* specific_frame,
     size_t specific_frame_size,
-    FuriWait timeout) {
+    uint32_t timeout) {
     furi_assert(matter);
 
-    size_t get_result_by = furi_get_tick() + timeout;
+    const uint32_t get_result_by = furi_get_tick() + timeout;
+
     while(furi_get_tick() < get_result_by) {
-        FuriWait max_wait = get_result_by - furi_get_tick();
+        const uint32_t max_wait = get_result_by - furi_get_tick();
 
         MatterIntercomFrame frame;
         FuriStatus status = furi_message_queue_get(matter->frame_queue, &frame, max_wait);
+
         if(status == FuriStatusErrorTimeout) {
-            return false;
-        } else {
-            furi_check(!(status & FuriStatusError));
+            return MatterStatusTimeout;
         }
 
+        furi_check((status & FuriStatusError) == 0);
+
         if(frame.type == type) {
-            if(specific_frame)
-                memcpy(specific_frame, &frame.frame_of_any_type, specific_frame_size);
-            return true;
+            if(specific_frame) {
+                memcpy(specific_frame, &frame, specific_frame_size);
+            }
+
+            return MatterStatusOk;
         }
 
         // messes up the order of events, doesn't matter in our case (yet)
         furi_check(furi_message_queue_put(matter->frame_queue, &frame, 0) == FuriStatusOk);
     }
+
+    // Shouldn't ever get here
     furi_crash();
 }
 
@@ -57,9 +67,13 @@ static void matter_intercom_rx_callback(const void* data, size_t data_size, void
     furi_check(data_size == sizeof(MatterIntercomFrame));
     furi_check(context);
     MatterSrv* matter = context;
-    const MatterIntercomFrame* frame = data;
 
-    furi_check(furi_message_queue_put(matter->frame_queue, frame, 0) == FuriStatusOk);
+    const FuriStatus status = furi_message_queue_put(matter->frame_queue, data, 0);
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorResource);
+        FURI_LOG_W(TAG, "Dropping frame");
+    }
 }
 
 static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
@@ -104,116 +118,46 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static FURI_WARN_UNUSED bool
-    matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
-    FuriWait timeout = matter->first_frame_sent ? TIMEOUT : FIRST_TIMEOUT;
+static MatterStatus matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
+    const uint32_t timeout = matter->first_frame_sent ? TIMEOUT : FIRST_TIMEOUT;
     matter->first_frame_sent = true;
-    return intercom_tx(matter->intercom_ch, frame, sizeof(*frame), timeout) == sizeof(*frame);
+
+    const size_t tx_size =
+        intercom_tx(matter->intercom_ch, frame, sizeof(MatterIntercomFrame), timeout);
+    return (tx_size == sizeof(MatterIntercomFrame)) ? MatterStatusOk : MatterStatusTimeout;
 }
 
-// ==========
-// Public API
-// ==========
+static void matter_handle_api_message(MatterSrv* instance) {
+    MatterApiMessage* api_message = &instance->api_message;
 
-static void matter_handle_api_request(FuriEventLoopObject* object, void* context) {
-    furi_assert(object);
+    const MatterApiMessageType message_type = api_message->type;
+    furi_assert(message_type < MatterApiMessageTypeMax);
+
+    const MatterStatus status =
+        matter_api_message_handlers[message_type](instance, &api_message->data);
+    *api_message->status = status;
+
+    if(api_message->lock) {
+        api_lock_unlock(api_message->lock);
+    }
+
+    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
+}
+
+static void matter_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
-    MatterSrv* matter = context;
-    FuriMessageQueue* queue = object;
-    furi_assert(queue == matter->request_queue);
+    MatterSrv* instance = context;
 
-    MatterApiRequest* request;
-    furi_check(furi_message_queue_get(queue, &request, 0) == FuriStatusOk);
-    furi_check(request);
-
-    switch(request->type) {
-    case MatterApiRequestTypeSetSwitchState: {
-        MatterSwitchState prev_switch_state;
-        furi_state_get(matter->switch_state, &prev_switch_state);
-
-        const MatterSwitchState new_switch_state = request->switch_state;
-
-        if(new_switch_state != prev_switch_state) {
-            const MatterIntercomFrame frame = {
-                .type = MatterIntercomFrameTypeSwitchState,
-                .switch_state.state = new_switch_state,
-            };
-            request->success = matter_send_frame(matter, &frame);
-
-        } else {
-            request->success = true;
-        }
-
-        break;
+    if(events & MatterCustomEventRequest) {
+        matter_handle_api_message(instance);
     }
-
-    case MatterApiRequestTypeSetSwitchStartupMode: {
-        const MatterIntercomFrame frame = {
-            .type = MatterIntercomFrameTypeSwitchStartupMode,
-            .startup.mode = request->startup_mode,
-        };
-        request->success = matter_send_frame(matter, &frame);
-        break;
-    }
-
-    case MatterApiRequestTypeReset: {
-        const MatterIntercomFrame frame = {
-            .type = MatterIntercomFrameTypeReset,
-        };
-        request->success = matter_send_frame(matter, &frame);
-        break;
-    }
-
-    case MatterApiRequestTypeCommission: {
-        const MatterIntercomFrame frame = {
-            .type = MatterIntercomFrameTypeCommission,
-        };
-        if(!matter_send_frame(matter, &frame)) {
-            request->success = false;
-            break;
-        }
-
-        furi_string_reset(request->qr_code);
-        furi_string_reset(request->manual_code);
-        MatterIntercomPairingCodesFrame codes_frame;
-        request->success = matter_pick_frame_of_type(
-            matter,
-            MatterIntercomFrameTypePairingCodes,
-            &codes_frame,
-            sizeof(codes_frame),
-            TIMEOUT);
-
-        if(request->success) {
-            FURI_LOG_I(TAG, "QR code: %s", codes_frame.qr_code);
-            FURI_LOG_I(TAG, "Manual code: %s", codes_frame.manual_code);
-            request->window_duration = MATTER_COMMISSION_TIME_SECONDS;
-            furi_string_set_str(request->qr_code, codes_frame.qr_code);
-            furi_string_set_str(request->manual_code, codes_frame.manual_code);
-        } else {
-            FURI_LOG_E(TAG, "Commissioning response timeout");
-            request->window_duration = 0;
-        }
-
-        break;
-    }
-
-    case MatterApiRequestTypeGetFabrics: {
-        request->fabrics = matter->fabrics;
-        request->success = true;
-        break;
-    }
-    default:
-        furi_crash("Invalid MatterApiRequestType value");
-    }
-
-    api_lock_unlock(request->lock);
 }
 
 // =============
 // Service setup
 // =============
 
-static bool matter_send_initialization_and_await_ready(MatterSrv* matter) {
+static MatterStatus matter_send_initialization_and_await_ready(MatterSrv* matter) {
     furi_assert(matter);
     matter_cd_init(&matter->cd);
 
@@ -235,50 +179,163 @@ static bool matter_send_initialization_and_await_ready(MatterSrv* matter) {
         strcpy(init->hardware_version_str, DEFAULT_HARDWARE_VERSION_STRING);
     }
 
-    if(!matter_send_frame(matter, &cd_frame)) return false;
+    MatterStatus status;
 
-    if(!matter_pick_frame_of_type(
-           matter, MatterIntercomFrameTypeBackendReady, NULL, 0, FIRST_TIMEOUT))
-        return false;
+    do {
+        status = matter_send_frame(matter, &cd_frame);
 
-    return true;
+        if(status != MatterStatusOk) {
+            break;
+        }
+
+        status = matter_wait_for_response(
+            matter, MatterIntercomFrameTypeBackendReady, NULL, 0, FIRST_TIMEOUT);
+
+    } while(false);
+
+    return status;
 }
 
-MatterSrv* matter_srv_alloc(void) {
-    MatterSrv* matter = malloc(sizeof(MatterSrv));
+static MatterSrv* matter_alloc(void) {
+    MatterSrv* instance = malloc(sizeof(MatterSrv));
 
-    matter->event_loop = furi_event_loop_alloc();
+    instance->event_loop = furi_event_loop_alloc();
 
-    matter->frame_queue = furi_message_queue_alloc(FRAME_QUEUE_SIZE, sizeof(MatterIntercomFrame));
+    instance->api_semaphore = furi_semaphore_alloc(1, 0);
+    instance->frame_queue =
+        furi_message_queue_alloc(FRAME_QUEUE_SIZE, sizeof(MatterIntercomFrame));
     furi_event_loop_subscribe_message_queue(
-        matter->event_loop, matter->frame_queue, FuriEventLoopEventIn, matter_handle_frame, matter);
-
-    matter->request_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(MatterApiRequest*));
-    furi_event_loop_subscribe_message_queue(
-        matter->event_loop,
-        matter->request_queue,
+        instance->event_loop,
+        instance->frame_queue,
         FuriEventLoopEventIn,
-        matter_handle_api_request,
-        matter);
+        matter_handle_frame,
+        instance);
 
-    matter->pubsub = furi_pubsub_alloc();
-    matter->switch_state = furi_state_alloc(sizeof(MatterSwitchState));
+    instance->pubsub = furi_pubsub_alloc();
+    instance->switch_state = furi_state_alloc(sizeof(MatterSwitchState));
+
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, matter_custom_event_callback, instance);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    matter->intercom_ch = intercom_channel_open(
-        intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, matter);
+    instance->intercom_ch = intercom_channel_open(
+        intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
 
-    if(!matter_send_initialization_and_await_ready(matter))
+    if(matter_send_initialization_and_await_ready(instance) == MatterStatusOk) {
+        furi_semaphore_release(instance->api_semaphore);
+    } else {
         FURI_LOG_E(TAG, "initialization timed out");
+    }
 
-    furi_record_create(RECORD_MATTER, matter);
-    return matter;
+    furi_record_create(RECORD_MATTER, instance);
+    return instance;
 }
+
+// ========= API message handlers  =========
+
+static MatterStatus
+    matter_set_switch_state_api_message_nandler(MatterSrv* instance, MatterApiMessageData* data) {
+    MatterStatus status = MatterStatusOk;
+
+    MatterSwitchState prev_switch_state;
+    furi_state_get(instance->switch_state, &prev_switch_state);
+
+    const MatterSwitchState new_switch_state = data->set_switch_state.state;
+
+    if(new_switch_state != prev_switch_state) {
+        const MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypeSwitchState,
+            .switch_state.state = new_switch_state,
+        };
+
+        status = matter_send_frame(instance, &frame);
+    }
+
+    return status;
+}
+
+static MatterStatus matter_set_switch_startup_mode_api_message_nandler(
+    MatterSrv* instance,
+    MatterApiMessageData* data) {
+    const MatterIntercomFrame frame = {
+        .type = MatterIntercomFrameTypeSwitchStartupMode,
+        .startup.mode = data->set_switch_startup_mode.mode,
+    };
+
+    return matter_send_frame(instance, &frame);
+}
+
+static MatterStatus matter_start_commissioning_api_message_nandler(
+    MatterSrv* instance,
+    MatterApiMessageData* data) {
+    MatterStatus status;
+    do {
+        const MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypeCommission,
+        };
+
+        status = matter_send_frame(instance, &frame);
+
+        if(status != MatterStatusOk) {
+            break;
+        }
+
+        MatterIntercomPairingCodesFrame response;
+
+        status = matter_wait_for_response(
+            instance, MatterIntercomFrameTypePairingCodes, &response, sizeof(response), TIMEOUT);
+
+        MatterCommissioningInfo* info = data->start_commissioning.info;
+
+        if(status == MatterStatusOk) {
+            FURI_LOG_I(TAG, "QR code: %s", response.qr_code);
+            FURI_LOG_I(TAG, "Manual code: %s", response.manual_code);
+
+            strlcpy(info->qr_code, response.qr_code, sizeof(info->qr_code));
+            strlcpy(info->manual_code, response.manual_code, sizeof(info->manual_code));
+            info->window_duration_s = MATTER_COMMISSION_TIME_SECONDS;
+
+        } else {
+            FURI_LOG_E(TAG, "Commissioning response timeout");
+        }
+
+    } while(false);
+
+    return status;
+}
+
+static MatterStatus matter_get_commissioned_fabrics_api_message_nandler(
+    MatterSrv* instance,
+    MatterApiMessageData* data) {
+    *data->get_fabrics.fabrics = instance->fabrics;
+    return MatterStatusOk;
+}
+
+static MatterStatus
+    matter_factory_reset_api_message_nandler(MatterSrv* instance, MatterApiMessageData* data) {
+    UNUSED(data);
+    const MatterIntercomFrame frame = {
+        .type = MatterIntercomFrameTypeReset,
+    };
+
+    return matter_send_frame(instance, &frame);
+}
+
+static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax] = {
+    [MatterApiMessageTypeSetSwitchState] = matter_set_switch_state_api_message_nandler,
+    [MatterApiMessageTypeSetSwitchStartupMode] =
+        matter_set_switch_startup_mode_api_message_nandler,
+    [MatterApiMessageTypeStartCommissioning] = matter_start_commissioning_api_message_nandler,
+    [MatterApiMessageTypeGetFabrics] = matter_get_commissioned_fabrics_api_message_nandler,
+    [MatterApiMessageTypeFactoryReset] = matter_factory_reset_api_message_nandler,
+};
+
+// Service thread
 
 int matter_srv(void* arg) {
     UNUSED(arg);
 
-    MatterSrv* matter = matter_srv_alloc();
+    MatterSrv* matter = matter_alloc();
     furi_event_loop_run(matter->event_loop);
 
     return 0;

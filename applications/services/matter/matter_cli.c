@@ -140,20 +140,17 @@ static void matter_cli_cmd_comm(PipeSide* pipe, FuriString* args, void* context)
     furi_assert(context);
     MatterCli* matter_cli = context;
 
-    FuriString* qr_code = furi_string_alloc();
-    FuriString* man_code = furi_string_alloc();
-    size_t window_len = matter_enable_commissioning(matter_cli->matter, qr_code, man_code);
+    MatterCommissioningInfo info;
+    const MatterStatus status = matter_enable_commissioning(matter_cli->matter, &info);
 
-    if(!window_len) {
-        printf(ANSI_FG_RED "failed to enable commissioning\r\n" ANSI_RESET);
+    if(status == MatterStatusOk) {
+        printf("Manual pairing code : %s\r\n", info.manual_code);
+        printf("QR code payload     : %s\r\n", info.qr_code);
+        printf("Ready to pair for   : %lu seconds\r\n", info.window_duration_s);
+
     } else {
-        printf("Manual pairing code : %s\r\n", furi_string_get_cstr(man_code));
-        printf("QR code payload     : %s\r\n", furi_string_get_cstr(qr_code));
-        printf("Ready to pair for   : %zu seconds\r\n", window_len);
+        printf(ANSI_FG_RED "failed to enable commissioning\r\n" ANSI_RESET);
     }
-
-    furi_string_free(qr_code);
-    furi_string_free(man_code);
 }
 
 static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* context) {
@@ -162,11 +159,17 @@ static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* conte
     furi_assert(context);
     MatterCli* matter_cli = context;
 
-    size_t count = matter_commissioned_fabrics(matter_cli->matter).count;
-    if(count) {
-        printf("device is commissioned to %zu fabrics\r\n", count);
+    MatterCommissionedFabrics fabrics;
+    const MatterStatus status = matter_get_commissioned_fabrics(matter_cli->matter, &fabrics);
+
+    if(status == MatterStatusOk) {
+        if(fabrics.count) {
+            printf("device is commissioned to %lu fabrics\r\n", fabrics.count);
+        } else {
+            printf("device is not commissioned to any fabric\r\n");
+        }
     } else {
-        printf("device is not commissioned to any fabric\r\n");
+        printf(ANSI_FG_RED "failed to get fabrics\r\n" ANSI_RESET);
     }
 }
 

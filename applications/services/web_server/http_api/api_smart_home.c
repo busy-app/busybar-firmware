@@ -22,8 +22,16 @@ static bool api_smart_home_pairing_status(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     MatterSrv* matter = furi_record_open(RECORD_MATTER);
-    MatterCommissionedFabrics fabrics = matter_commissioned_fabrics(matter);
+
+    MatterCommissionedFabrics fabrics;
+    const MatterStatus status = matter_get_commissioned_fabrics(matter, &fabrics);
+
     furi_record_close(RECORD_MATTER);
+
+    if(status != MatterStatusOk) {
+        MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
+        return true;
+    }
 
     cJSON* object = cJSON_CreateObject();
 
@@ -64,24 +72,26 @@ static bool api_smart_home_enable_pairing(
     bool success = false;
     if(!IS_HTTP_ENDPOINT(path)) return success;
 
-    FuriString* qr_code = furi_string_alloc();
-    FuriString* manual_code = furi_string_alloc();
-
     do {
         MatterSrv* matter = furi_record_open(RECORD_MATTER);
-        size_t seconds_left = matter_enable_commissioning(matter, qr_code, manual_code);
+
+        MatterCommissioningInfo info;
+        const MatterStatus status = matter_enable_commissioning(matter, &info);
+
         furi_record_close(RECORD_MATTER);
 
-        if(!seconds_left) break;
+        if(status != MatterStatusOk) {
+            break;
+        }
 
         cJSON* object = cJSON_CreateObject();
 
-        time_t available_until = furi_hal_rtc_get_timestamp_ms() + (seconds_left * 1000);
+        time_t available_until = furi_hal_rtc_get_timestamp_ms() + (info.window_duration_s * 1000);
         char timestamp[32];
         snprintf(timestamp, sizeof(timestamp), "%" PRIu64, available_until);
         cJSON_AddStringToObject(object, "available_until", timestamp);
-        cJSON_AddStringToObject(object, "qr_code", furi_string_get_cstr(qr_code));
-        cJSON_AddStringToObject(object, "manual_code", furi_string_get_cstr(manual_code));
+        cJSON_AddStringToObject(object, "qr_code", info.qr_code);
+        cJSON_AddStringToObject(object, "manual_code", info.manual_code);
 
         char* serialized = cJSON_PrintUnformatted(object);
         cJSON_Delete(object);
@@ -91,9 +101,6 @@ static bool api_smart_home_enable_pairing(
     } while(0);
 
     if(!success) MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
-
-    furi_string_free(qr_code);
-    furi_string_free(manual_code);
 
     return true;
 }

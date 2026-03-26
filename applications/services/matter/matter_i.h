@@ -12,37 +12,56 @@
 #define TAG "Matter"
 
 typedef enum {
-    MatterApiRequestTypeSetSwitchState,
-    MatterApiRequestTypeSetSwitchStartupMode,
-    MatterApiRequestTypeReset,
-    MatterApiRequestTypeCommission,
-    MatterApiRequestTypeGetFabrics,
-    MatterApiRequestTypeMax,
-} MatterApiRequestType;
+    MatterCustomEventRequest = 1UL << 0,
+} MatterCustomEvent;
+
+typedef enum {
+    MatterApiMessageTypeSetSwitchState,
+    MatterApiMessageTypeSetSwitchStartupMode,
+    MatterApiMessageTypeStartCommissioning,
+    MatterApiMessageTypeGetFabrics,
+    MatterApiMessageTypeFactoryReset,
+    MatterApiMessageTypeMax,
+} MatterApiMessageType;
 
 typedef struct {
+    MatterSwitchState state;
+} MatterApiMessageSetSwitchState;
+
+typedef struct {
+    MatterSwitchStartupMode mode;
+} MatterApiMessageSetSwitchStartupMode;
+
+typedef struct {
+    MatterCommissioningInfo* info;
+} MatterApiMessageStartCommissioning;
+
+typedef struct {
+    MatterCommissionedFabrics* fabrics;
+} MatterApiMessageGetFabrics;
+
+typedef union {
+    MatterApiMessageSetSwitchState set_switch_state;
+    MatterApiMessageSetSwitchStartupMode set_switch_startup_mode;
+    MatterApiMessageStartCommissioning start_commissioning;
+    MatterApiMessageGetFabrics get_fabrics;
+} MatterApiMessageData;
+
+typedef struct {
+    MatterApiMessageType type;
+    MatterApiMessageData data;
+    MatterStatus* status;
     FuriApiLock lock;
-    MatterApiRequestType type;
-    bool success;
-    union {
-        struct {
-            FuriString* qr_code;
-            FuriString* manual_code;
-            size_t window_duration;
-        };
-        MatterSwitchState switch_state;
-        MatterCommissionedFabrics fabrics;
-        MatterSwitchStartupMode startup_mode;
-    };
-} MatterApiRequest;
+} MatterApiMessage;
 
 struct MatterSrv {
     FuriEventLoop* event_loop;
+    FuriSemaphore* api_semaphore;
     FuriMessageQueue* frame_queue;
-    FuriMessageQueue* request_queue;
     FuriPubSub* pubsub;
     FuriState* switch_state;
     IntercomChannel* intercom_ch;
+    MatterApiMessage api_message;
     MatterCd cd;
     MatterCommissionedFabrics fabrics;
     bool first_frame_sent;

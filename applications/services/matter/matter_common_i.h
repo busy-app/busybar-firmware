@@ -2,22 +2,13 @@
  * @file matter_common_i.h
  * Intercom protocol definitions.
  */
-
 #pragma once
 
-#include <furi.h>
 #include "matter_common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define MATTER_INTERCOM_PROTOCOL_VERSION (1)
-
-#define MATTER_COMMISSION_TIME_SECONDS (60 * 15)
-#define MATTER_MAX_QR_CODE_LEN         (255) // Spec paragraph 5.1.3
-#define MATTER_MAX_MAN_CODE_LEN \
-    (26) // Spec paragraph 5.1.4 says 21. We also add a maximum of 5 hyphens.
 
 // ===============
 // Specific frames
@@ -58,8 +49,8 @@ typedef struct {
  * @brief Pairing codes
  */
 typedef struct {
-    char qr_code[MATTER_MAX_QR_CODE_LEN + 1];
-    char manual_code[MATTER_MAX_MAN_CODE_LEN + 1];
+    char qr_code[MATTER_QR_CODE_LEN_MAX + 1];
+    char manual_code[MATTER_MAN_CODE_LEN_MAX + 1];
 } MatterIntercomPairingCodesFrame;
 
 typedef struct {

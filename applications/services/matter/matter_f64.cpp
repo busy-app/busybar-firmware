@@ -68,7 +68,7 @@ static MatterSrv* matter_global_srv;
 // =========
 
 static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
-    furi_check(buf_size >= (MATTER_MAX_MAN_CODE_LEN + 1));
+    furi_check(buf_size >= (MATTER_MAN_CODE_LEN_MAX + 1));
 
     static const size_t pattern[2] = {4, 3};
     const size_t original_len = strlen(buffer);

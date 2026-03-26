@@ -46,6 +46,15 @@ typedef struct {
 } MatterEvent;
 
 /**
+ * @brief Commissioning information struct
+ */
+typedef struct {
+    uint32_t count; //<! Number of fabric the device is commissioned into
+    MatterCommissioningStatus last_status; //<! Latest status update from the service PubSub
+    time_t last_status_at; //<! UTC Unix millisecond timestamp of latest status update..
+} MatterCommissionedFabrics;
+
+/**
  * @brief Gets a PubSub to listen to Matter events
  * 
  * @param[in] matter Service instance
@@ -55,13 +64,14 @@ typedef struct {
 FuriPubSub* matter_get_pubsub(MatterSrv* matter);
 
 /**
+ * TODO: description
  */
 FuriState* matter_get_switch_state(MatterSrv* matter);
 
 /**
  * @brief Sets the state of the Matter switch
  */
-bool matter_set_switch_state(MatterSrv* matter, MatterSwitchState switch_state);
+MatterStatus matter_set_switch_state(MatterSrv* matter, MatterSwitchState switch_state);
 
 /**
  * @brief Set the startup mode of the Matter switch
@@ -71,48 +81,35 @@ bool matter_set_switch_state(MatterSrv* matter, MatterSwitchState switch_state);
  * 
  * @returns true on success
  */
-bool matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode);
-
-/**
- * @brief Deletes all Matter data
- * 
- * @param[in] matter Service instance
- * 
- * @returns true on success
- */
-bool matter_factory_reset(MatterSrv* matter);
+MatterStatus matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode);
 
 /**
  * @brief Enables Matter commissioning
  * 
  * @param[in] matter Service instance
- * @param[out] qr_code String to fill with onboarding QR code payload
- * @param[out] manual_code String to fill with manual pairing code
- * 
- * @returns Time (in seconds) that commissioning has been enabled for.
- *          0 indicates an error.
+ *
+ * TODO: Complete description
  */
-size_t
-    matter_enable_commissioning(MatterSrv* matter, FuriString* qr_code, FuriString* manual_code);
-
-/**
- * @brief Commissioning information struct
- */
-typedef struct {
-    size_t count; //<! Number of fabric the device is commissioned into
-    MatterCommissioningStatus last_status; //<! Latest status update from the service PubSub
-    time_t
-        last_status_at; //<! UTC Unix millisecond timestamp of latest status update. `0` means no updates have been issued yet.
-} MatterCommissionedFabrics;
+MatterStatus matter_enable_commissioning(MatterSrv* matter, MatterCommissioningInfo* info);
 
 /**
  * @brief Brief information about the commissioning status
  * 
  * @param[in] matter Service instance
  * 
- * @returns Commissioning information struct
+ * TODO: Complete description
  */
-MatterCommissionedFabrics matter_commissioned_fabrics(MatterSrv* matter);
+MatterStatus
+    matter_get_commissioned_fabrics(MatterSrv* matter, MatterCommissionedFabrics* fabrics);
+
+/**
+ * @brief Deletes all Matter data
+ *
+ * @param[in] matter Service instance
+ *
+ * @returns true on success
+ */
+MatterStatus matter_factory_reset(MatterSrv* matter);
 
 /**
  * @brief Gets the currently selected Certification Declaration
@@ -133,7 +130,7 @@ const char* matter_get_wanted_cd_selection(MatterSrv* matter);
  * 
  * @returns true on success
  */
-bool matter_set_wanted_cd_selection(MatterSrv* matter, const char* selection);
+MatterStatus matter_set_wanted_cd_selection(MatterSrv* matter, const char* selection);
 
 /**
  * @brief Gets the currently de-facto active Certification Declaration
