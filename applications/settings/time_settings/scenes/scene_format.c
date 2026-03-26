@@ -11,29 +11,29 @@ typedef struct {
     VarItemList* back_list;
 } SettingsSceneFormat;
 
-const char* time_settings_format_names[SntpSettingTimeFormatCount] =
-    {[SntpSettingTimeFormat24h] = "24h", [SntpSettingTimeFormat12h] = "12h"};
+const char* time_settings_format_names[TimeSettingTimeFormatCount] =
+    {[TimeSettingTimeFormat24h] = "24h", [TimeSettingTimeFormat12h] = "12h"};
 
 static void scene_main_on_changed(VarItem* item, void* context) {
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
 
-    SntpSettings sntp_settings;
-    sntp_get_settings(instance->sntp, &sntp_settings);
+    TimeSettings time_settings;
+    time_get_settings(instance->time, &time_settings);
 
-    sntp_settings.time_format = var_item_get_value(item);
+    time_settings.time_format = var_item_get_value(item);
 
-    sntp_set_settings(instance->sntp, &sntp_settings);
+    time_set_settings(instance->time, &time_settings);
 }
 
 static void scene_format_on_enter(void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneFormat* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFormat);
 
-    SntpSettings sntp_settings;
-    sntp_get_settings(instance->sntp, &sntp_settings);
+    TimeSettings time_settings;
+    time_get_settings(instance->time, &time_settings);
 
     with_gui(instance->gui, {
         nav_bar_push_location(instance->back_nav_bar, "TIME FORMAT");
@@ -46,7 +46,7 @@ static void scene_format_on_enter(void* context) {
             COUNT_OF(time_settings_format_names),
             scene_main_on_changed,
             instance);
-        var_item_set_value(item, sntp_settings.time_format);
+        var_item_set_value(item, time_settings.time_format);
         data->back_list = var_item_list_alloc(instance->back_scene_window);
         item = var_item_list_add_selector(
             data->back_list,
@@ -56,14 +56,14 @@ static void scene_format_on_enter(void* context) {
             COUNT_OF(time_settings_format_names),
             NULL,
             instance);
-        var_item_set_value(item, sntp_settings.time_format);
+        var_item_set_value(item, time_settings.time_format);
     });
 }
 
 static void scene_format_on_exit(void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneFormat* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFormat);
 
@@ -77,7 +77,7 @@ static void scene_format_on_exit(void* context) {
 static bool scene_format_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {

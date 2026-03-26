@@ -1,6 +1,6 @@
 /**
- * @file sntp.h
- * @brief SNTP (Simple Network Time Protocol) service API.
+ * @file time.h
+ * @brief TIME (Simple Network Time Protocol) service API.
  */
 #pragma once
 
@@ -12,42 +12,42 @@
 extern "C" {
 #endif
 
-/** Record name for SNTP service */
-#define RECORD_SNTP "sntp"
+/** Record name for Time service */
+#define RECORD_TIME "time"
 
-/** SNTP service opaque type declaration */
-typedef struct Sntp Sntp;
+/** Time service opaque type declaration */
+typedef struct Time Time;
 
 /**
- * @brief Get the current SNTP settings.
+ * @brief Get the current time settings.
  *
- * Retrieves the current configuration of the SNTP service including server address,
+ * Retrieves the current configuration of the Time service including server address,
  * timezone offset, sync interval, and enabled state.
  *
- * @param[in] instance pointer to the SNTP service instance
+ * @param[in] instance pointer to the Time service instance
  * @param[out] settings pointer to a structure to be filled with current settings
  */
-void sntp_get_settings(const Sntp* instance, SntpSettings* settings);
+void time_get_settings(const Time* instance, TimeSettings* settings);
 
 /**
- * @brief Set new SNTP settings.
+ * @brief Set new time settings.
  *
- * Updates the SNTP service configuration. Changes take effect immediately and will
+ * Updates the Time service configuration. Changes take effect immediately and will
  * trigger a reconfiguration of the background synchronization task if the service
  * is enabled.
  *
- * @param[in,out] instance pointer to the SNTP service instance
+ * @param[in,out] instance pointer to the Time service instance
  * @param[in] settings pointer to a structure containing the new settings
  * @return true if settings were successfully applied, false otherwise
  */
-bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
+bool time_set_settings(Time* instance, const TimeSettings* settings);
 
 /**
  * @brief Get Unix seconds timestamp
  * 
  * @return 64-bit Unix seconds timestamp
  */
-time_t sntp_get_timestamp(void);
+time_t time_get_timestamp(void);
 
 /**
  * @brief Get date, time, and timezone offset in local timezone
@@ -55,14 +55,14 @@ time_t sntp_get_timestamp(void);
  * @param[in] instance
  * @return local DateTime
  */
-LocalTime sntp_get_local_time(Sntp* instance);
+LocalTime time_get_local_time(Time* instance);
 
 /**
  * @brief Get Unix milliseconds timestamp
  *
  * @return 64-bit Unix milliseconds timestamp
  */
-time_t sntp_get_timestamp_ms(void);
+time_t time_get_timestamp_ms(void);
 
 #ifdef __cplusplus
 }

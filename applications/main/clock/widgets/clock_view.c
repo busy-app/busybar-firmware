@@ -19,7 +19,7 @@ struct ClockView {
 
     bool show_seconds;
     bool show_date;
-    SntpSettingTimeFormat time_format;
+    TimeSettingTimeFormat time_format;
 };
 
 const lv_obj_class_t clock_view_lvgl_class;
@@ -153,7 +153,7 @@ ClockView* clock_view_alloc(Widget* parent) {
 
     instance->show_seconds = true;
     instance->show_date = true;
-    instance->time_format = SntpSettingTimeFormat12h;
+    instance->time_format = TimeSettingTimeFormat12h;
 
     return instance;
 }
@@ -185,16 +185,16 @@ void clock_view_set_show_date(ClockView* instance, bool show_date) {
     instance->show_seconds = show_date;
 }
 
-void clock_view_set_time_format(ClockView* instance, SntpSettingTimeFormat time_format) {
+void clock_view_set_time_format(ClockView* instance, TimeSettingTimeFormat time_format) {
     furi_check(instance);
 
     bool do_hide_meridian;
     switch(time_format) {
-    case SntpSettingTimeFormat24h:
+    case TimeSettingTimeFormat24h:
         do_hide_meridian = true;
         break;
 
-    case SntpSettingTimeFormat12h:
+    case TimeSettingTimeFormat12h:
         do_hide_meridian = false;
         break;
 
@@ -225,13 +225,13 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     uint8_t display_hour;
 
     switch(instance->time_format) {
-    case SntpSettingTimeFormat24h:
+    case TimeSettingTimeFormat24h:
         meridian = NULL;
         display_hour_min_width = 2;
         display_hour = date_time->hour;
         break;
 
-    case SntpSettingTimeFormat12h:
+    case TimeSettingTimeFormat12h:
         meridian = (date_time->hour >= 12) ? "PM" : "AM";
         display_hour_min_width = 0;
         display_hour = (date_time->hour == 0) ? 12 :

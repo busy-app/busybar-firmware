@@ -99,10 +99,10 @@ struct Updater {
     FuriString* install_sha256;
     bool install_is_autoupdate;
 
-#ifdef SRV_SNTP
+#ifdef SRV_TIME
     FuriEventLoopTimer* autoupdate_timer;
     FuriSemaphore* autoupdate_semaphore;
-#endif /* SRV_SNTP */
+#endif /* SRV_TIME */
 #endif /* FW_CFG_recovery */
 };
 
