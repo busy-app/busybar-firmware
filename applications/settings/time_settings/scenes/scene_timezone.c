@@ -16,12 +16,12 @@ typedef struct {
 } SettingsSceneTimezone;
 
 static void scene_timezone_on_submenu_item(uint32_t index, void* context) {
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     time_settings_send_custom_event(instance, index);
 }
 
 static void scene_timezone_fill_submenu(
-    TimeSettings* instance,
+    TimeSettingsApp* instance,
     Submenu* menu,
     const TzutilTzInfoList* list,
     bool do_set_callbacks,
@@ -41,14 +41,14 @@ static void scene_timezone_fill_submenu(
     submenu_set_selected_item_index(menu, selected_index);
 }
 
-static size_t get_current_timezone_index(TimeSettings* instance) {
+static size_t get_current_timezone_index(TimeSettingsApp* instance) {
     SettingsSceneTimezone* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
-    SntpSettings sntp_settings;
-    sntp_get_settings(instance->sntp, &sntp_settings);
+    TimeSettings time_settings;
+    time_get_settings(instance->time, &time_settings);
     for(size_t i = 0; i != data->list.count; ++i) {
         // Ok to compare pointers: they point to the same table
-        if(data->list.entries[i].name == sntp_settings.timezone.name) {
+        if(data->list.entries[i].name == time_settings.timezone.name) {
             return i;
         }
     }
@@ -58,7 +58,7 @@ static size_t get_current_timezone_index(TimeSettings* instance) {
 static void scene_timezone_on_enter(void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneTimezone* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
 
@@ -80,7 +80,7 @@ static void scene_timezone_on_enter(void* context) {
 static void scene_timezone_on_exit(void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
     SettingsSceneTimezone* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTimezone);
 
@@ -95,7 +95,7 @@ static void scene_timezone_on_exit(void* context) {
 static bool scene_timezone_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
@@ -105,10 +105,10 @@ static bool scene_timezone_on_event(const SceneManagerEvent* event, void* contex
 
         const char* zone_name = data->list.entries[event->event].name;
         FURI_LOG_D(TAG, "Selected: %s", zone_name);
-        SntpSettings sntp_settings;
-        sntp_get_settings(instance->sntp, &sntp_settings);
-        bool ok = utz_get_zone_by_name(zone_name, &sntp_settings.timezone);
-        ok = ok && sntp_set_settings(instance->sntp, &sntp_settings);
+        TimeSettings time_settings;
+        time_get_settings(instance->time, &time_settings);
+        bool ok = utz_get_zone_by_name(zone_name, &time_settings.timezone);
+        ok = ok && time_set_settings(instance->time, &time_settings);
         if(!ok) {
             FURI_LOG_E(TAG, "Error setting timezone");
         }

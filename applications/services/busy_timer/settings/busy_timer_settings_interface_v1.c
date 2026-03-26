@@ -73,7 +73,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                     .metadata =
                         {
                             .sort_order = SORT_ORDER_DEFAULT,
-                            .title = "busy",
+                            .title = "BUSY",
                             .card_id = "00000000-0000-0000-0000-000000000000",
                         },
                     .timestamp_ms = 0,
@@ -97,7 +97,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                     .metadata =
                         {
                             .sort_order = SORT_ORDER_DEFAULT,
-                            .title = "custom",
+                            .title = "ZEN",
                             .card_id = "00000000-0000-0000-0000-000000000001",
                         },
                     .timestamp_ms = 0,

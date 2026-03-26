@@ -9,7 +9,7 @@ static int32_t init_task(void* context) {
 
     furi_hal_init();
 
-    flipper_init_services();
+    flipper_init();
 
     furi_background();
     return 0;

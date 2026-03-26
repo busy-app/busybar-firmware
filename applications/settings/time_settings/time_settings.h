@@ -10,7 +10,7 @@
 #include <gui/gui.h>
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
-#include <sntp/sntp.h>
+#include <time/time.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -44,11 +44,11 @@ typedef struct {
     NavBar* back_nav_bar;
     Widget* back_scene_window;
 
-    Sntp* sntp;
+    Time* time;
 
-} TimeSettings;
+} TimeSettingsApp;
 
-void time_settings_send_custom_event(TimeSettings* instance, uint32_t event);
+void time_settings_send_custom_event(TimeSettingsApp* instance, uint32_t event);
 
 #ifdef __cplusplus
 }

@@ -123,7 +123,7 @@ static Clock* clock_alloc(const char* arguments) {
         scene_manager_alloc(clock_internal_scenes, ClockSceneIdxsCount, instance);
 
     instance->gui = furi_record_open(RECORD_GUI);
-    instance->sntp = furi_record_open(RECORD_SNTP);
+    instance->time = furi_record_open(RECORD_TIME);
     instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->updater = furi_record_open(RECORD_UPDATER);
 
@@ -204,7 +204,7 @@ static void clock_free(Clock* instance) {
 
     furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_DESKTOP);
-    furi_record_close(RECORD_SNTP);
+    furi_record_close(RECORD_TIME);
     furi_record_close(RECORD_GUI);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);

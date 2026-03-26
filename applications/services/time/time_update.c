@@ -6,7 +6,7 @@
 
 #include <network/network.h>
 
-#define TAG "SntpTimeUpdate"
+#define TAG "TimeUpdate"
 
 #define TIME_UPDATE_TIMEOUT_MS        30000
 #define TIME_UPDATE_THREAD_STACK_SIZE (1024 * 2)
@@ -14,11 +14,11 @@
 #define M_TO_S(x) ((x) * 60)
 
 typedef enum {
-    SntpTimeUpdateStatusNone,
+    TimeTimeUpdateStatusNone,
 
-    SntpTimeUpdateStatusOk,
-    SntpTimeUpdateStatusError,
-    SntpTimeUpdateStatusTimeout,
+    TimeTimeUpdateStatusOk,
+    TimeTimeUpdateStatusError,
+    TimeTimeUpdateStatusTimeout,
 } TimeUpdateStatus;
 
 typedef struct {
@@ -27,8 +27,8 @@ typedef struct {
 } TimeUpdateContext;
 
 typedef struct {
-    Sntp* instance;
-    SntpTimeUpdateCallback callback;
+    Time* instance;
+    TimeTimeUpdateCallback callback;
 } ThreadContext;
 
 static void rtc_adjust_time(time_t timestamp_ms) {
@@ -69,13 +69,13 @@ static void time_update_callback(struct mg_connection* c, int ev, void* ev_data)
     switch(ev) {
     case MG_EV_SNTP_TIME: {
         rtc_adjust_time(*(time_t*)ev_data);
-        context->update_status = SntpTimeUpdateStatusOk;
+        context->update_status = TimeTimeUpdateStatusOk;
         break;
     }
 
     case MG_EV_ERROR:
-        FURI_LOG_E(TAG, "SNTP error: %s", (const char*)ev_data);
-        context->update_status = SntpTimeUpdateStatusError;
+        FURI_LOG_E(TAG, "TIME error: %s", (const char*)ev_data);
+        context->update_status = TimeTimeUpdateStatusError;
         break;
 
     case MG_EV_CLOSE:
@@ -89,11 +89,11 @@ static int32_t time_update_thread_callback(void* context) {
 
     FURI_LOG_D(TAG, "Thread started");
 
-    SntpSettings settings;
-    sntp_get_settings(thread_context->instance, &settings);
+    TimeSettings settings;
+    time_get_settings(thread_context->instance, &settings);
 
     TimeUpdateContext time_update_context = {
-        .update_status = SntpTimeUpdateStatusNone,
+        .update_status = TimeTimeUpdateStatusNone,
         .is_update_in_progress = true,
     };
 
@@ -113,7 +113,7 @@ static int32_t time_update_thread_callback(void* context) {
 
             do_timeout_checks = false;
             conn->is_draining = 1;
-            time_update_context.update_status = SntpTimeUpdateStatusTimeout;
+            time_update_context.update_status = TimeTimeUpdateStatusTimeout;
         }
 
         mg_mgr_poll(&mgr, 1000);
@@ -124,7 +124,7 @@ static int32_t time_update_thread_callback(void* context) {
     furi_record_close(RECORD_NETWORK);
 
     thread_context->callback(
-        thread_context->instance, time_update_context.update_status == SntpTimeUpdateStatusOk);
+        thread_context->instance, time_update_context.update_status == TimeTimeUpdateStatusOk);
 
     free(thread_context);
 
@@ -144,7 +144,7 @@ static void
     }
 }
 
-void sntp_time_update_run(Sntp* instance, SntpTimeUpdateCallback callback) {
+void time_update_run(Time* instance, TimeTimeUpdateCallback callback) {
     furi_assert(instance);
 
     ThreadContext* thread_context = malloc(sizeof(*thread_context));

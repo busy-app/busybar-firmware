@@ -44,10 +44,10 @@ static void clock_scene_main_on_enter(void* context) {
     ClockSceneMain* scene =
         scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxMain);
 
-    LocalTime local_time = sntp_get_local_time(instance->sntp);
+    LocalTime local_time = time_get_local_time(instance->time);
 
-    SntpSettings* sntp_settings = malloc(sizeof(*sntp_settings));
-    sntp_get_settings(instance->sntp, sntp_settings);
+    TimeSettings* time_settings = malloc(sizeof(*time_settings));
+    time_get_settings(instance->time, time_settings);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -57,7 +57,7 @@ static void clock_scene_main_on_enter(void* context) {
         widget_set_align(clock_view_get_base(scene->front_clock), AlignLeftMid);
 
         clock_view_set_show_seconds(scene->front_clock, false);
-        clock_view_set_time_format(scene->front_clock, sntp_settings->time_format);
+        clock_view_set_time_format(scene->front_clock, time_settings->time_format);
         clock_view_set_date_time(scene->front_clock, &local_time.dt);
 
         AnimMenu* front_menu = anim_menu_alloc(scene->front_container);
@@ -88,7 +88,7 @@ static void clock_scene_main_on_enter(void* context) {
             instance);
     });
 
-    free(sntp_settings);
+    free(time_settings);
 
     transition_overlay_start(instance->front_transition_overlay);
 }
@@ -117,7 +117,7 @@ static bool clock_scene_main_on_event(const SceneManagerEvent* event, void* cont
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case ClockEventTimerUpdate:
-            LocalTime local_time = sntp_get_local_time(instance->sntp);
+            LocalTime local_time = time_get_local_time(instance->time);
             with_gui(instance->gui, {
                 clock_view_set_date_time(scene->front_clock, &local_time.dt);
             });
