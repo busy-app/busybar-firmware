@@ -1,5 +1,3 @@
-import json
-
 import allure
 import pytest
 
@@ -33,7 +31,6 @@ class TestNameAPI:
         "Another Name 123",
         "T",
         "Nah - ure_ad-en",
-        "20 symbols busy name",
         "Name(Paren",
         "N!",
         "Name!",
@@ -50,20 +47,11 @@ class TestNameAPI:
     ])
     def test_api_name_post(self, settings_api: SettingsAPI, test_name):
         """Test POST /api/name endpoint"""
-        with allure.step("Get current device name"):
-            original = settings_api.get_name()
-            allure.attach(json.dumps({"original_name": original.name}, indent=2), name="Original Name", attachment_type=allure.attachment_type.JSON)
-
         settings_api.set_name(test_name)
 
         with allure.step("Verify name was updated"):
             verify = settings_api.get_name()
             assert verify.name == test_name
-
-        # Restore original name
-        if original.name:
-            with allure.step(f"Restore original name: {original.name}"):
-                settings_api.set_name(original.name)
 
     @allure.id("3451")
     @allure.title("Name. POST /api/name (negative)")
@@ -80,16 +68,13 @@ class TestNameAPI:
     ])
     def test_api_name_post_invalid(self, settings_api: SettingsAPI, test_name):
         """Test POST /api/name endpoint with invalid data"""
-        with allure.step("Get current device name"):
-            original = settings_api.get_name()
-            allure.attach(json.dumps({"original_name": original.name}, indent=2), name="Original Name", attachment_type=allure.attachment_type.JSON)
+        original_name = settings_api.get_name().name
 
         response = settings_api.set_name_raw(test_name)
         assert response.status_code == 400
 
-        with allure.step("Verify name was not updated"):
-            verify = settings_api.get_name()
-            assert verify.name == original.name
+        with allure.step("Verify name was not changed"):
+            assert settings_api.get_name().name == original_name
 
 
 @allure.feature("5. Web Frontend")

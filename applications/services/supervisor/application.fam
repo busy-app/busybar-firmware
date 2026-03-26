@@ -3,8 +3,21 @@ App(
     name="Supervisor",
     apptype=FlipperAppType.SERVICE,
     entry_point="supervisor_start",
-    stack_size=4096,
+    stack_size=4*1024,
     order=50,
     requires=["power_srv", "storage", "gui"],
+    sources=["supervisor.c"],
     targets=["f20", "f21", "f22"],
+)
+
+App(
+    appid="supervisor",
+    name="Supervisor",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="supervisor_srv",
+    stack_size=2*1024,
+    order=100,
+    requires=["tls_crypto"],
+    sources=["supervisor_backend.c"],
+    targets=["f64", "f65"],
 )

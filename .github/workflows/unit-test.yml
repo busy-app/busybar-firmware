@@ -20,6 +20,7 @@ on:
 permissions:
   contents: write
   checks: write
+  pull-requests: write
   id-token: write
 
 env:
@@ -98,3 +99,11 @@ jobs:
           else
             echo "Log file not found: $LOG_FILE"
           fi
+
+      - name: 'Comment PR on crash'
+        if: always() && github.event.pull_request.number
+        continue-on-error: true
+        env:
+          CRASH_FLAG: ${{ env.RUNNER_LOG_DIR }}/latest/crash_detected.flag
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 tests/utils/report_test_results.py
