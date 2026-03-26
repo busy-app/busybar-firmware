@@ -162,6 +162,9 @@ class TelnetClient:
         except TimeoutError as e:
             self._logger.error(f"Timeout waiting for command '{command}' to complete: {e}")
             return CommandResult(ok=False, command=command, stdout="", duration_sec=time.perf_counter() - start)
+        except OSError as e:
+            self._logger.error(f"Connection lost while running command '{command}': {e}")
+            return CommandResult(ok=False, command=command, stdout="", duration_sec=time.perf_counter() - start)
         duration = time.perf_counter() - start
         cleaned = self._clean_command_output(raw, command)
         self._logger.debug(f"<< {cleaned.strip()}")

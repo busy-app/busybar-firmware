@@ -50,13 +50,13 @@ class AccountInfoResponse(BaseModel):
 class AccountStatusResponse(BaseModel):
     """Response from GET /api/account/status."""
 
-    state: Literal["error", "disconnected", "connected"]
+    status: Literal["error", "disconnected", "connected"]
 
 
 class AccountProfileResponse(BaseModel):
     """Response from GET /api/account/profile."""
 
-    state: Literal["dev", "prod", "local", "custom"]
+    profile: Literal["dev", "prod", "local", "custom"]
     custom_url: str | None = None
 
 
