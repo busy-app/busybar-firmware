@@ -196,6 +196,8 @@ static void clock_free(Clock* instance) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, clock_input_callback);
 
+        transition_overlay_free(instance->front_transition_overlay);
+
         widget_free(instance->front_scene_window);
         flex_layout_free(instance->back_container);
     });
