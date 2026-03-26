@@ -134,19 +134,21 @@ static bool api_smart_home_switch_get(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    bool state;
     MatterSrv* matter = furi_record_open(RECORD_MATTER);
-    bool result = matter_get_switch_state(matter, &state);
+
+    MatterSwitchState switch_state;
+    furi_state_get(matter_get_switch_state(matter), &switch_state);
+
     furi_record_close(RECORD_MATTER);
 
-    if(!result) {
+    if(switch_state == MatterSwitchStateUnknown) {
         MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
         return handled;
     }
 
     cJSON* object = cJSON_CreateObject();
 
-    cJSON_AddBoolToObject(object, "state", state);
+    cJSON_AddBoolToObject(object, "state", switch_state == MatterSwitchStateOn);
 
     char* serialized = cJSON_PrintUnformatted(object);
     cJSON_Delete(object);
@@ -180,7 +182,8 @@ static bool api_smart_home_switch_set(
         if(!has_switch_state && !has_switch_startup) break;
 
         if(has_switch_state) {
-            if(!matter_set_switch_state(matter, switch_state)) {
+            if(!matter_set_switch_state(
+                   matter, switch_state ? MatterSwitchStateOn : MatterSwitchStateOff)) {
                 matter_request_error = true;
                 break;
             }

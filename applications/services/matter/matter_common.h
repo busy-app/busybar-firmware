@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <furi.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,6 +30,13 @@ typedef enum {
     MatterSwitchStartupModeLast, /**< Set switch to last state at startup */
     MatterSwitchStartupModeMAX, /**< Special value, internal use */
 } MatterSwitchStartupMode;
+
+typedef enum {
+    MatterSwitchStateUnknown,
+    MatterSwitchStateOff,
+    MatterSwitchStateOn,
+    MatterSwitchStateMax,
+} MatterSwitchState;
 
 #ifdef __cplusplus
 }

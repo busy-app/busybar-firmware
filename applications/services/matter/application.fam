@@ -28,6 +28,7 @@ App(
     provides=["matter_cli"],
     sources=[
         "matter.c",
+        "matter_api.c",
         "matter_cd.c",
     ],
     resources="resources",

@@ -11,16 +11,30 @@ typedef struct {
     CliRegistry* commands;
     CliShell* shell;
     FuriPubSubSubscription* subscription;
+    FuriStateSub* switch_state_sub;
 } MatterCli;
 
-static const char* const switch_states[2] = {
-    "OFF",
-    "ON",
-};
+typedef struct {
+    const char* label;
+    const char* color;
+} MatterCliSwithchStateDesc;
 
-static const char* const switch_state_colors[2] = {
-    ANSI_FG_RED,
-    ANSI_FG_GREEN,
+static const MatterCliSwithchStateDesc switch_state_descs[MatterSwitchStateMax] = {
+    [MatterSwitchStateUnknown] =
+        {
+            .label = "UNKNOWN",
+            .color = ANSI_FG_YELLOW,
+        },
+    [MatterSwitchStateOff] =
+        {
+            .label = "OFF",
+            .color = ANSI_FG_RED,
+        },
+    [MatterSwitchStateOn] =
+        {
+            .label = "ON",
+            .color = ANSI_FG_GREEN,
+        },
 };
 
 static const char* const startup_modes[MatterSwitchStartupModeMAX] = {
@@ -54,13 +68,13 @@ static void matter_cli_cmd_switch(PipeSide* pipe, FuriString* args, void* contex
         }
 
         size_t i;
-        for(i = 0; i < COUNT_OF(switch_states); i++) {
-            if(furi_string_cmpi(arg, switch_states[i]) == 0) {
+        for(i = MatterSwitchStateOff; i < MatterSwitchStateMax; i++) {
+            if(furi_string_cmpi(arg, switch_state_descs[i].label) == 0) {
                 break;
             }
         }
 
-        if(i == COUNT_OF(switch_states)) {
+        if(i == MatterSwitchStateMax) {
             matter_cli_cmd_switch_print_usage();
             break;
         }
@@ -189,15 +203,6 @@ static void matter_cli_cmd_cd(PipeSide* pipe, FuriString* args, void* context) {
 // Utilities
 // =========
 
-static void matter_cli_format_switch_state(MatterCli* matter_cli, FuriString* out, bool state) {
-    UNUSED(matter_cli);
-
-    const char* const state_name = switch_states[state];
-    const char* const state_color = switch_state_colors[state];
-
-    furi_string_cat_printf(out, "Switch: %s%s%s", state_color, state_name, ANSI_RESET);
-}
-
 static void matter_cli_print_event(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
@@ -207,10 +212,7 @@ static void matter_cli_print_event(const void* message, void* context) {
     FuriString* notification = furi_string_alloc();
 
     do {
-        if(event->type == MatterEventTypeSwitchState) {
-            matter_cli_format_switch_state(matter_cli, notification, event->switch_state.value);
-
-        } else if(event->type == MatterEventTypeCommissioning) {
+        if(event->type == MatterEventTypeCommissioning) {
             furi_string_set_str(notification, "Commissioning status: ");
             static const char* state_names[MatterCommissioningStatusMAX] = {
                 [MatterCommissioningStatusStarted] = "started",
@@ -226,31 +228,33 @@ static void matter_cli_print_event(const void* message, void* context) {
     furi_string_free(notification);
 }
 
+static void matter_cli_switch_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    MatterCli* matter_cli = context;
+
+    const MatterSwitchState switch_state = *(MatterSwitchState*)item;
+    furi_assert(switch_state < MatterSwitchStateMax);
+
+    const MatterCliSwithchStateDesc* desc = &switch_state_descs[switch_state];
+    FuriString* notification_str =
+        furi_string_alloc_printf("Switch: %s%s%s", desc->color, desc->label, ANSI_RESET);
+    cli_shell_notification_print(matter_cli->shell, notification_str);
+    furi_string_free(notification_str);
+}
+
 // =============
 // Command setup
 // =============
 
 static void matter_cli_motd(void* context) {
     furi_assert(context);
-    MatterCli* matter_cli = context;
 
     printf("\r\n");
     printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE "   ↓  Matter  " ANSI_RESET "\r\n");
     printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE "  ↗ ↖ CLI     " ANSI_RESET "\r\n");
     printf("\r\n");
-
-    FuriString* formatted_state = furi_string_alloc();
-
-    bool state;
-    if(matter_get_switch_state(matter_cli->matter, &state)) {
-        matter_cli_format_switch_state(matter_cli, formatted_state, state);
-    } else {
-        furi_string_set_str(formatted_state, "service unavailable");
-    }
-
-    printf("  %s\r\n", furi_string_get_cstr(formatted_state));
-
-    furi_string_free(formatted_state);
 }
 
 static MatterCli* matter_cli_alloc(PipeSide* pipe) {
@@ -265,6 +269,11 @@ static MatterCli* matter_cli_alloc(PipeSide* pipe) {
     FuriPubSub* pubsub = matter_get_pubsub(matter_cli->matter);
     matter_cli->subscription = furi_pubsub_subscribe(pubsub, matter_cli_print_event, matter_cli);
 
+    FuriState* switch_state = matter_get_switch_state(matter_cli->matter);
+    // FIXME: Crutch because of the overall unfortunate design
+    matter_cli->switch_state_sub =
+        furi_state_get_subscribe(switch_state, NULL, matter_cli_switch_state_callback, matter_cli);
+
     return matter_cli;
 }
 
@@ -273,6 +282,8 @@ static void matter_cli_free(MatterCli* matter_cli) {
 
     FuriPubSub* pubsub = matter_get_pubsub(matter_cli->matter);
     furi_pubsub_unsubscribe(pubsub, matter_cli->subscription);
+
+    furi_state_unsubscribe(matter_cli->switch_state_sub);
 
     cli_shell_free(matter_cli->shell);
     cli_registry_free(matter_cli->commands);

@@ -152,7 +152,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
                 OnOffServer::Instance().setOnOffValue(
                     onOffEndpointId, static_cast<bool>(arg), false);
             },
-            frame->switch_state.value);
+            frame->switch_state.state == MatterSwitchStateOn);
 
     } else if(frame->type == MatterIntercomFrameTypeSwitchStartupMode) {
         FURI_LOG_D(TAG, "SwitchStartupMode frame");
@@ -210,7 +210,7 @@ static void matter_send_state_update(MatterSrv* matter, bool state) {
         .type = MatterIntercomFrameTypeSwitchState,
         .switch_state =
             {
-                .value = state,
+                .state = state ? MatterSwitchStateOn : MatterSwitchStateOff,
             },
     };
     matter_send_frame(matter, &frame);
