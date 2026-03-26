@@ -96,7 +96,7 @@ void intercom_start_heartbeat_thread(Intercom* instance);
 
 void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channel_id);
 
-void intercom_meta_send_heartbeat(Intercom* instacne);
+void intercom_meta_send_heartbeat(Intercom* instance);
 
 void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame);
 
