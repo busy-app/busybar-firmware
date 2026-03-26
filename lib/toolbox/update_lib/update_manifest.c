@@ -14,6 +14,7 @@ struct UpdateManifest {
     FuriString* updater_sil_radio_fw;
     FuriString* updater_dfu;
     FuriString* update_name;
+    uint32_t security_flags;
     uint8_t target;
 };
 
@@ -31,6 +32,7 @@ UpdateManifest* updater_manifest_alloc(void) {
     config->update_name = furi_string_alloc();
     config->target = 0;
     config->version = 0;
+    config->security_flags = 0;
     return config;
 }
 
@@ -107,6 +109,8 @@ bool updater_manifest_init_from_memory(
         furi_string_set(
             config->update_name,
             (cJSON_IsString(item) && item->valuestring) ? item->valuestring : "");
+        item = cJSON_GetObjectItem(root, "security_flags");
+        config->security_flags = cJSON_IsNumber(item) ? (uint32_t)item->valuedouble : 0;
         result = true;
     } while(false);
     if(root) cJSON_Delete(root);
@@ -177,4 +181,9 @@ const FuriString* updater_manifest_get_update_name(const UpdateManifest* config)
         return NULL;
     }
     return config->update_name;
+}
+
+uint32_t updater_manifest_get_security_flags(const UpdateManifest* config) {
+    furi_check(config);
+    return config->security_flags;
 }

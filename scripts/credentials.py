@@ -98,6 +98,7 @@ class Main(App):
         self.attest_parser.add_argument(
             "--wrap-private-key",
             action="store_true",
+            default=False,
             help="Wrap private key with device internal key",
         )
 
@@ -255,6 +256,9 @@ class Main(App):
     def provision_attestation_files(self):
         data = {
             AttestationKeyId.KEY: self.read_key_file(self.args.key),
+        }
+        self.write_data(KeyType.ATTESTATION, data, self.args.wrap_private_key)
+        data = {
             AttestationKeyId.DAC: self.read_cert_file(self.args.dac),
             AttestationKeyId.PAI: self.read_cert_file(self.args.pai),
         }

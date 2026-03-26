@@ -1,5 +1,13 @@
 def _instantiate_vars():
-    return SConscript("site_scons/commandline.scons")
+    vars = SConscript("site_scons/commandline.scons")
+    vars.AddVariables(
+        BoolVariable(
+            "SIL917_INSECURE",
+            help="Set for insecure (non-secure-boot) Si917 devices; disables key wrapping during provisioning",
+            default=True,
+        ),
+    )
+    return vars
 
 
 commandline_vars = _instantiate_vars()

@@ -1,6 +1,10 @@
 Import("FW_ENV", "DIST_ENV")
 distenv, firmware_env = DIST_ENV, FW_ENV
 
+_insecure_crypto_args = (
+    ["--insecure-crypto"] if distenv.subst("$SIL917_INSECURE") == "True" else []
+)
+
 
 mqtt_provision = distenv.PhonyTarget(
     "mqtt_provision",
@@ -8,9 +12,11 @@ mqtt_provision = distenv.PhonyTarget(
         [
             "${PYTHON3}",
             distenv.Real("${FBT_SCRIPT_DIR}/mqtt_provision.py"),
+            "provision",
             "--certs-dir",
             "${PROJECT_ROOT}/scripts/test_certs/mqtt",
         ]
+        + _insecure_crypto_args
     ],
     source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/mqtt/signing-ca.crt"),
 )
@@ -23,9 +29,7 @@ mqtt_wipe = distenv.PhonyTarget(
         [
             "${PYTHON3}",
             distenv.Real("${FBT_SCRIPT_DIR}/mqtt_provision.py"),
-            "--certs-dir",
-            "${PROJECT_ROOT}/scripts/test_certs/mqtt",
-            "--cleanup",
+            "cleanup",
         ]
     ],
     source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/mqtt/signing-ca.crt"),
@@ -37,10 +41,11 @@ matter_provision = distenv.PhonyTarget(
     [
         [
             "${PYTHON3}",
-            distenv.Real("${FBT_SCRIPT_DIR}/test_certs/provision.py"),
+            distenv.Real("${FBT_SCRIPT_DIR}/matter_provision.py"),
         ]
+        + _insecure_crypto_args
     ],
-    source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/provision.py"),
+    source=distenv.Real("${FBT_SCRIPT_DIR}/matter_provision.py"),
 )
 AlwaysBuild(matter_provision)
 

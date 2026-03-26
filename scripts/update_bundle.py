@@ -56,6 +56,12 @@ class Main(App):
             type=str,
             default=None,
         )
+        self.parser.add_argument(
+            "--security-flags",
+            help="Security flags bitmask to include in the manifest (integer)",
+            type=int,
+            default=0,
+        )
 
         # Mutually exclusive group for output options
         output_group = self.parser.add_mutually_exclusive_group(required=True)
@@ -107,6 +113,8 @@ class Main(App):
             manifest = {"target": args.target, "version": 1}
             if args.update_name:
                 manifest["update_name"] = args.update_name
+            if args.security_flags:
+                manifest["security_flags"] = args.security_flags
 
             # Copy files into actual_output_path directory if provided
             if args.stage:

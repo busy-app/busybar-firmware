@@ -1,9 +1,10 @@
 #pragma once
 
 #include "scenes/scenes.h"
+#include "settings/settings.h"
 
 #include <gui/gui.h>
-#include <sntp/sntp.h>
+#include <time/time.h>
 #include <desktop/desktop.h>
 #include <updater/updater.h>
 #include <storage/storage.h>
@@ -42,9 +43,11 @@ typedef struct {
     SceneManager* scene_manager;
 
     Gui* gui;
-    Sntp* sntp;
+    Time* time;
     Desktop* desktop;
     Updater* updater;
+
+    ClockSettings settings;
 
     /* Front layout */
     Widget* front_scene_window;

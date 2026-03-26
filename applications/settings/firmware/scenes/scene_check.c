@@ -6,13 +6,13 @@
 
 #include <furi_hal_cortex.h>
 
-#define CHECK_TIMEOUT (10e6)
+#define CHECK_TIMEOUT_US (10 * 1000 * 1000)
 
 typedef enum {
-    ThisSceneEventAvailable = ThisEventSceneEventsStart,
-    ThisSceneEventNotAvailable,
-    ThisSceneEventFailure,
-} ThisSceneEvent;
+    FirmwareSettingsCheckSceneEventAvailable = FirmwareSettingsEventSceneEventsStart,
+    FirmwareSettingsCheckSceneEventNotAvailable,
+    FirmwareSettingsCheckSceneEventFailure,
+} FirmwareSettingsCheckSceneEvent;
 
 typedef struct {
     FlexBox* front_box;
@@ -20,69 +20,68 @@ typedef struct {
 
     FuriStateSub* check_subscription;
     FuriHalCortexTimer timeout_timer;
-} ThisScene;
+} FirmwareSettingsCheckScene;
 
-static inline ThisScene* this_get_scene(ThisInstance* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxCheck);
+static inline FirmwareSettingsCheckScene*
+    firmware_settings_check_scene_get(FirmwareSettings* instance) {
+    return scene_manager_get_scene_data(instance->scene_manager, FirmwareSettingsSceneIdxCheck);
 }
 
-static void this_prepare_up_to_date_result(ThisInstance* instance) {
-    instance->result_preset.front_image_path = THIS_IMG_PATH("checkmark_front_8x8.bin");
-    furi_string_set(instance->result_preset.front_text, "Up to date");
+static void firmware_settings_check_scene_prepare_up_to_date_result(FirmwareSettings* instance) {
+    instance->check_result_preset.front_image_path = THIS_IMG_PATH("checkmark_front_8x8.bin");
+    furi_string_set(instance->check_result_preset.front_text, "Up to date");
 
-    instance->result_preset.back_image_path = THIS_IMG_PATH("checkmark_back_11x11.bin");
-    furi_string_set(instance->result_preset.back_primary_text, "Firmware is up to date");
+    instance->check_result_preset.back_image_path = THIS_IMG_PATH("checkmark_back_11x11.bin");
+    furi_string_set(instance->check_result_preset.back_primary_text, "Firmware is up to date");
     furi_string_printf(
-        instance->result_preset.back_auxiliary_text,
+        instance->check_result_preset.back_detail_text,
         "Current version %s",
         updater_get_active_version());
-
-    instance->result_preset.timeout = 3000;
 }
 
-static void this_prepare_failure_result(ThisInstance* instance) {
-    instance->result_preset.front_image_path = SHARED_IMG_PATH("error_front_8x8.bin");
-    furi_string_set(instance->result_preset.front_text, "Unable to check");
+static void firmware_settings_check_scene_prepare_failure_result(FirmwareSettings* instance) {
+    instance->check_result_preset.front_image_path = SHARED_IMG_PATH("error_front_8x8.bin");
+    furi_string_set(instance->check_result_preset.front_text, "Unable to check");
 
-    instance->result_preset.back_image_path = SHARED_IMG_PATH("error_back_11x11.bin");
-    furi_string_set(instance->result_preset.back_primary_text, "Unable to check\nfor update");
-
-    instance->result_preset.timeout = 3000;
+    instance->check_result_preset.back_image_path = SHARED_IMG_PATH("error_back_11x11.bin");
+    furi_string_set(
+        instance->check_result_preset.back_primary_text, "Unable to check\nfor update");
+    furi_string_reset(instance->check_result_preset.back_detail_text);
 }
 
-static void this_check_callback(const void* item, void* context) {
-    ThisInstance* instance = context;
+static void firmware_settings_check_scene_update_check_callback(const void* item, void* context) {
+    FirmwareSettings* instance = context;
     const UpdaterCheckState* _item = item;
 
     if(_item->event == UpdaterCheckEventStop) {
-        ThisSceneEvent event;
+        FirmwareSettingsCheckSceneEvent event;
 
         switch(_item->result) {
         case UpdaterCheckResultAvailable:
-            event = ThisSceneEventAvailable;
+            event = FirmwareSettingsCheckSceneEventAvailable;
             break;
 
         case UpdaterCheckResultNotAvailable:
-            event = ThisSceneEventNotAvailable;
+            event = FirmwareSettingsCheckSceneEventNotAvailable;
             break;
 
         case UpdaterCheckResultFailure:
-            event = ThisSceneEventFailure;
+            event = FirmwareSettingsCheckSceneEventFailure;
             break;
 
         default:
             furi_crash();
         }
 
-        settings_firmware_app_fire_event(instance, event);
+        firmware_settings_internal_fire_event(instance, event);
     }
 }
 
-static void this_scene_on_enter(void* context) {
+static void firmware_settings_check_scene_on_enter(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsCheckScene* scene = firmware_settings_check_scene_get(instance);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -113,17 +112,18 @@ static void this_scene_on_enter(void* context) {
     });
 
     FuriState* check_state = updater_get_check_state(instance->updater);
-    scene->check_subscription = furi_state_subscribe(check_state, this_check_callback, instance);
+    scene->check_subscription = furi_state_subscribe(
+        check_state, firmware_settings_check_scene_update_check_callback, instance);
 
-    scene->timeout_timer = furi_hal_cortex_timer_get(CHECK_TIMEOUT);
+    scene->timeout_timer = furi_hal_cortex_timer_get(CHECK_TIMEOUT_US);
     updater_check_for_update(instance->updater);
 }
 
-static void this_scene_on_exit(void* context) {
+static void firmware_settings_check_scene_on_exit(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsCheckScene* scene = firmware_settings_check_scene_get(instance);
 
     furi_state_unsubscribe(scene->check_subscription);
 
@@ -133,27 +133,30 @@ static void this_scene_on_exit(void* context) {
     });
 }
 
-static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool firmware_settings_check_scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    FirmwareSettings* instance = context;
+    FirmwareSettingsCheckScene* scene = firmware_settings_check_scene_get(instance);
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisSceneEventAvailable:
-            scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxDialog);
+        case FirmwareSettingsCheckSceneEventAvailable:
+            scene_manager_replace_current_scene(
+                instance->scene_manager, FirmwareSettingsSceneIdxDialog);
             return true;
 
-        case ThisSceneEventNotAvailable:
-            this_prepare_up_to_date_result(instance);
-            scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
+        case FirmwareSettingsCheckSceneEventNotAvailable:
+            firmware_settings_check_scene_prepare_up_to_date_result(instance);
+            scene_manager_replace_current_scene(
+                instance->scene_manager, FirmwareSettingsSceneIdxCheckResult);
             return true;
 
-        case ThisSceneEventFailure:
+        case FirmwareSettingsCheckSceneEventFailure:
             if(furi_hal_cortex_timer_is_expired(scene->timeout_timer)) {
-                this_prepare_failure_result(instance);
-                scene_manager_replace_current_scene(instance->scene_manager, ThisSceneIdxResult);
+                firmware_settings_check_scene_prepare_failure_result(instance);
+                scene_manager_replace_current_scene(
+                    instance->scene_manager, FirmwareSettingsSceneIdxCheckResult);
             } else {
                 updater_check_for_update(instance->updater);
             }
@@ -168,9 +171,9 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene settings_firmware_app_scene_check = {
-    .enter_callback = this_scene_on_enter,
-    .exit_callback = this_scene_on_exit,
-    .event_callback = this_scene_on_event,
-    .data_size = sizeof(ThisScene),
+const Scene firmware_settings_internal_scene_check = {
+    .enter_callback = firmware_settings_check_scene_on_enter,
+    .exit_callback = firmware_settings_check_scene_on_exit,
+    .event_callback = firmware_settings_check_scene_on_event,
+    .data_size = sizeof(FirmwareSettingsCheckScene),
 };

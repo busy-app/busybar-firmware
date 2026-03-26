@@ -1,6 +1,6 @@
 #include "http_api.h"
 
-#include <sntp/sntp.h>
+#include <time/time.h>
 #include <furi_hal_rtc.h>
 #include <datetime.h>
 #include <furi.h>
@@ -21,10 +21,10 @@ static bool api_time_get_timestamp_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    Sntp* sntp = furi_record_open(RECORD_SNTP);
-    LocalTime local_time = sntp_get_local_time(sntp);
+    Time* time = furi_record_open(RECORD_TIME);
+    LocalTime local_time = time_get_local_time(time);
 
-    furi_record_close(RECORD_SNTP);
+    furi_record_close(RECORD_TIME);
 
     char timestamp_buf[DATETIME_TIMESTAMP_STR_LEN + 1];
 
@@ -103,12 +103,12 @@ static bool api_time_set_timezone_callback(
 
         FURI_LOG_D(TAG, "Set timezone %s", zone.name);
 
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        SntpSettings settings;
-        sntp_get_settings(sntp, &settings);
+        Time* time = furi_record_open(RECORD_TIME);
+        TimeSettings settings;
+        time_get_settings(time, &settings);
         settings.timezone = zone;
-        is_success = sntp_set_settings(sntp, &settings);
-        furi_record_close(RECORD_SNTP);
+        is_success = time_set_settings(time, &settings);
+        furi_record_close(RECORD_TIME);
     } while(false);
 
     if(is_success) {
@@ -168,10 +168,10 @@ static bool api_time_get_timezone_callback(
     FuriString* response = NULL;
 
     do {
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        SntpSettings settings;
-        sntp_get_settings(sntp, &settings);
-        furi_record_close(RECORD_SNTP);
+        Time* time = furi_record_open(RECORD_TIME);
+        TimeSettings settings;
+        time_get_settings(time, &settings);
+        furi_record_close(RECORD_TIME);
 
         DateTime now = furi_hal_rtc_get_datetime().dt;
         TzutilTzInfo info;

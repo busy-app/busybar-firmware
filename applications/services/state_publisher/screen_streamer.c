@@ -1,6 +1,6 @@
 #include "screen_streamer.h"
 #include <furi/furi.h>
-#include <sntp/sntp.h>
+#include <time/time.h>
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
 #include <toolbox/color.h>
@@ -161,7 +161,7 @@ static uint32_t dispatch_frame(ScreenStreamer* instance, const ScreenStreamerFra
     }
     uint8_t stream_flags = 0;
     furi_mutex_acquire(instance->outputs_mutex, FuriWaitForever);
-    time_t now = sntp_get_timestamp_ms();
+    time_t now = time_get_timestamp_ms();
     uint32_t time_to_next_update = UINT32_MAX;
     for(size_t i = 0; i != StatePublisherTransportClassMax; ++i) {
         Output* output = instance->outputs + i;

@@ -5,7 +5,7 @@
 #include <brightness_control/brightness_control.h>
 #include <power/power_service/power.h>
 #include <audio/audio.h>
-#include <sntp/sntp.h>
+#include <time/time.h>
 #include <device_name/device_name.h>
 #include <wifi/wifi.h>
 #include <wifi/wifi_util.h>
@@ -93,7 +93,7 @@ typedef bool (*MessageHandler)(StatePublisher* instance, const Message* message)
 static const MessageHandler message_handlers[];
 
 static void brightness_state_callback(const void* item, void* context);
-static void sntp_settings_state_callback(const void* item, void* context);
+static void time_settings_state_callback(const void* item, void* context);
 static void wifi_info_state_callback(const void* item, void* context);
 static void updater_update_state_callback(const void* item, void* context);
 static void updater_check_state_callback(const void* item, void* context);
@@ -152,9 +152,9 @@ static void subscribe(StatePublisher* instance) {
         furi_pubsub_subscribe(pubsub, power_pubsub_callback, instance);
     }
     {
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        FuriState* state = sntp_get_settings_state(sntp);
-        furi_state_subscribe(state, sntp_settings_state_callback, instance);
+        Time* time = furi_record_open(RECORD_TIME);
+        FuriState* state = time_get_settings_state(time);
+        furi_state_subscribe(state, time_settings_state_callback, instance);
     }
     {
         instance->audio = furi_record_open(RECORD_AUDIO);
@@ -336,7 +336,7 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     furi_assert(message->type == MessageTypePublishUpdate);
     BSB_State_StateUpdate* update = message->update.data;
     BSB_State_State state = {
-        .timestamp = sntp_get_timestamp_ms(),
+        .timestamp = time_get_timestamp_ms(),
         .updates_count = update ? 1 : 0,
         .updates = (BSB_State_StateUpdate*)update,
     };
@@ -719,9 +719,9 @@ static void busy_timer_pubsub_callback(const void* message, void* context) {
     send_message(instance, &msg);
 }
 
-static void sntp_settings_state_callback(const void* item, void* context) {
+static void time_settings_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
-    const SntpSettings* settings = item;
+    const TimeSettings* settings = item;
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_timezone_tag;
