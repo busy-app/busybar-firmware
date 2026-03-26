@@ -19,6 +19,21 @@ VARS.AddVariables(
         "",
     ),
     (
+        "SI917_SIGN_SERVICE_URL",
+        "Signing-service /api/v1/sign endpoint for SI917 firmware signing",
+        "",
+    ),
+    (
+        "SI917_SIGN_SERVICE_TOKEN",
+        "Bearer token for the signing service",
+        "",
+    ),
+    (
+        "SI917_SIGN_SERVICE_PROFILE",
+        "Signing-service profile name for SI917 firmware signing",
+        "",
+    ),
+    (
         "COMMANDER_CLI",
         "Path to commander-cli executable (auto-detected if empty)",
         "",

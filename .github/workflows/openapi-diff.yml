@@ -59,12 +59,12 @@ jobs:
                     echo "exit_code=$?" >> "$GITHUB_OUTPUT"
                   fi
 
-                  CHANGELOG="$(oasdiff changelog --format markdown "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  CHANGELOG="$(oasdiff changelog --format markdown "base/$OAS_PATH" "$OAS_PATH" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
                   echo 'changelog<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"
 
-                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary,examples "base/$OAS_PATH" "$OAS_PATH" 2>&1)" || true
+                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary,examples "base/$OAS_PATH" "$OAS_PATH" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
                   echo 'report_md<<EOF' >> "$GITHUB_OUTPUT"
                   echo "$REPORT_MD" >> "$GITHUB_OUTPUT"
                   echo 'EOF' >> "$GITHUB_OUTPUT"

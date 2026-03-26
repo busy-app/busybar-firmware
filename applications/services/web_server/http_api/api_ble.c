@@ -20,9 +20,11 @@ const char* ble_status_names[BleServiceStatusCount] = {
 
 static bool api_ble_enable_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -44,9 +46,11 @@ static bool api_ble_enable_callback(
 
 static bool api_ble_disable_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -68,9 +72,11 @@ static bool api_ble_disable_callback(
 
 static bool api_ble_get_state_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -113,9 +119,11 @@ static bool api_ble_get_state_callback(
 
 static bool api_ble_delete_pairing_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -138,25 +146,25 @@ static bool api_ble_delete_pairing_callback(
 static const HttpHandler handlers_ble[] = {
     {
         .uri = "enable",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_ble_enable_callback,
     },
     {
         .uri = "disable",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_ble_disable_callback,
     },
     {
         .uri = "status",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_ble_get_state_callback,
     },
     {
         .uri = "pairing",
-        .method = "DELETE",
+        .method = HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_request = api_ble_delete_pairing_callback,
     },
@@ -181,9 +189,10 @@ void http_api_ble_free(void* ctx) {
 
 bool http_api_ble_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiBleCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }
