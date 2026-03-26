@@ -5,7 +5,7 @@
 #include <furi.h>
 #include <path.h>
 
-#define MANIFEST_FILE_SIZE_MAX (10 * 1024) // 10 KB shuold be enough
+#define MANIFEST_FILE_SIZE_MAX (10 * 1024) // 10 KB should be enough
 
 struct UpdateManifest {
     uint32_t version;
