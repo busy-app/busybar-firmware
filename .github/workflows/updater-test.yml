@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
   id-token: write
 
 jobs:
@@ -102,3 +103,28 @@ jobs:
           else
             echo "Log file not found: $LOG_FILE"
           fi
+
+      - name: Create Job Summary
+        if: always()
+        run: |
+          BRANCH_NAME="${{ inputs.branch_name || github.head_ref || github.ref_name }}"
+
+          echo "# Updater Tests" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** $BRANCH_NAME | **Commit:** \`${GITHUB_SHA::7}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Firmware:** https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "| Step | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Flash firmware | ${{ steps.flashing.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Sanity check (post-flash) | ${{ steps.flashing.outcome == 'success' && '✅' || '⏭️ skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Update to PR firmware | ${{ steps.updating.outcome || '⏭️ skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Sanity check (post-update) | ${{ steps.updating.outcome == 'success' && '✅' || '⏭️ skipped' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: 'Comment PR on crash'
+        if: always() && github.event.pull_request.number
+        continue-on-error: true
+        env:
+          CRASH_FLAG: ${{ env.RUNNER_LOG_DIR }}/latest/crash_detected.flag
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 tests/utils/report_test_results.py

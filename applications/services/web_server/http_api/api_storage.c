@@ -92,9 +92,11 @@ static void api_storage_write_close_callback(struct mg_connection* conn) {
 
 static bool api_storage_write_headers_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -146,9 +148,11 @@ static bool api_storage_write_headers_callback(
 
 static bool api_storage_read_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -189,9 +193,11 @@ static bool api_storage_read_callback(
 
 static bool api_storage_delete_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -216,9 +222,11 @@ static bool api_storage_delete_callback(
 
 static bool api_storage_mkdir_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -241,9 +249,11 @@ static bool api_storage_mkdir_callback(
 
 static bool api_storage_rename_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -272,9 +282,11 @@ static bool api_storage_rename_callback(
 
 static bool api_storage_list_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -328,9 +340,11 @@ static bool api_storage_list_callback(
 
 static bool api_storage_status_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -362,43 +376,43 @@ static bool api_storage_status_callback(
 static const HttpHandler handlers_storage[] = {
     {
         .uri = "write",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_headers = api_storage_write_headers_callback,
     },
     {
         .uri = "read",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_storage_read_callback,
     },
     {
         .uri = "remove",
-        .method = "DELETE",
+        .method = HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_request = api_storage_delete_callback,
     },
     {
         .uri = "mkdir",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_storage_mkdir_callback,
     },
     {
         .uri = "rename",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_storage_rename_callback,
     },
     {
         .uri = "list",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_storage_list_callback,
     },
     {
         .uri = "status",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_storage_status_callback,
     },
@@ -427,18 +441,20 @@ void http_api_storage_free(void* ctx) {
 
 bool http_api_storage_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApistorageCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }
 
 bool http_api_storage_hdr_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApistorageCtx* context = ctx;
-    return http_handle_headers(path, context->handlers, conn, msg);
+    return http_handle_headers(path, method, context->handlers, conn, msg);
 }

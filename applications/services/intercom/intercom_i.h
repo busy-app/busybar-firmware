@@ -34,18 +34,11 @@ typedef enum {
     IntercomCustomEventDataAvailable = 1UL << 2,
 } IntercomCustomEvent;
 
-/**
- * @brief Flags for `IntercomChannel` `flags` field
- */
-typedef enum {
-    IntercomChannelFlagPeerReady = (1 << 0), //<! Same channel on other chip is ready to receive
-} IntercomChannelFlag;
-
 struct IntercomChannel {
-    Intercom* intercom;
+    Intercom* owner;
     FuriEventFlag* flags;
     IntercomRxCallback rx_callback;
-    void* callback_context;
+    void* rx_callback_context;
 };
 
 struct Intercom {
@@ -80,18 +73,32 @@ bool intercom_sync_serial(FuriHalSerialHandle* serial);
 
 // intercom_channel.c:
 
-void intercom_channel_init(IntercomChannel* channel, Intercom* intercom);
+void intercom_channel_init(IntercomChannel* channel, Intercom* owner);
 
 void intercom_channel_set_callback(
     IntercomChannel* channel,
     IntercomRxCallback callback,
     void* context);
 
-void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* rx_frame);
+void intercom_channel_call_callback(const IntercomChannel* channel, const IntercomFrame* frame);
 
-void intercom_channel_send_ready(IntercomChannel* channel);
+bool intercom_channel_wait_until_ready(IntercomChannel* channel, uint32_t timeout);
 
-bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeout);
+void intercom_channel_mark_as_ready(IntercomChannel* channel);
+
+const char* intercom_channel_get_name(IntercomChannelId channel_id);
+
+// intercom_heartbeat.h:
+
+void intercom_start_heartbeat_thread(Intercom* instance);
+
+// intercom_meta.c:
+
+void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channel_id);
+
+void intercom_meta_send_heartbeat(Intercom* instance);
+
+void intercom_meta_process_frame(Intercom* instance, const IntercomFrame* frame);
 
 // intercom_util.c
 

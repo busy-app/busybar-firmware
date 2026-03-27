@@ -39,19 +39,19 @@ class TestBleAPI:
         """Test that BLE enabled/disabled status is preserved over reboot"""
         # Enable BLE and reboot then disable and reboot
         ble_api.enable()
-        assert ble_api.get_status().status == "enabled"
+        assert ble_api.get_status().status == "connectable"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "enabled"
+        assert ble_api.get_status().status == "connectable"
 
         ble_api.disable()
-        assert ble_api.get_status().status == "disabled"
+        assert ble_api.get_status().status == "reset"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "disabled"
+        assert ble_api.get_status().status == "reset"
 
         ble_api.enable()
-        assert ble_api.get_status().status == "enabled"
+        assert ble_api.get_status().status == "connectable"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "enabled"
+        assert ble_api.get_status().status == "connectable"
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")

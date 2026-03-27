@@ -22,10 +22,10 @@ static void this_scene_on_enter(void* context) {
     ThisInstance* instance = context;
     ThisScene* scene = this_get_scene(instance);
 
-    SntpSettings* sntp_settings = malloc(sizeof(*sntp_settings));
-    sntp_get_settings(instance->sntp, sntp_settings);
+    TimeSettings* time_settings = malloc(sizeof(*time_settings));
+    time_get_settings(instance->time, time_settings);
 
-    LocalTime local_time = sntp_get_local_time(instance->sntp);
+    LocalTime local_time = time_get_local_time(instance->time);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -34,7 +34,7 @@ static void this_scene_on_enter(void* context) {
 
         clock_view_set_show_date(scene->front_clock, instance->settings.show_date);
         clock_view_set_show_seconds(scene->front_clock, instance->settings.show_seconds);
-        clock_view_set_time_format(scene->front_clock, sntp_settings->time_format);
+        clock_view_set_time_format(scene->front_clock, time_settings->time_format);
         clock_view_set_date_time(scene->front_clock, &local_time.dt);
 
         /* back layout setup */
@@ -44,7 +44,7 @@ static void this_scene_on_enter(void* context) {
         widget_set_align(mirror_card_get_base(scene->back_card), AlignLeftMid);
     });
 
-    free(sntp_settings);
+    free(time_settings);
 }
 
 static void this_scene_on_exit(void* context) {
@@ -68,7 +68,7 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case ThisEventTimerUpdate:
-            LocalTime local_time = sntp_get_local_time(instance->sntp);
+            LocalTime local_time = time_get_local_time(instance->time);
             with_gui(instance->gui, {
                 clock_view_set_date_time(scene->front_clock, &local_time.dt);
             });

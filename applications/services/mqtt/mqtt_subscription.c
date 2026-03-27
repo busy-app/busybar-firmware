@@ -1,5 +1,7 @@
 #include "mqtt_i.h"
 
+#define MQTT_MAX_UNSENT_DATA_SIZE_BYTES (50 * 1024)
+
 static MqttSubscription* mqtt_subscription_alloc(void) {
     MqttSubscription* subscription = malloc(sizeof(MqttSubscription));
 
@@ -116,6 +118,12 @@ bool mqtt_publish_internal(
     uint32_t props_count) {
     if(!mqtt_is_valid_scope_for_current_status(instance, scope)) {
         FURI_LOG_E(TAG, "Unable to publish: scope: %d, status: %d", scope, instance->status);
+        return false;
+    }
+
+    // Drop messages if we have huge backlog of unsent messages
+    if(instance->conn->send.size >= MQTT_MAX_UNSENT_DATA_SIZE_BYTES) {
+        FURI_LOG_W(TAG, "Dropping %u bytes from topic '%s'", data_size, topic);
         return false;
     }
 

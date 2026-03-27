@@ -93,12 +93,14 @@ static bool api_assets_upload_parse_parameters(struct mg_str* params_str, FuriSt
 
 static bool api_assets_upload_headers_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodPost) return false;
 
     FuriString* file_path = furi_string_alloc();
     if(api_assets_upload_parse_parameters(&msg->query, file_path)) {
@@ -149,12 +151,14 @@ static bool api_assets_upload_headers_callback(
 
 static bool api_assets_delete_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodDelete) return false;
 
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
@@ -199,14 +203,9 @@ static bool api_assets_delete_callback(
 static const HttpHandler handlers_assets[] = {
     {
         .uri = "upload",
-        .method = "POST",
+        .method = HttpMethodPost | HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_headers = api_assets_upload_headers_callback,
-    },
-    {
-        .uri = "upload",
-        .method = "DELETE",
-        .type = HttpHandlerCustom,
         .on_request = api_assets_delete_callback,
     },
 };
@@ -237,18 +236,20 @@ void http_api_assets_free(void* ctx) {
 
 bool http_api_assets_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiAssetsCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }
 
 bool http_api_assets_hdr_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiAssetsCtx* context = ctx;
-    return http_handle_headers(path, context->handlers, conn, msg);
+    return http_handle_headers(path, method, context->handlers, conn, msg);
 }

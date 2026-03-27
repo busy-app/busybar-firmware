@@ -144,13 +144,41 @@ Default(installs)
 dist_env.Alias("update_bundle", update_tar)
 dist_env.Alias("dist", installs)
 
-# --- Signed builds (only when SI917_SIGN_KEYSTORE is provided) ---
+# --- Signed builds (local keystore signing or signing-service signing) ---
 
 sil_sign_keystore = sil_env.subst("${SI917_SIGN_KEYSTORE}")
-if sil_sign_keystore:
+sil_sign_service_url = sil_env.subst("${SI917_SIGN_SERVICE_URL}")
+sil_sign_service_token = sil_env.subst("${SI917_SIGN_SERVICE_TOKEN}")
+sil_sign_service_profile = sil_env.subst("${SI917_SIGN_SERVICE_PROFILE}")
+
+service_signing_configured = any(
+    [
+        sil_sign_service_url,
+        sil_sign_service_token,
+        sil_sign_service_profile,
+    ]
+)
+service_signing_enabled = all(
+    [
+        sil_sign_service_url,
+        sil_sign_service_token,
+        sil_sign_service_profile,
+    ]
+)
+
+if service_signing_configured and not service_signing_enabled:
+    raise ValueError(
+        "SI917 signing service requires SI917_SIGN_SERVICE_URL, "
+        "SI917_SIGN_SERVICE_TOKEN, and SI917_SIGN_SERVICE_PROFILE"
+    )
+
+if sil_sign_keystore or service_signing_enabled:
     sign_env = dist_env.Clone(
         tools=["fwsign_silabs"],
         SI917_SIGN_KEYSTORE=sil_sign_keystore,
+        SI917_SIGN_SERVICE_URL=sil_sign_service_url,
+        SI917_SIGN_SERVICE_TOKEN=sil_sign_service_token,
+        SI917_SIGN_SERVICE_PROFILE=sil_sign_service_profile,
         COMMANDER_CLI=sil_env.subst("${COMMANDER_CLI}"),
     )
 

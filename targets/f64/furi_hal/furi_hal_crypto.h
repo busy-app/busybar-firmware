@@ -147,7 +147,7 @@ bool furi_hal_crypto_aes_decrypt(
  *    - FuriHalCryptoEcdsaModeSha384
  *    - FuriHalCryptoEcdsaModeSha512
  * @param[in] key Pointer to private key
- * @param[in] key_mode Key mode
+ * @param[in] key_size Key size
  *    - FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224
  *    - FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256
  * @param[in] wrapping_mode Wrapping mode
@@ -158,7 +158,7 @@ bool furi_hal_crypto_aes_decrypt(
 FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
     FuriHalCryptoEcdsaMode mode,
     uint8_t* key,
-    uint32_t key_mode,
+    uint32_t key_size,
     FuriHalCryptoWrappingMode wrapping_mode);
 
 /**
@@ -169,13 +169,13 @@ FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
  *   - FuriHalCryptoEcdsaModeSha384
  *   - FuriHalCryptoEcdsaModeSha512
  * @param[in] key Pointer to public key
- * @param[in] key_mode Key mode
+ * @param[in] key_size Key size
  *   - FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224
  *   - FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256
  * @return FuriHalCryptoEcdsa* ECDSA handle
  */
 FuriHalCryptoEcdsa*
-    furi_hal_crypto_ecdsa_verify_init(FuriHalCryptoEcdsaMode mode, uint8_t* key, uint32_t key_mode);
+    furi_hal_crypto_ecdsa_verify_init(FuriHalCryptoEcdsaMode mode, uint8_t* key, uint32_t key_size);
 
 /**
  * @brief Deinitialize ECDSA handle
