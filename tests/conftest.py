@@ -122,7 +122,7 @@ def web_session() -> requests.Session:
     def logged_request(*args, **kwargs):
         # Set default timeout if not provided (prevent infinite hang)
         if "timeout" not in kwargs:
-            kwargs["timeout"] = 30
+            kwargs["timeout"] = 5
         start_time = time.time()
         response = original_request(*args, **kwargs)
         duration = time.time() - start_time
@@ -591,11 +591,11 @@ def pytest_runtest_makereport(item, call):
             exc_type = call.excinfo.type
             exc_value = str(call.excinfo.value)
             # Check for requests connection errors
-            if "ConnectionError" in exc_type.__name__ or "ConnectTimeout" in exc_type.__name__:
+            if exc_type.__name__ in ("ConnectionError", "ConnectTimeout", "ReadTimeout", "ReadTimeoutError"):
                 item._connection_error = True
                 logger.warning(f"Connection error detected in test: {exc_value[:100]}")
             # Also check the exception message for connection issues
-            elif "Connection" in exc_value or "No route to host" in exc_value:
+            elif "Connection" in exc_value or "No route to host" in exc_value or "Read timed out" in exc_value:
                 item._connection_error = True
                 logger.warning(f"Connection issue detected in test: {exc_value[:100]}")
 
