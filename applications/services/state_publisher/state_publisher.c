@@ -607,20 +607,24 @@ static void audio_pubsub_callback(const void* message, void* context) {
 
 static void device_name_pubsub_callback(const void* message, void* context) {
     StatePublisher* instance = context;
-    const FuriString* name = message;
+    const DeviceNameEvent* event = message;
 
-    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish device name");
+    if(event->type == DeviceNameEventTypeNameChanged) {
+        BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+        FURI_LOG_D(TAG, "publish device name");
 
-    update->which_state = BSB_State_StateUpdate_device_name_tag;
-    static_assert(
-        sizeof(update->state.device_name.name) > sizeof(void*)); // make sure it's an array
-    strlcpy(
-        update->state.device_name.name,
-        furi_string_get_cstr(name),
-        sizeof(update->state.device_name.name));
+        update->which_state = BSB_State_StateUpdate_device_name_tag;
+        static_assert(
+            sizeof(update->state.device_name.name) > sizeof(void*)); // make sure it's an array
+        strlcpy(
+            update->state.device_name.name,
+            event->name_changed.name,
+            sizeof(update->state.device_name.name));
 
-    schedule_state_update(instance, update, StreamFlagAll);
+        schedule_state_update(instance, update, StreamFlagAll);
+    } else {
+        furi_assert(false);
+    }
 }
 
 static void matter_pubsub_callback(const void* message, void* context) {
