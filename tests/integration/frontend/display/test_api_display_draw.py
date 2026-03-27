@@ -109,28 +109,28 @@ def _anim(overrides: dict | None = None, **extra) -> dict:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – Request Validation")
+@allure.story("Draw API")
 class TestDrawRequestValidation:
     """
     Validation of the top-level POST /api/display/draw request body:
     app_id (required), elements (required, non-empty array), priority range.
     """
 
-    @allure.title("Missing app_id → 400")
+    @allure.title("Request Validation: Missing app_id → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_app_id(self, assets_api: AssetsAPI):
         resp = _draw_raw(assets_api, {"elements": [_text()]})
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Missing elements → 400")
+    @allure.title("Request Validation: Missing elements → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_elements(self, assets_api: AssetsAPI):
         resp = _draw_raw(assets_api, {"app_id": _APP, "priority": _PRI})
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Elements not an array → 400")
+    @allure.title("Request Validation: Elements not an array → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_elements_not_array(self, assets_api: AssetsAPI):
@@ -139,21 +139,21 @@ class TestDrawRequestValidation:
         )
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Empty elements array → 400")
+    @allure.title("Request Validation: Empty elements array → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_empty_elements(self, assets_api: AssetsAPI):
         resp = _draw_raw(assets_api, {"app_id": _APP, "elements": [], "priority": _PRI})
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Empty JSON body → 400")
+    @allure.title("Request Validation: Empty JSON body → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_empty_body(self, assets_api: AssetsAPI):
         resp = _draw_raw(assets_api, {})
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Priority boundary 1 (min valid) → accepted")
+    @allure.title("Request Validation: Priority boundary 1 (min valid) → accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_priority_min_valid(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -162,14 +162,14 @@ class TestDrawRequestValidation:
         resp = assets_api.draw_response(_APP, [_text()], priority=1)
         assert resp.status_code in (200, 409)
 
-    @allure.title("Priority boundary 100 (max valid) → 200")
+    @allure.title("Request Validation: Priority boundary 100 (max valid) → 200")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_priority_max_valid(self, assets_api: AssetsAPI, busy_timer_stopped):
         resp = assets_api.draw_response(_APP, [_text()], priority=100)
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Priority 0 → 400")
+    @allure.title("Request Validation: Priority 0 → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_priority_zero(self, assets_api: AssetsAPI):
@@ -179,7 +179,7 @@ class TestDrawRequestValidation:
         except requests.exceptions.ReadTimeout:
             pass  # firmware may reject without response
 
-    @allure.title("Priority 101 → 400")
+    @allure.title("Request Validation: Priority 101 → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_priority_above_max(self, assets_api: AssetsAPI):
@@ -189,7 +189,7 @@ class TestDrawRequestValidation:
         except requests.exceptions.ReadTimeout:
             pass
 
-    @allure.title("Negative priority → 400")
+    @allure.title("Request Validation: Negative priority → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_priority_negative(self, assets_api: AssetsAPI):
@@ -206,7 +206,7 @@ class TestDrawRequestValidation:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – Common Element Fields")
+@allure.story("Draw API")
 class TestCommonElementFields:
     """
     Every element must have ``id`` (string) and ``type`` (enum). Optional
@@ -214,7 +214,7 @@ class TestCommonElementFields:
     display.
     """
 
-    @allure.title("Missing id → 400")
+    @allure.title("Common Element Fields: Missing id → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_id(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -223,7 +223,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Missing type → 400")
+    @allure.title("Common Element Fields: Missing type → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_type(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -232,7 +232,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Unknown type → 400")
+    @allure.title("Common Element Fields: Unknown type → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_unknown_type(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -240,7 +240,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("timeout > 0 and display_until > 0 are mutually exclusive → 400")
+    @allure.title("Common Element Fields: timeout > 0 and display_until > 0 are mutually exclusive → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_timeout_and_display_until_mutex(
@@ -250,7 +250,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("timeout=0 with display_until is accepted (0 ≡ unset)")
+    @allure.title("Common Element Fields: timeout=0 with display_until is accepted (0 ≡ unset)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_timeout_zero_with_display_until(
@@ -262,7 +262,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("display_until without timeout is accepted")
+    @allure.title("Common Element Fields: display_until without timeout is accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_display_until_only(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -272,7 +272,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Valid align values are accepted")
+    @allure.title("Common Element Fields: Valid align values are accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize(
@@ -296,7 +296,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Invalid align → 400")
+    @allure.title("Common Element Fields: Invalid align → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_invalid_align(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -304,7 +304,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("display=front accepted")
+    @allure.title("Common Element Fields: display=front accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_display_front(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -312,7 +312,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("display=back accepted")
+    @allure.title("Common Element Fields: display=back accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_display_back(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -320,7 +320,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Invalid display value → 400")
+    @allure.title("Common Element Fields: Invalid display value → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_invalid_display(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -328,7 +328,7 @@ class TestCommonElementFields:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("x and y accept integers")
+    @allure.title("Common Element Fields: x and y accept integers")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_x_and_y(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -343,14 +343,14 @@ class TestCommonElementFields:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – Text Element")
+@allure.story("Draw API")
 class TestTextElement:
     """
     Text element requires ``text`` (string) and ``font`` (enum).
     Optional: color (#RRGGBBAA), width (>0), scroll_rate (>=0).
     """
 
-    @allure.title("Valid text element with all fields")
+    @allure.title("Text: Valid text element with all fields")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_full_text_element(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -366,7 +366,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Missing text field → 400")
+    @allure.title("Text: Missing text field → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_text_field(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -375,7 +375,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Missing font field → 400")
+    @allure.title("Text: Missing font field → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_font(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -385,7 +385,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Valid font enum values are accepted")
+    @allure.title("Text: Valid font enum values are accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("font", ["small", "medium", "medium_condensed", "big"])
@@ -396,7 +396,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Invalid font value → 400")
+    @allure.title("Text: Invalid font value → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_invalid_font(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -404,7 +404,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Valid color (#RRGGBBAA) accepted")
+    @allure.title("Text: Valid color (#RRGGBBAA) accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_valid_color(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -412,7 +412,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Invalid color string → 400")
+    @allure.title("Text: Invalid color string → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_invalid_color(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -420,7 +420,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("width=0 → 400 (must be > 0)")
+    @allure.title("Text: width=0 → 400 (must be > 0)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_width_zero_rejected(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -428,7 +428,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Positive width accepted")
+    @allure.title("Text: Positive width accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_positive_width(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -436,7 +436,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("scroll_rate=0 accepted (no scrolling)")
+    @allure.title("Text: scroll_rate=0 accepted (no scrolling)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_scroll_rate_zero(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -444,7 +444,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Negative scroll_rate → 400")
+    @allure.title("Text: Negative scroll_rate → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_negative_scroll_rate(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -452,7 +452,7 @@ class TestTextElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Color field is optional (omitted → default white)")
+    @allure.title("Text: Color field is optional (omitted → default white)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_color_optional(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -468,21 +468,21 @@ class TestTextElement:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – Countdown Element")
+@allure.story("Draw API")
 class TestCountdownElement:
     """
     Countdown requires ``timestamp`` (string), ``direction`` (enum),
     ``show_hours`` (enum). Optional: color.
     """
 
-    @allure.title("Valid countdown element")
+    @allure.title("Countdown Element: Valid countdown element")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_valid_countdown(self, assets_api: AssetsAPI, busy_timer_stopped):
         resp = _draw(assets_api, [_countdown()])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Missing timestamp → 400")
+    @allure.title("Countdown Element: Missing timestamp → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_timestamp(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -491,7 +491,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Missing direction → 400")
+    @allure.title("Countdown Element: Missing direction → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_direction(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -500,7 +500,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Missing show_hours → 400")
+    @allure.title("Countdown Element: Missing show_hours → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_show_hours(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -509,7 +509,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Unrecognised direction silently falls back to first enum value")
+    @allure.title("Countdown Element: Unrecognised direction silently falls back to first enum value")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_unrecognised_direction_accepted(
@@ -522,7 +522,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("direction=time_since accepted")
+    @allure.title("Countdown Element: direction=time_since accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_direction_time_since(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -530,7 +530,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Unrecognised show_hours silently falls back to first enum value")
+    @allure.title("Countdown Element: Unrecognised show_hours silently falls back to first enum value")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_unrecognised_show_hours_accepted(
@@ -542,7 +542,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("show_hours=always accepted")
+    @allure.title("Countdown Element: show_hours=always accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_show_hours_always(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -550,7 +550,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Countdown with color accepted")
+    @allure.title("Countdown Element: Countdown with color accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_countdown_color(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -558,7 +558,7 @@ class TestCountdownElement:
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Countdown with invalid color → 400")
+    @allure.title("Countdown Element: Countdown with invalid color → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_countdown_invalid_color(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -573,7 +573,7 @@ class TestCountdownElement:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – Image Element")
+@allure.story("Draw API")
 class TestImageElement:
     """
     Image requires exactly one of ``path`` or ``builtin_image``.
@@ -633,7 +633,7 @@ class TestImageElement:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – Anim Element")
+@allure.story("Draw API")
 class TestAnimElement:
     """
     Anim requires exactly one of ``path`` or ``builtin_anim``.
@@ -699,14 +699,14 @@ class TestAnimElement:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – Multiple Elements")
+@allure.story("Draw API")
 class TestDrawMultipleElements:
     """
     Draw requests may contain multiple elements of different types.
     If ANY element fails validation the whole request is rejected.
     """
 
-    @allure.title("Multiple text elements in one request")
+    @allure.title("Multiple: Multiple text elements in one request")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_multiple_text_elements(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -717,7 +717,7 @@ class TestDrawMultipleElements:
         resp = _draw(assets_api, elems)
         assets_api.assert_status(resp, 200)
 
-    @allure.title("Mixed text + countdown in one request")
+    @allure.title("Multiple: Mixed text + countdown in one request")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_mixed_text_countdown(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -725,7 +725,7 @@ class TestDrawMultipleElements:
         resp = _draw(assets_api, elems)
         assets_api.assert_status(resp, 200)
 
-    @allure.title("One bad element in a batch rejects the whole request")
+    @allure.title("Multiple: One bad element in a batch rejects the whole request")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_one_bad_element_rejects_batch(
@@ -736,7 +736,7 @@ class TestDrawMultipleElements:
         resp = _draw(assets_api, [good, bad])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Later valid element doesn't rescue earlier invalid one")
+    @allure.title("Multiple: Later valid element doesn't rescue earlier invalid one")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_bad_first_element(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -752,7 +752,7 @@ class TestDrawMultipleElements:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Draw API – DELETE")
+@allure.story("Draw API")
 class TestDeleteDisplay:
     """
     DELETE /api/display/draw clears canvas elements.
@@ -810,7 +810,7 @@ class TestDeleteDisplay:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Brightness API – GET")
+@allure.story("Brightness API")
 class TestBrightnessGet:
     """
     GET /api/display/brightness returns ``{"value": "<number>"|"auto"}``.
@@ -846,7 +846,7 @@ class TestBrightnessGet:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Brightness API – POST")
+@allure.story("Brightness API")
 class TestBrightnessSet:
     """
     POST /api/display/brightness?value=<n|auto>
@@ -864,7 +864,7 @@ class TestBrightnessSet:
         # Allow async brightness controller to process the restore message
         time.sleep(0.3)
 
-    @allure.title("Set brightness to numeric value → 200")
+    @allure.title("POST Set brightness to numeric value → 200")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_set_numeric(self, api_session: requests.Session, web_base_url: str):
@@ -875,7 +875,7 @@ class TestBrightnessSet:
         )
         assert resp.status_code == 200
 
-    @allure.title("Set brightness to 'auto' → 200")
+    @allure.title("POST Set brightness to 'auto' → 200")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_set_auto(self, api_session: requests.Session, web_base_url: str):
@@ -886,7 +886,7 @@ class TestBrightnessSet:
         )
         assert resp.status_code == 200
 
-    @allure.title("Set brightness to 0 (min) → 200")
+    @allure.title("POST Set brightness to 0 (min) → 200")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_set_min(self, api_session: requests.Session, web_base_url: str):
@@ -897,7 +897,7 @@ class TestBrightnessSet:
         )
         assert resp.status_code == 200
 
-    @allure.title("Set brightness to 100 (max) → 200")
+    @allure.title("POST Set brightness to 100 (max) → 200")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_set_max(self, api_session: requests.Session, web_base_url: str):
@@ -908,7 +908,7 @@ class TestBrightnessSet:
         )
         assert resp.status_code == 200
 
-    @allure.title("Set brightness without value param → 400")
+    @allure.title("POST Set brightness without value param → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_set_missing_value(self, api_session: requests.Session, web_base_url: str):
@@ -918,7 +918,7 @@ class TestBrightnessSet:
         )
         assert resp.status_code == 400, f"Expected 400, got {resp.status_code}"
 
-    @allure.title("Set brightness to non-numeric, non-auto → 400")
+    @allure.title("POST Set brightness to non-numeric, non-auto → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_set_invalid_string(self, api_session: requests.Session, web_base_url: str):
@@ -929,7 +929,7 @@ class TestBrightnessSet:
         )
         assert resp.status_code == 400, f"Expected 400, got {resp.status_code}"
 
-    @allure.title("Set brightness verifies round-trip (set → get shows manual mode)")
+    @allure.title("POST Set brightness verifies round-trip (set → get shows manual mode)")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_brightness_round_trip(
