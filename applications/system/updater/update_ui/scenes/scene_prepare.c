@@ -10,14 +10,11 @@ typedef enum {
 
 typedef struct {
     FlexBox* front_box;
+
     FlexBox* back_box;
 
     FuriStateSub* update_state_subscription;
 } UpdateUiPrepareScene;
-
-static inline UpdateUiPrepareScene* update_ui_prepare_scene_get(UpdateUi* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxPrepare);
-}
 
 static void update_ui_prepare_scene_update_state_callback(const void* item, void* context) {
     UNUSED(item);
@@ -45,7 +42,8 @@ static void update_ui_prepare_scene_on_update_state_change(UpdateUi* instance) {
 
 static void update_ui_prepare_scene_on_enter(void* context) {
     UpdateUi* instance = context;
-    UpdateUiPrepareScene* scene = update_ui_prepare_scene_get(instance);
+    UpdateUiPrepareScene* scene =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxPrepare);
 
     with_gui(instance->gui, {
         /* front layout setup */
@@ -59,14 +57,14 @@ static void update_ui_prepare_scene_on_enter(void* context) {
         anim_player_set_source(front_anim, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
 
         Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
-        label_set_line_spacing(front_label, 0);
         label_set_text(front_label, "Preparing update");
+        label_set_font(front_label, FONT_BUSY_REGULAR_5);
 
         /* back layout setup */
         scene->back_box = flex_box_alloc(instance->back_scene_window);
         flex_box_set_flow(scene->back_box, FlexBoxFlowColumn);
         flex_box_set_align(scene->back_box, FlexBoxAlignCenter, FlexBoxAlignCenter);
-        flex_box_set_spacing(scene->back_box, 6);
+        flex_box_set_spacing(scene->back_box, 7);
         widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
 
         AnimPlayer* back_anim = anim_player_alloc(flex_box_get_base(scene->back_box));
@@ -74,7 +72,7 @@ static void update_ui_prepare_scene_on_enter(void* context) {
 
         Label* back_label = label_alloc(flex_box_get_base(scene->back_box));
         label_set_text(back_label, "Preparing update...");
-        label_set_text_align(back_label, TextAlignCenter);
+        label_set_font(back_label, FONT_BUSY_REGULAR_9);
     });
 
     scene->update_state_subscription = furi_state_subscribe(
@@ -87,7 +85,8 @@ static void update_ui_prepare_scene_on_enter(void* context) {
 
 static void update_ui_prepare_scene_on_exit(void* context) {
     UpdateUi* instance = context;
-    UpdateUiPrepareScene* scene = update_ui_prepare_scene_get(instance);
+    UpdateUiPrepareScene* scene =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxPrepare);
 
     furi_state_unsubscribe(scene->update_state_subscription);
 
