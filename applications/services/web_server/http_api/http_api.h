@@ -96,6 +96,7 @@ void* http_api_status_ws_alloc(void);
 void http_api_status_ws_free(void* ctx);
 bool http_api_status_ws_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);

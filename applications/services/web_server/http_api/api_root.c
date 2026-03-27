@@ -282,7 +282,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "status",
-        .method = HttpMethodGet,
+        .method = HttpMethodAny,
         .type = HttpHandlerCustom,
         .on_request = http_api_status_callback,
         .ctx_alloc = http_api_status_alloc,
@@ -290,7 +290,7 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "status/ws",
-        .method = "*",
+        .method = HttpMethodWebSocket,
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_status_ws_alloc,
         .ctx_free = http_api_status_ws_free,

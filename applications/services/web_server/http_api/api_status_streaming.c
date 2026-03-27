@@ -267,40 +267,34 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
 
 bool http_api_status_ws_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     furi_assert(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     StatusStreaming* instance = ctx;
 
-    bool success = false;
-    do {
-        bool is_ws_upgrade = (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL);
-        if(!is_ws_upgrade) break;
+    Client* client = client_alloc(instance, conn);
 
-        Client* client = client_alloc(instance, conn);
+    if(!client) {
+        MG_REPLY_ERROR(conn, 400, "Exceeded max clients count");
+        return true;
+    }
 
-        if(!client) {
-            MG_REPLY_ERROR(conn, 400, "Exceeded max clients count");
-            break;
-        }
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    conn_ctx->ws.on_open = client_connection_open;
+    conn_ctx->on_close = client_connection_close;
+    conn_ctx->ws.on_message = client_on_message;
+    conn_ctx->on_wakeup = client_send_frame;
+    conn_ctx->context = client;
 
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->ws.on_open = client_connection_open;
-        conn_ctx->on_close = client_connection_close;
-        conn_ctx->ws.on_message = client_on_message;
-        conn_ctx->on_wakeup = client_send_frame;
-        conn_ctx->context = client;
+    mg_ws_upgrade(conn, msg, NULL);
 
-        mg_ws_upgrade(conn, msg, NULL);
-
-        success = true;
-    } while(false);
-
-    return success;
+    return true;
 }
 
 void* http_api_status_ws_alloc(void) {
