@@ -261,11 +261,8 @@ void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(instance->input_queue == object);
 
     InputSwitchPosition next_switch_pos;
-    bool switch_position_changed = false;
 
     while(furi_message_queue_get(instance->input_queue, &next_switch_pos, 0) == FuriStatusOk) {
-        if(instance->switch_pos == next_switch_pos) continue;
-
         instance->switch_direction = (next_switch_pos > instance->switch_pos) ?
                                          DesktopSwitchDirectionDown :
                                          DesktopSwitchDirectionUp;
@@ -275,14 +272,11 @@ void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
         }
 
         instance->switch_pos = next_switch_pos;
-        switch_position_changed = true;
 
         desktop_handle_switch_update(instance);
     }
 
-    if(switch_position_changed) {
-        furi_event_loop_timer_start(instance->switch_timer, SWITCH_DELAY_MS);
-    }
+    furi_event_loop_timer_start(instance->switch_timer, SWITCH_DELAY_MS);
 }
 
 // Called in the Desktop thread when the switch steady state has been reached

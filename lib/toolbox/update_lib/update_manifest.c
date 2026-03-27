@@ -5,8 +5,6 @@
 #include <furi.h>
 #include <path.h>
 
-#define MANIFEST_FILE_SIZE_MAX (10 * 1024) // 10 KB should be enough
-
 struct UpdateManifest {
     uint32_t version;
     uint32_t updater_stage_crc32;
@@ -123,7 +121,7 @@ bool updater_manifest_init_from_file(UpdateManifest* config, File* file) {
     furi_check(config);
     furi_check(file);
     size_t file_size = storage_file_size(file);
-    if((file_size == 0) || (file_size > MANIFEST_FILE_SIZE_MAX)) {
+    if(file_size == 0) {
         return false;
     }
     char* buffer = malloc(file_size + 1);
