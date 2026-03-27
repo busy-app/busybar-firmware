@@ -3,11 +3,12 @@
 #include <gui/scene_manager.h>
 
 typedef enum {
-    UpdateExecutorSceneIdInstall,
-    UpdateExecutorSceneIdSuccess,
-    UpdateExecutorSceneIdFail,
+    UpdateExecutorSceneIdxInstall,
+    UpdateExecutorSceneIdxFailure,
+    UpdateExecutorSceneIdxSuccess,
+    UpdateExecutorSceneIdxReboot,
 
-    UpdateExecutorSceneIdsCount
-} UpdateExecutorSceneId;
+    UpdateExecutorSceneIdxsCount
+} UpdateExecutorSceneIdx;
 
-extern const Scene* const update_executor_scenes[];
+extern const Scene* const update_executor_internal_scenes[];
