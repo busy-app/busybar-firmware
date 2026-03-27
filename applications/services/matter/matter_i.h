@@ -57,6 +57,7 @@ typedef struct {
 
 struct MatterSrv {
     FuriEventLoop* event_loop;
+    FuriEventLoopTimer* timeout_timer;
     FuriSemaphore* api_semaphore;
     FuriMessageQueue* rx_queue;
     FuriPubSub* pubsub;
@@ -65,7 +66,6 @@ struct MatterSrv {
     MatterApiMessage api_message;
     MatterCd cd;
     MatterCommissionedFabrics fabrics;
-    bool first_frame_sent;
 };
 
 // matter_api.c

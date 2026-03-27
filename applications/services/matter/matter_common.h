@@ -21,7 +21,6 @@ extern "C" {
 typedef enum {
     MatterStatusOk,
     MatterStatusTimeout,
-    MatterStatusError,
     MatterStatusMax,
 } MatterStatus;
 
