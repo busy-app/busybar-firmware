@@ -6,34 +6,43 @@
 #include <gui/modules/overlap_fader.h>
 
 typedef enum {
-    ThisSceneEventStart = ThisEventSceneEventsStart,
-    ThisSceneEventSetup,
-} ThisSceneEventIdx;
+    ClockSceneMainEventStart = ClockEventSceneEventsStart,
+    ClockSceneMainEventSetup,
+} ClockSceneMainEvent;
 
 typedef struct {
     Widget* front_container;
     ClockView* front_clock;
 
     Menu* back_menu;
-} ThisScene;
+} ClockSceneMain;
 
-static inline ThisScene* this_get_scene(ThisInstance* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, ThisSceneIdxMain);
-}
+static const TransitionOverlayPreset clock_scene_main_start_transition_overlay_preset = {
+    .type = TransitionOverlayTypeMask,
+    .blend_mode = TransitionOverlayBlendModeAdd,
+    .timings =
+        {
+            .in_ms = 100,
+            .out_ms = 1000,
+        },
+    .effect = TransitionOverlayEffectPress,
+    .mask.file_path = SHARED_ANIM_PATH("transition_select_72x16.anim"),
+};
 
-static void clock_scene_start_menu_callback(uint32_t index, void* context) {
+static void clock_scene_main_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
+    Clock* instance = context;
 
-    clock_app_fire_event(instance, index);
+    clock_internal_fire_event(instance, index);
 }
 
-static void this_scene_on_enter(void* context) {
+static void clock_scene_main_on_enter(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    Clock* instance = context;
+    ClockSceneMain* scene =
+        scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxMain);
 
     LocalTime local_time = time_get_local_time(instance->time);
 
@@ -46,7 +55,6 @@ static void this_scene_on_enter(void* context) {
 
         scene->front_clock = clock_view_alloc(scene->front_container);
         widget_set_align(clock_view_get_base(scene->front_clock), AlignLeftMid);
-        widget_set_padding(clock_view_get_base(scene->front_clock), 1, 0, 0, 0);
 
         clock_view_set_show_seconds(scene->front_clock, false);
         clock_view_set_time_format(scene->front_clock, time_settings->time_format);
@@ -67,27 +75,30 @@ static void this_scene_on_enter(void* context) {
             "Start",
             NULL,
             SHARED_IMG_PATH("start_11x11.bin"),
-            ThisSceneEventStart,
-            clock_scene_start_menu_callback,
+            ClockSceneMainEventStart,
+            clock_scene_main_menu_callback,
             instance);
         menu_add_item(
             scene->back_menu,
             "Setup",
             NULL,
             SHARED_IMG_PATH("setup_11x11.bin"),
-            ThisSceneEventSetup,
-            clock_scene_start_menu_callback,
+            ClockSceneMainEventSetup,
+            clock_scene_main_menu_callback,
             instance);
     });
 
     free(time_settings);
+
+    transition_overlay_start(instance->front_transition_overlay);
 }
 
-static void this_scene_on_exit(void* context) {
+static void clock_scene_main_on_exit(void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    Clock* instance = context;
+    ClockSceneMain* scene =
+        scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxMain);
 
     with_gui(instance->gui, {
         widget_free(scene->front_container);
@@ -96,31 +107,38 @@ static void this_scene_on_exit(void* context) {
     });
 }
 
-static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
+static bool clock_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
-    ThisInstance* instance = context;
-    ThisScene* scene = this_get_scene(instance);
+    Clock* instance = context;
+    ClockSceneMain* scene =
+        scene_manager_get_scene_data(instance->scene_manager, ClockSceneIdxMain);
 
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case ThisEventTimerUpdate:
+        case ClockEventTimerUpdate:
             LocalTime local_time = time_get_local_time(instance->time);
             with_gui(instance->gui, {
                 clock_view_set_date_time(scene->front_clock, &local_time.dt);
             });
             return true;
 
-        case ThisSceneEventStart:
+        case ClockSceneMainEventStart:
             with_gui(instance->gui, {
                 widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
             });
-            scene_manager_next_scene(instance->scene_manager, ThisSceneIdxClock);
+
+            transition_overlay_set_preset(
+                instance->front_transition_overlay,
+                &clock_scene_main_start_transition_overlay_preset);
+            transition_overlay_show(instance->front_transition_overlay);
+
+            scene_manager_next_scene(instance->scene_manager, ClockSceneIdxClock);
             return true;
 
-        case ThisSceneEventSetup:
+        case ClockSceneMainEventSetup:
             with_gui(instance->gui, { nav_bar_push_location(instance->back_nav_bar, "SETUP"); });
-            scene_manager_next_scene(instance->scene_manager, ThisSceneIdxSetup);
+            scene_manager_next_scene(instance->scene_manager, ClockSceneIdxSetup);
             return true;
 
         default:
@@ -131,9 +149,9 @@ static bool this_scene_on_event(const SceneManagerEvent* event, void* context) {
     return false;
 }
 
-const Scene clock_app_scene_main = {
-    .enter_callback = this_scene_on_enter,
-    .exit_callback = this_scene_on_exit,
-    .event_callback = this_scene_on_event,
-    .data_size = sizeof(ThisScene),
+const Scene clock_internal_scene_main = {
+    .enter_callback = clock_scene_main_on_enter,
+    .exit_callback = clock_scene_main_on_exit,
+    .event_callback = clock_scene_main_on_event,
+    .data_size = sizeof(ClockSceneMain),
 };

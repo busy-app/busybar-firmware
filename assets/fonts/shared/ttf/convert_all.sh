@@ -7,7 +7,7 @@ if [ "$(dirname $0)" != "." ]; then
     exit 1
 fi
 
-baked_fonts_dir="../../../../applications/services/font_registry/baked"
+baked_fonts_dir="../../../../lib/lvgl_addons/fonts"
 
 lv_font_conv --font busy_bold_7px.ttf -o ../busy_bold_7.font \
              --bpp 1 --size 16 --no-compress --format bin --range 0-65535
@@ -20,6 +20,8 @@ lv_font_conv --font busy_condensed_7px.ttf -o ../busy_condensed_7.font \
 
 lv_font_conv --font busy_regular_5px.ttf -o ../busy_regular_5.font \
              --bpp 1 --size 16 --no-compress --format bin --range 0-65535
+lv_font_conv --font busy_regular_5px.ttf -o "$baked_fonts_dir/lv_font_busy_regular_5.c" \
+             --bpp 1 --size 16 --no-compress --format lvgl --range 0-65535
 
 lv_font_conv --font busy_regular_7px.ttf -o ../busy_regular_7.font \
              --bpp 1 --size 16 --no-compress --format bin --range 0-65535

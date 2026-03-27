@@ -155,7 +155,8 @@ static BusyApp* busy_alloc(const char* arg) {
         instance->timer_card = mirror_card_alloc(back_root);
         mirror_card_set_header_text(instance->timer_card, "ACTIVE");
         mirror_card_set_footer_secondary_text(instance->timer_card, "LEFT");
-        widget_set_pos_y(mirror_card_get_base(instance->timer_card), 2);
+        widget_set_align(mirror_card_get_base(instance->timer_card), AlignCenter);
+        widget_set_margin(mirror_card_get_base(instance->timer_card), 0, 0, 2, 2);
         widget_set_visible(mirror_card_get_base(instance->timer_card), false);
 
         // Create application window on Back display
