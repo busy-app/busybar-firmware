@@ -767,6 +767,53 @@ static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, 
     }
 }
 
+static void busy_timer_self_pubsub_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    BusyTimer* instance = context;
+
+    // TODO: Respect the "Trigger smart home" setting
+
+    const BusyTimerEvent* event = message;
+    const BusyTimerEventType event_type = event->type;
+
+    MatterSwitchState switch_state;
+
+    if(event_type == BusyTimerEventTypeStateChanged) {
+        const BusyTimerState timer_state = event->state_changed.state;
+        switch_state = (timer_state == BusyTimerStateWork) ? MatterSwitchStateOn :
+                                                             MatterSwitchStateOff;
+    } else if(event_type == BusyTimerEventTypePaused) {
+        const bool is_paused = event->paused.is_paused;
+        switch_state = is_paused ? MatterSwitchStateOff : MatterSwitchStateOn;
+
+    } else {
+        // Ignore other event types
+        return;
+    }
+
+    matter_set_switch_state(instance->matter, switch_state);
+}
+
+static void busy_timer_matter_switch_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    BusyTimer* instance = context;
+
+    const MatterSwitchState switch_state = *(MatterSwitchState*)item;
+    furi_assert(switch_state < MatterSwitchStateMax);
+
+    if(switch_state == MatterSwitchStateOn) {
+        FURI_LOG_D(TAG, "Switch ON, launching timer");
+    } else if(switch_state == MatterSwitchStateOff) {
+        FURI_LOG_D(TAG, "Switch OFF, stopping timer");
+    }
+
+    UNUSED(instance);
+}
+
 // Public API
 
 const char** busy_timer_get_mode_names(void) {
@@ -812,6 +859,7 @@ static void
     if(instance->state != BusyTimerStateIdle) {
         instance->state = BusyTimerStateIdle;
         busy_timer_stop_timer(instance);
+        busy_timer_notify_state_changed(instance);
 
         FURI_LOG_I(TAG, "Stopped");
 
@@ -1054,6 +1102,7 @@ static BusyTimer* busy_timer_alloc(void) {
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(BusyTimerApiMessage));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
+    instance->matter = furi_record_open(RECORD_MATTER);
 
     for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
         busy_timer_settings_load(&instance->settings[id], id);
@@ -1085,6 +1134,13 @@ static BusyTimer* busy_timer_alloc(void) {
         TIMER_PROFILE_MQTT_QOS,
         busy_timer_mqtt_topics[BusyTimerProfileIdCustom],
         busy_timer_mqtt_profile_custom_callback,
+        instance);
+
+    furi_pubsub_subscribe(instance->event_pubsub, busy_timer_self_pubsub_callback, instance);
+
+    furi_state_subscribe(
+        matter_get_switch_state(instance->matter),
+        busy_timer_matter_switch_state_callback,
         instance);
 
     furi_record_create(RECORD_BUSY_TIMER, instance);

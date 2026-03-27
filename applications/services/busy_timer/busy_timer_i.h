@@ -6,6 +6,7 @@
 #include <furi.h>
 
 #include <mqtt/mqtt.h>
+#include <matter/matter.h>
 
 #include <toolbox/api_lock.h>
 
@@ -108,6 +109,7 @@ struct BusyTimer {
     FuriMessageQueue* api_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
+    MatterSrv* matter;
     BusyTimerSnapshot last_known_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
     // TODO FW-635: Refactor & simplify internals ---->
