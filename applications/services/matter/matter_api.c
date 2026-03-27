@@ -1,6 +1,11 @@
 #include "matter_i.h"
 
-static MatterStatus matter_send_api_message(MatterSrv* instance, MatterApiMessage* api_message) {
+static void matter_api_send_message_internal(MatterSrv* instance, MatterApiMessage* api_message) {
+    instance->api_message = *api_message;
+    furi_event_loop_set_custom_event(instance->event_loop, MatterCustomEventRequest);
+}
+
+static MatterStatus matter_api_send_message(MatterSrv* instance, MatterApiMessage* api_message) {
     MatterStatus status;
 
     api_message->status = &status;
@@ -8,12 +13,25 @@ static MatterStatus matter_send_api_message(MatterSrv* instance, MatterApiMessag
 
     furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
 
-    instance->api_message = *api_message;
-    furi_event_loop_set_custom_event(instance->event_loop, MatterCustomEventRequest);
-
+    matter_api_send_message_internal(instance, api_message);
     api_lock_wait_unlock_and_free(api_message->lock);
 
     return status;
+}
+
+static void matter_api_reset_message(MatterApiMessage* api_message) {
+    memset(api_message, 0, sizeof(MatterApiMessage));
+    api_message->type = MatterApiMessageTypeMax;
+}
+
+// =========  Message-based access API (private) =========
+
+void matter_init(MatterSrv* instance) {
+    MatterApiMessage api_message = {
+        .type = MatterApiMessageTypeInit,
+    };
+
+    matter_api_send_message_internal(instance, &api_message);
 }
 
 // =========  Message-based access API (public) =========
@@ -26,7 +44,7 @@ MatterStatus matter_set_switch_state(MatterSrv* instance, MatterSwitchState swit
         .data.set_switch_state.state = switch_state,
     };
 
-    return matter_send_api_message(instance, &api_message);
+    return matter_api_send_message(instance, &api_message);
 }
 
 MatterStatus matter_set_switch_startup_mode(MatterSrv* instance, MatterSwitchStartupMode mode) {
@@ -37,7 +55,7 @@ MatterStatus matter_set_switch_startup_mode(MatterSrv* instance, MatterSwitchSta
         .data.set_switch_startup_mode.mode = mode,
     };
 
-    return matter_send_api_message(instance, &api_message);
+    return matter_api_send_message(instance, &api_message);
 }
 
 MatterStatus matter_factory_reset(MatterSrv* instance) {
@@ -47,7 +65,7 @@ MatterStatus matter_factory_reset(MatterSrv* instance) {
         .type = MatterApiMessageTypeFactoryReset,
     };
 
-    return matter_send_api_message(instance, &api_message);
+    return matter_api_send_message(instance, &api_message);
 }
 
 MatterStatus matter_enable_commissioning(MatterSrv* instance, MatterCommissioningInfo* info) {
@@ -58,7 +76,7 @@ MatterStatus matter_enable_commissioning(MatterSrv* instance, MatterCommissionin
         .data.start_commissioning.info = info,
     };
 
-    return matter_send_api_message(instance, &api_message);
+    return matter_api_send_message(instance, &api_message);
 }
 
 MatterStatus
@@ -70,7 +88,7 @@ MatterStatus
         .data.get_fabrics.fabrics = fabrics,
     };
 
-    return matter_send_api_message(instance, &api_message);
+    return matter_api_send_message(instance, &api_message);
 }
 
 // ========= Direct access API (public) =========
@@ -99,4 +117,27 @@ MatterStatus matter_set_wanted_cd_selection(MatterSrv* instance, const char* sel
 const char* matter_get_de_facto_cd_selection(MatterSrv* instance) {
     furi_assert(instance);
     return matter_cd_get_de_facto_selection(&instance->cd);
+}
+
+// Internal API
+
+bool matter_api_is_waiting_for_response(MatterSrv* instance, MatterApiMessageType message_type) {
+    return instance->api_message.type == message_type;
+}
+
+void matter_api_unlock(MatterSrv* instance, MatterStatus status) {
+    MatterApiMessage* api_message = &instance->api_message;
+    furi_assert(api_message->type < MatterApiMessageTypeMax);
+
+    if(api_message->status) {
+        *api_message->status = status;
+    }
+
+    if(api_message->lock) {
+        api_lock_unlock(api_message->lock);
+    }
+
+    matter_api_reset_message(api_message);
+
+    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
 }

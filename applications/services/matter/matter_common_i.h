@@ -77,7 +77,6 @@ typedef enum {
 typedef struct {
     MatterIntercomFrameType type;
     union {
-        uint8_t frame_of_any_type;
         MatterIntercomInitializationFrame initialization;
         MatterIntercomSwitchStateFrame switch_state;
         MatterIntercomStartupModeFrame startup;

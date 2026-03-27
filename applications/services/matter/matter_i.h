@@ -16,6 +16,7 @@ typedef enum {
 } MatterCustomEvent;
 
 typedef enum {
+    MatterApiMessageTypeInit,
     MatterApiMessageTypeSetSwitchState,
     MatterApiMessageTypeSetSwitchStartupMode,
     MatterApiMessageTypeStartCommissioning,
@@ -57,7 +58,7 @@ typedef struct {
 struct MatterSrv {
     FuriEventLoop* event_loop;
     FuriSemaphore* api_semaphore;
-    FuriMessageQueue* frame_queue;
+    FuriMessageQueue* rx_queue;
     FuriPubSub* pubsub;
     FuriState* switch_state;
     IntercomChannel* intercom_ch;
@@ -66,3 +67,11 @@ struct MatterSrv {
     MatterCommissionedFabrics fabrics;
     bool first_frame_sent;
 };
+
+// matter_api.c
+
+void matter_init(MatterSrv* instance);
+
+bool matter_api_is_waiting_for_response(MatterSrv* instance, MatterApiMessageType message_type);
+
+void matter_api_unlock(MatterSrv* instance, MatterStatus status);
