@@ -9,7 +9,8 @@
 #include <wifi/wifi_common.h>
 #include <power/power_service/power.h>
 #include <matter/matter.h>
-#include <toolbox/shared_ptr.h>
+#include <mlib/m-array.h>
+#include <mlib/m-shared.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +28,11 @@ typedef enum StatePublisherTransportClass {
     StatePublisherTransportClassMax,
 } StatePublisherTransportClass;
 
-typedef void (*StatePublisherPublishCb)(SharedPtr* data, size_t data_size, void* context);
+ARRAY_DEF(ByteArray, uint8_t);
+
+SHARED_PTR_DEF(SharedByteArray, ByteArray_t, ARRAY_OPLIST(ByteArray));
+
+typedef void (*StatePublisherPublishCb)(const SharedByteArray_t data, void* context);
 
 typedef size_t StatePublisherTransportHandle;
 

@@ -15,7 +15,7 @@
 
 #define EXPIRY_INTERVAL_DEFAULT_S (60)
 
-static void mqtt_streaming_publish_callback(SharedPtr* data, size_t data_size, void* context);
+static void mqtt_streaming_publish_callback(const SharedByteArray_t data, void* context);
 
 static void mqtt_streaming_message_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
@@ -115,28 +115,32 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
 }
 
 static void mqtt_publish_done_callback(void* data) {
-    SharedPtr* shared = data;
-    shared_ptr_release(shared);
+    SharedByteArray_t* shared = data;
+    SharedByteArray_clear(*shared);
+    free(shared);
 }
 
-static void mqtt_streaming_publish_callback(SharedPtr* data, size_t data_size, void* context) {
+static void mqtt_streaming_publish_callback(const SharedByteArray_t data, void* context) {
     MqttStreamingSrv* instance = context;
 
-    shared_ptr_acquire(data);
+    SharedByteArray_t* my_data = malloc(sizeof(SharedByteArray_t));
+    SharedByteArray_init_set(*my_data, data);
 
     furi_assert(instance->response_topic);
     furi_assert(furi_string_size(instance->response_topic));
+
+    const ByteArray_t* array = SharedByteArray_cref(*my_data);
 
     mqtt_publish_ex(
         instance->mqtt,
         PUB_QOS,
         furi_string_get_cstr(instance->response_topic),
-        data->inner,
-        data_size,
+        ByteArray_cget(*array, 0),
+        ByteArray_size(*array),
         NULL,
         0,
         mqtt_publish_done_callback,
-        data);
+        my_data);
 }
 
 static MqttStreamingSrv* mqtt_streaming_alloc(void) {

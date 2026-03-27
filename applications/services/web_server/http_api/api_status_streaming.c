@@ -33,8 +33,7 @@ typedef enum {
 } ClientState;
 
 typedef struct DataMessage {
-    SharedPtr* data;
-    size_t size;
+    SharedByteArray_t data;
 } DataMessage;
 
 typedef struct StatusStreaming StatusStreaming;
@@ -88,19 +87,17 @@ static void client_heartbeat_timer_callback(void* ctx) {
     }
 }
 
-static void client_publish_callback(SharedPtr* data, size_t data_size, void* context) {
+static void client_publish_callback(const SharedByteArray_t data, void* context) {
     Client* client = context;
 
     furi_assert(client->state > ClientStateHandshake);
 
-    shared_ptr_acquire(data);
-    FuriStatus error = furi_message_queue_put(
-        client->active.queue,
-        &(DataMessage){.data = data, .size = data_size},
-        FRAME_QUEUE_TIMEOUT);
+    DataMessage msg;
+    SharedByteArray_init_set(msg.data, data);
+    FuriStatus error = furi_message_queue_put(client->active.queue, &msg, FRAME_QUEUE_TIMEOUT);
     if(error != FuriStatusOk) {
         FURI_LOG_E(TAG, "Queue overflow, update skipped (%u)", error);
-        shared_ptr_release(data);
+        SharedByteArray_clear(msg.data);
     }
     mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
 }
@@ -138,7 +135,7 @@ static inline void client_free(Client* client, StatusStreaming* streaming_ctx) {
             free(client->active.heartbeat_timer);
             DataMessage msg;
             while(furi_message_queue_get(client->active.queue, &msg, 0) == FuriStatusOk) {
-                shared_ptr_release(msg.data);
+                SharedByteArray_clear(msg.data);
             }
             furi_message_queue_free(client->active.queue);
         } break;
@@ -201,8 +198,10 @@ static void client_send_frame(struct mg_connection* conn, void* data, size_t len
         DataMessage msg;
         if(furi_message_queue_get(client->active.queue, &msg, FRAME_QUEUE_TIMEOUT) ==
            FuriStatusOk) {
-            mg_ws_send(conn, msg.data->inner, msg.size, WEBSOCKET_OP_BINARY);
-            shared_ptr_release(msg.data);
+            const ByteArray_t* array = SharedByteArray_cref(msg.data);
+            mg_ws_send(
+                conn, ByteArray_cget(*array, 0), ByteArray_size(*array), WEBSOCKET_OP_BINARY);
+            SharedByteArray_clear(msg.data);
         } else {
             FURI_LOG_W(TAG, "Woke up for no message");
         }

@@ -1,6 +1,5 @@
 #include "state_publisher.h"
 #include <furi/furi.h>
-#include <dyn_buffer.h>
 
 #include <brightness_control/brightness_control.h>
 #include <power/power_service/power.h>
@@ -304,12 +303,14 @@ int32_t state_publisher_srv(void* p) {
 }
 
 static bool ostream_cb(pb_ostream_t* stream, const pb_byte_t* data, size_t count) {
-    DynBuffer* buf = stream->state;
-    dyn_buffer_push(buf, data, count);
+    ByteArray_t* buf = stream->state;
+    size_t old_size = ByteArray_size(*buf);
+    ByteArray_resize(*buf, old_size + count);
+    memcpy(ByteArray_get(*buf, old_size), data, count);
     return true;
 }
 
-static pb_ostream_t ostream_with_buffer(DynBuffer* buf) {
+static pb_ostream_t ostream_with_buffer(ByteArray_t* buf) {
     return (pb_ostream_t){
         .callback = ostream_cb,
         .bytes_written = 0,
@@ -341,32 +342,33 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
         .updates = (BSB_State_StateUpdate*)update,
     };
 
-    DynBuffer buf = dyn_buffer_init();
+    SharedByteArray_t data;
+    SharedByteArray_init_new(data);
 
-    pb_ostream_t stream = ostream_with_buffer(&buf);
+    ByteArray_t* buf = SharedByteArray_ref(data);
+    pb_ostream_t stream = ostream_with_buffer(buf);
 
     bool result = pb_encode(&stream, BSB_State_State_fields, &state);
     furi_assert(result);
 
     FuriString* dump = furi_string_alloc_printf("%hhx: ", message->update.stream_flags);
-    for(size_t i = 0; i != buf.size; ++i) {
-        furi_string_cat_printf(dump, "%02hhX", buf.data[i]);
+    for(size_t i = 0; i != ByteArray_size(*buf); ++i) {
+        furi_string_cat_printf(dump, "%02hhX", *ByteArray_cget(*buf, i));
     }
     // FURI_LOG_D(TAG, "%s", furi_string_get_cstr(dump));
     furi_string_free(dump);
 
-    SharedPtr* data = shared_ptr_alloc_plain(buf.data);
     {
         furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
         for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
             Transport* t = instance->transports + i;
             if(t->valid && (t->flags & message->update.stream_flags)) {
-                t->cb(data, buf.size, t->cb_context);
+                t->cb(data, t->cb_context);
             }
         }
         furi_mutex_release(instance->transports_mutex);
     }
-    shared_ptr_release(data);
+    SharedByteArray_clear(data);
 
     if(update) {
         free_state_update(update);
