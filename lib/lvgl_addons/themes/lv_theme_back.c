@@ -46,8 +46,6 @@ typedef struct {
     lv_style_t dialog_cursor;
     lv_style_t dialog_option;
 
-    lv_style_t mirror_card;
-
     lv_style_t title_card_label;
     lv_style_t title_card_container;
 
@@ -181,12 +179,6 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_init(&theme->styles.dialog_cursor);
     lv_style_set_width(&theme->styles.dialog_cursor, LV_SIZE_CONTENT);
     lv_style_set_margin_right(&theme->styles.dialog_cursor, 0);
-
-    lv_style_init(&theme->styles.mirror_card);
-    lv_style_set_bg_opa(&theme->styles.mirror_card, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.mirror_card, COLOR_FG_FOCUSED);
-    lv_style_set_pad_ver(&theme->styles.mirror_card, 4);
-    lv_style_set_radius(&theme->styles.mirror_card, MENU_ITEM_RADIUS);
 
     lv_style_init(&theme->styles.title_card_label);
     lv_style_set_text_color(&theme->styles.title_card_label, COLOR_FG_FOCUSED);
@@ -362,9 +354,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &progress_bar_fill_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.progress_bar_fill, LV_PART_MAIN);
-
-    } else if(lv_obj_check_type(obj, &mirror_card_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.mirror_card, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &title_card_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.title_card_label, LV_PART_MAIN);

@@ -29,9 +29,6 @@ extern const lv_obj_class_t var_item_editor_lvgl_class;
 extern const lv_obj_class_t var_item_cursor_lvgl_class;
 extern const lv_obj_class_t var_item_arrow_lvgl_class;
 
-// MirrorCard
-extern const lv_obj_class_t mirror_card_lvgl_class;
-
 // TitleCard
 extern const lv_obj_class_t title_card_lvgl_class;
 extern const lv_obj_class_t title_card_label_lvgl_class;

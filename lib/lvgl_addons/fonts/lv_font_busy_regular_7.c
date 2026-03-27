@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 16 px
  * Bpp: 1
- * Opts: --font busy_regular_7px.ttf -o ../../../../applications/services/font_registry/baked/lv_font_busy_regular_7.c --bpp 1 --size 16 --no-compress --format lvgl --range 0-65535
+ * Opts: --font busy_regular_7px.ttf -o ../../../../lib/lvgl_addons/fonts/lv_font_busy_regular_7.c --bpp 1 --size 16 --no-compress --format lvgl --range 0-65535
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
