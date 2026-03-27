@@ -30,11 +30,15 @@ void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) 
     busy_timer_api_blocking_request(instance, &message);
 }
 
-void busy_timer_start(BusyTimer* instance) {
+void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id) {
     furi_assert(instance);
 
     BusyTimerApiMessage message = {
         .type = BusyTimerApiMessageTypeStart,
+        .data.start =
+            {
+                .profile_id = profile_id,
+            },
     };
 
     busy_timer_api_asynchronous_request(instance, &message);
@@ -158,21 +162,6 @@ void busy_timer_set_profile(
             {
                 .profile_id = profile_id,
                 .profile = *profile,
-            },
-    };
-
-    busy_timer_api_asynchronous_request(instance, &message);
-}
-
-void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    furi_check(instance);
-    furi_check(profile_id < BusyTimerProfileIdMax);
-
-    BusyTimerApiMessage message = {
-        .type = BusyTimerApiMessageTypeLoadProfile,
-        .data.load_profile =
-            {
-                .profile_id = profile_id,
             },
     };
 

@@ -27,12 +27,15 @@ typedef enum {
     BusyTimerApiMessageTypeSetSnapshot,
     BusyTimerApiMessageTypeGetProfile,
     BusyTimerApiMessageTypeSetProfile,
-    BusyTimerApiMessageTypeLoadProfile,
     BusyTimerApiMessageTypeGetPreset,
     BusyTimerApiMessageTypeSetPreset,
 
     BusyTimerApiMessageTypeMax,
 } BusyTimerApiMessageType;
+
+typedef struct {
+    BusyTimerProfileId profile_id;
+} BusyTimerApiMessageStart;
 
 typedef struct {
     int32_t time_minutes;
@@ -75,6 +78,7 @@ typedef struct {
 } BusyTimerApiMessageSetPreset;
 
 typedef union {
+    BusyTimerApiMessageStart start;
     BusyTimerApiMessageAddTime add_time;
     BusyTimerApiMessageGetSnapshot get_snapshot;
     BusyTimerApiMessageSetSnapshot set_snapshot;

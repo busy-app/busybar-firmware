@@ -57,8 +57,6 @@ static void busy_scene_start_handle_setup(BusyApp* instance) {
 }
 
 static void busy_scene_start_apply_initial_params(BusyApp* instance) {
-    busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
-
     busy_load_app_config(instance);
     busy_apply_app_config(instance);
 

@@ -91,7 +91,7 @@ typedef struct {
 
 FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
-void busy_timer_start(BusyTimer* instance);
+void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id);
 
 void busy_timer_stop(BusyTimer* instance);
 
@@ -118,8 +118,6 @@ void busy_timer_set_profile(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
     const BusyTimerProfile* profile);
-
-void busy_timer_load_profile(BusyTimer* instance, BusyTimerProfileId profile_id);
 
 void busy_timer_get_preset(
     BusyTimer* instance,

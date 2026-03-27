@@ -814,6 +814,16 @@ static void busy_timer_matter_switch_state_callback(const void* item, void* cont
     UNUSED(instance);
 }
 
+static void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProfileId profile_id) {
+    const BusyTimerSettings* settings = &instance->settings[profile_id];
+    const BusyTimerProfile* profile = &settings->profile;
+
+    instance->app_config = profile->app_config;
+    instance->timer_config = profile->timer_config;
+    strcpy(instance->card_id, profile->metadata.card_id);
+    instance->is_demo_mode_enabled = settings->is_demo_mode_enabled;
+}
+
 // Public API
 
 const char** busy_timer_get_mode_names(void) {
@@ -829,13 +839,13 @@ FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance) {
 
 static void
     busy_timer_start_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
-    UNUSED(data);
-
     FURI_LOG_I(TAG, "Starting");
 
+    // FIXME: What is it doing here?
     busy_timer_notify_mode_changed(instance);
 
     if(instance->state == BusyTimerStateIdle) {
+        busy_timer_apply_profile_settings(instance, data->start.profile_id);
         busy_timer_next_state(instance, true);
 
         FURI_LOG_I(TAG, "Started");
@@ -1026,21 +1036,6 @@ static void
     }
 }
 
-static void busy_timer_load_profile_api_message_handler(
-    BusyTimer* instance,
-    BusyTimerApiMessageData* data) {
-    const BusyTimerProfileId profile_id = data->load_profile.profile_id;
-    furi_assert(profile_id < BusyTimerProfileIdMax);
-
-    const BusyTimerSettings* settings = &instance->settings[profile_id];
-    const BusyTimerProfile* profile = &settings->profile;
-
-    instance->app_config = profile->app_config;
-    instance->timer_config = profile->timer_config;
-    strcpy(instance->card_id, profile->metadata.card_id);
-    instance->is_demo_mode_enabled = settings->is_demo_mode_enabled;
-}
-
 static void
     busy_timer_get_preset_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     const BusyTimerApiMessageGetPreset* get_preset = &data->get_preset;
@@ -1170,7 +1165,6 @@ static const BusyTimerApiMessageHandler
         [BusyTimerApiMessageTypeSetSnapshot] = busy_timer_set_snapshot_api_message_handler,
         [BusyTimerApiMessageTypeGetProfile] = busy_timer_get_profile_api_message_handler,
         [BusyTimerApiMessageTypeSetProfile] = busy_timer_set_profile_api_message_handler,
-        [BusyTimerApiMessageTypeLoadProfile] = busy_timer_load_profile_api_message_handler,
         [BusyTimerApiMessageTypeGetPreset] = busy_timer_get_preset_api_message_handler,
         [BusyTimerApiMessageTypeSetPreset] = busy_timer_set_preset_api_message_handler,
 };
