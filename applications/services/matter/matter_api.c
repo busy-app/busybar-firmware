@@ -1,6 +1,7 @@
 #include "matter_i.h"
 
-static void matter_api_send_message_internal(MatterSrv* instance, MatterApiMessage* api_message) {
+static void
+    matter_api_send_message_internal(MatterSrv* instance, const MatterApiMessage* api_message) {
     instance->api_message = *api_message;
     furi_event_loop_set_custom_event(instance->event_loop, MatterCustomEventRequest);
 }
@@ -27,7 +28,7 @@ static void matter_api_reset_message(MatterApiMessage* api_message) {
 // =========  Message-based access API (private) =========
 
 void matter_init(MatterSrv* instance) {
-    MatterApiMessage api_message = {
+    const MatterApiMessage api_message = {
         .type = MatterApiMessageTypeInit,
     };
 

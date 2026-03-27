@@ -106,7 +106,7 @@ void matter_switch_state_callback(const void* item, void* context) {
 
     const MatterSwitchState switch_state = *(MatterSwitchState*)item;
     if(switch_state != MatterSwitchStateUnknown) {
-        FURI_LOG_I(TAG, "Switch state: %s", (switch_state == MatterSwitchStateOn) ? "ON": "OFF");
+        FURI_LOG_I(TAG, "Switch state: %s", (switch_state == MatterSwitchStateOn) ? "ON" : "OFF");
     }
 }
 
