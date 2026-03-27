@@ -5,11 +5,11 @@ import protobuf from 'protobufjs';
 
 const { Root } = protobuf;
 
-// this script assumes that bsb-protobuf is symlinked at frontend dir root. This will be changed later
+// expecting a submodule at assets/proto
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-const frontendDir = resolve(scriptDir, '..');
-const inputProto = resolve(frontendDir, 'bsb-protobuf', 'state.proto');
-const outputModule = resolve(frontendDir, 'generated', 'protobuf', 'stateDescriptor.ts');
+const assetsDir = resolve(scriptDir, '../..');
+const inputProto = resolve(assetsDir, 'proto', 'state.proto');
+const outputModule = resolve(assetsDir, 'generated', 'protobuf', 'stateDescriptor.ts');
 
 const root = new Root();
 root.loadSync(inputProto);
