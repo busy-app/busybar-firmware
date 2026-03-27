@@ -242,7 +242,8 @@ static MatterStatus
             sizeof(init->hardware_version_str));
     }
 
-    return matter_send_frame(instance, &frame);
+    const MatterStatus status = matter_send_frame(instance, &frame);
+    return (status != MatterStatusOk) ? status : MatterStatusMax;
 }
 
 static MatterStatus
@@ -285,7 +286,8 @@ static MatterStatus matter_start_commissioning_api_message_nandler(
         .type = MatterIntercomFrameTypeCommission,
     };
 
-    return matter_send_frame(instance, &frame);
+    const MatterStatus status = matter_send_frame(instance, &frame);
+    return (status != MatterStatusOk) ? status : MatterStatusMax;
 }
 
 static MatterStatus matter_get_commissioned_fabrics_api_message_nandler(
