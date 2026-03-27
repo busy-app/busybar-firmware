@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {13, 0, 0}
+#define API_VERSION {14, 0, 0}
 
 // Root API handlers
 void* http_api_root_alloc(void);
