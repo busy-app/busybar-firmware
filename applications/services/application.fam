@@ -89,8 +89,8 @@ App(
         "cli_intercom",
         "ble",
         "tls_crypto",
-        "intercom_watchdog",
         "sl_info",
+        "supervisor",
     ],
     targets=["f64", "f65"],
 )

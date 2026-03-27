@@ -1,7 +1,8 @@
 #include "intercom_i.h"
 
-#define TAG "IntercomRxSrv"
+#define TAG "IntercomRx"
 
+#define INTERCOM_RX_THREAD_NAME       TAG "Srv"
 #define INTERCOM_RX_THREAD_STACK_SIZE (2048)
 
 typedef enum {
@@ -11,47 +12,6 @@ typedef enum {
 
 #define INTERCOM_RX_THREAD_FLAGS_ALL \
     (IntercomRxThreadFlagFrameReceived | IntercomRxThreadFlagErrorOccurred)
-
-#ifdef SRV_INTERCOM_WATCHDOG
-
-#include "intercom_watchdog.h"
-
-typedef struct {
-    IntercomWatchdog* watchdog;
-    FuriHalSerialHandle* serial;
-} IntercomRxWatchdogCtx;
-
-static FURI_ALWAYS_INLINE void intercom_rx_watchdog_begin(const IntercomRxWatchdogCtx* ctx) {
-    intercom_watchdog_arm(ctx->watchdog);
-}
-
-static FURI_ALWAYS_INLINE void intercom_rx_watchdog_end(const IntercomRxWatchdogCtx* ctx) {
-    if(furi_hal_serial_rx_available(ctx->serial)) {
-        // Some more data is already in FIFO, re-arm watchdog
-        intercom_watchdog_arm(ctx->watchdog);
-    } else {
-        // No data in FIFO yet, disarm watchdog for now
-        intercom_watchdog_disarm(ctx->watchdog);
-    }
-}
-
-#define WATCHDOG_INIT(instance)                                 \
-    const IntercomRxWatchdogCtx _ctx = {                        \
-        .watchdog = furi_record_open(RECORD_INTERCOM_WATCHDOG), \
-        .serial = instance->serial,                             \
-    }
-
-#define WATCHDOG_BEGIN() intercom_rx_watchdog_begin(&_ctx)
-
-#define WATCHDOG_END() intercom_rx_watchdog_end(&_ctx)
-
-#else
-
-#define WATCHDOG_INIT(instance) UNUSED(instance)
-#define WATCHDOG_BEGIN()
-#define WATCHDOG_END()
-
-#endif // SRV_INTERCOM_WATCHDOG
 
 // Called in ISR context
 static void intercom_serial_rx_callback(
@@ -80,15 +40,25 @@ static void intercom_rx_state_callback(const void* item, void* context) {
     }
 }
 
+static FURI_ALWAYS_INLINE void
+    intercom_rx_process_frame(Intercom* instance, const IntercomFrame* frame) {
+    const IntercomChannelId channel_id = frame->channel_id;
+
+    if(channel_id < IntercomChannelIdMax) {
+        const IntercomChannel* channel = &instance->channels[channel_id];
+        intercom_channel_call_callback(channel, frame);
+    } else {
+        intercom_meta_process_frame(instance, frame);
+    }
+}
+
 static FURI_ALWAYS_INLINE void intercom_rx_process_data(Intercom* instance) {
     INTERCOM_LOG_D("Frame received");
 
     const IntercomFrame* rx_frame = &instance->rx_frame;
 
     if(intercom_frame_is_valid(rx_frame)) {
-        const IntercomChannelId channel_id = rx_frame->channel_id;
-        const IntercomChannel* channel = &instance->channels[channel_id];
-        intercom_channel_call_callback(channel, rx_frame);
+        intercom_rx_process_frame(instance, rx_frame);
 
     } else {
         intercom_set_status(instance, IntercomStatusErrorFraming);
@@ -121,13 +91,10 @@ static int32_t intercom_rx_thread(void* arg) {
     Intercom* instance = arg;
 
     intercom_rx_init_serial(instance);
-    WATCHDOG_INIT(instance);
 
     for(;;) {
         intercom_rx_wait_for_data(instance);
-        WATCHDOG_BEGIN();
         intercom_rx_process_data(instance);
-        WATCHDOG_END();
     }
 
     return 0;
@@ -137,7 +104,7 @@ static int32_t intercom_rx_thread(void* arg) {
 
 void intercom_start_rx_thread(Intercom* instance) {
     FuriThread* rx_thread = furi_thread_alloc_service(
-        TAG, INTERCOM_RX_THREAD_STACK_SIZE, intercom_rx_thread, instance);
+        INTERCOM_RX_THREAD_NAME, INTERCOM_RX_THREAD_STACK_SIZE, intercom_rx_thread, instance);
 
     furi_state_subscribe(instance->state, intercom_rx_state_callback, rx_thread);
 

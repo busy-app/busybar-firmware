@@ -127,9 +127,11 @@ static bool api_wifi_check_record_exists(struct mg_connection* conn) {
 
 static bool api_wifi_get_networks_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -330,9 +332,11 @@ static bool api_wifi_connect_parse_config(
 
 static bool api_wifi_connect_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -371,9 +375,11 @@ static bool api_wifi_connect_callback(
 
 static bool api_wifi_disconnect_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -395,9 +401,11 @@ static bool api_wifi_disconnect_callback(
 
 static bool api_wifi_get_status_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -464,25 +472,25 @@ static bool api_wifi_get_status_callback(
 static const HttpHandler handlers_wifi[] = {
     {
         .uri = "networks",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_get_networks_callback,
     },
     {
         .uri = "connect",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_connect_callback,
     },
     {
         .uri = "disconnect",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_disconnect_callback,
     },
     {
         .uri = "status",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_get_status_callback,
     },
@@ -507,9 +515,10 @@ void http_api_wifi_free(void* ctx) {
 
 bool http_api_wifi_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiWifiCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

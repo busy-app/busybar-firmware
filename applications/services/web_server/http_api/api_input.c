@@ -91,6 +91,7 @@ static void input_websocket_on_message(struct mg_connection* conn, struct mg_ws_
 
 bool http_api_input_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
@@ -100,15 +101,14 @@ bool http_api_input_callback(
 
     ConnectionContext* conn_ctx = (void*)conn->data;
 
-    if(mg_match(msg->method, mg_str("GET"), NULL) &&
-       (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL)) {
+    if(method == HttpMethodWebSocket) {
         // Upgrade to WebSocket
         conn_ctx->ws.on_message = input_websocket_on_message;
         conn_ctx->on_close = input_websocket_on_close;
         conn_ctx->context = ctx;
         mg_ws_upgrade(conn, msg, NULL);
         return true;
-    } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
+    } else if(method == HttpMethodPost) {
         char key_name[KEY_NAME_LEN_MAX];
         bool success = false;
 
