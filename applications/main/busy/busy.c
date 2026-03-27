@@ -118,7 +118,6 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->updater = furi_record_open(RECORD_UPDATER);
-    instance->matter = furi_record_open(RECORD_MATTER);
     instance->loader = furi_record_open(RECORD_LOADER);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->theme = busy_theme_alloc();
@@ -206,7 +205,6 @@ static void busy_free(BusyApp* instance) {
     busy_timer_stop(instance->busy_timer);
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    busy_set_matter(instance, false);
     busy_set_front_display_blanking(instance, false);
 
     scene_manager_free(instance->scene_manager);
@@ -224,7 +222,6 @@ static void busy_free(BusyApp* instance) {
 
     furi_record_close(RECORD_BUSY_TIMER);
     furi_record_close(RECORD_LOADER);
-    furi_record_close(RECORD_MATTER);
     furi_record_close(RECORD_UPDATER);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
@@ -280,13 +277,6 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 
     const BusyStatusLightsPreset* preset = &busy_status_lights[type];
     status_lights_run_preset(instance->status_lights, preset->preset, preset->color);
-}
-
-void busy_set_matter(BusyApp* instance, bool switch_state) {
-    furi_assert(instance);
-    if(instance->config.is_smart_home_enabled) {
-        matter_set_switch_state(instance->matter, switch_state);
-    }
 }
 
 void busy_set_priority(BusyApp* instance, bool is_active) {
