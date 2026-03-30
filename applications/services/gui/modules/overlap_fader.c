@@ -26,7 +26,7 @@ static const SideConfiguration side_configurations[];
 static void overlap_fader_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_IGNORE_LAYOUT);
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_FLOATING);
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
 }
 
