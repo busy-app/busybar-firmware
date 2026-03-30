@@ -29,6 +29,7 @@ typedef enum {
     BusyTimerApiMessageTypeSetProfile,
     BusyTimerApiMessageTypeGetPreset,
     BusyTimerApiMessageTypeSetPreset,
+    BusyTimerApiMessageTypeHandleMatter,
 
     BusyTimerApiMessageTypeMax,
 } BusyTimerApiMessageType;
@@ -77,6 +78,10 @@ typedef struct {
     BusyTimerPreset preset;
 } BusyTimerApiMessageSetPreset;
 
+typedef struct {
+    MatterSwitchState switch_state;
+} BusyTimerApiMessageHandleMatter;
+
 typedef union {
     BusyTimerApiMessageStart start;
     BusyTimerApiMessageAddTime add_time;
@@ -88,6 +93,7 @@ typedef union {
     BusyTimerApiMessageLoadProfile load_profile;
     BusyTimerApiMessageGetPreset get_preset;
     BusyTimerApiMessageSetPreset set_preset;
+    BusyTimerApiMessageHandleMatter handle_matter;
 } BusyTimerApiMessageData;
 
 typedef struct {
@@ -114,6 +120,7 @@ struct BusyTimer {
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
     MatterSrv* matter;
+    MatterSwitchState matter_switch_state;
     BusyTimerSnapshot last_known_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
     // TODO FW-635: Refactor & simplify internals ---->
@@ -131,3 +138,5 @@ struct BusyTimer {
     bool is_timer_running;
     bool is_demo_mode_enabled;
 };
+
+void busy_timer_handle_matter(BusyTimer* instance, MatterSwitchState switch_state);

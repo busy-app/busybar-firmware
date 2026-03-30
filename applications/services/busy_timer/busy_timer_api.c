@@ -207,3 +207,17 @@ void busy_timer_set_preset(
 
     busy_timer_api_asynchronous_request(instance, &message);
 }
+
+// Private API calls
+
+void busy_timer_handle_matter(BusyTimer* instance, MatterSwitchState switch_state) {
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeHandleMatter,
+        .data.handle_matter =
+            {
+                .switch_state = switch_state,
+            },
+    };
+
+    busy_timer_api_asynchronous_request(instance, &message);
+}
