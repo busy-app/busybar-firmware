@@ -222,6 +222,12 @@ static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
     furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
+static void busy_timer_notify_initial_state(const BusyTimer* instance) {
+    busy_timer_notify_mode_changed(instance);
+    busy_timer_notify_state_changed(instance);
+    busy_timer_notify_tick(instance);
+}
+
 static BusyTimerState busy_timer_calc_next_state(const BusyTimer* instance) {
     BusyTimerState next_state;
 
@@ -352,9 +358,7 @@ static void busy_timer_infinite_to_simple(BusyTimer* instance) {
     instance->time_elapsed_s = 0;
 
     busy_timer_start_timer(instance);
-    busy_timer_notify_mode_changed(instance);
-    busy_timer_notify_state_changed(instance);
-    busy_timer_notify_tick(instance);
+    busy_timer_notify_initial_state(instance);
 }
 
 static void busy_timer_next_state(BusyTimer* instance, bool is_forced) {
@@ -620,9 +624,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     busy_timer_start_app(&snapshot->app_config);
 
-    busy_timer_notify_mode_changed(instance);
-    busy_timer_notify_state_changed(instance);
-    busy_timer_notify_tick(instance);
+    busy_timer_notify_initial_state(instance);
     busy_timer_notify_paused(instance);
 
     busy_timer_schedule_publish_last_known_snapshot(instance);
@@ -828,6 +830,7 @@ static void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProf
 
 static void busy_timer_start_internal(BusyTimer* instance, BusyTimerProfileId profile_id) {
     FURI_LOG_I(TAG, "Starting");
+
     if(instance->state == BusyTimerStateIdle) {
         busy_timer_apply_profile_settings(instance, profile_id);
 
@@ -839,10 +842,7 @@ static void busy_timer_start_internal(BusyTimer* instance, BusyTimerProfileId pr
 
     } else {
         busy_timer_start_timer(instance);
-
-        busy_timer_notify_mode_changed(instance);
-        busy_timer_notify_state_changed(instance);
-        busy_timer_notify_tick(instance);
+        busy_timer_notify_initial_state(instance);
 
         FURI_LOG_I(TAG, "Resumed");
     }
@@ -889,6 +889,13 @@ static void busy_timer_skip_internal(BusyTimer* instance) {
 
         FURI_LOG_I(TAG, "Skipped");
     }
+}
+
+static void
+    busy_timer_start_app_with_profile_id(BusyTimer* instance, BusyTimerProfileId profile_id) {
+    const BusyTimerProfile* profile = &instance->settings[profile_id].profile;
+    busy_timer_start_app(&profile->app_config);
+    busy_timer_start_internal(instance, profile_id);
 }
 
 // Public API
@@ -1092,7 +1099,7 @@ static void
 static void busy_timer_handle_matter_api_message_handler(
     BusyTimer* instance,
     BusyTimerApiMessageData* data) {
-    const MatterSwitchState switch_state = data->handle_matter.switch_state;
+    MatterSwitchState switch_state = data->handle_matter.switch_state;
 
     if(instance->matter_switch_state == switch_state) {
         return;
@@ -1100,19 +1107,32 @@ static void busy_timer_handle_matter_api_message_handler(
 
     if(switch_state == MatterSwitchStateOn) {
         if(instance->state == BusyTimerStateIdle) {
-            const BusyTimerProfile* profile = &instance->settings[TIMER_MATTER_PROFILE_ID].profile;
-            const BusyAppConfig* app_config = &profile->app_config;
-
-            busy_timer_start_app(app_config);
-            busy_timer_start_internal(instance, TIMER_MATTER_PROFILE_ID);
+            busy_timer_start_app_with_profile_id(instance, TIMER_MATTER_PROFILE_ID);
 
         } else if(instance->state == BusyTimerStateWork) {
             if(!busy_timer_is_running(instance)) {
-                busy_timer_toggle_internal(instance);
+                if(instance->time_elapsed_s == 0) {
+                    busy_timer_start_app_with_profile_id(instance, TIMER_MATTER_PROFILE_ID);
+                } else {
+                    busy_timer_toggle_internal(instance);
+                }
             }
 
         } else if(instance->state == BusyTimerStateRest) {
-            busy_timer_skip_internal(instance);
+            if(!busy_timer_is_running(instance)) {
+                if(instance->time_elapsed_s == 0) {
+                    busy_timer_start_app_with_profile_id(instance, TIMER_MATTER_PROFILE_ID);
+
+                    switch_state = MatterSwitchStateOff;
+                    matter_set_switch_state(instance->matter, switch_state);
+
+                } else {
+                    busy_timer_skip_internal(instance);
+                }
+
+            } else {
+                busy_timer_skip_internal(instance);
+            }
         }
 
     } else if(switch_state == MatterSwitchStateOff) {
