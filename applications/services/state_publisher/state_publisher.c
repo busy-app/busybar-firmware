@@ -351,13 +351,6 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     bool result = pb_encode(&stream, BSB_State_State_fields, &state);
     furi_assert(result);
 
-    FuriString* dump = furi_string_alloc_printf("%hhx: ", message->update.stream_flags);
-    for(size_t i = 0; i != ByteArray_size(*buf); ++i) {
-        furi_string_cat_printf(dump, "%02hhX", *ByteArray_cget(*buf, i));
-    }
-    // FURI_LOG_D(TAG, "%s", furi_string_get_cstr(dump));
-    furi_string_free(dump);
-
     {
         furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
         for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
