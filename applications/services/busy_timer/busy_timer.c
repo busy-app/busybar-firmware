@@ -828,17 +828,19 @@ static void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProf
 
 static void busy_timer_start_internal(BusyTimer* instance, BusyTimerProfileId profile_id) {
     FURI_LOG_I(TAG, "Starting");
-    // FIXME: What is it doing here?
-    busy_timer_notify_mode_changed(instance);
-
     if(instance->state == BusyTimerStateIdle) {
         busy_timer_apply_profile_settings(instance, profile_id);
+
         busy_timer_next_state(instance, true);
+
+        busy_timer_notify_mode_changed(instance);
 
         FURI_LOG_I(TAG, "Started");
 
     } else {
         busy_timer_start_timer(instance);
+
+        busy_timer_notify_mode_changed(instance);
         busy_timer_notify_state_changed(instance);
         busy_timer_notify_tick(instance);
 
