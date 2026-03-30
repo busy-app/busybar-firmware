@@ -790,6 +790,9 @@ static void busy_timer_self_pubsub_callback(const void* message, void* context) 
         const bool is_paused = event->paused.is_paused;
         switch_state = is_paused ? MatterSwitchStateOff : MatterSwitchStateOn;
 
+    } else if(event_type == BusyTimerEventTypeIntervalEnded) {
+        switch_state = MatterSwitchStateOff;
+
     } else {
         // Ignore other event types
         return;
