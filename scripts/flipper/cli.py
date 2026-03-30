@@ -94,5 +94,6 @@ class Cli:
         return self.read.until(self.CLI_EOL)
 
     def send_and_wait_prompt(self, line: str):
+        print(f"> {line.strip()}")
         self.send(line)
         return self.read.until(self.CLI_PROMPT)
