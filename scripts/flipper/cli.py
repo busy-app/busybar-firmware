@@ -90,9 +90,13 @@ class Cli:
         self.port.write(line.encode("ascii"))
 
     def send_and_wait_eol(self, line: str):
+        # Enable for debugging
+        # print(f"> '{line.strip()}'")
         self.send(line)
         return self.read.until(self.CLI_EOL)
 
     def send_and_wait_prompt(self, line: str):
+        # Enable for debugging
+        # print(f"> '{line.strip()}'")
         self.send(line)
         return self.read.until(self.CLI_PROMPT)
