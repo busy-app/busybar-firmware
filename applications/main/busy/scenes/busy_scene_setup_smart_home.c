@@ -2,7 +2,7 @@
 
 #include <gui/modules/var_item_list.h>
 
-#define ITEM_LABEL_ENABLE "Trigger smart\nhome"
+#define ITEM_LABEL_ENABLE "Trigger smart home"
 
 typedef struct {
     VarItemList* front_list;

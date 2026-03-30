@@ -129,6 +129,7 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 
     lv_style_init(&theme->styles.var_item_editor);
     lv_style_set_pad_column(&theme->styles.var_item_editor, 2);
+    lv_style_set_pad_left(&theme->styles.var_item_editor, 2);
 
     lv_style_init(&theme->styles.margin_right);
     lv_style_set_margin_right(&theme->styles.margin_right, 2);
