@@ -15,12 +15,12 @@
 
 #define TIMER_INTERVAL_MS 100
 
-static const ThisArguments default_arguments = {
+static const ClockArguments clock_default_arguments = {
     .do_skip_menu = false,
 };
 
-static void parse_arguments(const char* string, ThisArguments* arguments) {
-    *arguments = default_arguments;
+static void clock_parse_arguments(const char* string, ClockArguments* arguments) {
+    *arguments = clock_default_arguments;
 
     if(!string) return;
 
@@ -38,12 +38,12 @@ static void parse_arguments(const char* string, ThisArguments* arguments) {
     furi_string_free(argument);
 }
 
-static bool thread_signal_callback(uint32_t signal, void* argument, void* context) {
+static bool clock_thread_signal_callback(uint32_t signal, void* argument, void* context) {
     UNUSED(argument);
 
     furi_assert(context);
 
-    ThisInstance* instance = context;
+    Clock* instance = context;
 
     switch(signal) {
     case FuriSignalExit:
@@ -55,12 +55,12 @@ static bool thread_signal_callback(uint32_t signal, void* argument, void* contex
     }
 }
 
-static void input_queue_callback(FuriEventLoopObject* object, void* context) {
+static void clock_input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
     furi_assert(context);
 
-    ThisInstance* instance = context;
+    Clock* instance = context;
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
@@ -72,12 +72,12 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static void event_queue_callback(FuriEventLoopObject* object, void* context) {
+static void clock_event_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
     furi_assert(context);
 
-    ThisInstance* instance = context;
+    Clock* instance = context;
 
     uint32_t event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
@@ -85,17 +85,19 @@ static void event_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static bool gui_input_callback(const InputEvent* event, void* context) {
+static bool clock_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
-    ThisInstance* instance = context;
+    Clock* instance = context;
 
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
         FuriStatus queue_status =
             furi_message_queue_put(instance->input_queue, event, INPUT_QUEUE_TIMEOUT_MS);
 
-        if(queue_status != FuriStatusOk) FURI_LOG_E(TAG, "Input queue failure");
+        if(queue_status != FuriStatusOk) {
+            FURI_LOG_E(TAG, "Failed to put an item into input queue.");
+        }
 
         return true;
     }
@@ -104,20 +106,21 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
 }
 
 static void clock_timer_callback(void* context) {
-    ThisInstance* instance = context;
+    Clock* instance = context;
 
-    clock_app_fire_event(instance, ThisEventTimerUpdate);
+    clock_internal_fire_event(instance, ClockEventTimerUpdate);
 }
 
-static ThisInstance* this_alloc(const char* arguments) {
-    ThisInstance* instance = malloc(sizeof(*instance));
+static Clock* clock_alloc(const char* arguments) {
+    Clock* instance = malloc(sizeof(*instance));
 
-    parse_arguments(arguments, &instance->arguments);
+    clock_parse_arguments(arguments, &instance->arguments);
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_CAPACITY, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_CAPACITY, sizeof(uint32_t));
-    instance->scene_manager = scene_manager_alloc(clock_app_scenes, ThisSceneIdxsCount, instance);
+    instance->scene_manager =
+        scene_manager_alloc(clock_internal_scenes, ClockSceneIdxsCount, instance);
 
     instance->gui = furi_record_open(RECORD_GUI);
     instance->time = furi_record_open(RECORD_TIME);
@@ -133,10 +136,14 @@ static ThisInstance* this_alloc(const char* arguments) {
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, gui_input_callback, instance);
+        gui_layer_add_input_callback(layer, clock_input_callback, instance);
 
         Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_scene_window = widget_alloc(front_root);
+
+        instance->front_transition_overlay = transition_overlay_alloc(front_root);
+        transition_overlay_set_pressed_widget(
+            instance->front_transition_overlay, instance->front_scene_window);
 
         Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
@@ -157,37 +164,42 @@ static ThisInstance* this_alloc(const char* arguments) {
         instance->event_loop,
         instance->input_queue,
         FuriEventLoopEventIn,
-        input_queue_callback,
+        clock_input_queue_callback,
         instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->event_queue,
         FuriEventLoopEventIn,
-        event_queue_callback,
+        clock_event_queue_callback,
         instance);
 
     furi_event_loop_timer_start(instance->timer, furi_ms_to_ticks(TIMER_INTERVAL_MS));
 
-    scene_manager_next_scene(instance->scene_manager, ThisSceneIdxMain);
-
+    ClockSceneIdx initial_scene_idx;
     if(instance->arguments.do_skip_menu) {
         with_gui(instance->gui, {
             widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
         });
 
-        scene_manager_next_scene(instance->scene_manager, ThisSceneIdxClock);
+        initial_scene_idx = ClockSceneIdxClock;
+    } else {
+        initial_scene_idx = ClockSceneIdxMain;
     }
+
+    scene_manager_next_scene(instance->scene_manager, initial_scene_idx);
 
     return instance;
 }
 
-static void this_free(ThisInstance* instance) {
+static void clock_free(Clock* instance) {
     scene_manager_free(instance->scene_manager);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer, gui_input_callback);
+        gui_layer_remove_input_callback(layer, clock_input_callback);
+
+        transition_overlay_free(instance->front_transition_overlay);
 
         widget_free(instance->front_scene_window);
         flex_layout_free(instance->back_container);
@@ -212,25 +224,27 @@ static void this_free(ThisInstance* instance) {
     free(instance);
 }
 
-int32_t clock_app_entry(void* argument) {
-    ThisInstance* instance = this_alloc(argument);
+int32_t clock_entry(void* argument) {
+    Clock* instance = clock_alloc(argument);
 
     FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, thread_signal_callback, instance);
+    furi_thread_set_signal_callback(thread, clock_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
 
     furi_thread_set_signal_callback(thread, NULL, NULL);
 
-    this_free(instance);
+    clock_free(instance);
 
     return 0;
 }
 
-void clock_app_fire_event(ThisInstance* instance, uint32_t event) {
+void clock_internal_fire_event(Clock* instance, uint32_t event) {
     furi_assert(instance);
 
     FuriStatus queue_status =
         furi_message_queue_put(instance->event_queue, &event, EVENT_QUEUE_TIMEOUT_MS);
 
-    if(queue_status != FuriStatusOk) FURI_LOG_E(TAG, "Event queue failure");
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Failed to put an item into event queue.");
+    }
 }
