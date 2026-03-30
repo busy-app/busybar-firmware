@@ -142,6 +142,7 @@ jobs:
 
       - name: Run integration tests
         id: smoke_tests
+        timeout-minutes: 10
         run: |
           set +e
           cd tests
