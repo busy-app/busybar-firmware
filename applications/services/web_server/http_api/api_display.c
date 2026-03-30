@@ -147,7 +147,7 @@ static bool api_display_draw_parse_image_path(
         }
 
         if(stock) {
-            char* image_name = stock;
+            char* image_name = NULL;
 
             for(char* c = stock; *c != 0; c++) {
                 if(*c == '/') {

@@ -2122,7 +2122,7 @@ components:
               properties:
                 stock_path:
                   type: string
-                  pattern: "^[a-z_]+/[a-z0-9_]+$"
+                  pattern: "shared/[a-z0-9_]+$"
                   description: Stock image file name
 
     AnimationElement:
@@ -2139,7 +2139,7 @@ components:
                 - properties:
                     stock_path:
                       type: string
-                      pattern: "^[a-z_]+/[a-z0-9_]+$"
+                      pattern: "shared/[a-z0-9_]+$"
                       description: Stock animation file name
             - properties:
                 loop:

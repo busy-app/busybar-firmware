@@ -2,7 +2,6 @@
 
 import sys
 import os.path
-import contextlib
 from pathlib import Path
 from flipper.app import App
 

@@ -59,6 +59,8 @@ static void api_assets_upload_data_callback(struct mg_connection* conn, struct m
 static void api_assets_upload_close_callback(struct mg_connection* conn) {
     ConnectionContext* conn_ctx = (void*)conn->data;
     UploadClientCtx* upload_ctx = conn_ctx->context;
+    furi_assert(upload_ctx);
+
     if(upload_ctx->file) {
         http_fs_get()->cl(upload_ctx->file);
         upload_ctx->file = NULL;
@@ -168,15 +170,15 @@ static bool api_assets_delete_callback(
             break;
         }
 
-        char app_id_str[FILE_NAME_LEN_MAX];
+        char app_name_str[FILE_NAME_LEN_MAX];
 
         int var_len =
-            mg_http_get_var(&msg->query, "application_name", app_id_str, sizeof(app_id_str));
+            mg_http_get_var(&msg->query, "application_name", app_name_str, sizeof(app_name_str));
         if(var_len <= 0) {
             MG_REPLY_BAD_REQUEST(conn);
             break;
         }
-        furi_string_printf(dir_path, "%s/%.*s", ASSETS_UPLOAD_DIR, var_len, app_id_str);
+        furi_string_printf(dir_path, "%s/%.*s", ASSETS_UPLOAD_DIR, var_len, app_name_str);
 
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         if(!storage_dir_exists(fs_api, furi_string_get_cstr(dir_path))) {
