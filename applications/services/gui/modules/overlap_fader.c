@@ -128,6 +128,13 @@ void overlap_fader_align_to(OverlapFader* instance, Widget* target, OverlapFader
     }
 }
 
+void overlap_fader_realign(OverlapFader* instance) {
+    furi_check(instance);
+    furi_check(instance->target);
+
+    lv_obj_align_to(TO_LV_OBJ(instance), instance->target, instance->alignment, 0, 0);
+}
+
 static const SideConfiguration side_configurations[] = {
     [OverlapFaderSideLeft] =
         {
