@@ -130,7 +130,8 @@ static void firmware_settings_low_battery_scene_on_enter(void* context) {
 
         Label* back_detail_label = label_alloc(flex_box_get_base(scene->back_box));
         label_set_text_color(back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
-        label_set_text(back_detail_label, "40% needed to start update");
+        label_set_text_align(back_detail_label, TextAlignCenter);
+        label_set_text(back_detail_label, "40% needed to\nstart update");
     });
 }
 

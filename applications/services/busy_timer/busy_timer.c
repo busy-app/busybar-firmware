@@ -134,7 +134,7 @@ static void busy_timer_notify_tick(const BusyTimer* instance) {
 
 static void busy_timer_notify_mode_changed(const BusyTimer* instance) {
     const BusyTimerMode timer_mode = instance->timer_config.mode;
-    FURI_LOG_D(TAG, "Mode changed: %s", busy_timer_get_mode_name(timer_mode));
+    FURI_LOG_D(TAG, "New mode: %s", busy_timer_get_mode_name(timer_mode));
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeModeChanged,
@@ -145,7 +145,7 @@ static void busy_timer_notify_mode_changed(const BusyTimer* instance) {
 }
 
 static void busy_timer_notify_state_changed(const BusyTimer* instance) {
-    FURI_LOG_D(TAG, "State changed: %s", busy_timer_get_state_name(instance->state));
+    FURI_LOG_D(TAG, "New state: %s", busy_timer_get_state_name(instance->state));
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeStateChanged,
@@ -356,10 +356,13 @@ static void busy_timer_infinite_to_simple(BusyTimer* instance) {
 }
 
 static void busy_timer_next_state(BusyTimer* instance, bool is_forced) {
-    FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(instance->state));
+    const char* old_state_name = busy_timer_get_state_name(instance->state);
 
     instance->current_interval_index = busy_timer_calc_interval_index(instance);
     instance->state = busy_timer_calc_next_state(instance);
+
+    FURI_LOG_I(
+        TAG, "State change: %s -> %s", old_state_name, busy_timer_get_state_name(instance->state));
 
     if(instance->state != BusyTimerStateIdle) {
         instance->time_elapsed_s = 0;
