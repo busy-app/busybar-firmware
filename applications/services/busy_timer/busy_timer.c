@@ -828,14 +828,9 @@ static void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProf
     instance->is_demo_mode_enabled = settings->is_demo_mode_enabled;
 }
 
-static void busy_timer_start_internal(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    FURI_LOG_I(TAG, "Starting");
-
+static void busy_timer_start_internal(BusyTimer* instance) {
     if(instance->state == BusyTimerStateIdle) {
-        busy_timer_apply_profile_settings(instance, profile_id);
-
         busy_timer_next_state(instance, true);
-
         busy_timer_notify_mode_changed(instance);
 
         FURI_LOG_I(TAG, "Started");
@@ -893,9 +888,17 @@ static void busy_timer_skip_internal(BusyTimer* instance) {
 
 static void
     busy_timer_start_app_with_profile_id(BusyTimer* instance, BusyTimerProfileId profile_id) {
-    const BusyTimerProfile* profile = &instance->settings[profile_id].profile;
-    busy_timer_start_app(&profile->app_config);
-    busy_timer_start_internal(instance, profile_id);
+    if(instance->state == BusyTimerStateIdle) {
+        busy_timer_apply_profile_settings(instance, profile_id);
+    }
+
+    BusyTimerSettings* settings = &instance->settings[profile_id];
+    BusyAppConfig* app_config = &settings->profile.app_config;
+
+    app_config->is_smart_home_enabled = true;
+
+    busy_timer_start_app(app_config);
+    busy_timer_start_internal(instance);
 }
 
 // Public API
@@ -913,7 +916,12 @@ FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance) {
 
 static void
     busy_timer_start_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
-    busy_timer_start_internal(instance, data->start.profile_id);
+    if(instance->state == BusyTimerStateIdle) {
+        const BusyTimerProfileId profile_id = data->start.profile_id;
+        busy_timer_apply_profile_settings(instance, profile_id);
+    }
+
+    busy_timer_start_internal(instance);
 }
 
 static void
