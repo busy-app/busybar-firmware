@@ -108,23 +108,6 @@ const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
         },
 };
 
-const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax] = {
-    [BusyStatusLightsTypeOff] =
-        {
-            .preset = StatusLightsPresetOff,
-        },
-    [BusyStatusLightsTypeWork] =
-        {
-            .preset = StatusLightsPresetStaticColor,
-            .color = COLOR_MAKE_RGB(150, 0, 0),
-        },
-    [BusyStatusLightsTypeRest] =
-        {
-            .preset = StatusLightsPresetStaticColor,
-            .color = COLOR_MAKE_RGB(10, 150, 5),
-        },
-};
-
 const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMax] = {
     [BusyTimerIndicatorTypeWork] =
         {

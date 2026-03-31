@@ -107,7 +107,9 @@ static MatterSwitchState busy_timer_smart_home_process_switch_off(BusyTimer* ins
     return MatterSwitchStateOff;
 }
 
-static MatterSwitchState busy_timer_smart_home_process_switch_state(BusyTimer* instance, MatterSwitchState switch_state) {
+static MatterSwitchState busy_timer_smart_home_process_switch_state(
+    BusyTimer* instance,
+    MatterSwitchState switch_state) {
     MatterSwitchState result = MatterSwitchStateMax;
 
     if(switch_state == MatterSwitchStateOn) {

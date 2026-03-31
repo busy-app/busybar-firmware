@@ -1079,6 +1079,7 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
 
     busy_timer_smart_home_init(instance);
+    busy_timer_status_lights_init(instance);
 
     furi_record_create(RECORD_BUSY_TIMER, instance);
 

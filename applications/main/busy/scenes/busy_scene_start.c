@@ -63,7 +63,6 @@ static void busy_scene_start_apply_initial_params(BusyApp* instance) {
     busy_apply_app_config(instance);
 
     busy_set_front_display_blanking(instance, false);
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_priority(instance, false);
 }
 

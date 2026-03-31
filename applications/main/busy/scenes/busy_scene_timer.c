@@ -142,19 +142,6 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     }
 }
 
-static void busy_scene_timer_update_lights(BusyApp* instance) {
-    const BusySceneTimer* data =
-        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-
-    if(data->is_paused) {
-        busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    } else if(data->timer_state == BusyTimerStateWork) {
-        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
-    } else if(data->timer_state == BusyTimerStateRest) {
-        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
-    }
-}
-
 static void busy_scene_timer_update_priority(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
@@ -280,7 +267,6 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
         }
     });
 
-    busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_priority(instance);
     busy_scene_timer_update_front_display_blanking(instance);
 }
@@ -304,7 +290,6 @@ static void busy_scene_timer_handle_pause(BusyApp* instance) {
         }
     });
 
-    busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_priority(instance);
     busy_scene_timer_update_front_display_blanking(instance);
 }
@@ -506,7 +491,6 @@ static void busy_scene_timer_on_exit(void* context) {
     BusyApp* instance = context;
     instance->show_timer_requested = false;
 
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_priority(instance, false);
 
     BusySceneTimer* data =

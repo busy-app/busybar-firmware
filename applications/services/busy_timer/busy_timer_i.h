@@ -7,6 +7,7 @@
 
 #include <mqtt/mqtt.h>
 #include <matter/matter.h>
+#include <status_lights/status_lights.h>
 
 #include <toolbox/api_lock.h>
 
@@ -121,6 +122,7 @@ struct BusyTimer {
     Mqtt* mqtt;
     MatterSrv* matter;
     MatterSwitchState matter_switch_state;
+    StatusLights* status_lights;
     BusyTimerSnapshot last_known_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
     // TODO FW-635: Refactor & simplify internals ---->
@@ -162,6 +164,10 @@ void busy_timer_handle_matter(BusyTimer* instance, MatterSwitchState switch_stat
 void busy_timer_smart_home_init(BusyTimer* instance);
 
 void busy_timer_smart_home_handle_switch_state(BusyTimer* instance, MatterSwitchState switch_state);
+
+// busy_timer_status_lights.c
+
+void busy_timer_status_lights_init(BusyTimer* instance);
 
 // busy_timer_util.c
 
