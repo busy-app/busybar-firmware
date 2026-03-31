@@ -2,6 +2,7 @@
 
 #include <front_display/front_display.h>
 #include <busy_timer/time_macros.h>
+#include <cjson/cJSON.h>
 
 #define TAG "MqttStreaming"
 
@@ -32,10 +33,21 @@ static void mqtt_streaming_message_callback(const MqttMessage* message, void* co
     FuriString* response_topic = furi_string_alloc();
     mqtt_message_get_string_property(message, MqttPropertyTypeResponseTopic, response_topic);
 
+    size_t payload_size = 0;
+    const void* payload = mqtt_message_get_data(message, &payload_size);
+    void* own_payload = NULL;
+
+    if(payload_size) {
+        own_payload = malloc(payload_size);
+        memcpy(own_payload, payload, payload_size);
+    }
+
     const MqttStreamingApiMessage api_msg = {
         .type = data_size ? MqttStreamingApiMessageTypeStart : MqttStreamingApiMessageTypeStop,
         .expiry_interval = expiry_interval,
         .response_topic = response_topic,
+        .payload = own_payload,
+        .payload_size = payload_size,
     };
 
     furi_message_queue_put(instance->api_queue, &api_msg, FuriWaitForever);
@@ -79,6 +91,29 @@ static void mqtt_streaming_timeout_timer_callback(void* context) {
     stop_publisher(instance);
 }
 
+static StatePublisherRateLimit parse_rate_limit(const char* json, size_t length) {
+    cJSON* obj = cJSON_ParseWithLength(json, length);
+    if(obj) {
+        StatePublisherRateLimit result = STATE_PUBLISHER_RATE_UNLIMITED;
+        cJSON* limits_obj = cJSON_GetObjectItem(obj, "message_limits");
+        cJSON* max_count_obj = cJSON_GetObjectItem(limits_obj, "max_count");
+        cJSON* interval_obj = cJSON_GetObjectItem(limits_obj, "interval_s");
+
+        if(cJSON_IsNumber(max_count_obj) && cJSON_IsNumber(interval_obj)) {
+            double max_count = max_count_obj->valuedouble;
+            double interval_s = max_count_obj->valuedouble;
+            if(max_count >= 0.0 && interval_s >= 0.0) {
+                result.max_packet_count = (uint32_t)round(max_count);
+                result.period_ms = (uint32_t)roundf((float)interval_s * 1000.0f);
+            }
+        }
+        cJSON_free(obj);
+        return result;
+    } else {
+        return STATE_PUBLISHER_RATE_UNLIMITED;
+    }
+}
+
 static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* context) {
     furi_assert(context);
     MqttStreamingSrv* instance = context;
@@ -88,16 +123,20 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
     MqttStreamingApiMessage api_msg;
     while(furi_message_queue_get(instance->api_queue, &api_msg, 0) == FuriStatusOk) {
         if(api_msg.type == MqttStreamingApiMessageTypeStart) {
+            StatePublisherRateLimit rate_limit =
+                parse_rate_limit(api_msg.payload, api_msg.payload_size);
             if(instance->state_publisher_handle == STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
                 FURI_LOG_I(TAG, "Start");
                 instance->state_publisher_handle = state_publisher_add_transport(
                     instance->state_publisher,
                     StatePublisherTransportClassMQTT,
                     FRAME_PERIOD_MS,
-                    STATE_PUBLISHER_RATE_UNLIMITED,
+                    rate_limit,
                     mqtt_streaming_publish_callback,
                     instance);
             } else {
+                state_publisher_set_rate_limit(
+                    instance->state_publisher, instance->state_publisher_handle, rate_limit);
                 furi_string_free(instance->response_topic);
             }
             instance->response_topic = api_msg.response_topic;
@@ -112,6 +151,9 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
             furi_string_free(api_msg.response_topic);
         } else {
             furi_crash("Invalid MqttStreamingApiMessageType value");
+        }
+        if(api_msg.payload) {
+            free(api_msg.payload);
         }
     }
 }

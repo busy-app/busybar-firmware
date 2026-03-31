@@ -43,7 +43,10 @@ typedef struct StatePublisherRateLimit {
     uint32_t max_packet_count;
 } StatePublisherRateLimit;
 
-#define STATE_PUBLISHER_RATE_UNLIMITED (StatePublisherRateLimit){0}
+#define STATE_PUBLISHER_RATE_UNLIMITED \
+    (StatePublisherRateLimit) {        \
+        0                              \
+    }
 
 /**
  * Add transport (sink) to receive serialized updates.
@@ -66,6 +69,14 @@ StatePublisherTransportHandle state_publisher_add_transport(
  * @param handle transport handle received from state_publisher_add_transport.
  */
 void state_publisher_del_transport(StatePublisher* instance, StatePublisherTransportHandle handle);
+
+/**
+ * Set new rate limit for a transport.
+ */
+void state_publisher_set_rate_limit(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport,
+    StatePublisherRateLimit rate_limit);
 
 #ifdef __cplusplus
 }

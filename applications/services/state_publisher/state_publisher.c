@@ -149,6 +149,15 @@ void state_publisher_del_transport(StatePublisher* instance, StatePublisherTrans
     furi_mutex_release(instance->transports_mutex);
 }
 
+void state_publisher_set_rate_limit(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport,
+    StatePublisherRateLimit rate_limit) {
+    furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+    instance->transports[transport].rate_limit = rate_limit;
+    furi_mutex_release(instance->transports_mutex);
+}
+
 int32_t state_publisher_srv(void* p) {
     UNUSED(p);
 
@@ -193,7 +202,6 @@ void state_publisher_free_state_update(BSB_State_StateUpdate* update) {
 static bool is_sequential_update(const BSB_State_StateUpdate* update) {
     if(update) {
         switch(update->which_state) {
-
         case BSB_State_StateUpdate_input_tag:
             return true;
         default:
@@ -223,7 +231,7 @@ static uint32_t send_out_for_transport(Transport* t, bool heartbeat) {
         StateUpdateArray_init(t->seq_updates);
 
         for(size_t i = 0; i != StateUpdateArray_size(t->state_updates); ++i) {
-            SharedStateUpdate_t *shared = StateUpdateArray_get(t->state_updates, i);
+            SharedStateUpdate_t* shared = StateUpdateArray_get(t->state_updates, i);
             if(!SharedStateUpdate_NULL_p(*shared)) {
                 StateUpdateArray_push_move(updates, shared);
             }
@@ -233,10 +241,14 @@ static uint32_t send_out_for_transport(Transport* t, bool heartbeat) {
 
         if(count > 0 || heartbeat) {
             // shallow copy
-            BSB_State_StateUpdate* raw_updates = count ? malloc(sizeof(BSB_State_StateUpdate) * count) : NULL;
+            BSB_State_StateUpdate* raw_updates =
+                count ? malloc(sizeof(BSB_State_StateUpdate) * count) : NULL;
             for(size_t i = 0; i != count; ++i) {
-                SharedStateUpdate_t *shared = StateUpdateArray_get(updates, i);
-                memcpy(raw_updates + i, SharedStateUpdate_cref(*shared), sizeof(BSB_State_StateUpdate));
+                SharedStateUpdate_t* shared = StateUpdateArray_get(updates, i);
+                memcpy(
+                    raw_updates + i,
+                    SharedStateUpdate_cref(*shared),
+                    sizeof(BSB_State_StateUpdate));
             }
 
             BSB_State_State state = {
@@ -244,8 +256,6 @@ static uint32_t send_out_for_transport(Transport* t, bool heartbeat) {
                 .updates_count = count,
                 .updates = raw_updates,
             };
-
-            FURI_LOG_D(TAG, "update for %p %d (count=%zu)", t, t->flags, state.updates_count);
 
             SharedByteArray_t data;
             SharedByteArray_init_new(data);
@@ -268,7 +278,6 @@ static uint32_t send_out_for_transport(Transport* t, bool heartbeat) {
         StateUpdateArray_clear(updates);
     } else {
         // rate limited
-        FURI_LOG_D(TAG, "rate limited %p %lu", t, t->updates_since_last_tick);
         sleep_time_ms = t->last_tick_ms + t->rate_limit.period_ms - now;
     }
     return sleep_time_ms;
@@ -311,9 +320,11 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
                 Transport* t = instance->transports + i;
                 if(t->valid && (t->flags & flags)) {
                     size_t old_size = StateUpdateArray_size(t->state_updates);
-                    StateUpdateArray_resize(t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
+                    StateUpdateArray_resize(
+                        t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
 
-                    SharedStateUpdate_t* cell = StateUpdateArray_get(t->state_updates, update->which_state);
+                    SharedStateUpdate_t* cell =
+                        StateUpdateArray_get(t->state_updates, update->which_state);
                     SharedStateUpdate_set(*cell, shared_update);
                 }
             }

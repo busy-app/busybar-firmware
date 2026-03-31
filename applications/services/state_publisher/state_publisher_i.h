@@ -30,7 +30,7 @@ typedef enum {
 void state_publisher_free_state_update(BSB_State_StateUpdate* update);
 
 #define STATE_UPDATE_CLEAR(o) state_publisher_free_state_update(&(o))
-#define STATE_UPDATE_OPLIST M_OPEXTEND(M_EMPTY_OPLIST, CLEAR(STATE_UPDATE_CLEAR))
+#define STATE_UPDATE_OPLIST   M_OPEXTEND(M_EMPTY_OPLIST, CLEAR(STATE_UPDATE_CLEAR))
 SHARED_PTR_DEF(SharedStateUpdate, BSB_State_StateUpdate, STATE_UPDATE_OPLIST);
 ARRAY_DEF(StateUpdateArray, SharedStateUpdate_t, SHARED_PTR_OPLIST(SharedStateUpdate));
 
@@ -47,7 +47,6 @@ typedef struct Transport {
     StateUpdateArray_t seq_updates;
     /// State-like updates (only last one matters): array indexed by tag
     StateUpdateArray_t state_updates;
-
 
     StatePublisherPublishCb cb;
     void* cb_context;
