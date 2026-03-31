@@ -21,59 +21,200 @@ static void cli_command_log_tx_callback(const uint8_t* buffer, size_t size, void
     pipe_send(pipe, buffer, size);
 }
 
-static bool cli_command_log_level_set_from_string(FuriString* level) {
-    FuriLogLevel log_level;
-    if(furi_log_level_from_string(furi_string_get_cstr(level), &log_level)) {
-        furi_log_set_level(log_level);
-        return true;
+static void cli_command_log_usage(void) {
+    printf("\r\n");
+    printf(ANSI_FG_GREEN "Usage:\r\n");
+    printf(ANSI_FG_YELLOW "  log " ANSI_RESET
+                          "- start logging according to current system settings\r\n");
+    printf(ANSI_FG_YELLOW "  log " ANSI_FG_BR_WHITE "<level> " ANSI_RESET
+                          "- log messages of <level> or below for all tags\r\n");
+    printf(ANSI_FG_YELLOW "  log " ANSI_FG_BR_WHITE "<level> " ANSI_FG_YELLOW
+                          "only " ANSI_FG_BR_WHITE "<tag1>,<tag2>,... " ANSI_RESET
+                          "- log messages of <level> or below for comma-separated <tag>s\r\n");
+    printf(ANSI_FG_YELLOW
+           "  log " ANSI_FG_BR_WHITE "<level> " ANSI_FG_YELLOW "except " ANSI_FG_BR_WHITE
+           "<tag1>,<tag2>,... " ANSI_RESET
+           "- log messages of <level> or below for all tags except comma-separated <tag>s\r\n");
+    printf(ANSI_FG_YELLOW
+           "  log " ANSI_FG_BR_WHITE "<level1> " ANSI_FG_YELLOW "but " ANSI_FG_BR_WHITE
+           "<level2> <tag1>,<tag2>,... " ANSI_RESET
+           "- apply <level2> to specified tags, but <level1> to all other tags\r\n");
+    printf(
+        ANSI_FG_YELLOW
+        "  log configure " ANSI_FG_BR_WHITE "<selector> " ANSI_RESET
+        "- only configure the specified <selector> according to above rules, but don't log anything here\r\n");
+    printf(ANSI_FG_BR_WHITE "  <level>: " ANSI_FG_YELLOW "error, warn, info, debug, trace\r\n");
+    printf("\r\n");
+    printf(ANSI_FG_GREEN "Examples:\r\n");
+    printf(ANSI_FG_YELLOW
+           "  log " ANSI_FG_BR_WHITE "debug " ANSI_RESET
+           "- only messages with level 'error', 'warn', 'info' or 'debug'; but not 'trace'\r\n");
+    printf(ANSI_FG_YELLOW "  log " ANSI_FG_BR_WHITE "debug " ANSI_FG_YELLOW
+                          "only " ANSI_FG_BR_WHITE "Audio " ANSI_RESET
+                          "- only messages from Audio, with level 'error'..'debug'\r\n");
+    printf(ANSI_FG_YELLOW "  log " ANSI_FG_BR_WHITE "trace " ANSI_FG_YELLOW
+                          "except " ANSI_FG_BR_WHITE "LightSensor,LightSensorData " ANSI_RESET
+                          "- all messages except ones coming from the LightSensor service\r\n");
+    printf(ANSI_FG_YELLOW
+           "  log " ANSI_FG_BR_WHITE "info " ANSI_FG_YELLOW "but " ANSI_FG_BR_WHITE
+           "trace Desktop " ANSI_RESET
+           "- all messages coming from Desktop, and 'error'..'info' for all other tags\r\n");
+    printf(ANSI_FG_YELLOW "  log " ANSI_FG_YELLOW "configure " ANSI_FG_BR_WHITE "trace " ANSI_RESET
+                          "- all messages with all tags on the UART interface\r\n");
+    printf(ANSI_RESET);
+}
+
+typedef enum {
+    LogArgparseStatusNormal,
+    LogArgparseStatusConfigureOnly,
+    LogArgparseStatusError,
+    LogArgparseStatusMAX,
+} LogArgparseStatus;
+
+static bool cli_command_log_parse_level(FuriString* specifier, FuriLogLevel* level) {
+    bool success = false;
+    FuriString* temp = furi_string_alloc();
+
+    do {
+        furi_string_set(temp, specifier);
+
+        size_t space = furi_string_search_char(temp, ' ');
+        if(space == FURI_STRING_FAILURE) {
+            furi_string_reset(specifier);
+        } else {
+            furi_string_left(temp, space);
+            furi_string_right(specifier, space + 1);
+        }
+
+        if(!furi_log_level_from_string(furi_string_get_cstr(temp), level)) {
+            printf(ANSI_FG_RED "\"%s\" is not a valid log level\r\n", furi_string_get_cstr(temp));
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    furi_string_free(temp);
+    return success;
+}
+
+static bool cli_command_log_apply_specifier(FuriString* specifier) {
+    if(furi_string_empty(specifier)) return true;
+
+    bool success = false;
+
+    do {
+        FuriLogLevel main_level;
+        if(!cli_command_log_parse_level(specifier, &main_level)) break;
+        furi_log_set_level(main_level);
+
+        bool parse_tag_list = false;
+        FuriLogLevel exception_level = FuriLogLevelNone;
+        FuriLogExceptionMode exception_mode = FuriLogExceptionModeInclude;
+
+        if(furi_string_consume_left(specifier, "but ")) {
+            if(!cli_command_log_parse_level(specifier, &exception_level)) break;
+            parse_tag_list = true;
+
+        } else if(furi_string_consume_left(specifier, "only ")) {
+            exception_mode = FuriLogExceptionModeExclude;
+            parse_tag_list = true;
+
+        } else if(furi_string_consume_left(specifier, "except ")) {
+            parse_tag_list = true;
+        }
+
+        if(parse_tag_list) {
+            if(furi_string_search_char(specifier, ' ') != FURI_STRING_FAILURE) {
+                printf(
+                    ANSI_FG_RED "unrecognized extra arguments besides tag list: \"%s\"\r\n",
+                    furi_string_get_cstr(specifier));
+                break;
+            }
+            if(furi_string_end_with_str(specifier, ",")) {
+                printf(
+                    ANSI_FG_RED "tag list has trailing comma: \"%s\"\r\n",
+                    furi_string_get_cstr(specifier));
+                break;
+            }
+
+            furi_log_begin_level_exceptions(exception_level, exception_mode);
+
+            FuriString* tag = furi_string_alloc();
+
+            while(!furi_string_empty(specifier)) {
+                size_t comma = furi_string_search_char(specifier, ',');
+                furi_string_set_n(tag, specifier, 0, comma);
+                furi_string_right(specifier, (comma == FURI_STRING_FAILURE) ? comma : (comma + 1));
+                furi_log_add_level_exception(furi_string_get_cstr(tag));
+            }
+            furi_string_free(tag);
+
+        } else if(!furi_string_empty(specifier)) {
+            printf(
+                ANSI_FG_RED "unrecognized extra arguments: \"%s\"\r\n",
+                furi_string_get_cstr(specifier));
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static LogArgparseStatus cli_command_parse_args(FuriString* args) {
+    if(furi_string_consume_left(args, "configure ")) {
+        return cli_command_log_apply_specifier(args) ? LogArgparseStatusConfigureOnly :
+                                                       LogArgparseStatusError;
     } else {
-        printf("<log> — start logging using the current level from the system settings\r\n");
-        printf("<log error> — only critical errors and other important messages\r\n");
-        printf("<log warn> — non-critical errors and warnings including <log error>\r\n");
-        printf("<log info> — non-critical information including <log warn>\r\n");
-        printf("<log default> — the default system log level (equivalent to <log info>)\r\n");
-        printf(
-            "<log debug> — debug information including <log info> (may impact system performance)\r\n");
-        printf(
-            "<log trace> — system traces including <log debug> (may impact system performance)\r\n");
+        return cli_command_log_apply_specifier(args) ? LogArgparseStatusNormal :
+                                                       LogArgparseStatusError;
     }
-    return false;
 }
 
 void cli_command_log(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     FuriLogLevel previous_level = furi_log_get_level();
-    bool restore_log_level = false;
 
-    if(furi_string_size(args) > 0) {
-        if(!cli_command_log_level_set_from_string(args)) {
-            return;
-        }
+    bool restore_log_level = false;
+    bool print_logs_here = false;
+
+    LogArgparseStatus status = cli_command_parse_args(args);
+
+    if(status == LogArgparseStatusError) {
+        cli_command_log_usage();
+        restore_log_level = true;
+
+    } else if(status == LogArgparseStatusConfigureOnly) {
+        printf("Log filter configured. Watch output on UART interface.\r\n");
+        return;
+
+    } else if(status == LogArgparseStatusNormal) {
+        print_logs_here = true;
         restore_log_level = true;
     }
 
-    const char* current_level;
-    furi_log_level_to_string(furi_log_get_level(), &current_level);
-    printf("Current log level: %s\r\n", current_level);
+    if(print_logs_here) {
+        FuriLogHandler log_handler = {
+            .callback = cli_command_log_tx_callback,
+            .context = pipe,
+        };
 
-    FuriLogHandler log_handler = {
-        .callback = cli_command_log_tx_callback,
-        .context = pipe,
-    };
+        furi_log_add_handler(log_handler);
 
-    furi_log_add_handler(log_handler);
+        printf("Press CTRL+C to stop...\r\n");
+        while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
+            furi_delay_ms(100);
+        }
 
-    printf("Use <log ?> to list available log levels\r\n");
-    printf("Press CTRL+C to stop...\r\n");
-    while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
-        furi_delay_ms(100);
+        furi_log_remove_handler(log_handler);
     }
-
-    furi_log_remove_handler(log_handler);
 
     if(restore_log_level) {
         // There will be strange behaviour if log level is set from settings while log command is running
         furi_log_set_level(previous_level);
+        furi_log_begin_level_exceptions(FuriLogLevelNone, FuriLogExceptionModeInclude);
     }
 }
 
