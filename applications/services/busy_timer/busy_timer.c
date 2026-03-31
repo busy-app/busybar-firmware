@@ -23,7 +23,7 @@
 #define TIMER_SNAPSHOT_MQTT_QOS MqttQosAtLeastOnce
 #define TIMER_PROFILE_MQTT_QOS  MqttQosAtLeastOnce
 
-#define TIMER_MATTER_PROFILE_ID (BusyTimerProfileIdBusy)
+#define TIMER_SMART_HOME_PROFILE_ID (BusyTimerProfileIdBusy)
 
 typedef void (*const BusyTimerApiMessageHandler)(
     BusyTimer* instance,
@@ -886,13 +886,12 @@ static void busy_timer_skip_internal(BusyTimer* instance) {
     }
 }
 
-static void
-    busy_timer_start_app_with_profile_id(BusyTimer* instance, BusyTimerProfileId profile_id) {
+static void busy_timer_start_app_with_smart_home(BusyTimer* instance) {
     if(instance->state == BusyTimerStateIdle) {
-        busy_timer_apply_profile_settings(instance, profile_id);
+        busy_timer_apply_profile_settings(instance, TIMER_SMART_HOME_PROFILE_ID);
     }
 
-    BusyTimerSettings* settings = &instance->settings[profile_id];
+    BusyTimerSettings* settings = &instance->settings[TIMER_SMART_HOME_PROFILE_ID];
     BusyAppConfig* app_config = &settings->profile.app_config;
 
     app_config->is_smart_home_enabled = true;
@@ -1115,12 +1114,12 @@ static void busy_timer_handle_matter_api_message_handler(
 
     if(switch_state == MatterSwitchStateOn) {
         if(instance->state == BusyTimerStateIdle) {
-            busy_timer_start_app_with_profile_id(instance, TIMER_MATTER_PROFILE_ID);
+            busy_timer_start_app_with_smart_home(instance);
 
         } else if(instance->state == BusyTimerStateWork) {
             if(!busy_timer_is_running(instance)) {
                 if(instance->time_elapsed_s == 0) {
-                    busy_timer_start_app_with_profile_id(instance, TIMER_MATTER_PROFILE_ID);
+                    busy_timer_start_app_with_smart_home(instance);
                 } else {
                     busy_timer_toggle_internal(instance);
                 }
@@ -1129,7 +1128,7 @@ static void busy_timer_handle_matter_api_message_handler(
         } else if(instance->state == BusyTimerStateRest) {
             if(!busy_timer_is_running(instance)) {
                 if(instance->time_elapsed_s == 0) {
-                    busy_timer_start_app_with_profile_id(instance, TIMER_MATTER_PROFILE_ID);
+                    busy_timer_start_app_with_smart_home(instance);
 
                     switch_state = MatterSwitchStateOff;
                     matter_set_switch_state(instance->matter, switch_state);
