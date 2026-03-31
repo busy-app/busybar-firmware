@@ -5,3 +5,10 @@ App(
     stack_size=512,
     order=30,
 )
+
+App(
+    appid="netstat_cli",
+    name="netstat",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="netstat_cli_command_entry",
+)

@@ -5,6 +5,7 @@ App(
     provides=[
         "cli_commands_common",
         "cli_commands_target_specific",
+        "netstat_cli",
     ],
 )
 
