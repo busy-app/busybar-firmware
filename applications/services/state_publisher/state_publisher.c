@@ -204,7 +204,7 @@ static bool is_sequential_update(const BSB_State_StateUpdate* update) {
     }
 }
 
-static uint32_t send_out_for_transport(Transport* t) {
+static uint32_t send_out_for_transport(Transport* t, bool heartbeat) {
     time_t now = time_get_timestamp_ms();
     bool send = false;
     if(now - t->last_tick_ms > t->rate_limit.period_ms) {
@@ -231,11 +231,9 @@ static uint32_t send_out_for_transport(Transport* t) {
 
         size_t count = StateUpdateArray_size(updates);
 
-        if(count > 0) {
-            t->updates_since_last_tick += 1;
-
+        if(count > 0 || heartbeat) {
             // shallow copy
-            BSB_State_StateUpdate* raw_updates = malloc(sizeof(BSB_State_StateUpdate) * count);
+            BSB_State_StateUpdate* raw_updates = count ? malloc(sizeof(BSB_State_StateUpdate) * count) : NULL;
             for(size_t i = 0; i != count; ++i) {
                 SharedStateUpdate_t *shared = StateUpdateArray_get(updates, i);
                 memcpy(raw_updates + i, SharedStateUpdate_cref(*shared), sizeof(BSB_State_StateUpdate));
@@ -263,11 +261,11 @@ static uint32_t send_out_for_transport(Transport* t) {
             }
 
             free(raw_updates);
-            StateUpdateArray_clear(updates);
             SharedByteArray_clear(data);
-        } else {
-            StateUpdateArray_clear(updates);
+
+            t->updates_since_last_tick += 1;
         }
+        StateUpdateArray_clear(updates);
     } else {
         // rate limited
         FURI_LOG_D(TAG, "rate limited %p %lu", t, t->updates_since_last_tick);
@@ -276,13 +274,13 @@ static uint32_t send_out_for_transport(Transport* t) {
     return sleep_time_ms;
 }
 
-static uint32_t send_out(StatePublisher* instance) {
+static uint32_t send_out(StatePublisher* instance, StreamFlag flags, bool heartbeat) {
     uint32_t min_sleep_time_ms = UINT32_MAX;
     furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
     for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
         Transport* t = instance->transports + i;
-        if(t->valid) {
-            uint32_t sleep_time_ms = send_out_for_transport(t);
+        if(t->valid && (t->flags & flags)) {
+            uint32_t sleep_time_ms = send_out_for_transport(t, heartbeat);
             min_sleep_time_ms = MIN(min_sleep_time_ms, sleep_time_ms);
         }
     }
@@ -294,6 +292,7 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     furi_assert(message->type == MessageTypePublishUpdate);
     BSB_State_StateUpdate* update = message->update.data;
     StreamFlag flags = message->update.stream_flags;
+    bool heartbeat = false;
     if(update) {
         SharedStateUpdate_t shared_update;
         SharedStateUpdate_init2(shared_update, update);
@@ -322,10 +321,10 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
         }
         SharedStateUpdate_clear(shared_update);
     } else {
-        // TODO heartbeat
+        heartbeat = true;
     }
 
-    uint32_t sleep_time_ms = send_out(instance);
+    uint32_t sleep_time_ms = send_out(instance, flags, heartbeat);
 
     furi_event_loop_timer_start(instance->rate_limiter_timer, furi_ms_to_ticks(sleep_time_ms));
 
@@ -334,7 +333,7 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
 
 static void rate_limiter_timer_callback(void* context) {
     StatePublisher* instance = context;
-    uint32_t sleep_time_ms = send_out(instance);
+    uint32_t sleep_time_ms = send_out(instance, StreamFlagAll, false);
 
     furi_event_loop_timer_start(instance->rate_limiter_timer, furi_ms_to_ticks(sleep_time_ms));
 }
