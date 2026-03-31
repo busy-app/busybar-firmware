@@ -355,6 +355,7 @@ static Desktop* desktop_alloc(void) {
         furi_message_queue_alloc(INPUT_QUEUE_COUNT, sizeof(InputSwitchPosition));
     instance->start_queue =
         furi_message_queue_alloc(START_QUEUE_COUNT, sizeof(DesktopStartRequest*));
+    instance->switch_pos = InputSwitchPositionMAX;
     instance->switch_timer = furi_event_loop_timer_alloc(
         instance->event_loop, desktop_switch_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->start_timer = furi_event_loop_timer_alloc(
