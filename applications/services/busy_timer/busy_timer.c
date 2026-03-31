@@ -771,18 +771,10 @@ static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, 
     }
 }
 
-static void busy_timer_self_pubsub_callback(const void* message, void* context) {
-    furi_assert(message);
-    furi_assert(context);
-
-    BusyTimer* instance = context;
-
-    // TODO: Respect the "Trigger smart home" setting
-
-    const BusyTimerEvent* event = message;
+static void busy_timer_operate_smart_home(BusyTimer* instance, const BusyTimerEvent* event) {
     const BusyTimerEventType event_type = event->type;
 
-    MatterSwitchState switch_state;
+    MatterSwitchState switch_state = MatterSwitchStateMax;
 
     if(event_type == BusyTimerEventTypeStateChanged) {
         const BusyTimerState timer_state = event->state_changed.state;
@@ -794,15 +786,23 @@ static void busy_timer_self_pubsub_callback(const void* message, void* context) 
 
     } else if(event_type == BusyTimerEventTypeIntervalEnded) {
         switch_state = MatterSwitchStateOff;
-
-    } else {
-        // Ignore other event types
-        return;
     }
 
-    if(instance->matter_switch_state != switch_state) {
+    if((switch_state != MatterSwitchStateMax) && (switch_state != instance->matter_switch_state)) {
         instance->matter_switch_state = switch_state;
         matter_set_switch_state(instance->matter, switch_state);
+    }
+}
+
+static void busy_timer_self_pubsub_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    BusyTimer* instance = context;
+    const BusyTimerEvent* event = message;
+
+    if(instance->app_config.is_smart_home_enabled) {
+        busy_timer_operate_smart_home(instance, event);
     }
 }
 
