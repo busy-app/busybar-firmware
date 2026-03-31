@@ -143,6 +143,8 @@ static bool netstat_cli_print_memp_stats(void) {
     printf(
         "%-20s %6s %6s %9s %6s %6s\r\n", "Pool", "Used", "Total", "Watermark", "Errors", "%Util");
 
+    LOCK_TCPIP_CORE();
+
     for(size_t i = 0; i < COUNT_OF(memp_pools); i++) {
         const struct memp_desc* pool_desc = memp_pools[i];
         struct stats_mem* pool_stats = lwip_stats.memp[i];
@@ -160,6 +162,8 @@ static bool netstat_cli_print_memp_stats(void) {
             pool_stats->err,
             percent_used);
     }
+
+    UNLOCK_TCPIP_CORE();
 
     return true;
 #else /* LWIP_STATS && MEMP_STATS && LWIP_STATS_DISPLAY */
