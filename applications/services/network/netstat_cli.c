@@ -43,6 +43,7 @@ static u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
     return bytes_count;
 }
 
+static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb, FuriString* buffer) {
     FuriString* remote_ip_string = furi_string_alloc();
     FuriString* local_ip_string = furi_string_alloc();
 
@@ -92,6 +93,8 @@ static u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
 
     netstat_cli_format_ip_port(&pcb->local_ip, pcb->local_port, local_ip_string);
 
+    furi_string_cat_printf(
+        buffer,
         "TCP    %-6" U32_F " %-6" U32_F " %-22s %-22s %s\r\n",
         receive_queue_size,
         send_queue_size,
@@ -103,13 +106,15 @@ static u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
     furi_string_free(remote_ip_string);
 }
 
-static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb) {
+static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb, FuriString* buffer) {
     FuriString* remote_ip_string = furi_string_alloc();
     FuriString* local_ip_string = furi_string_alloc();
 
     netstat_cli_format_ip_port(&pcb->remote_ip, pcb->remote_port, remote_ip_string);
     netstat_cli_format_ip_port(&pcb->local_ip, pcb->local_port, local_ip_string);
 
+    furi_string_cat_printf(
+        buffer,
         "UDP    %-6" U32_F " %-6" U32_F " %-22s %-22s\r\n",
         (u32_t)0,
         (u32_t)0,
@@ -130,22 +135,27 @@ static bool netstat_cli_print_pcb_table(void) {
         "Foreign Address",
         "State");
 
+    FuriString* output_buffer = furi_string_alloc();
+
     LOCK_TCPIP_CORE();
 
     /* TCP PCBs */
     for(size_t i = 0; i < COUNT_OF(tcp_pcb_lists); i++) {
         for(struct tcp_pcb* pcb = *tcp_pcb_lists[i]; pcb; pcb = pcb->next) {
-            netstat_cli_print_tcp_pcb_entry(pcb);
+            netstat_cli_print_tcp_pcb_entry(pcb, output_buffer);
         }
     }
 
     /* UDP PCBs */
     for(struct udp_pcb* pcb = udp_pcbs; pcb; pcb = pcb->next) {
-        netstat_cli_print_udp_pcb_entry(pcb);
+        netstat_cli_print_udp_pcb_entry(pcb, output_buffer);
     }
 
     UNLOCK_TCPIP_CORE();
 
+    printf(furi_string_get_cstr(output_buffer));
+
+    furi_string_free(output_buffer);
     return true;
 }
 
@@ -153,6 +163,8 @@ static bool netstat_cli_print_memp_stats(void) {
 #if LWIP_STATS && MEMP_STATS && LWIP_STATS_DISPLAY
     printf(
         "%-20s %6s %6s %9s %6s %6s\r\n", "Pool", "Used", "Total", "Watermark", "Errors", "%Util");
+
+    FuriString* output_buffer = furi_string_alloc();
 
     LOCK_TCPIP_CORE();
 
@@ -163,7 +175,8 @@ static bool netstat_cli_print_memp_stats(void) {
         u32_t percent_used =
             (pool_stats->avail > 0) ? ((pool_stats->used * 100) / pool_stats->avail) : 0;
 
-        printf(
+        furi_string_cat_printf(
+            output_buffer,
             "%-20s %6" MEM_SIZE_F " %6" MEM_SIZE_F " %9" MEM_SIZE_F " %6" STAT_COUNTER_F
             " %6" PRIu32 "\r\n",
             pool_desc->desc,
@@ -176,6 +189,9 @@ static bool netstat_cli_print_memp_stats(void) {
 
     UNLOCK_TCPIP_CORE();
 
+    printf(furi_string_get_cstr(output_buffer));
+
+    furi_string_free(output_buffer);
     return true;
 #else /* LWIP_STATS && MEMP_STATS && LWIP_STATS_DISPLAY */
     printf("Statistics not enabled in lwIP configuration.\r\n");
