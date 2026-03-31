@@ -175,14 +175,14 @@ int32_t wifi_settings_entry(void* arg) {
         furi_string_set_str(descriptor->front_title, "Wi-Fi");
         furi_string_set_str(descriptor->back_title, "Wi-Fi");
         if(wifi_state == WifiModelStateDisconnected) {
-            furi_string_set_str(descriptor->front_icon, IMG_PATH("wifi_front_error_8x8.bin"));
-            furi_string_set_str(descriptor->back_icon, IMG_PATH("wifi_back_error_11x11.bin"));
+            furi_string_set_str(descriptor->front_icon, IMG_PATH("wifi_front_error_8x8.image"));
+            furi_string_set_str(descriptor->back_icon, IMG_PATH("wifi_back_error_11x11.image"));
         } else if(wifi_state == WifiModelStateConnected) {
-            furi_string_set_str(descriptor->front_icon, IMG_PATH("wifi_front_ok_8x8.bin"));
-            furi_string_set_str(descriptor->back_icon, IMG_PATH("wifi_back_ok_11x11.bin"));
+            furi_string_set_str(descriptor->front_icon, IMG_PATH("wifi_front_ok_8x8.image"));
+            furi_string_set_str(descriptor->back_icon, IMG_PATH("wifi_back_ok_11x11.image"));
         } else {
-            furi_string_set_str(descriptor->front_icon, IMG_PATH("wifi_front_gray_8x8.bin"));
-            furi_string_set_str(descriptor->back_icon, IMG_PATH("wifi_back_11x11.bin"));
+            furi_string_set_str(descriptor->front_icon, IMG_PATH("wifi_front_gray_8x8.image"));
+            furi_string_set_str(descriptor->back_icon, IMG_PATH("wifi_back_11x11.image"));
         }
 
         wifi_model_free(wifi_model);

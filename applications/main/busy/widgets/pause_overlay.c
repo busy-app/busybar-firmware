@@ -52,7 +52,7 @@ static void pause_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     lv_obj_align(instance->layout, LV_ALIGN_CENTER, 0, TEXT_OFFSET_END);
 
     instance->pause_img = lv_image_create(instance->layout);
-    lv_image_set_src(instance->pause_img, BUSY_IMG_PATH("pause_5x5.bin"));
+    lv_image_set_src(instance->pause_img, BUSY_IMG_PATH("pause_5x5.image"));
 
     lv_obj_t* label = lv_label_create(instance->layout);
     lv_label_set_text(label, "PAUSED");

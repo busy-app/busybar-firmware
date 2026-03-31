@@ -17,8 +17,8 @@ static void matter_scene_commission_start_on_enter(void* context) {
     };
 
     static const char* const images[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("spinner_front_7x7.bin"),
-        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("spinner_back_16x16.bin"),
+        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("spinner_front_7x7.image"),
+        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("spinner_back_16x16.image"),
     };
 
     with_gui(app->gui, {

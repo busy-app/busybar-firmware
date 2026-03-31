@@ -248,11 +248,11 @@ int32_t account_settings_entry(void* arg) {
         furi_string_set_str(descriptor->front_title, "Account");
         furi_string_set_str(descriptor->back_title, "Account");
         if(is_linked) {
-            furi_string_set_str(descriptor->front_icon, IMG_PATH("account_front_ok_8x8.bin"));
-            furi_string_set_str(descriptor->back_icon, IMG_PATH("account_back_11x11.bin"));
+            furi_string_set_str(descriptor->front_icon, IMG_PATH("account_front_ok_8x8.image"));
+            furi_string_set_str(descriptor->back_icon, IMG_PATH("account_back_11x11.image"));
         } else {
-            furi_string_set_str(descriptor->front_icon, IMG_PATH("account_front_gray_8x8.bin"));
-            furi_string_set_str(descriptor->back_icon, IMG_PATH("account_back_11x11.bin"));
+            furi_string_set_str(descriptor->front_icon, IMG_PATH("account_front_gray_8x8.image"));
+            furi_string_set_str(descriptor->back_icon, IMG_PATH("account_back_11x11.image"));
         }
 
         account_model_free(model);

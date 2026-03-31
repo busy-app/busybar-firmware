@@ -51,11 +51,11 @@ static void account_scene_error_on_enter(void* context) {
         gui_layer_add_input_callback(layer, account_scene_error_input_callback, instance);
 
         data->front_status = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(data->front_status, SETTINGS_IMG_PATH("error_front_7x7.bin"));
+        status_view_set_icon(data->front_status, SETTINGS_IMG_PATH("error_front_7x7.image"));
         status_view_set_header(data->front_status, "Cannot connect");
 
         data->back_status = status_view_alloc(instance->back_scene_window);
-        status_view_set_icon(data->back_status, SETTINGS_IMG_PATH("error_back_10x10.bin"));
+        status_view_set_icon(data->back_status, SETTINGS_IMG_PATH("error_back_10x10.image"));
         status_view_set_header(data->back_status, "Cannot connect");
     });
 }

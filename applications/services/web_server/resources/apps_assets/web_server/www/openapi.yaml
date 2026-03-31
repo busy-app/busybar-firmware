@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 13.1.0
+  version: 15.0.0
   contact:
     name: tbd
 
@@ -364,7 +364,7 @@ paths:
       description: Uploads a file to a specific app's assets directory
       operationId: uploadAssetWithAppId
       parameters:
-        - name: app_id
+        - name: application_name
           in: query
           required: true
           schema:
@@ -415,7 +415,7 @@ paths:
       description: Deletes all assets for a specific app ID
       operationId: deleteAppAssets
       parameters:
-        - name: app_id
+        - name: application_name
           in: query
           required: true
           schema:
@@ -710,10 +710,10 @@ paths:
       tags:
         - Assets
       summary: Clear display
-      description: Deletes display elements drawn by the Canvas application. If app_id is specified, only elements for that app are removed.
+      description: Deletes display elements drawn by the Canvas application. If application_name is specified, only elements for that app are removed.
       operationId: clearDisplay
       parameters:
-        - name: app_id
+        - name: application_name
           in: query
           required: false
           schema:
@@ -782,7 +782,7 @@ paths:
         Supported formats include .snd files.
       operationId: playAudio
       parameters:
-        - name: app_id
+        - name: application_name
           in: query
           required: true
           schema:
@@ -1973,7 +1973,7 @@ components:
     DisplayElements:
       type: object
       properties:
-        app_id:
+        application_name:
           type: string
           pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID for organizing assets
@@ -1986,7 +1986,7 @@ components:
             Draw priority in the range [1, 100] inclusive. A draw request is
             accepted when its priority is greater than or equal to (>=) the
             priority of the currently running system app. Equal-priority requests
-            from a different app_id override whatever is on screen.
+            from a different application_name override whatever is on screen.
             System app priority levels: stub/poweroff apps = 0 (always
             preemptable), any standard built-in app = 10, active BUSY/CUSTOM
             work session = 90. The draw API only accepts values 1–100; 0 is
@@ -1999,14 +1999,14 @@ components:
             oneOf:
               - $ref: "#/components/schemas/TextElement"
               - $ref: "#/components/schemas/ImageElement"
-              - $ref: "#/components/schemas/AnimElement"
+              - $ref: "#/components/schemas/AnimationElement"
               - $ref: "#/components/schemas/CountdownElement"
           description: Array of elements to display
       required:
-        - app_id
+        - application_name
         - elements
       example:
-        app_id: "my_app"
+        application_name: "my_app"
         elements:
           - id: "0"
             timeout: 10
@@ -2056,7 +2056,7 @@ components:
           description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image, anim, countdown]
+          enum: [text, image, animation, countdown]
           description: Type of display element
         x:
           type: integer
@@ -2089,7 +2089,7 @@ components:
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
-          anim: "#/components/schemas/AnimElement"
+          animation: "#/components/schemas/AnimationElement"
           countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
@@ -2138,14 +2138,14 @@ components:
                   pattern: "^[a-zA-Z0-9._/-]+$"
                   description: Path to the image file in the app's assets
             - required:
-                - builtin_image
+                - stock_path
               properties:
-                builtin_image:
+                stock_path:
                   type: string
-                  pattern: "^[a-z_]+/[a-z0-9_]+$"
-                  description: Identifier of builtin image
+                  pattern: "shared/[a-z0-9_]+$"
+                  description: Stock image file name
 
-    AnimElement:
+    AnimationElement:
       allOf:
         - $ref: "#/components/schemas/DisplayElement"
         - type: object
@@ -2157,10 +2157,10 @@ components:
                       pattern: "^[a-zA-Z0-9._/-]+$"
                       description: Path to the animation file in the app's assets
                 - properties:
-                    builtin_anim:
+                    stock_path:
                       type: string
-                      pattern: "^[a-z_]+/[a-z0-9_]+$"
-                      description: Identifier of builtin animation
+                      pattern: "shared/[a-z0-9_]+$"
+                      description: Stock animation file name
             - properties:
                 loop:
                   type: boolean
@@ -2818,7 +2818,7 @@ components:
       properties:
         state:
           type: boolean
-          description: 'State of emulated switch.'
+          description: "State of emulated switch."
           example: false
         startup:
           type: string
@@ -2827,7 +2827,7 @@ components:
             - "on"
             - toggle
             - last
-          description: 'State of emulated switch on startup. Never sent by the server, but can be specified by the client.'
+          description: "State of emulated switch on startup. Never sent by the server, but can be specified by the client."
 
 tags:
   - name: System
