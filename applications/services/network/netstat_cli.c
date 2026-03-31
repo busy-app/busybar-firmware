@@ -13,11 +13,13 @@
 typedef struct {
     bool continuous;
     bool help;
+    bool stats;
 } NetstatCliArguments;
 
 static const NetstatCliArguments netstat_cli_default_arguments = {
     .continuous = false,
     .help = false,
+    .stats = false,
 };
 
 static inline u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
@@ -82,7 +84,7 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
     ipaddr_ntoa_r(&pcb->local_ip, local_ip_string, sizeof(local_ip_string));
 
     printf(
-        "TCP    %-6" PRIu32 " %-6" PRIu32 " %-21s %-21s %s\r\n",
+        "TCP    %-6" U32_F " %-6" U32_F " %-21s %-21s %s\r\n",
         receive_queue_size,
         send_queue_size,
         local_ip_string,
@@ -100,15 +102,22 @@ static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb) {
             "*:*";
 
     printf(
-        "UDP    %-6" PRIu32 " %-6" PRIu32 " %-21s %-21s\r\n",
+        "UDP    %-6" U32_F " %-6" U32_F " %-21s %-21s\r\n",
         (u32_t)0,
         (u32_t)0,
         local_ip_string,
         remote_ip_string);
 }
 
-static void netstat_cli_print_pcb_table(void) {
-    printf("Proto  Recv-Q Send-Q Local Address         Foreign Address       State\r\n");
+static bool netstat_cli_print_pcb_table(void) {
+    printf(
+        "%-6s %-6s %-6s %-21s %-21s %s\r\n",
+        "Proto",
+        "Recv-Q",
+        "Send-Q",
+        "Local Address",
+        "Foreign Address",
+        "State");
 
     LOCK_TCPIP_CORE();
 
@@ -125,6 +134,38 @@ static void netstat_cli_print_pcb_table(void) {
     }
 
     UNLOCK_TCPIP_CORE();
+
+    return true;
+}
+
+static bool netstat_cli_print_memp_stats(void) {
+#if LWIP_STATS && MEMP_STATS && LWIP_STATS_DISPLAY
+    printf(
+        "%-20s %6s %6s %9s %6s %6s\r\n", "Pool", "Used", "Total", "Watermark", "Errors", "%Util");
+
+    for(size_t i = 0; i < COUNT_OF(memp_pools); i++) {
+        const struct memp_desc* pool_desc = memp_pools[i];
+        struct stats_mem* pool_stats = lwip_stats.memp[i];
+
+        u32_t percent_used =
+            (pool_stats->avail > 0) ? ((pool_stats->used * 100) / pool_stats->avail) : 0;
+
+        printf(
+            "%-20s %6" MEM_SIZE_F " %6" MEM_SIZE_F " %9" MEM_SIZE_F " %6" STAT_COUNTER_F
+            " %6" PRIu32 "\r\n",
+            pool_desc->desc,
+            pool_stats->used,
+            pool_stats->avail,
+            pool_stats->max,
+            pool_stats->err,
+            percent_used);
+    }
+
+    return true;
+#else /* LWIP_STATS && MEMP_STATS && LWIP_STATS_DISPLAY */
+    printf("Statistics not enabled in lwIP configuration.\r\n");
+    return false;
+#endif /* LWIP_STATS && MEMP_STATS && LWIP_STATS_DISPLAY */
 }
 
 static void netstat_cli_print_command_usage(void) {
@@ -132,6 +173,7 @@ static void netstat_cli_print_command_usage(void) {
     printf("Print network stack state.\r\n");
     printf("Options:\r\n");
     printf("  -c, --continuous    Continuous output mode (refresh every 1s)\r\n");
+    printf("  -s, --stats         Show lwIP buffer statistics\r\n");
     printf("  -h, --help          Show this help message\r\n");
 }
 
@@ -142,6 +184,8 @@ static void netstat_cli_parse_arguments(FuriString* args_string, NetstatCliArgum
     while(args_read_string_and_trim(args_string, arg)) {
         if(furi_string_equal_str(arg, "-c") || furi_string_equal_str(arg, "--continuous")) {
             args->continuous = true;
+        } else if(furi_string_equal_str(arg, "-s") || furi_string_equal_str(arg, "--stats")) {
+            args->stats = true;
         } else if(furi_string_equal_str(arg, "-h") || furi_string_equal_str(arg, "--help")) {
             args->help = true;
         } else {
@@ -165,20 +209,28 @@ void netstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* co
         return;
     }
 
+    bool (*print_callback)(void);
+
+    if(args.stats) {
+        print_callback = netstat_cli_print_memp_stats;
+    } else {
+        print_callback = netstat_cli_print_pcb_table;
+    }
+
     if(args.continuous) {
         while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
             printf(ANSI_CURSOR_POS("1", "1"));
             printf(ANSI_ERASE_DISPLAY(ANSI_ERASE_FROM_CURSOR_TO_END));
 
-            netstat_cli_print_pcb_table();
+            bool did_print_fail = !print_callback();
 
             fflush(stdout);
 
+            if(did_print_fail) break;
+
             furi_delay_ms(CONTINUOUS_REFRESH_DELAY_MS);
         }
-
-        return;
+    } else {
+        print_callback();
     }
-
-    netstat_cli_print_pcb_table();
 }
