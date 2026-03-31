@@ -43,13 +43,13 @@ static inline const char* netstat_cli_get_connection_state_string(enum tcp_state
 }
 
 static void netstat_cli_format_ip_port(const ip_addr_t* ip, u16_t port, FuriString* buffer) {
-    const char* _ip =
+    const char* ip_string =
         ip_addr_isany(ip) ? "*" : ipaddr_ntoa_r(ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX);
 
     if(port == 0) {
-        furi_string_printf(buffer, "%s:*", _ip);
+        furi_string_printf(buffer, "%s:*", ip_string);
     } else {
-        furi_string_printf(buffer, "%s:%" U16_F, _ip, port);
+        furi_string_printf(buffer, "%s:%" U16_F, ip_string, port);
     }
 }
 
