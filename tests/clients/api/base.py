@@ -54,7 +54,7 @@ class BaseAPI:
         endpoint: str,
         response_model: Type[T] = None,
         step_name: str = None,
-        timeout: int = 10,
+        timeout: int = 5,
         **kwargs,
     ) -> T | dict | requests.Response:
         """
@@ -65,7 +65,7 @@ class BaseAPI:
             endpoint: API endpoint (e.g., "/api/version")
             response_model: Optional Pydantic model for response validation
             step_name: Custom step name for Allure report
-            timeout: Request timeout in seconds
+            timeout: Request timeout in seconds (default: 5)
             **kwargs: Additional arguments passed to requests
 
         Returns:
@@ -155,6 +155,7 @@ class BaseAPI:
         Use this method when testing error responses (400, 404, etc.)
         that shouldn't be validated against a model.
         """
+        kwargs.setdefault("timeout", 5)
         url = f"{self.base_url}{endpoint}"
         with allure.step(f"GET {endpoint} (raw)"):
             self._attach_request("GET", url, **kwargs)
@@ -164,6 +165,7 @@ class BaseAPI:
 
     def post_raw(self, endpoint: str, **kwargs) -> requests.Response:
         """Make POST request and return raw Response (for error testing)."""
+        kwargs.setdefault("timeout", 5)
         url = f"{self.base_url}{endpoint}"
         with allure.step(f"POST {endpoint} (raw)"):
             self._attach_request("POST", url, **kwargs)
@@ -173,6 +175,7 @@ class BaseAPI:
 
     def delete_raw(self, endpoint: str, **kwargs) -> requests.Response:
         """Make DELETE request and return raw Response (for error testing)."""
+        kwargs.setdefault("timeout", 5)
         url = f"{self.base_url}{endpoint}"
         with allure.step(f"DELETE {endpoint} (raw)"):
             self._attach_request("DELETE", url, **kwargs)

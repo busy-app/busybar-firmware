@@ -111,7 +111,7 @@ class AssetsAPI(BaseAPI):
         return self.post(
             "/api/assets/upload",
             AssetResultResponse,
-            params={"app_id": app_id, "file": filename},
+            params={"application_name": app_id, "file": filename},
             data=content,
             headers={"Content-Type": "application/octet-stream"},
             timeout=timeout,
@@ -127,7 +127,7 @@ class AssetsAPI(BaseAPI):
         return self.delete(
             "/api/assets/upload",
             AssetResultResponse,
-            params={"app_id": app_id},
+            params={"application_name": app_id},
         )
 
     # === Display ===
@@ -146,7 +146,7 @@ class AssetsAPI(BaseAPI):
             elements: List of element dictionaries
             priority: Draw priority (1–100). Defaults to server default (50).
         """
-        body: dict[str, Any] = {"app_id": app_id, "elements": elements}
+        body: dict[str, Any] = {"application_name": app_id, "elements": elements}
         if priority is not None:
             body["priority"] = priority
         return self.post(
@@ -167,7 +167,7 @@ class AssetsAPI(BaseAPI):
         Use this variant when the call is expected to fail (400, 409, etc.)
         so that the error status code can be inspected without raising.
         """
-        body: dict[str, Any] = {"app_id": app_id, "elements": elements}
+        body: dict[str, Any] = {"application_name": app_id, "elements": elements}
         if priority is not None:
             body["priority"] = priority
         return self.post_raw("/api/display/draw", json=body)
@@ -182,7 +182,7 @@ class AssetsAPI(BaseAPI):
 
     def clear_display_by_app(self, app_id: str) -> requests.Response:
         """Clear display elements belonging to a specific app_id."""
-        return self.delete_raw("/api/display/draw", params={"app_id": app_id})
+        return self.delete_raw("/api/display/draw", params={"application_name": app_id})
 
     # === Audio ===
 
@@ -197,7 +197,7 @@ class AssetsAPI(BaseAPI):
         return self.post(
             "/api/audio/play",
             AssetResultResponse,
-            params={"app_id": app_id, "path": path},
+            params={"application_name": app_id, "path": path},
         )
 
     def stop_audio(self) -> AssetResultResponse:
