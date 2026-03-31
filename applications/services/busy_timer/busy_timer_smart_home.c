@@ -64,6 +64,77 @@ static void busy_timer_smart_home_start_app(BusyTimer* instance) {
     busy_timer_start_internal(instance);
 }
 
+static MatterSwitchState busy_timer_smart_home_process_switch_on(BusyTimer* instance) {
+    MatterSwitchState result = MatterSwitchStateMax;
+
+    if(instance->state == BusyTimerStateIdle) {
+        busy_timer_smart_home_start_app(instance);
+
+    } else if(instance->state == BusyTimerStateWork) {
+        if(!busy_timer_is_running(instance)) {
+            if(instance->time_elapsed_s == 0) {
+                busy_timer_smart_home_start_app(instance);
+            } else {
+                busy_timer_toggle_internal(instance);
+            }
+        }
+
+    } else if(instance->state == BusyTimerStateRest) {
+        if(!busy_timer_is_running(instance)) {
+            if(instance->time_elapsed_s == 0) {
+                busy_timer_smart_home_start_app(instance);
+                result = MatterSwitchStateOff;
+
+            } else {
+                busy_timer_toggle_internal(instance);
+                busy_timer_skip_internal(instance);
+            }
+
+        } else {
+            busy_timer_skip_internal(instance);
+        }
+    }
+
+    return result;
+}
+
+static MatterSwitchState busy_timer_smart_home_process_switch_off(BusyTimer* instance) {
+    if(instance->state != BusyTimerStateIdle) {
+        busy_timer_stop_internal(instance);
+        busy_timer_exit_app();
+    }
+
+    return MatterSwitchStateOff;
+}
+
+static MatterSwitchState busy_timer_smart_home_process_switch_state(BusyTimer* instance, MatterSwitchState switch_state) {
+    MatterSwitchState result = MatterSwitchStateMax;
+
+    if(switch_state == MatterSwitchStateOn) {
+        result = busy_timer_smart_home_process_switch_on(instance);
+    } else if(switch_state == MatterSwitchStateOff) {
+        result = busy_timer_smart_home_process_switch_off(instance);
+    }
+
+    return result;
+}
+
+void busy_timer_smart_home_handle_switch_state(BusyTimer* instance, MatterSwitchState switch_state) {
+    MatterSwitchState new_switch_state = MatterSwitchStateMax;
+
+    if(instance->matter_switch_state != switch_state) {
+        new_switch_state = busy_timer_smart_home_process_switch_state(instance, switch_state);
+    }
+
+    if(new_switch_state != MatterSwitchStateMax) {
+        instance->matter_switch_state = new_switch_state;
+
+        if(new_switch_state != switch_state) {
+            matter_set_switch_state(instance->matter, new_switch_state);
+        }
+    }
+}
+
 void busy_timer_smart_home_init(BusyTimer* instance) {
     instance->matter = furi_record_open(RECORD_MATTER);
 
@@ -74,52 +145,4 @@ void busy_timer_smart_home_init(BusyTimer* instance) {
         matter_get_switch_state(instance->matter),
         busy_timer_matter_switch_state_callback,
         instance);
-}
-
-void busy_timer_smart_home_handle_switch_state(BusyTimer* instance, MatterSwitchState switch_state) {
-    if(instance->matter_switch_state == switch_state) {
-        return;
-    }
-
-    if(switch_state == MatterSwitchStateOn) {
-        if(instance->state == BusyTimerStateIdle) {
-            busy_timer_smart_home_start_app(instance);
-
-        } else if(instance->state == BusyTimerStateWork) {
-            if(!busy_timer_is_running(instance)) {
-                if(instance->time_elapsed_s == 0) {
-                    busy_timer_smart_home_start_app(instance);
-                } else {
-                    busy_timer_toggle_internal(instance);
-                }
-            }
-
-        } else if(instance->state == BusyTimerStateRest) {
-            if(!busy_timer_is_running(instance)) {
-                if(instance->time_elapsed_s == 0) {
-                    busy_timer_smart_home_start_app(instance);
-
-                    switch_state = MatterSwitchStateOff;
-                    matter_set_switch_state(instance->matter, switch_state);
-
-                } else {
-                    busy_timer_skip_internal(instance);
-                }
-
-            } else {
-                busy_timer_skip_internal(instance);
-            }
-        }
-
-    } else if(switch_state == MatterSwitchStateOff) {
-        if(instance->state != BusyTimerStateIdle) {
-            busy_timer_stop_internal(instance);
-            busy_timer_exit_app();
-        }
-
-    } else {
-        return;
-    }
-
-    instance->matter_switch_state = switch_state;
 }
