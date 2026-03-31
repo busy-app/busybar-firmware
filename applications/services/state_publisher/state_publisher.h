@@ -38,6 +38,13 @@ typedef size_t StatePublisherTransportHandle;
 
 #define STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID ((StatePublisherTransportHandle) - 1)
 
+typedef struct StatePublisherRateLimit {
+    uint32_t period_ms;
+    uint32_t max_packet_count;
+} StatePublisherRateLimit;
+
+#define STATE_PUBLISHER_RATE_UNLIMITED (StatePublisherRateLimit){0}
+
 /**
  * Add transport (sink) to receive serialized updates.
  *
@@ -49,6 +56,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
     StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms,
+    StatePublisherRateLimit rate_limit,
     StatePublisherPublishCb cb,
     void* context);
 

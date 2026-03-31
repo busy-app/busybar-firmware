@@ -94,6 +94,7 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
                     instance->state_publisher,
                     StatePublisherTransportClassMQTT,
                     FRAME_PERIOD_MS,
+                    STATE_PUBLISHER_RATE_UNLIMITED,
                     mqtt_streaming_publish_callback,
                     instance);
             } else {

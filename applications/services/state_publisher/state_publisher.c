@@ -17,6 +17,7 @@ typedef bool (*MessageHandler)(StatePublisher* instance, const Message* message)
 static const MessageHandler message_handlers[];
 
 static void heartbeat_timer_callback(void* context);
+static void rate_limiter_timer_callback(void* context);
 
 void screen_streamer_callback(
     GuiDisplayId display,
@@ -62,13 +63,21 @@ static StatePublisher* state_publisher_alloc(void) {
     instance->heartbeat_timer = furi_event_loop_timer_alloc(
         instance->event_loop, heartbeat_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
 
+    instance->rate_limiter_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, rate_limiter_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+
     instance->gui = furi_record_open(RECORD_GUI);
 
     instance->screen_streamer_front = screen_streamer_alloc(
         GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
 
     instance->transports_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    bzero(instance->transports, sizeof(instance->transports));
+    for(uint32_t i = 0; i != COUNT_OF(instance->transports); ++i) {
+        Transport* t = instance->transports + i;
+        t->valid = false;
+        StateUpdateArray_init(t->seq_updates);
+        StateUpdateArray_init(t->state_updates);
+    }
 
     state_publisher_subscribe(instance);
 
@@ -108,6 +117,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
     StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms,
+    StatePublisherRateLimit rate_limit,
     StatePublisherPublishCb cb,
     void* context) {
     size_t i = 0;
@@ -120,6 +130,9 @@ StatePublisherTransportHandle state_publisher_add_transport(
             t->frame_interval_ms = frame_interval_ms;
             t->cb = cb;
             t->cb_context = context;
+            t->last_tick_ms = 0;
+            t->updates_since_last_tick = 0;
+            t->rate_limit = rate_limit;
             break;
         }
     }
@@ -164,7 +177,7 @@ static pb_ostream_t ostream_with_buffer(ByteArray_t* buf) {
         .state = buf};
 }
 
-static void free_state_update(BSB_State_StateUpdate* update) {
+void state_publisher_free_state_update(BSB_State_StateUpdate* update) {
     switch(update->which_state) {
     case BSB_State_StateUpdate_timer_tag:
         free(update->state.timer.json.data);
@@ -175,43 +188,155 @@ static void free_state_update(BSB_State_StateUpdate* update) {
     default:
         break;
     }
-    free(update);
+}
+
+static bool is_sequential_update(const BSB_State_StateUpdate* update) {
+    if(update) {
+        switch(update->which_state) {
+
+        case BSB_State_StateUpdate_input_tag:
+            return true;
+        default:
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+static uint32_t send_out_for_transport(Transport* t) {
+    time_t now = time_get_timestamp_ms();
+    bool send = false;
+    if(now - t->last_tick_ms > t->rate_limit.period_ms) {
+        send = true;
+        t->last_tick_ms = now;
+        t->updates_since_last_tick = 0;
+    } else if(t->updates_since_last_tick < t->rate_limit.max_packet_count) {
+        send = true;
+    }
+
+    uint32_t sleep_time_ms = UINT32_MAX;
+
+    if(send) {
+        StateUpdateArray_t updates;
+        StateUpdateArray_init_move(updates, t->seq_updates);
+        StateUpdateArray_init(t->seq_updates);
+
+        for(size_t i = 0; i != StateUpdateArray_size(t->state_updates); ++i) {
+            SharedStateUpdate_t *shared = StateUpdateArray_get(t->state_updates, i);
+            if(!SharedStateUpdate_NULL_p(*shared)) {
+                StateUpdateArray_push_move(updates, shared);
+            }
+        }
+
+        size_t count = StateUpdateArray_size(updates);
+
+        if(count > 0) {
+            t->updates_since_last_tick += 1;
+
+            // shallow copy
+            BSB_State_StateUpdate* raw_updates = malloc(sizeof(BSB_State_StateUpdate) * count);
+            for(size_t i = 0; i != count; ++i) {
+                SharedStateUpdate_t *shared = StateUpdateArray_get(updates, i);
+                memcpy(raw_updates + i, SharedStateUpdate_cref(*shared), sizeof(BSB_State_StateUpdate));
+            }
+
+            BSB_State_State state = {
+                .timestamp = now,
+                .updates_count = count,
+                .updates = raw_updates,
+            };
+
+            FURI_LOG_D(TAG, "update for %p %d (count=%zu)", t, t->flags, state.updates_count);
+
+            SharedByteArray_t data;
+            SharedByteArray_init_new(data);
+
+            ByteArray_t* buf = SharedByteArray_ref(data);
+            pb_ostream_t stream = ostream_with_buffer(buf);
+
+            bool result = pb_encode(&stream, BSB_State_State_fields, &state);
+            if(!result) {
+                FURI_LOG_E(TAG, "cannot encode");
+            } else {
+                t->cb(data, t->cb_context);
+            }
+
+            free(raw_updates);
+            StateUpdateArray_clear(updates);
+            SharedByteArray_clear(data);
+        } else {
+            StateUpdateArray_clear(updates);
+        }
+    } else {
+        // rate limited
+        FURI_LOG_D(TAG, "rate limited %p %lu", t, t->updates_since_last_tick);
+        sleep_time_ms = t->last_tick_ms + t->rate_limit.period_ms - now;
+    }
+    return sleep_time_ms;
+}
+
+static uint32_t send_out(StatePublisher* instance) {
+    uint32_t min_sleep_time_ms = UINT32_MAX;
+    furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+    for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+        Transport* t = instance->transports + i;
+        if(t->valid) {
+            uint32_t sleep_time_ms = send_out_for_transport(t);
+            min_sleep_time_ms = MIN(min_sleep_time_ms, sleep_time_ms);
+        }
+    }
+    furi_mutex_release(instance->transports_mutex);
+    return min_sleep_time_ms;
 }
 
 static bool handle_publish_update(StatePublisher* instance, const Message* message) {
     furi_assert(message->type == MessageTypePublishUpdate);
     BSB_State_StateUpdate* update = message->update.data;
-    BSB_State_State state = {
-        .timestamp = time_get_timestamp_ms(),
-        .updates_count = update ? 1 : 0,
-        .updates = (BSB_State_StateUpdate*)update,
-    };
-
-    SharedByteArray_t data;
-    SharedByteArray_init_new(data);
-
-    ByteArray_t* buf = SharedByteArray_ref(data);
-    pb_ostream_t stream = ostream_with_buffer(buf);
-
-    bool result = pb_encode(&stream, BSB_State_State_fields, &state);
-    if(!result) {
-        FURI_LOG_E(TAG, "cannot encode");
-    } else {
-        furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
-        for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
-            Transport* t = instance->transports + i;
-            if(t->valid && (t->flags & message->update.stream_flags)) {
-                t->cb(data, t->cb_context);
-            }
-        }
-        furi_mutex_release(instance->transports_mutex);
-    }
-    SharedByteArray_clear(data);
-
+    StreamFlag flags = message->update.stream_flags;
     if(update) {
-        free_state_update(update);
+        SharedStateUpdate_t shared_update;
+        SharedStateUpdate_init2(shared_update, update);
+        if(is_sequential_update(update)) {
+            furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+            for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+                Transport* t = instance->transports + i;
+                if(t->valid && (t->flags & flags)) {
+                    StateUpdateArray_push_back(t->seq_updates, shared_update);
+                }
+            }
+            furi_mutex_release(instance->transports_mutex);
+        } else {
+            furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+            for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
+                Transport* t = instance->transports + i;
+                if(t->valid && (t->flags & flags)) {
+                    size_t old_size = StateUpdateArray_size(t->state_updates);
+                    StateUpdateArray_resize(t->state_updates, MAX(old_size, (size_t)update->which_state + 1));
+
+                    SharedStateUpdate_t* cell = StateUpdateArray_get(t->state_updates, update->which_state);
+                    SharedStateUpdate_set(*cell, shared_update);
+                }
+            }
+            furi_mutex_release(instance->transports_mutex);
+        }
+        SharedStateUpdate_clear(shared_update);
+    } else {
+        // TODO heartbeat
     }
+
+    uint32_t sleep_time_ms = send_out(instance);
+
+    furi_event_loop_timer_start(instance->rate_limiter_timer, furi_ms_to_ticks(sleep_time_ms));
+
     return true;
+}
+
+static void rate_limiter_timer_callback(void* context) {
+    StatePublisher* instance = context;
+    uint32_t sleep_time_ms = send_out(instance);
+
+    furi_event_loop_timer_start(instance->rate_limiter_timer, furi_ms_to_ticks(sleep_time_ms));
 }
 
 static bool handle_power_event(StatePublisher* instance, const Message* message) {
