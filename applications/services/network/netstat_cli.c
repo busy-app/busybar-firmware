@@ -1,4 +1,6 @@
 #include <cli/cli_command.h>
+#include <cli/cli_ansi.h>
+#include <cli/args.h>
 
 #include <lwip/tcpip.h>
 #include <lwip/udp.h>
@@ -6,64 +8,26 @@
 
 #include <inttypes.h>
 
-#define TAG "NetstatCli"
+#define CONTINUOUS_REFRESH_DELAY_MS 1000
 
-static const char* netstat_cli_connection_state_string_map[] = {
-    [CLOSED] = "CLOSED",
-    [LISTEN] = "LISTEN",
-    [SYN_SENT] = "SYN-SENT",
-    [SYN_RCVD] = "SYN-RECEIVED",
-    [ESTABLISHED] = "ESTABLISHED",
-    [FIN_WAIT_1] = "FIN-WAIT-1",
-    [FIN_WAIT_2] = "FIN-WAIT-2",
-    [CLOSE_WAIT] = "CLOSE-WAIT",
-    [CLOSING] = "CLOSING",
-    [LAST_ACK] = "LAST-ACK",
-    [TIME_WAIT] = "TIME-WAIT",
+typedef struct {
+    bool continuous;
+    bool help;
+} NetstatCliArguments;
+
+static const NetstatCliArguments netstat_cli_default_arguments = {
+    .continuous = false,
+    .help = false,
 };
 
-static inline const char* netstat_cli_get_connection_state_string(enum tcp_state state) {
-    return (state < COUNT_OF(netstat_cli_connection_state_string_map)) ?
-               netstat_cli_connection_state_string_map[state] :
-               "UNKNOWN";
-}
+static inline u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
+    u32_t bytes_count = 0;
 
-static inline u32_t netstat_cli_get_pcb_unsent_bytes_count(struct tcp_pcb* pcb) {
-    u32_t unsent_bytes_count = 0;
-
-    for(struct tcp_seg* seg = pcb->unsent; seg; seg = seg->next) {
-        unsent_bytes_count += seg->len;
+    for(; seg; seg = seg->next) {
+        bytes_count += TCP_TCPLEN(seg);
     }
 
-    return unsent_bytes_count;
-}
-
-static inline u32_t netstat_cli_get_pcb_unacked_bytes_count(struct tcp_pcb* pcb) {
-    u32_t unacked_bytes_count = 0;
-
-    for(struct tcp_seg* seg = pcb->unacked; seg; seg = seg->next) {
-        unacked_bytes_count += seg->len;
-    }
-
-    return unacked_bytes_count;
-}
-
-static inline u32_t netstat_cli_get_pcb_ooseq_bytes_count(struct tcp_pcb* pcb) {
-    u32_t ooseq_bytes_count = 0;
-
-#if TCP_QUEUE_OOSEQ
-    for(struct tcp_seg* seg = pcb->ooseq; seg; seg = seg->next) {
-        ooseq_bytes_count += seg->len;
-    }
-#else /* TCP_QUEUE_OOSEQ */
-    UNUSED(pcb);
-#endif /* TCP_QUEUE_OOSEQ */
-
-    return ooseq_bytes_count;
-}
-
-static inline u32_t netstat_cli_get_pcb_refused_bytes_count(struct tcp_pcb* pcb) {
-    return (pcb->refused_data) ? pcb->refused_data->tot_len : 0;
+    return bytes_count;
 }
 
 static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
@@ -87,6 +51,7 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
 #else /* TCP_LISTEN_BACKLOG */
         receive_queue_size = 0;
 #endif /* TCP_LISTEN_BACKLOG */
+
         send_queue_size = 0;
 
         break;
@@ -96,11 +61,19 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
         remote_ip_string =
             ipaddr_ntoa_r(&pcb->remote_ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX);
 
-        receive_queue_size = netstat_cli_get_pcb_ooseq_bytes_count(pcb) +
-                             netstat_cli_get_pcb_refused_bytes_count(pcb);
+        u32_t ooseq_bytes_count;
 
-        send_queue_size = netstat_cli_get_pcb_unsent_bytes_count(pcb) +
-                          netstat_cli_get_pcb_unacked_bytes_count(pcb);
+#if TCP_QUEUE_OOSEQ
+        ooseq_bytes_count = netstat_cli_get_tcp_seg_bytes_count(pcb->ooseq);
+#else /* TCP_QUEUE_OOSEQ */
+        ooseq_bytes_count = 0;
+#endif /* TCP_QUEUE_OOSEQ */
+
+        receive_queue_size =
+            ooseq_bytes_count + ((pcb->refused_data) ? pcb->refused_data->tot_len : 0);
+
+        send_queue_size = netstat_cli_get_tcp_seg_bytes_count(pcb->unsent) +
+                          netstat_cli_get_tcp_seg_bytes_count(pcb->unacked);
         break;
     }
     }
@@ -114,7 +87,7 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
         send_queue_size,
         local_ip_string,
         remote_ip_string,
-        netstat_cli_get_connection_state_string(pcb->state));
+        tcp_debug_state_str(pcb->state));
 }
 
 static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb) {
@@ -134,20 +107,7 @@ static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb) {
         remote_ip_string);
 }
 
-static void netstat_cli_print_command_usage(void) {
-    printf("Usage: netstat\r\n");
-    printf("Print current TCP and UDP network stack state.\r\n");
-}
-
-void netstat_cli_command_entry(PipeSide* pipe, FuriString* args, void* context) {
-    UNUSED(pipe);
-    UNUSED(context);
-
-    if(!furi_string_empty(args)) {
-        netstat_cli_print_command_usage();
-        return;
-    }
-
+static void netstat_cli_print_pcb_table(void) {
     printf("Proto  Recv-Q Send-Q Local Address         Foreign Address       State\r\n");
 
     LOCK_TCPIP_CORE();
@@ -165,4 +125,60 @@ void netstat_cli_command_entry(PipeSide* pipe, FuriString* args, void* context) 
     }
 
     UNLOCK_TCPIP_CORE();
+}
+
+static void netstat_cli_print_command_usage(void) {
+    printf("Usage: netstat [options]\r\n");
+    printf("Print network stack state.\r\n");
+    printf("Options:\r\n");
+    printf("  -c, --continuous    Continuous output mode (refresh every 1s)\r\n");
+    printf("  -h, --help          Show this help message\r\n");
+}
+
+static void netstat_cli_parse_arguments(FuriString* args_string, NetstatCliArguments* args) {
+    *args = netstat_cli_default_arguments;
+
+    FuriString* arg = furi_string_alloc();
+    while(args_read_string_and_trim(args_string, arg)) {
+        if(furi_string_equal_str(arg, "-c") || furi_string_equal_str(arg, "--continuous")) {
+            args->continuous = true;
+        } else if(furi_string_equal_str(arg, "-h") || furi_string_equal_str(arg, "--help")) {
+            args->help = true;
+        } else {
+            printf("Unknown argument: %s\r\n", furi_string_get_cstr(arg));
+            args->help = true;
+            break;
+        }
+    }
+
+    furi_string_free(arg);
+}
+
+void netstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* context) {
+    UNUSED(context);
+
+    NetstatCliArguments args;
+    netstat_cli_parse_arguments(args_string, &args);
+
+    if(args.help) {
+        netstat_cli_print_command_usage();
+        return;
+    }
+
+    if(args.continuous) {
+        while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
+            printf(ANSI_CURSOR_POS("1", "1"));
+            printf(ANSI_ERASE_DISPLAY(ANSI_ERASE_FROM_CURSOR_TO_END));
+
+            netstat_cli_print_pcb_table();
+
+            fflush(stdout);
+
+            furi_delay_ms(CONTINUOUS_REFRESH_DELAY_MS);
+        }
+
+        return;
+    }
+
+    netstat_cli_print_pcb_table();
 }
