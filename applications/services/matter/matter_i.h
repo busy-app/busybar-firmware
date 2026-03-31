@@ -55,7 +55,7 @@ typedef struct {
     FuriApiLock lock;
 } MatterApiMessage;
 
-struct MatterSrv {
+struct Matter {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timeout_timer;
     FuriSemaphore* api_semaphore;
@@ -70,8 +70,8 @@ struct MatterSrv {
 
 // matter_api.c
 
-void matter_init(MatterSrv* instance);
+void matter_init(Matter* instance);
 
-bool matter_api_is_waiting_for_response(MatterSrv* instance, MatterApiMessageType message_type);
+bool matter_api_is_waiting_for_response(Matter* instance, MatterApiMessageType message_type);
 
-void matter_api_unlock(MatterSrv* instance, MatterStatus status);
+void matter_api_unlock(Matter* instance, MatterStatus status);

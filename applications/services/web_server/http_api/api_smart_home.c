@@ -15,7 +15,7 @@ static void
     api_smart_home_pairing_status(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
 
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    Matter* matter = furi_record_open(RECORD_MATTER);
     MatterCommissionedFabrics fabrics;
     const MatterStatus status = matter_get_commissioned_fabrics(matter, &fabrics);
     furi_record_close(RECORD_MATTER);
@@ -58,7 +58,7 @@ static void
     bool success = false;
 
     do {
-        MatterSrv* matter = furi_record_open(RECORD_MATTER);
+        Matter* matter = furi_record_open(RECORD_MATTER);
 
         MatterCommissioningInfo info;
         const MatterStatus status = matter_enable_commissioning(matter, &info);
@@ -91,7 +91,7 @@ static void
 static void api_smart_home_factory_reset(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
 
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    Matter* matter = furi_record_open(RECORD_MATTER);
     bool success = matter_factory_reset(matter);
     furi_record_close(RECORD_MATTER);
 
@@ -127,7 +127,7 @@ static bool api_smart_home_pairing_callback(
 static void api_smart_home_switch_get(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
 
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    Matter* matter = furi_record_open(RECORD_MATTER);
 
     MatterSwitchState switch_state;
     furi_state_get(matter_get_switch_state(matter), &switch_state);
@@ -153,7 +153,7 @@ static void api_smart_home_switch_set(struct mg_connection* conn, struct mg_http
     bool matter_request_error = false;
     char* switch_startup = NULL;
 
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    Matter* matter = furi_record_open(RECORD_MATTER);
     do {
         bool has_switch_state = false;
         bool switch_state;

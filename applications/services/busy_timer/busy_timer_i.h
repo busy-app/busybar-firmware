@@ -120,7 +120,7 @@ struct BusyTimer {
     FuriMessageQueue* api_queue;
     FuriPubSub* event_pubsub;
     Mqtt* mqtt;
-    MatterSrv* matter;
+    Matter* matter;
     MatterSwitchState matter_switch_state;
     StatusLights* status_lights;
     BusyTimerSnapshot last_known_snapshot;

@@ -13,11 +13,11 @@
 
 #define MATTER_WAIT_FOR_RESPONSE (MatterStatusMax)
 
-typedef MatterStatus (*MatterApiMessageHandler)(MatterSrv* instance, MatterApiMessageData* data);
+typedef MatterStatus (*MatterApiMessageHandler)(Matter* instance, MatterApiMessageData* data);
 
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax];
 
-typedef bool (*MatterResponseHandler)(MatterSrv* instance, const MatterIntercomFrame* response);
+typedef bool (*MatterResponseHandler)(Matter* instance, const MatterIntercomFrame* response);
 
 static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameTypeMax];
 
@@ -25,7 +25,7 @@ static void matter_intercom_rx_callback(const void* data, size_t data_size, void
     furi_check(data);
     furi_check(data_size == sizeof(MatterIntercomFrame));
     furi_check(context);
-    MatterSrv* matter = context;
+    Matter* matter = context;
 
     const FuriStatus status = furi_message_queue_put(matter->rx_queue, data, 0);
 
@@ -38,7 +38,7 @@ static void matter_intercom_rx_callback(const void* data, size_t data_size, void
 static void matter_rx_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
-    MatterSrv* instance = context;
+    Matter* instance = context;
     furi_assert(object == instance->rx_queue);
 
     MatterIntercomFrame frame;
@@ -63,19 +63,19 @@ static void matter_rx_queue_callback(FuriEventLoopObject* object, void* context)
 static void matter_timeout_timer_callback(void* context) {
     furi_assert(context);
 
-    MatterSrv* instance = context;
+    Matter* instance = context;
     matter_api_unlock(instance, MatterStatusTimeout);
 
     FURI_LOG_E(TAG, "Response timeout");
 }
 
-static MatterStatus matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
+static MatterStatus matter_send_frame(Matter* matter, const MatterIntercomFrame* frame) {
     const size_t tx_size =
         intercom_tx(matter->intercom_ch, frame, sizeof(MatterIntercomFrame), REQUEST_TIMEOUT_MS);
     return (tx_size == sizeof(MatterIntercomFrame)) ? MatterStatusOk : MatterStatusTimeout;
 }
 
-static void matter_handle_api_message(MatterSrv* instance) {
+static void matter_handle_api_message(Matter* instance) {
     MatterApiMessage* api_message = &instance->api_message;
 
     const MatterApiMessageType message_type = api_message->type;
@@ -93,7 +93,7 @@ static void matter_handle_api_message(MatterSrv* instance) {
 
 static void matter_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
-    MatterSrv* instance = context;
+    Matter* instance = context;
 
     if(events & MatterCustomEventRequest) {
         matter_handle_api_message(instance);
@@ -110,8 +110,8 @@ void matter_switch_state_callback(const void* item, void* context) {
     }
 }
 
-static MatterSrv* matter_alloc(void) {
-    MatterSrv* instance = malloc(sizeof(MatterSrv));
+static Matter* matter_alloc(void) {
+    Matter* instance = malloc(sizeof(Matter));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->timeout_timer = furi_event_loop_timer_alloc(
@@ -147,9 +147,8 @@ static MatterSrv* matter_alloc(void) {
 
 // ========= Backend response handlers  =========
 
-static bool matter_backend_ready_response_handler(
-    MatterSrv* instance,
-    const MatterIntercomFrame* response) {
+static bool
+    matter_backend_ready_response_handler(Matter* instance, const MatterIntercomFrame* response) {
     UNUSED(response);
     const bool should_unlock_api =
         matter_api_is_waiting_for_response(instance, MatterApiMessageTypeInit);
@@ -157,7 +156,7 @@ static bool matter_backend_ready_response_handler(
 }
 
 static bool
-    matter_switch_state_response_handler(MatterSrv* instance, const MatterIntercomFrame* response) {
+    matter_switch_state_response_handler(Matter* instance, const MatterIntercomFrame* response) {
     const MatterIntercomSwitchStateFrame* switch_state_frame = &response->switch_state;
     const MatterSwitchState new_switch_state = switch_state_frame->state;
 
@@ -171,9 +170,8 @@ static bool
     return false;
 }
 
-static bool matter_pairing_codes_response_handler(
-    MatterSrv* instance,
-    const MatterIntercomFrame* response) {
+static bool
+    matter_pairing_codes_response_handler(Matter* instance, const MatterIntercomFrame* response) {
     bool should_unlock_api = false;
 
     if(matter_api_is_waiting_for_response(instance, MatterApiMessageTypeStartCommissioning)) {
@@ -194,7 +192,7 @@ static bool matter_pairing_codes_response_handler(
 }
 
 static bool matter_commissioning_status_response_handler(
-    MatterSrv* instance,
+    Matter* instance,
     const MatterIntercomFrame* response) {
     const MatterIntercomCommissionStatusFrame* commission_status = &response->commission_status;
 
@@ -215,7 +213,7 @@ static bool matter_commissioning_status_response_handler(
 }
 
 static bool
-    matter_fabric_count_response_handler(MatterSrv* instance, const MatterIntercomFrame* response) {
+    matter_fabric_count_response_handler(Matter* instance, const MatterIntercomFrame* response) {
     const MatterIntercomFabricCountUpdateFrame* fabric_count = &response->fabric_count;
     instance->fabrics.count = fabric_count->fabric_count;
 
@@ -233,8 +231,7 @@ static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameT
 
 // ========= API message handlers  =========
 
-static MatterStatus
-    matter_init_api_message_handler(MatterSrv* instance, MatterApiMessageData* data) {
+static MatterStatus matter_init_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
 
     MatterCd* cd = &instance->cd;
@@ -269,7 +266,7 @@ static MatterStatus
 }
 
 static MatterStatus
-    matter_set_switch_state_api_message_nandler(MatterSrv* instance, MatterApiMessageData* data) {
+    matter_set_switch_state_api_message_nandler(Matter* instance, MatterApiMessageData* data) {
     MatterStatus status = MatterStatusOk;
 
     MatterSwitchState prev_switch_state;
@@ -290,7 +287,7 @@ static MatterStatus
 }
 
 static MatterStatus matter_set_switch_startup_mode_api_message_nandler(
-    MatterSrv* instance,
+    Matter* instance,
     MatterApiMessageData* data) {
     const MatterIntercomFrame frame = {
         .type = MatterIntercomFrameTypeSwitchStartupMode,
@@ -300,9 +297,8 @@ static MatterStatus matter_set_switch_startup_mode_api_message_nandler(
     return matter_send_frame(instance, &frame);
 }
 
-static MatterStatus matter_start_commissioning_api_message_nandler(
-    MatterSrv* instance,
-    MatterApiMessageData* data) {
+static MatterStatus
+    matter_start_commissioning_api_message_nandler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
     const MatterIntercomFrame frame = {
         .type = MatterIntercomFrameTypeCommission,
@@ -313,14 +309,14 @@ static MatterStatus matter_start_commissioning_api_message_nandler(
 }
 
 static MatterStatus matter_get_commissioned_fabrics_api_message_nandler(
-    MatterSrv* instance,
+    Matter* instance,
     MatterApiMessageData* data) {
     *data->get_fabrics.fabrics = instance->fabrics;
     return MatterStatusOk;
 }
 
 static MatterStatus
-    matter_factory_reset_api_message_nandler(MatterSrv* instance, MatterApiMessageData* data) {
+    matter_factory_reset_api_message_nandler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
     const MatterIntercomFrame frame = {
         .type = MatterIntercomFrameTypeReset,
@@ -344,7 +340,7 @@ static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessag
 int matter_srv(void* arg) {
     UNUSED(arg);
 
-    MatterSrv* matter = matter_alloc();
+    Matter* matter = matter_alloc();
     furi_event_loop_run(matter->event_loop);
 
     return 0;

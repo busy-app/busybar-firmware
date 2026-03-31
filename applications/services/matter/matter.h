@@ -19,7 +19,7 @@ extern "C" {
 
 #define RECORD_MATTER "matter"
 
-typedef struct MatterSrv MatterSrv;
+typedef struct Matter Matter;
 
 /**
  * @brief Type of service event
@@ -66,7 +66,7 @@ typedef struct {
  *
  * @returns pointer to a FuriPubSub object
  */
-FuriPubSub* matter_get_pubsub(MatterSrv* instance);
+FuriPubSub* matter_get_pubsub(Matter* instance);
 
 /**
  * @brief Get the switch state object that supports change notifications.
@@ -80,7 +80,7 @@ FuriPubSub* matter_get_pubsub(MatterSrv* instance);
  *
  * @returns pointer to a FuriState object
  */
-FuriState* matter_get_switch_state(MatterSrv* instance);
+FuriState* matter_get_switch_state(Matter* instance);
 
 /**
  * @brief Set the state of the Matter switch.
@@ -92,7 +92,7 @@ FuriState* matter_get_switch_state(MatterSrv* instance);
  *
  * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
-MatterStatus matter_set_switch_state(MatterSrv* instance, MatterSwitchState switch_state);
+MatterStatus matter_set_switch_state(Matter* instance, MatterSwitchState switch_state);
 
 /**
  * @brief Set the startup mode of the Matter switch
@@ -102,7 +102,7 @@ MatterStatus matter_set_switch_state(MatterSrv* instance, MatterSwitchState swit
  *
  * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
-MatterStatus matter_set_switch_startup_mode(MatterSrv* instance, MatterSwitchStartupMode mode);
+MatterStatus matter_set_switch_startup_mode(Matter* instance, MatterSwitchStartupMode mode);
 
 /**
  * @brief Enable Matter commissioning (open the commissioning window).
@@ -112,7 +112,7 @@ MatterStatus matter_set_switch_startup_mode(MatterSrv* instance, MatterSwitchSta
  *
  * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
-MatterStatus matter_enable_commissioning(MatterSrv* instance, MatterCommissioningInfo* info);
+MatterStatus matter_enable_commissioning(Matter* instance, MatterCommissioningInfo* info);
 
 /**
  * @brief Get the brief information about the commissioning status.
@@ -122,8 +122,7 @@ MatterStatus matter_enable_commissioning(MatterSrv* instance, MatterCommissionin
  * 
  * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
-MatterStatus
-    matter_get_commissioned_fabrics(MatterSrv* instance, MatterCommissionedFabrics* fabrics);
+MatterStatus matter_get_commissioned_fabrics(Matter* instance, MatterCommissionedFabrics* fabrics);
 
 /**
  * @brief Delete all Matter pairing data.
@@ -132,7 +131,7 @@ MatterStatus
  *
  * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
-MatterStatus matter_factory_reset(MatterSrv* instance);
+MatterStatus matter_factory_reset(Matter* instance);
 
 /**
  * @brief Get the currently selected Certification Declaration.
@@ -141,7 +140,7 @@ MatterStatus matter_factory_reset(MatterSrv* instance);
  * 
  * @returns Name of the Certification Declaration variant currently marked as "wanted"
  */
-const char* matter_get_wanted_cd_selection(MatterSrv* instance);
+const char* matter_get_wanted_cd_selection(Matter* instance);
 
 /**
  * @brief Set the currently selected Certification Declaration.
@@ -153,7 +152,7 @@ const char* matter_get_wanted_cd_selection(MatterSrv* instance);
  * 
  * @returns true on success
  */
-MatterStatus matter_set_wanted_cd_selection(MatterSrv* instance, const char* selection);
+MatterStatus matter_set_wanted_cd_selection(Matter* instance, const char* selection);
 
 /**
  * @brief Get the currently de-facto active Certification Declaration.
@@ -162,7 +161,7 @@ MatterStatus matter_set_wanted_cd_selection(MatterSrv* instance, const char* sel
  * 
  * @returns name of the Certification Declaration variant that Matter is currently using
  */
-const char* matter_get_de_facto_cd_selection(MatterSrv* instance);
+const char* matter_get_de_facto_cd_selection(Matter* instance);
 
 #ifdef __cplusplus
 }

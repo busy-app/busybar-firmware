@@ -7,7 +7,7 @@
 #include <cli/cli_ansi.h>
 
 typedef struct {
-    MatterSrv* matter;
+    Matter* matter;
     CliRegistry* commands;
     CliShell* shell;
     FuriPubSubSubscription* subscription;
