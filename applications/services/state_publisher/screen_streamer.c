@@ -137,8 +137,8 @@ void screen_streamer_enable_output(
 void screen_streamer_disable_output(
     ScreenStreamer* instance,
     StatePublisherTransportClass transport_class) {
-    bool changed = false;
     furi_mutex_acquire(instance->outputs_mutex, FuriWaitForever);
+    bool changed = instance->outputs[transport_class].is_valid;
     instance->outputs[transport_class].is_valid = false;
     furi_mutex_release(instance->outputs_mutex);
 

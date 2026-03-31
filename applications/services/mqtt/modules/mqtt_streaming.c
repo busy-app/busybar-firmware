@@ -108,6 +108,7 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
 
             stop_publisher(instance);
             furi_event_loop_timer_stop(instance->timeout_timer);
+            furi_string_free(api_msg.response_topic);
         } else {
             furi_crash("Invalid MqttStreamingApiMessageType value");
         }

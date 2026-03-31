@@ -39,7 +39,6 @@ struct StatePublisher {
     FuriThreadId main_thread_id;
 
     ScreenStreamer* screen_streamer_front;
-    // ScreenStreamer* screen_streamer_back;
 
     FuriEventLoopTimer* heartbeat_timer;
 

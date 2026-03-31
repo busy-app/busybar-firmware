@@ -117,10 +117,7 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
         matter->fabrics.count = frame.fabric_count.fabric_count;
         MatterEvent event = {
             .type = MatterEventTypeFabricCountChanged,
-            .commissioning =
-                {
-                    .status = matter->fabrics.count,
-                },
+            .fabric_count = matter->fabrics.count,
         };
         furi_pubsub_publish(matter->pubsub, &event);
     } else {

@@ -8,8 +8,6 @@
 
 #include <time/time.h>
 
-#define TAG "StPubSrv"
-
 #define MAX_MESSAGES 16
 
 #define HEARTBEAT_INTERVAL_MS 991
@@ -68,8 +66,6 @@ static StatePublisher* state_publisher_alloc(void) {
 
     instance->screen_streamer_front = screen_streamer_alloc(
         GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
-    // instance->screen_streamer_back =
-    // screen_streamer_alloc(GuiDisplayIdBack, instance->gui, screen_streamer_callback, instance);
 
     instance->transports_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     bzero(instance->transports, sizeof(instance->transports));
@@ -77,7 +73,6 @@ static StatePublisher* state_publisher_alloc(void) {
     state_publisher_subscribe(instance);
 
     screen_streamer_start(instance->screen_streamer_front);
-    // screen_streamer_start(instance->screen_streamer_back);
 
     furi_event_loop_timer_start(
         instance->heartbeat_timer, furi_ms_to_ticks(HEARTBEAT_INTERVAL_MS));
@@ -103,11 +98,8 @@ static void update_screen_streamer_outputs(StatePublisher* instance) {
         if(enabled) {
             screen_streamer_enable_output(
                 instance->screen_streamer_front, transport_class, frame_interval_ms);
-            // screen_streamer_enable_output(
-            // instance->screen_streamer_back, transport_class, frame_interval_ms);
         } else {
             screen_streamer_disable_output(instance->screen_streamer_front, transport_class);
-            // screen_streamer_disable_output(instance->screen_streamer_back, transport_class);
         }
     }
 }
@@ -118,7 +110,6 @@ StatePublisherTransportHandle state_publisher_add_transport(
     uint32_t frame_interval_ms,
     StatePublisherPublishCb cb,
     void* context) {
-    UNUSED(frame_interval_ms);
     size_t i = 0;
     furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
     for(; i != MAX_TRANSPORTS; ++i) {
@@ -203,9 +194,9 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
     pb_ostream_t stream = ostream_with_buffer(buf);
 
     bool result = pb_encode(&stream, BSB_State_State_fields, &state);
-    furi_assert(result);
-
-    {
+    if(!result) {
+        FURI_LOG_E(TAG, "cannot encode");
+    } else {
         furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
         for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
             Transport* t = instance->transports + i;
