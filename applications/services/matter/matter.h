@@ -26,6 +26,7 @@ typedef struct MatterSrv MatterSrv;
  */
 typedef enum {
     MatterEventTypeCommissioning, //<! Started, completed or failed commissioning
+    MatterEventTypeFabricCountChanged, //<! Number of fabric the device is commissioned into has changed
 } MatterEventType;
 
 /**
@@ -42,6 +43,7 @@ typedef struct {
     MatterEventType type;
     union {
         MatterCommissioningEvent commissioning;
+        size_t fabric_count;
     };
 } MatterEvent;
 

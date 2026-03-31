@@ -11,7 +11,7 @@ env.AppendUnique(
     FW_NOARCHIVE_LIBS=["stdc++", "m"],
 )
 
-libenv = env.Clone(FW_LIB_NAME="lvgl")
+libenv = env.Clone(tools=["textfile"], FW_LIB_NAME="lvgl")
 libenv.ApplyLibFlags()
 
 libenv.AppendUnique(
@@ -33,7 +33,6 @@ sources += libenv.Glob("lvgl/src/font/*.c", source=True)
 sources += libenv.Glob("lvgl/src/indev/*.c", source=True)
 sources += libenv.Glob("lvgl/src/layouts/*.c", source=True)
 sources += libenv.Glob("lvgl/src/layouts/*/*.c", source=True)
-sources += libenv.Glob("lvgl/src/libs/bin_decoder/*.c", source=True)
 sources += libenv.Glob("lvgl/src/misc/*.c", source=True)
 sources += libenv.Glob("lvgl/src/misc/cache/*.c", source=True)
 sources += libenv.Glob("lvgl/src/stdlib/*.c", source=True)
@@ -47,6 +46,17 @@ sources += libenv.Glob("lvgl/src/tick/*.c", source=True)
 sources += libenv.Glob("lvgl/src/widgets/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/libs/lodepng/*.c", source=True)
 sources += libenv.Glob("lvgl/src/libs/qrcode/*.c", source=True)
+
+patch_dict = {
+    '"bin"': '"image"',
+    "../..": "src",
+    '"lv_bin_decoder.h"': '"src/libs/bin_decoder/lv_bin_decoder.h"',
+}
+sources += libenv.Substfile(
+    "lvgl/src/libs/bin_decoder/lv_bin_decoder_patched.c",
+    "lvgl/src/libs/bin_decoder/lv_bin_decoder.c",
+    SUBST_DICT=patch_dict,
+)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

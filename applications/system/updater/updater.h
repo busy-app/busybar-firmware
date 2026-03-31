@@ -142,10 +142,26 @@ FuriState* updater_get_update_state(Updater* instance);
  */
 FuriState* updater_get_check_state(Updater* instance);
 
-/** Get update information
+/** Get update information.
+ *
+ * The info parameter should point to an initialized struct:
+ * - if a member is NULL, it will not be changed.
+ * - if a member is not NULL, the string it points to will be set.
+ * Example usage:
+ *  FuriString* check_version = furi_string_alloc();
+ *  FuriString* check_changelog = furi_string_alloc();
+ *  updater_get_check_info(
+ *      updater,
+ *      &(UpdateCheckInfo){
+ *          .version = check_version,
+ *          .url = NULL,
+ *          .id = NULL,
+ *          .sha256 = NULL,
+ *          .changelog = check_changelog,
+ *      });
  *
  * @param[in]   instance  Updater instance
- * @param[out]  info      Pointer to UpdateCheckInfo struct to populate
+ * @param[out]  info      Pointer to UpdateCheckInfo struct.
  */
 void updater_get_check_info(Updater* instance, UpdateCheckInfo* info);
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {13, 0, 0}
+#define API_VERSION {15, 0, 0}
 
 // Root API handlers
 void* http_api_root_alloc(void);
@@ -90,6 +90,16 @@ bool http_api_status_callback(
     void* ctx);
 void* http_api_status_alloc(void);
 void http_api_status_free(void* ctx);
+
+// Status streaming
+void* http_api_status_ws_alloc(void);
+void http_api_status_ws_free(void* ctx);
+bool http_api_status_ws_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
 
 // Wifi
 void* http_api_wifi_alloc(void);

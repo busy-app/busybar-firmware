@@ -77,7 +77,7 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_size(primary_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     instance->icon = lv_img_create(primary_container);
-    lv_image_set_src(instance->icon, THIS_IMG_PATH("calendar_13x14.bin"));
+    lv_image_set_src(instance->icon, THIS_IMG_PATH("calendar_13x14.image"));
 
     instance->icon_label_date = lv_label_create(instance->icon);
     lv_obj_set_style_text_font(

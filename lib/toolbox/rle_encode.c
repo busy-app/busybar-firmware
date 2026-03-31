@@ -78,7 +78,6 @@ bool rle_compress(
     size_t* result_len) {
     furi_assert(src);
     furi_assert(dest);
-    furi_assert(dest_len > src_len);
 
     size_t index = 0;
     size_t dest_index = 0;
