@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 15.0.0
+  version: 16.0.0
   contact:
     name: tbd
 
@@ -63,11 +63,11 @@ paths:
           example: "key"
         - name: key
           in: query
-          required: true
+          required: false
           schema:
             type: string
             pattern: "^[0-9]+$"
-          description: Access key (4-10 digits length)
+          description: Access key (4-10 digits length). Required when mode is "key".
           example: "12345678"
       responses:
         "200":
@@ -1159,8 +1159,9 @@ paths:
           in: query
           required: true
           schema:
-            type: number
-            pattern: "^[0-1]{1,1}$"
+            type: integer
+            minimum: 0
+            maximum: 1
           description: Type of the display Front = 0, Back = 1
           example: 0
       responses:
@@ -1187,7 +1188,7 @@ paths:
         Upgrade from HTTP to WebSocket protocol is required.
         After connection, client must send desired display ID
         as JSON {"display": 0}
-      operationId: connectWebSocket
+      operationId: connectScreenWebSocket
       responses:
         "101":
           description: WebSocket connection established
@@ -1212,6 +1213,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Unable to start BLE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/ble/disable:
     post:
@@ -1227,6 +1234,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Unable to stop BLE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/ble/pairing:
     delete:
@@ -1276,12 +1289,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TimestampInfo"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /api/account:
     delete:
@@ -2242,7 +2249,9 @@ components:
           description: "Time zone abbreviation"
           example: "IST"
       required:
-        - timezone
+        - name
+        - offset
+        - abbr
 
     Status:
       type: object
@@ -2380,7 +2389,7 @@ components:
     WifiSecurityMethod:
       type: string
       example: "WPA3"
-      enum: [Open, WPA, WPA2, WEP, WPA/WPA2, WPA3, WPA2/WPA3]
+      enum: [Open, WPA, WPA2, WEP, WPA/WPA2, WPA3, WPA2/WPA3, Unsupported]
 
     WifiIpMethod:
       type: string
@@ -2406,6 +2415,11 @@ components:
 
     StatusResponse:
       type: object
+      description: |
+        Wi-Fi status. Only `state` is always present.
+        Fields `ssid`, `bssid`, `channel`, `rssi`, `security`, and `ip_config` are only included when state is "connected".
+      required:
+        - state
       properties:
         state:
           type: string
@@ -2419,21 +2433,27 @@ components:
             - reconnecting
         ssid:
           type: string
+          description: Only present when connected
           example: Your_WIFI_SSID
         bssid:
           type: string
+          description: Only present when connected
           pattern: "^([A-F0-9]:){5}[A-F0-9]$"
           example: "EC:5A:00:0B:55:1D"
         channel:
           type: integer
+          description: Only present when connected
           example: "3"
         rssi:
           type: integer
+          description: Only present when connected
           example: "-43"
         security:
+          description: Only present when connected
           $ref: "#/components/schemas/WifiSecurityMethod"
         ip_config:
           type: object
+          description: Only present when connected
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
@@ -2518,13 +2538,16 @@ components:
     AccountProfile:
       type: object
       properties:
-        state:
+        profile:
           type: string
           example: "dev"
           enum: ["dev", "prod", "local", "custom"]
         custom_url:
           type: string
+          description: Only present when profile is "custom"
           example: "mqtts://mqtt.example.com:8883"
+      required:
+        - profile
 
     AccountLink:
       type: object
@@ -2554,6 +2577,7 @@ components:
           example: connected
         address:
           type: string
+          description: Remote device address. Only present when status is "connected".
           example: 50:DA:D6:FE:DD:A9
       required:
         - status
@@ -2771,8 +2795,7 @@ components:
         list:
           type: array
           items:
-            type: object
-            properties:
+            $ref: "#/components/schemas/TimezoneInfo"
 
     SmartHomePairingInfo:
       type: object
@@ -2795,7 +2818,7 @@ components:
               example: "completed_successfully"
             timestamp:
               type: string
-              description: "UTC Unix millisecond timestamp of latest state update. Note: it's a number in a string."
+              description: "UTC Unix millisecond timestamp of latest state update. Only present when a status update has occurred. Note: it's a number in a string."
               example: "1769436711000"
     SmartHomePairingPayload:
       type: object
