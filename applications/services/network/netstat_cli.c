@@ -22,7 +22,18 @@ static const NetstatCliArguments netstat_cli_default_arguments = {
     .stats = false,
 };
 
-static inline u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
+static void netstat_cli_format_ip_port(const ip_addr_t* ip, u16_t port, FuriString* buffer) {
+    const char* _ip =
+        ip_addr_isany(ip) ? "*" : ip4addr_ntoa_r(ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX);
+
+    if(port == 0) {
+        furi_string_printf(buffer, "%s:*", _ip);
+    } else {
+        furi_string_printf(buffer, "%s:%" U16_F, _ip, port);
+    }
+}
+
+static u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
     u32_t bytes_count = 0;
 
     for(; seg; seg = seg->next) {
@@ -32,12 +43,13 @@ static inline u32_t netstat_cli_get_tcp_seg_bytes_count(struct tcp_seg* seg) {
     return bytes_count;
 }
 
-static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
-    const char* remote_ip_string;
+    FuriString* remote_ip_string = furi_string_alloc();
+    FuriString* local_ip_string = furi_string_alloc();
+
     u32_t receive_queue_size, send_queue_size;
     switch(pcb->state) {
     case CLOSED: {
-        remote_ip_string = "*:*";
+        netstat_cli_format_ip_port(&pcb->remote_ip, 0, remote_ip_string);
 
         receive_queue_size = 0;
         send_queue_size = 0;
@@ -45,7 +57,7 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
     }
 
     case LISTEN: {
-        remote_ip_string = "*:*";
+        netstat_cli_format_ip_port(&pcb->remote_ip, 0, remote_ip_string);
 
 #if TCP_LISTEN_BACKLOG
         struct tcp_pcb_listen* lpcb = (struct tcp_pcb_listen*)pcb;
@@ -60,11 +72,9 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
     }
 
     default: {
-        remote_ip_string =
-            ipaddr_ntoa_r(&pcb->remote_ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX);
+        netstat_cli_format_ip_port(&pcb->remote_ip, pcb->remote_port, remote_ip_string);
 
         u32_t ooseq_bytes_count;
-
 #if TCP_QUEUE_OOSEQ
         ooseq_bytes_count = netstat_cli_get_tcp_seg_bytes_count(pcb->ooseq);
 #else /* TCP_QUEUE_OOSEQ */
@@ -80,38 +90,39 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb) {
     }
     }
 
-    char local_ip_string[IPADDR_STRLEN_MAX];
-    ipaddr_ntoa_r(&pcb->local_ip, local_ip_string, sizeof(local_ip_string));
+    netstat_cli_format_ip_port(&pcb->local_ip, pcb->local_port, local_ip_string);
 
-    printf(
-        "TCP    %-6" U32_F " %-6" U32_F " %-21s %-21s %s\r\n",
+        "TCP    %-6" U32_F " %-6" U32_F " %-22s %-22s %s\r\n",
         receive_queue_size,
         send_queue_size,
-        local_ip_string,
-        remote_ip_string,
+        furi_string_get_cstr(local_ip_string),
+        furi_string_get_cstr(remote_ip_string),
         tcp_debug_state_str(pcb->state));
+
+    furi_string_free(local_ip_string);
+    furi_string_free(remote_ip_string);
 }
 
 static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb) {
-    char local_ip_string[IPADDR_STRLEN_MAX];
-    ipaddr_ntoa_r(&pcb->local_ip, local_ip_string, sizeof(local_ip_string));
+    FuriString* remote_ip_string = furi_string_alloc();
+    FuriString* local_ip_string = furi_string_alloc();
 
-    const char* remote_ip_string =
-        (pcb->remote_port != 0) ?
-            ipaddr_ntoa_r(&pcb->remote_ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX) :
-            "*:*";
+    netstat_cli_format_ip_port(&pcb->remote_ip, pcb->remote_port, remote_ip_string);
+    netstat_cli_format_ip_port(&pcb->local_ip, pcb->local_port, local_ip_string);
 
-    printf(
-        "UDP    %-6" U32_F " %-6" U32_F " %-21s %-21s\r\n",
+        "UDP    %-6" U32_F " %-6" U32_F " %-22s %-22s\r\n",
         (u32_t)0,
         (u32_t)0,
-        local_ip_string,
-        remote_ip_string);
+        furi_string_get_cstr(local_ip_string),
+        furi_string_get_cstr(remote_ip_string));
+
+    furi_string_free(local_ip_string);
+    furi_string_free(remote_ip_string);
 }
 
 static bool netstat_cli_print_pcb_table(void) {
     printf(
-        "%-6s %-6s %-6s %-21s %-21s %s\r\n",
+        "%-6s %-6s %-6s %-22s %-22s %s\r\n",
         "Proto",
         "Recv-Q",
         "Send-Q",
@@ -214,7 +225,6 @@ void netstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* co
     }
 
     bool (*print_callback)(void);
-
     if(args.stats) {
         print_callback = netstat_cli_print_memp_stats;
     } else {
