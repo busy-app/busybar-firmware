@@ -139,4 +139,32 @@ struct BusyTimer {
     bool is_demo_mode_enabled;
 };
 
+// busy_timer.c
+
+void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProfileId profile_id);
+
+bool busy_timer_is_running(const BusyTimer* instance);
+
+void busy_timer_start_internal(BusyTimer* instance);
+
+void busy_timer_stop_internal(BusyTimer* instance);
+
+void busy_timer_toggle_internal(BusyTimer* instance);
+
+void busy_timer_skip_internal(BusyTimer* instance);
+
+// busy_timer_api.c
+
 void busy_timer_handle_matter(BusyTimer* instance, MatterSwitchState switch_state);
+
+// busy_timer_smart_home.c
+
+void busy_timer_smart_home_init(BusyTimer* instance);
+
+void busy_timer_smart_home_handle_switch_state(BusyTimer* instance, MatterSwitchState switch_state);
+
+// busy_timer_util.c
+
+void busy_timer_start_app(const BusyAppConfig* app_config);
+
+void busy_timer_exit_app(void);
