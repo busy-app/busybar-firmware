@@ -22,6 +22,26 @@ static const NetstatCliArguments netstat_cli_default_arguments = {
     .stats = false,
 };
 
+static const char* netstat_cli_connection_state_string_map[] = {
+    [CLOSED] = "CLOSED",
+    [LISTEN] = "LISTEN",
+    [SYN_SENT] = "SYN-SENT",
+    [SYN_RCVD] = "SYN-RECEIVED",
+    [ESTABLISHED] = "ESTABLISHED",
+    [FIN_WAIT_1] = "FIN-WAIT-1",
+    [FIN_WAIT_2] = "FIN-WAIT-2",
+    [CLOSE_WAIT] = "CLOSE-WAIT",
+    [CLOSING] = "CLOSING",
+    [LAST_ACK] = "LAST-ACK",
+    [TIME_WAIT] = "TIME-WAIT",
+};
+
+static inline const char* netstat_cli_get_connection_state_string(enum tcp_state state) {
+    return (state < COUNT_OF(netstat_cli_connection_state_string_map)) ?
+               netstat_cli_connection_state_string_map[state] :
+               "UNKNOWN";
+}
+
 static void netstat_cli_format_ip_port(const ip_addr_t* ip, u16_t port, FuriString* buffer) {
     const char* _ip =
         ip_addr_isany(ip) ? "*" : ip4addr_ntoa_r(ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX);
@@ -100,7 +120,7 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb, FuriString* buf
         send_queue_size,
         furi_string_get_cstr(local_ip_string),
         furi_string_get_cstr(remote_ip_string),
-        tcp_debug_state_str(pcb->state));
+        netstat_cli_get_connection_state_string(pcb->state));
 
     furi_string_free(local_ip_string);
     furi_string_free(remote_ip_string);
