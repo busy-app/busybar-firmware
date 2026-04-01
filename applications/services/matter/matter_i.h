@@ -1,15 +1,11 @@
 #pragma once
 
 #include "matter.h"
-#include "matter_cd.h"
-
 #include "matter_common_i.h"
 
 #include <api_lock.h>
 
 #include <intercom/intercom.h>
-
-#define TAG "Matter"
 
 typedef enum {
     MatterCustomEventRequest = 1UL << 0,
@@ -64,8 +60,8 @@ struct Matter {
     FuriState* switch_state;
     IntercomChannel* intercom_ch;
     MatterApiMessage api_message;
-    MatterCd cd;
     MatterCommissionedFabrics fabrics;
+    MatterCertificationConfig cert_config;
 };
 
 // matter_api.c
@@ -75,3 +71,13 @@ void matter_init(Matter* instance);
 bool matter_api_is_waiting_for_response(Matter* instance, MatterApiMessageType message_type);
 
 void matter_api_unlock(Matter* instance, MatterStatus status);
+
+// matter_certification.c
+
+MatterStatus matter_certification_read_config(MatterCertificationConfig* cert_info);
+
+MatterStatus matter_certification_get_cd(
+    MatterCertificationType cert_type,
+    MatterCertificateDeclaration* cd);
+
+MatterStatus matter_certification_set_config(MatterCertificationType cert_type);

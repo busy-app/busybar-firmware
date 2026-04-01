@@ -3,6 +3,8 @@
 #include <furi_hal_rtc.h>
 #include <furi_hal_version.h>
 
+#define TAG "Matter"
+
 #define RX_QUEUE_SIZE 4
 
 #define REQUEST_TIMEOUT_MS  (furi_ms_to_ticks(5000))
@@ -134,6 +136,11 @@ static Matter* matter_alloc(void) {
 
     furi_state_subscribe(instance->switch_state, matter_switch_state_callback, instance);
 
+    if(matter_certification_read_config(&instance->cert_config) != MatterStatusOk) {
+        // TODO: Can we proceed afterwards?
+        FURI_LOG_E(TAG, "Failed to load certification config");
+    }
+
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
@@ -233,35 +240,47 @@ static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameT
 
 static MatterStatus matter_init_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
+    MatterStatus status;
 
-    MatterCd* cd = &instance->cd;
-    matter_cd_init(cd);
+    do {
+        MatterIntercomFrame frame = {};
+        frame.type = MatterIntercomFrameTypeInitialization;
 
-    MatterIntercomFrame frame = {
-        .type = MatterIntercomFrameTypeInitialization,
-    };
+        MatterIntercomInitializationFrame* init_frame = &frame.initialization;
+        const MatterCertificationConfig cert_config = instance->cert_config;
 
-    MatterIntercomInitializationFrame* init = &frame.initialization;
-    matter_cd_prepare_initialization_frame(cd, init);
+        if(cert_config.actual >= MatterCertificationTypeMax) {
+            status = MatterStatusBadConfig;
+            break;
+        }
 
-    init->hardware_version_num = furi_hal_version_get_hw_version();
-    strlcpy(
-        init->hardware_version_str,
-        furi_hal_version_get_hw_version_code(),
-        sizeof(init->hardware_version_str));
+        status = matter_certification_get_cd(cert_config.actual, &init_frame->cd);
 
-    // WARNING: this if block is a temporary solution just to pass certification testing,
-    // because our test lab doesn't have samples with provisioned OTP.
-    // TODO: remove this if block and associated defines after we pass certification testing.
-    if(!init->hardware_version_num) {
-        init->hardware_version_num = DEFAULT_HARDWARE_VERSION;
+        if(status != MatterStatusOk) {
+            break;
+        }
+
+        init_frame->hardware_version_num = furi_hal_version_get_hw_version();
         strlcpy(
-            init->hardware_version_str,
-            DEFAULT_HARDWARE_VERSION_STRING,
-            sizeof(init->hardware_version_str));
-    }
+            init_frame->hardware_version_str,
+            furi_hal_version_get_hw_version_code(),
+            sizeof(init_frame->hardware_version_str));
 
-    const MatterStatus status = matter_send_frame(instance, &frame);
+        // WARNING: this if block is a temporary solution just to pass certification testing,
+        // because our test lab doesn't have samples with provisioned OTP.
+        // TODO: remove this if block and associated defines after we pass certification testing.
+        if(init_frame->hardware_version_num == 0) {
+            init_frame->hardware_version_num = DEFAULT_HARDWARE_VERSION;
+            strlcpy(
+                init_frame->hardware_version_str,
+                DEFAULT_HARDWARE_VERSION_STRING,
+                sizeof(init_frame->hardware_version_str));
+        }
+
+        status = matter_send_frame(instance, &frame);
+
+    } while(false);
+
     return (status != MatterStatusOk) ? status : MATTER_WAIT_FOR_RESPONSE;
 }
 

@@ -19,6 +19,11 @@ typedef struct {
     const char* color;
 } MatterCliSwithchStateDesc;
 
+typedef struct {
+    const char* arg;
+    const char* help;
+} MatterCliCertificationTypeDesc;
+
 static const MatterCliSwithchStateDesc switch_state_descs[MatterSwitchStateMax] = {
     [MatterSwitchStateUnknown] =
         {
@@ -43,6 +48,41 @@ static const char* const startup_modes[MatterSwitchStartupModeMAX] = {
     "TOGGLE",
     "LAST",
 };
+
+static const MatterCliCertificationTypeDesc certification_type_descs[MatterCertificationTypeMax] = {
+    [MatterCertificationTypeProduction] =
+        {
+            .arg = "production",
+            .help = "for end users",
+        },
+    [MatterCertificationTypeDevelopment] =
+        {
+            .arg = "development",
+            .help = "for in-house development and testing",
+        },
+    [MatterCertificationTypeProvisional] =
+        {
+            .arg = "certification",
+            .help = "for performing certification testing",
+        },
+};
+
+static MatterCertificationType matter_cli_get_cert_type_by_arg(const char* arg) {
+    MatterCertificationType cert_type;
+
+    for(cert_type = 0; cert_type < MatterCertificationTypeMax; ++cert_type) {
+        if(strcmp(certification_type_descs[cert_type].arg, arg) == 0) {
+            break;
+        }
+    }
+
+    return cert_type;
+}
+
+static const char* matter_cli_get_arg_by_cert_type(MatterCertificationType cert_type) {
+    return (cert_type < MatterCertificationTypeMax) ? certification_type_descs[cert_type].arg :
+                                                      "(not set)";
+}
 
 // ============
 // Sub-commands
@@ -173,38 +213,52 @@ static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* conte
     }
 }
 
+static void matter_cli_cmd_cd_print_usage(MatterCli* matter_cli) {
+    MatterCertificationConfig cert_config;
+    matter_get_certification_config(matter_cli->matter, &cert_config);
+
+    printf("configured CD : %s\r\n", matter_cli_get_arg_by_cert_type(cert_config.wanted));
+    printf("effective  CD : %s\r\n", matter_cli_get_arg_by_cert_type(cert_config.actual));
+
+    printf("\r\nuse `cd <certificate_name>` to configure new CD\r\n");
+    printf("\r\navailable CDs:\r\n");
+
+    for(uint32_t i = 0; i < COUNT_OF(certification_type_descs); ++i) {
+        const MatterCliCertificationTypeDesc* desc = &certification_type_descs[i];
+        printf("\t%s:\t%s\r\n", desc->arg, desc->help);
+    }
+}
+
 static void matter_cli_cmd_cd(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     furi_assert(context);
     MatterCli* matter_cli = context;
 
-    if(furi_string_empty(args)) {
-        const char* configured = matter_get_wanted_cd_selection(matter_cli->matter);
-        if(!strlen(configured)) configured = "<not set>";
-        printf("configured CD      : %s\r\n", configured);
-        printf(
-            "de facto active CD : %s\r\n", matter_get_de_facto_cd_selection(matter_cli->matter));
+    const MatterCertificationType cert_type =
+        matter_cli_get_cert_type_by_arg(furi_string_get_cstr(args));
 
-        printf("\r\nuse `cd <certificate_name>` to configure new CD\r\n");
+    if(cert_type < MatterCertificationTypeMax) {
+        if(matter_set_certification_config(matter_cli->matter, cert_type) == MatterStatusOk) {
+            printf("Done. Please do a manual hardware reset of both chips.\r\n");
+        } else {
+            printf("Failed to set configuration");
+        }
 
-        printf("\r\navailable CDs:\r\n");
-        printf("  dev: for in-house development and testing\r\n");
-        printf("  certification: for performing certification testing\r\n");
-        printf("  production: for end users\r\n");
-        return;
-    }
-
-    bool success = matter_set_wanted_cd_selection(matter_cli->matter, furi_string_get_cstr(args));
-    if(success) {
-        printf("Done. Please do a manual hardware reset of both chips.\r\n");
     } else {
-        printf("Failed to set configuration");
+        matter_cli_cmd_cd_print_usage(matter_cli);
     }
 }
 
 // =========
 // Utilities
 // =========
+
+static void matter_cli_format_switch_state(FuriString* out, MatterSwitchState switch_state) {
+    furi_assert(switch_state < MatterSwitchStateMax);
+
+    const MatterCliSwithchStateDesc* desc = &switch_state_descs[switch_state];
+    furi_string_cat_printf(out, "Switch: %s%s%s", desc->color, desc->label, ANSI_RESET);
+}
 
 static void matter_cli_print_event(const void* message, void* context) {
     furi_assert(message);
@@ -238,14 +292,12 @@ static void matter_cli_switch_state_callback(const void* item, void* context) {
     furi_assert(context);
 
     MatterCli* matter_cli = context;
+    FuriString* notification_str = furi_string_alloc();
 
     const MatterSwitchState switch_state = *(MatterSwitchState*)item;
-    furi_assert(switch_state < MatterSwitchStateMax);
-
-    const MatterCliSwithchStateDesc* desc = &switch_state_descs[switch_state];
-    FuriString* notification_str =
-        furi_string_alloc_printf("Switch: %s%s%s", desc->color, desc->label, ANSI_RESET);
+    matter_cli_format_switch_state(notification_str, switch_state);
     cli_shell_notification_print(matter_cli->shell, notification_str);
+
     furi_string_free(notification_str);
 }
 
@@ -255,11 +307,22 @@ static void matter_cli_switch_state_callback(const void* item, void* context) {
 
 static void matter_cli_motd(void* context) {
     furi_assert(context);
+    MatterCli* matter_cli = context;
 
     printf("\r\n");
     printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE "   ↓  Matter  " ANSI_RESET "\r\n");
     printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE "  ↗ ↖ CLI     " ANSI_RESET "\r\n");
     printf("\r\n");
+
+    FuriString* formatted_state = furi_string_alloc();
+
+    MatterSwitchState switch_state;
+    furi_state_get(matter_get_switch_state(matter_cli->matter), &switch_state);
+    matter_cli_format_switch_state(formatted_state, switch_state);
+
+    printf("  %s\r\n", furi_string_get_cstr(formatted_state));
+
+    furi_string_free(formatted_state);
 }
 
 static MatterCli* matter_cli_alloc(PipeSide* pipe) {
@@ -275,7 +338,8 @@ static MatterCli* matter_cli_alloc(PipeSide* pipe) {
     matter_cli->subscription = furi_pubsub_subscribe(pubsub, matter_cli_print_event, matter_cli);
 
     FuriState* switch_state = matter_get_switch_state(matter_cli->matter);
-    // FIXME: Crutch because of the overall unfortunate design
+    // FIXME: cli_shell_notification_print() cannot be called from the cli thread,
+    //        hence furi_state_get_subscribe() hack
     matter_cli->switch_state_sub =
         furi_state_get_subscribe(switch_state, NULL, matter_cli_switch_state_callback, matter_cli);
 

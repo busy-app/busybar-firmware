@@ -135,9 +135,11 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 
     if(frame->type == MatterIntercomFrameTypeInitialization) {
         FURI_LOG_D(TAG, "Initialization frame");
-        auto init = &frame->initialization;
+        const auto init = &frame->initialization;
+        const auto cd = &init->cd;
+
         Credentials::BSB::GetDeviceAttestationCredentialsProvider()->SetCertificationDeclaration(
-            init->cd_certificate, init->cd_certificate_length);
+            cd->data, cd->length);
 
         DeviceLayer::BSB::GetDeviceInstanceInfoProvider()->SetHardwareVersion(
             init->hardware_version_num, init->hardware_version_str);

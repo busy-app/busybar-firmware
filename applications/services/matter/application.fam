@@ -29,7 +29,7 @@ App(
     sources=[
         "matter.c",
         "matter_api.c",
-        "matter_cd.c",
+        "matter_certification.c",
     ],
     resources="resources",
 )

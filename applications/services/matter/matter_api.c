@@ -104,20 +104,20 @@ FuriState* matter_get_switch_state(Matter* instance) {
     return instance->switch_state;
 }
 
-const char* matter_get_wanted_cd_selection(Matter* instance) {
-    furi_assert(instance);
-    return matter_cd_get_wanted_selection(&instance->cd);
+MatterStatus matter_set_certification_config(Matter* instance, MatterCertificationType cert_type) {
+    furi_check(instance);
+    furi_check(cert_type < MatterCertificationTypeMax);
+
+    return matter_certification_set_config(cert_type);
 }
 
-MatterStatus matter_set_wanted_cd_selection(Matter* instance, const char* selection) {
-    furi_assert(instance);
-    furi_assert(selection);
-    return matter_cd_set_wanted_selection(&instance->cd, selection);
-}
+MatterStatus
+    matter_get_certification_config(Matter* instance, MatterCertificationConfig* cert_info) {
+    furi_check(instance);
+    furi_check(cert_info);
 
-const char* matter_get_de_facto_cd_selection(Matter* instance) {
-    furi_assert(instance);
-    return matter_cd_get_de_facto_selection(&instance->cd);
+    *cert_info = instance->cert_config;
+    return MatterStatusOk;
 }
 
 // Internal API

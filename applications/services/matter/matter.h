@@ -56,6 +56,18 @@ typedef struct {
     time_t last_status_at; //<! UTC Unix millisecond timestamp of latest status update..
 } MatterCommissionedFabrics;
 
+typedef enum {
+    MatterCertificationTypeProduction,
+    MatterCertificationTypeDevelopment,
+    MatterCertificationTypeProvisional,
+    MatterCertificationTypeMax,
+} MatterCertificationType;
+
+typedef struct {
+    MatterCertificationType wanted;
+    MatterCertificationType actual;
+} MatterCertificationConfig;
+
 /**
  * @brief Get a PubSub to listen to Matter events.
  *
@@ -134,34 +146,55 @@ MatterStatus matter_get_commissioned_fabrics(Matter* instance, MatterCommissione
 MatterStatus matter_factory_reset(Matter* instance);
 
 /**
- * @brief Get the currently selected Certification Declaration.
- * 
- * @param[in] instance Service instance
- * 
- * @returns Name of the Certification Declaration variant currently marked as "wanted"
- */
-const char* matter_get_wanted_cd_selection(Matter* instance);
-
-/**
- * @brief Set the currently selected Certification Declaration.
- * 
- * @param[in,out] instance pointer to the service instance
- * @param[in] selection Wanted selection
- * 
+ * @brief
+ *
  * @warning Changes will only apply after a reboot
- * 
- * @returns true on success
+ *
+ * @param[in,out] instance pointer to the service instance
+ *
+ * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
-MatterStatus matter_set_wanted_cd_selection(Matter* instance, const char* selection);
+MatterStatus matter_set_certification_config(Matter* instance, MatterCertificationType cert_type);
 
 /**
- * @brief Get the currently de-facto active Certification Declaration.
- * 
+ * @brief
+ *
  * @param[in,out] instance pointer to the service instance
- * 
- * @returns name of the Certification Declaration variant that Matter is currently using
+ *
+ * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
-const char* matter_get_de_facto_cd_selection(Matter* instance);
+MatterStatus
+    matter_get_certification_config(Matter* instance, MatterCertificationConfig* cert_config);
+
+///**
+// * @brief Get the currently selected Certification Declaration.
+// *
+// * @param[in] instance Service instance
+// *
+// * @returns Name of the Certification Declaration variant currently marked as "wanted"
+// */
+//const char* matter_get_wanted_cd_selection(Matter* instance);
+//
+///**
+// * @brief Set the currently selected Certification Declaration.
+// *
+// * @param[in,out] instance pointer to the service instance
+// * @param[in] selection Wanted selection
+// *
+// * @warning Changes will only apply after a reboot
+// *
+// * @returns true on success
+// */
+//MatterStatus matter_set_wanted_cd_selection(Matter* instance, const char* selection);
+//
+///**
+// * @brief Get the currently de-facto active Certification Declaration.
+// *
+// * @param[in,out] instance pointer to the service instance
+// *
+// * @returns name of the Certification Declaration variant that Matter is currently using
+// */
+//const char* matter_get_de_facto_cd_selection(Matter* instance);
 
 #ifdef __cplusplus
 }

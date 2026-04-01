@@ -10,6 +10,11 @@
 extern "C" {
 #endif
 
+typedef struct {
+    uint8_t data[512];
+    uint16_t length;
+} MatterCertificateDeclaration;
+
 // ===============
 // Specific frames
 // ===============
@@ -20,8 +25,7 @@ extern "C" {
 typedef struct {
     uint8_t hardware_version_num;
     char hardware_version_str[20];
-    uint16_t cd_certificate_length;
-    uint8_t cd_certificate[512];
+    MatterCertificateDeclaration cd;
 } MatterIntercomInitializationFrame;
 
 /**
