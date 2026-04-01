@@ -115,7 +115,8 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb, FuriString* buf
 
     furi_string_cat_printf(
         buffer,
-        "TCP    %-6" U32_F " %-6" U32_F " %-22s %-22s %s\r\n",
+        "TCP    %-6" U32_F " %-6" U32_F
+        " %-22s %-22s %s" ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n",
         receive_queue_size,
         send_queue_size,
         furi_string_get_cstr(local_ip_string),
@@ -135,7 +136,8 @@ static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb, FuriString* buf
 
     furi_string_cat_printf(
         buffer,
-        "UDP    %-6" U32_F " %-6" U32_F " %-22s %-22s\r\n",
+        "UDP    %-6" U32_F " %-6" U32_F
+        " %-22s %-22s" ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n",
         (u32_t)0,
         (u32_t)0,
         furi_string_get_cstr(local_ip_string),
@@ -147,7 +149,7 @@ static void netstat_cli_print_udp_pcb_entry(struct udp_pcb* pcb, FuriString* buf
 
 static bool netstat_cli_print_pcb_table(void) {
     printf(
-        "%-6s %-6s %-6s %-22s %-22s %s\r\n",
+        "%-6s %-6s %-6s %-22s %-22s %s" ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n",
         "Proto",
         "Recv-Q",
         "Send-Q",
@@ -182,7 +184,13 @@ static bool netstat_cli_print_pcb_table(void) {
 static bool netstat_cli_print_memp_stats(void) {
 #if LWIP_STATS && MEMP_STATS && LWIP_STATS_DISPLAY
     printf(
-        "%-20s %6s %6s %9s %6s %6s\r\n", "Pool", "Used", "Total", "Watermark", "Errors", "%Util");
+        "%-20s %6s %6s %9s %6s %6s" ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n",
+        "Pool",
+        "Used",
+        "Total",
+        "Watermark",
+        "Errors",
+        "%Util");
 
     FuriString* output_buffer = furi_string_alloc();
 
@@ -198,7 +206,7 @@ static bool netstat_cli_print_memp_stats(void) {
         furi_string_cat_printf(
             output_buffer,
             "%-20s %6" MEM_SIZE_F " %6" MEM_SIZE_F " %9" MEM_SIZE_F " %6" STAT_COUNTER_F
-            " %6" PRIu32 "\r\n",
+            " %6" PRIu32 ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n",
             pool_desc->desc,
             pool_stats->used,
             pool_stats->avail,
@@ -270,10 +278,10 @@ void netstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* co
     if(args.continuous) {
         while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
             printf(ANSI_CURSOR_POS("1", "1"));
-            printf(ANSI_ERASE_DISPLAY(ANSI_ERASE_FROM_CURSOR_TO_END));
 
             bool did_print_fail = !print_callback();
 
+            printf(ANSI_ERASE_DISPLAY(ANSI_ERASE_FROM_CURSOR_TO_END));
             fflush(stdout);
 
             if(did_print_fail) break;
