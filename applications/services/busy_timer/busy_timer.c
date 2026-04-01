@@ -196,6 +196,7 @@ static void busy_timer_notify_initial_state(const BusyTimer* instance) {
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);
     busy_timer_notify_tick(instance);
+    busy_timer_notify_paused(instance);
 }
 
 static BusyTimerState busy_timer_calc_next_state(const BusyTimer* instance) {
@@ -598,7 +599,6 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     busy_timer_start_app(&snapshot->app_config);
 
     busy_timer_notify_initial_state(instance);
-    busy_timer_notify_paused(instance);
 
     busy_timer_schedule_publish_last_known_snapshot(instance);
 }
