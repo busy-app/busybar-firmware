@@ -53,6 +53,7 @@ static void mqtt_streaming_pubsub_callback(const void* message, void* context) {
             FURI_LOG_E(TAG, "Connection lost");
             const MqttStreamingApiMessage api_msg = {
                 .type = MqttStreamingApiMessageTypeStop,
+                .response_topic = NULL,
             };
 
             furi_message_queue_put(instance->api_queue, &api_msg, FuriWaitForever);
@@ -108,7 +109,9 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
 
             stop_publisher(instance);
             furi_event_loop_timer_stop(instance->timeout_timer);
-            furi_string_free(api_msg.response_topic);
+            if(api_msg.response_topic) {
+                furi_string_free(api_msg.response_topic);
+            }
         } else {
             furi_crash("Invalid MqttStreamingApiMessageType value");
         }

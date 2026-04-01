@@ -24,6 +24,8 @@ class TestSmartHomePairingAPI:
             "completed_successfully",
             "failed",
         ]
+        if response.latest_pairing_status.timestamp is not None:
+            assert isinstance(response.latest_pairing_status.timestamp, int)
 
     @allure.title("POST /api/smart_home/pairing (start)")
     @pytest.mark.api
