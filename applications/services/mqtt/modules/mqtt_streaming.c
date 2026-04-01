@@ -53,6 +53,7 @@ static void mqtt_streaming_pubsub_callback(const void* message, void* context) {
             FURI_LOG_E(TAG, "Connection lost");
             const MqttStreamingApiMessage api_msg = {
                 .type = MqttStreamingApiMessageTypeStop,
+                .response_topic = NULL,
             };
 
             furi_message_queue_put(instance->api_queue, &api_msg, FuriWaitForever);
