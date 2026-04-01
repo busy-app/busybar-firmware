@@ -128,6 +128,8 @@ def sign_rps_via_service(service_url, token, profile_name, input_rps, output_rps
             "Authorization": f"Bearer {token}",
             "Content-Type": f"multipart/form-data; boundary={boundary}",
             "Content-Length": str(len(body)),
+            "User-Agent": "fbt-firmware-signer/1.0",
+            "Accept": "application/octet-stream",
         },
     )
 
