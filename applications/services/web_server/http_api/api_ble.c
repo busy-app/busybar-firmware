@@ -34,7 +34,7 @@ static bool api_ble_enable_callback(
     bool result = ble_start(ble);
     furi_record_close(RECORD_BLE);
 
-    int code = 404;
+    int code = 503;
     const char* message = "Unable to start BLE";
     if(result)
         MG_REPLY_OK(conn);
@@ -60,7 +60,7 @@ static bool api_ble_disable_callback(
     bool result = ble_stop(ble);
     furi_record_close(RECORD_BLE);
 
-    int code = 404;
+    int code = 503;
     const char* message = "Unable to stop BLE";
     if(result)
         MG_REPLY_OK(conn);

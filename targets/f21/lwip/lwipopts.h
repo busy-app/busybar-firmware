@@ -8,7 +8,13 @@
 #define DEFAULT_RAW_RECVMBOX_SIZE 32
 #define DEFAULT_UDP_RECVMBOX_SIZE 32
 #define DEFAULT_TCP_RECVMBOX_SIZE 32
-#define DEFAULT_ACCEPTMBOX_SIZE   32
+/* Must be >= TCP_DEFAULT_LISTEN_BACKLOG to avoid triggering a bug in lwIP's
+ * accept_function() (api_msg.c ~line 594): when LWIP_NETCONN_FULLDUPLEX=1 and
+ * sys_mbox_trypost fails (mbox full), netconn_free() calls netconn_drain() on a
+ * freshly allocated netconn without NETCONN_FLAG_MBOXINVALID set, hitting
+ * LWIP_ASSERT("netconn marked closed"). Fix: set newconn->flags |=
+ * NETCONN_FLAG_MBOXINVALID before netconn_free() in the cleanup path. */
+#define DEFAULT_ACCEPTMBOX_SIZE   64
 
 #define LWIP_MDNS_RESPONDER 1
 
@@ -38,7 +44,7 @@
 #define MEMP_NUM_UDP_PCB                       32
 #define MEMP_NUM_TCP_PCB                       64
 #define MEMP_NUM_TCP_PCB_LISTEN                16
-#define MEMP_NUM_TCP_SEG                       128
+#define MEMP_NUM_TCP_SEG                       256
 #define MEMP_NUM_ALTCP_PCB                     MEMP_NUM_TCP_PCB
 #define MEMP_NUM_REASSDATA                     32
 #define MEMP_NUM_FRAG_PBUF                     32
@@ -160,7 +166,7 @@
 #define LWIP_HAVE_LOOPIF                   (LWIP_NETIF_LOOPBACK && !LWIP_SINGLE_NETIF)
 #define LWIP_LOOPIF_MULTICAST              0
 #define LWIP_NETIF_LOOPBACK                1
-#define LWIP_LOOPBACK_MAX_PBUFS            0
+#define LWIP_LOOPBACK_MAX_PBUFS            32
 #define LWIP_NETIF_LOOPBACK_MULTITHREADING (!NO_SYS)
 #define TCPIP_THREAD_NAME                  "LwipWorker"
 #define LWIP_NETCONN                       1
@@ -187,7 +193,7 @@
 #define TCP_KEEPINTVL_DEFAULT 60000UL
 #define TCP_KEEPCNT_DEFAULT   9U
 
-#define LWIP_STATS_DISPLAY                  0
+#define LWIP_STATS_DISPLAY                  1
 #define LINK_STATS                          1
 #define ETHARP_STATS                        (LWIP_ARP)
 #define IP_STATS                            1
