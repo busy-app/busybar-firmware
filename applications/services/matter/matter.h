@@ -56,16 +56,25 @@ typedef struct {
     time_t last_status_at; //<! UTC Unix millisecond timestamp of latest status update..
 } MatterCommissionedFabrics;
 
+/**
+ * @brief Enumeration of available certification types.
+ *
+ * @warning The order of the elements denotes the fallback order.
+ *          Do NOT change it unless necessary.
+ */
 typedef enum {
-    MatterCertificationTypeProduction,
-    MatterCertificationTypeDevelopment,
-    MatterCertificationTypeProvisional,
-    MatterCertificationTypeMax,
+    MatterCertificationTypeProduction, /**< Certification declaration for production devices */
+    MatterCertificationTypeDevelopment, /**< Certification declaration for development */
+    MatterCertificationTypeProvisional, /**< Certification declaration for lab testing */
+    MatterCertificationTypeMax, /**< Special value, invalid or internal use */
 } MatterCertificationType;
 
+/**
+ * @brief Structure describing certification declaration settings.
+ */
 typedef struct {
-    MatterCertificationType wanted;
-    MatterCertificationType actual;
+    MatterCertificationType wanted; /**< Preferred certification type */
+    MatterCertificationType actual; /**< Actual certification type based on installed files */
 } MatterCertificationConfig;
 
 /**
@@ -146,55 +155,27 @@ MatterStatus matter_get_commissioned_fabrics(Matter* instance, MatterCommissione
 MatterStatus matter_factory_reset(Matter* instance);
 
 /**
- * @brief
+ * @brief Set the preferred certification config.
  *
  * @warning Changes will only apply after a reboot
  *
  * @param[in,out] instance pointer to the service instance
+ * @param[in] cert_type value corresponding to the preferred certification type
  *
  * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
 MatterStatus matter_set_certification_config(Matter* instance, MatterCertificationType cert_type);
 
 /**
- * @brief
+ * @brief Get the certification configuration, including preferred and actual configs.
  *
  * @param[in,out] instance pointer to the service instance
+ * @param[out] cert_config pointer to the object to contain the config (must be allocated)
  *
  * @returns @c MatterStatusOk on success, any other value from @c MatterStatus enum on error
  */
 MatterStatus
     matter_get_certification_config(Matter* instance, MatterCertificationConfig* cert_config);
-
-///**
-// * @brief Get the currently selected Certification Declaration.
-// *
-// * @param[in] instance Service instance
-// *
-// * @returns Name of the Certification Declaration variant currently marked as "wanted"
-// */
-//const char* matter_get_wanted_cd_selection(Matter* instance);
-//
-///**
-// * @brief Set the currently selected Certification Declaration.
-// *
-// * @param[in,out] instance pointer to the service instance
-// * @param[in] selection Wanted selection
-// *
-// * @warning Changes will only apply after a reboot
-// *
-// * @returns true on success
-// */
-//MatterStatus matter_set_wanted_cd_selection(Matter* instance, const char* selection);
-//
-///**
-// * @brief Get the currently de-facto active Certification Declaration.
-// *
-// * @param[in,out] instance pointer to the service instance
-// *
-// * @returns name of the Certification Declaration variant that Matter is currently using
-// */
-//const char* matter_get_de_facto_cd_selection(Matter* instance);
 
 #ifdef __cplusplus
 }
