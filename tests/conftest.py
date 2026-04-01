@@ -122,7 +122,7 @@ def web_session() -> requests.Session:
     def logged_request(*args, **kwargs):
         # Set default timeout if not provided (prevent infinite hang)
         if "timeout" not in kwargs:
-            kwargs["timeout"] = 30
+            kwargs["timeout"] = 10
         start_time = time.time()
         response = original_request(*args, **kwargs)
         duration = time.time() - start_time

@@ -304,6 +304,10 @@ static bool api_wifi_connect_parse_config(
     FuriString* buf = furi_string_alloc();
     do {
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SSID, buf, error_msg)) break;
+        if(furi_string_empty(buf)) {
+            furi_string_printf(error_msg, "%s must not be empty", WIFI_JSON_KEY_SSID);
+            break;
+        }
         strncpy(credentials->ssid, furi_string_get_cstr(buf), SSID_MAX_LEN);
 
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_PASSWORD, buf, error_msg)) break;

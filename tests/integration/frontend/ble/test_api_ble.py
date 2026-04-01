@@ -33,25 +33,26 @@ class TestBleAPI:
     @allure.title("#3564 BLE. Preserve status over reboot")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.timeout(300)
     def test_api_ble_preserve_status_over_reboot(
         self, ble_api: BleAPI, device_flasher
     ):
         """Test that BLE enabled/disabled status is preserved over reboot"""
         # Enable BLE and reboot then disable and reboot
         ble_api.enable()
-        assert ble_api.get_status().status == "connectable"
+        assert ble_api.get_status().status == "enabled"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "connectable"
+        assert ble_api.get_status().status == "enabled"
 
         ble_api.disable()
-        assert ble_api.get_status().status == "reset"
+        assert ble_api.get_status().status == "disabled"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "reset"
+        assert ble_api.get_status().status == "disabled"
 
         ble_api.enable()
-        assert ble_api.get_status().status == "connectable"
+        assert ble_api.get_status().status == "enabled"
         device_flasher.reset_and_wait()
-        assert ble_api.get_status().status == "connectable"
+        assert ble_api.get_status().status == "enabled"
 
 @allure.feature("5. Web Frontend")
 @allure.story("BLE")

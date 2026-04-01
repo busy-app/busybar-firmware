@@ -46,6 +46,11 @@ static bool api_display_draw_parse_text_element(
         };
         const char* font_path =
             value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
+        if(strcmp(font_path, font_paths[0]) == 0 && strcmp(font_name, font_names[0]) != 0) {
+            // Unknown font name mapped to default — reject
+            free(font_name);
+            break;
+        }
         canvas_element->text.font_path = strdup(font_path);
         free(font_name);
 
