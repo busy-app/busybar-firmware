@@ -131,8 +131,6 @@ typedef struct {
     uint32_t props_count;
     MqttQos qos;
     bool* is_success;
-    MqttPublishDoneCallback publish_done_callback;
-    void* publish_done_callback_context;
 } MqttApiMessagePublish;
 
 typedef struct {
@@ -201,9 +199,7 @@ bool mqtt_publish_internal(
     const void* data,
     size_t data_size,
     const MqttProperty* props,
-    uint32_t props_count,
-    MqttPublishDoneCallback publish_done_callback,
-    void* callback_context);
+    uint32_t props_count);
 
 void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw_property);
 
