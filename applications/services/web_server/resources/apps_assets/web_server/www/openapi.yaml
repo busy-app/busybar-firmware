@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 16.0.0
+  version: 17.0.0
   contact:
     name: tbd
 
@@ -2817,9 +2817,9 @@ components:
               description: 'Latest state of smart home pairing (Matter "commissioning") process. Note: "never_started" only refers to the current power cycle of the device; this status is not recorded across reboots.'
               example: "completed_successfully"
             timestamp:
-              type: string
-              description: "UTC Unix millisecond timestamp of latest state update. Only present when a status update has occurred. Note: it's a number in a string."
-              example: "1769436711000"
+              type: integer
+              description: "UTC Unix second timestamp of latest state update. Only present when a status update has occurred."
+              example: 1769436711
     SmartHomePairingPayload:
       type: object
       description: Set of information for pairing with a Matter smart home

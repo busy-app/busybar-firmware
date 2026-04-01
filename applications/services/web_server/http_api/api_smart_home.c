@@ -32,11 +32,8 @@ static void
     };
     cJSON_AddStringToObject(status_upd, "value", status_string[fabrics.last_status]);
 
-    // representing a millisecond timestamp as a number will have precision issues
     if(fabrics.last_status_at) {
-        char timestamp[32];
-        snprintf(timestamp, sizeof(timestamp), "%" PRIu64, fabrics.last_status_at);
-        cJSON_AddStringToObject(status_upd, "timestamp", timestamp);
+        cJSON_AddNumberToObject(status_upd, "timestamp", fabrics.last_status_at / 1000);
     }
 
     char* serialized = cJSON_PrintUnformatted(object);

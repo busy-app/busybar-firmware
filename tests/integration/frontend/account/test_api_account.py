@@ -58,9 +58,9 @@ class TestAccountProfileAPI:
         """Test GET /api/account/profile endpoint"""
         response = account_api.get_profile()
 
-        assert response.status in ["dev", "prod", "local", "custom"]
+        assert response.profile in ["dev", "prod", "local", "custom"]
 
-        if response.status == "custom":
+        if response.profile == "custom":
             assert response.custom_url
 
     @allure.id("3487")
@@ -73,7 +73,7 @@ class TestAccountProfileAPI:
         with allure.step("Get current profile to restore later"):
             original = account_api.get_profile()
             allure.attach(
-                json.dumps({"state": original.status, "custom_url": original.custom_url}, indent=2),
+                json.dumps({"profile": original.profile, "custom_url": original.custom_url}, indent=2),
                 name="Original Profile",
                 attachment_type=allure.attachment_type.JSON
             )
@@ -82,12 +82,12 @@ class TestAccountProfileAPI:
 
         with allure.step("Verify profile was updated"):
             verify = account_api.get_profile()
-            assert verify.status == profile
+            assert verify.profile == profile
 
         # Restore original profile
-        if original.status != profile:
-            with allure.step(f"Restore original profile: {original.status}"):
-                account_api.set_profile(original.status, original.custom_url)
+        if original.profile != profile:
+            with allure.step(f"Restore original profile: {original.profile}"):
+                account_api.set_profile(original.profile, original.custom_url)
 
     @allure.id("3835")
     @allure.title("POST /api/account/profile (custom)")
@@ -104,13 +104,13 @@ class TestAccountProfileAPI:
 
         with allure.step("Verify custom profile was set"):
             verify = account_api.get_profile()
-            assert verify.status == "custom"
+            assert verify.profile == "custom"
             assert verify.custom_url == custom_url
 
         # Restore original profile
-        if original.status:
-            with allure.step(f"Restore original profile: {original.status}"):
-                account_api.set_profile(original.status, original.custom_url)
+        if original.profile:
+            with allure.step(f"Restore original profile: {original.profile}"):
+                account_api.set_profile(original.profile, original.custom_url)
 
     @allure.id("3836")
     @allure.title("POST /api/account/profile (invalid)")

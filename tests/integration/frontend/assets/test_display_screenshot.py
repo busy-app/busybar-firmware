@@ -173,7 +173,7 @@ def _draw_and_capture(
     display: int = 0,
 ) -> bytes:
     """Draw elements, wait for render, capture screen, return raw bytes."""
-    payload = {"app_id": app_id, "elements": elements}
+    payload = {"application_name": app_id, "elements": elements}
     if priority is not None:
         payload["priority"] = priority
     response = assets_api.draw_raw(payload)
@@ -384,7 +384,7 @@ class TestDisplayPriority:
             with allure.step("Attempt draw with low priority (1)"):
                 low_element = _make_front_text_element("LOW", color="#FF0000FF")
                 response = assets_api.draw_raw({
-                    "app_id": "low_prio",
+                    "application_name": "low_prio",
                     "priority": 1,
                     "elements": [low_element],
                 })
