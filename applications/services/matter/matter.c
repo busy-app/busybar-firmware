@@ -236,7 +236,8 @@ static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameT
 
 // ========= API message handlers  =========
 
-static MatterStatus matter_init_backend_api_message_handler(Matter* instance, MatterApiMessageData* data) {
+static MatterStatus
+    matter_init_backend_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
     MatterStatus status;
 
