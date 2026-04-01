@@ -12,7 +12,7 @@ typedef enum {
 } MatterCustomEvent;
 
 typedef enum {
-    MatterApiMessageTypeInit,
+    MatterApiMessageTypeInitBackend,
     MatterApiMessageTypeSetSwitchState,
     MatterApiMessageTypeSetSwitchStartupMode,
     MatterApiMessageTypeStartCommissioning,
@@ -66,7 +66,7 @@ struct Matter {
 
 // matter_api.c
 
-void matter_init(Matter* instance);
+void matter_init_backend(Matter* instance);
 
 bool matter_api_is_waiting_for_response(Matter* instance, MatterApiMessageType message_type);
 

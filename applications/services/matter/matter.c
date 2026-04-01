@@ -16,11 +16,9 @@
 #define MATTER_WAIT_FOR_RESPONSE (MatterStatusMax)
 
 typedef MatterStatus (*MatterApiMessageHandler)(Matter* instance, MatterApiMessageData* data);
-
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax];
 
 typedef bool (*MatterResponseHandler)(Matter* instance, const MatterIntercomFrame* response);
-
 static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameTypeMax];
 
 static void matter_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -145,7 +143,7 @@ static Matter* matter_alloc(void) {
     instance->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
 
-    matter_init(instance);
+    matter_init_backend(instance);
 
     furi_record_create(RECORD_MATTER, instance);
 
@@ -158,7 +156,7 @@ static bool
     matter_backend_ready_response_handler(Matter* instance, const MatterIntercomFrame* response) {
     UNUSED(response);
     const bool should_unlock_api =
-        matter_api_is_waiting_for_response(instance, MatterApiMessageTypeInit);
+        matter_api_is_waiting_for_response(instance, MatterApiMessageTypeInitBackend);
     return should_unlock_api;
 }
 
@@ -238,7 +236,7 @@ static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameT
 
 // ========= API message handlers  =========
 
-static MatterStatus matter_init_api_message_handler(Matter* instance, MatterApiMessageData* data) {
+static MatterStatus matter_init_backend_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
     MatterStatus status;
 
@@ -345,7 +343,7 @@ static MatterStatus
 }
 
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax] = {
-    [MatterApiMessageTypeInit] = matter_init_api_message_handler,
+    [MatterApiMessageTypeInitBackend] = matter_init_backend_api_message_handler,
     [MatterApiMessageTypeSetSwitchState] = matter_set_switch_state_api_message_nandler,
     [MatterApiMessageTypeSetSwitchStartupMode] =
         matter_set_switch_startup_mode_api_message_nandler,

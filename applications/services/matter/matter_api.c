@@ -27,9 +27,9 @@ static void matter_api_reset_message(MatterApiMessage* api_message) {
 
 // =========  Message-based access API (private) =========
 
-void matter_init(Matter* instance) {
+void matter_init_backend(Matter* instance) {
     const MatterApiMessage api_message = {
-        .type = MatterApiMessageTypeInit,
+        .type = MatterApiMessageTypeInitBackend,
     };
 
     matter_api_send_message_internal(instance, &api_message);
