@@ -9,7 +9,6 @@
 #include <input/input.h>
 #include <gui/gui.h>
 
-
 static void brightness_state_callback(const void* item, void* context);
 static void time_settings_state_callback(const void* item, void* context);
 static void wifi_info_state_callback(const void* item, void* context);
