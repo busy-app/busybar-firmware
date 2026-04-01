@@ -115,7 +115,11 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
 
     } else if(frame.type == MatterIntercomFrameTypeFabricCountUpdate) {
         matter->fabrics.count = frame.fabric_count.fabric_count;
-
+        MatterEvent event = {
+            .type = MatterEventTypeFabricCountChanged,
+            .fabric_count = matter->fabrics.count,
+        };
+        furi_pubsub_publish(matter->pubsub, &event);
     } else {
         FURI_LOG_E(TAG, "Other side is using a different Intercom protocol version");
     }

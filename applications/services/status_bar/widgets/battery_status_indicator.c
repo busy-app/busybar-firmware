@@ -27,7 +27,7 @@ static void
     BatteryStatusIndicator* instance = (BatteryStatusIndicator*)obj;
 
     lv_obj_t* background_image = lv_image_create(obj);
-    lv_image_set_src(background_image, STATUS_BAR_IMG_PATH("battery_8x18.bin"));
+    lv_image_set_src(background_image, STATUS_BAR_IMG_PATH("battery_8x18.image"));
     lv_obj_refr_size(background_image);
 
     instance->charge_level_bar = lv_bar_create(background_image);
@@ -45,11 +45,12 @@ static void
     instance->is_charging_state_image = lv_image_create(instance->charge_level_bar);
     lv_obj_center(instance->is_charging_state_image);
     lv_image_set_src(
-        instance->is_charging_state_image, STATUS_BAR_IMG_PATH("battery_charging_4x7.bin"));
+        instance->is_charging_state_image, STATUS_BAR_IMG_PATH("battery_charging_4x7.image"));
 
     instance->is_error_state_image = lv_image_create(background_image);
     lv_obj_center(instance->is_error_state_image);
-    lv_image_set_src(instance->is_error_state_image, STATUS_BAR_IMG_PATH("battery_error_2x9.bin"));
+    lv_image_set_src(
+        instance->is_error_state_image, STATUS_BAR_IMG_PATH("battery_error_2x9.image"));
 
     instance->charge_level_label = lv_label_create(obj);
     lv_obj_set_style_margin_top(instance->charge_level_label, 1, LV_PART_MAIN);

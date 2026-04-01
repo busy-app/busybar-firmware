@@ -161,8 +161,8 @@ int32_t system_settings_entry(void* arg) {
         furi_string_set_str(descriptor->front_title, "System");
         furi_string_set_str(descriptor->back_title, "System");
 
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("system_settings_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("system_settings_back_11x11.bin"));
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("system_settings_front_8x8.image"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("system_settings_back_11x11.image"));
         return 0;
     }
 

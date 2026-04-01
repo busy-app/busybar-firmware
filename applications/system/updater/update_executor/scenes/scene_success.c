@@ -27,7 +27,7 @@ static void update_executor_success_scene_on_enter(void* context) {
         widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
 
         Image* front_image = image_alloc(flex_box_get_base(scene->front_box));
-        image_set_source(front_image, SHARED_IMG_PATH("checkmark_front_8x8.bin"));
+        image_set_source(front_image, SHARED_IMG_PATH("checkmark_front_8x8.image"));
 
         Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
         label_set_text(front_label, "Update completed");
@@ -41,7 +41,7 @@ static void update_executor_success_scene_on_enter(void* context) {
         widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
 
         Image* back_image = image_alloc(flex_box_get_base(scene->back_box));
-        image_set_source(back_image, SHARED_IMG_PATH("checkmark_back_11x11.bin"));
+        image_set_source(back_image, SHARED_IMG_PATH("checkmark_back_11x11.image"));
         widget_set_padding(image_get_base(back_image), 2, 3, 2, 3);
 
         Label* back_label = label_alloc(flex_box_get_base(scene->back_box));

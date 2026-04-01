@@ -18,7 +18,7 @@ sources = []
 for f in image_src_files:
     internal_name = "I_" + splitext(f.name)[0]
     file_node = libenv.File(internal_name + ".c")
-    sources.append(libenv.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="C", IMAGE_INTERNAL_NAME=internal_name))
+    sources.append(libenv.ImageConverter(file_node, f, FORMAT="C"))
 
 libenv.ImageHeaderGenerator(img_header_dir.File("assets_images.h"), sources)
 

@@ -315,7 +315,7 @@ class Main(App):
         if not device_uid:
             raise RuntimeError("Could not read u5_hardware_uid from device_info")
 
-        if not insecure and info.get("sl_m4_secureboot") != "1":
+        if not insecure and info.get("sl_m4_secureboot") != "true":
             raise RuntimeError(
                 "Key wrapping requested but device does not support secure boot"
                 " (sl_m4_secureboot is not enabled). Pass --insecure-crypto to"

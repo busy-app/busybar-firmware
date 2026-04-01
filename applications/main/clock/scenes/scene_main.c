@@ -74,7 +74,7 @@ static void clock_scene_main_on_enter(void* context) {
             scene->back_menu,
             "Start",
             NULL,
-            SHARED_IMG_PATH("start_11x11.bin"),
+            SHARED_IMG_PATH("start_11x11.image"),
             ClockSceneMainEventStart,
             clock_scene_main_menu_callback,
             instance);
@@ -82,7 +82,7 @@ static void clock_scene_main_on_enter(void* context) {
             scene->back_menu,
             "Setup",
             NULL,
-            SHARED_IMG_PATH("setup_11x11.bin"),
+            SHARED_IMG_PATH("setup_11x11.image"),
             ClockSceneMainEventSetup,
             clock_scene_main_menu_callback,
             instance);

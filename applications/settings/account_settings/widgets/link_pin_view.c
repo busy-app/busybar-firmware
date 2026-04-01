@@ -56,7 +56,7 @@ static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, 
     lv_obj_set_flex_grow(timer_cont, 1);
 
     lv_obj_t* lock_image = lv_img_create(image_cont);
-    lv_img_set_src(lock_image, IMG_PATH("lock_front_12x12.bin"));
+    lv_img_set_src(lock_image, IMG_PATH("lock_front_12x12.image"));
     lv_obj_align(lock_image, LV_ALIGN_RIGHT_MID, 0, 0);
 
     const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
@@ -127,7 +127,7 @@ static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, l
     lv_obj_clear_flag(code_cont, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t* lock_image = lv_img_create(image_cont);
-    lv_img_set_src(lock_image, IMG_PATH("lock_back_11x11.bin"));
+    lv_img_set_src(lock_image, IMG_PATH("lock_back_11x11.image"));
     lv_obj_align(lock_image, LV_ALIGN_BOTTOM_RIGHT, 0, -1);
 
     const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
