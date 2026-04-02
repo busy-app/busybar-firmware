@@ -265,8 +265,6 @@ void mqtt_set_profile(Mqtt* instance, MqttProfileId profile_id, const char* cust
  * @note The caller must provide only the unique topic
  *       part, e.g. `topic/name` in the above example
  *
- * @note This call is synchronous.
- *
  * @param[in,out] instance pointer to the MQTT service instance
  * @param[in] qos enum value from MqttQos corresponding to a QoS level
  * @param[in] topic C-string containing the specific topic part
@@ -286,8 +284,6 @@ bool mqtt_publish(
  *
  * @note The caller must provide only the unique topic
  *       part, e.g. `topic/name` in the above example
- *
- * @note This call is synchronous.
  *
  * @param[in,out] instance pointer to the MQTT service instance
  * @param[in] qos enum value from MqttQos corresponding to a QoS level
