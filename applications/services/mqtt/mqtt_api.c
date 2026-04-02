@@ -140,13 +140,13 @@ bool mqtt_publish_ex(
     const void* data,
     size_t data_size,
     const MqttProperty* props,
-    uint32_t props_count) {
+    uint32_t props_count,
+    MqttPublishDoneCallback publish_done_callback,
+    void* callback_context) {
     furi_check(instance);
     furi_check(topic);
     furi_check(data);
     furi_check(data_size);
-    furi_check(props);
-    furi_check(props_count);
     furi_check(qos < MqttQosMax);
 
     bool is_success = false;
@@ -162,6 +162,8 @@ bool mqtt_publish_ex(
                 .props_count = props_count,
                 .qos = qos,
                 .is_success = &is_success,
+                .publish_done_callback = publish_done_callback,
+                .publish_done_callback_context = callback_context,
             },
     };
 
@@ -240,7 +242,16 @@ static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessage
         const char* empty = "{}";
 
         bool is_success = mqtt_publish_internal(
-            instance, MqttScopeSession, MqttQosAtMostOnce, "unlink", empty, strlen(empty), NULL, 0);
+            instance,
+            MqttScopeSession,
+            MqttQosAtMostOnce,
+            "unlink",
+            empty,
+            strlen(empty),
+            NULL,
+            0,
+            NULL,
+            0);
         if(!is_success) {
             FURI_LOG_W(TAG, "Failed to send unlink message to cloud");
         }
@@ -268,7 +279,9 @@ static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMe
             empty,
             strlen(empty),
             NULL,
-            0);
+            0,
+            NULL,
+            NULL);
     }
 
     *(request_pin->is_success) = is_success;
@@ -350,7 +363,9 @@ static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessag
         publish->data,
         publish->data_size,
         publish->props,
-        publish->props_count);
+        publish->props_count,
+        publish->publish_done_callback,
+        publish->publish_done_callback_context);
 }
 
 static void mqtt_subscribe_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {

@@ -64,20 +64,6 @@ jobs:
       - name: 'Setup Simplicity Commander'
         uses: ./.github/actions/setup-commander
 
-      - name: 'Write signing keystore'
-        id: write-keystore
-        if: ${{ !github.event.pull_request.head.repo.fork }}
-        env:
-          COMMANDER_KEYS: ${{ secrets.COMMANDER_KEYS }}
-        run: |
-          if [[ -z "${COMMANDER_KEYS}" ]]; then
-            echo "COMMANDER_KEYS secret not set, skipping signing"
-            exit 0
-          fi
-          KEYSTORE_PATH="${RUNNER_TEMP}/commander_keys.json"
-          printf '%s\n' "${COMMANDER_KEYS}" > "$KEYSTORE_PATH"
-          echo "keystore_path=$KEYSTORE_PATH" >> "$GITHUB_OUTPUT"
-
       - name: 'Build firmware artifacts'
         id: build-fw
         uses: ./.github/actions/build-artifacts
@@ -85,7 +71,9 @@ jobs:
           target_spec: ${{ matrix.target_spec }}
           build_type: ${{ steps.names.outputs.build_profile }}
           artifact_path: artifacts
-          signing_keystore: ${{ steps.write-keystore.outputs.keystore_path }}
+          signing_service_url: ${{ secrets.SI917_SIGN_SERVICE_URL }}
+          signing_service_token: ${{ secrets.SI917_SIGN_SERVICE_TOKEN }}
+          signing_service_profile: ${{ secrets.SI917_SIGN_SERVICE_PROFILE }}
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
@@ -157,13 +145,6 @@ jobs:
         run: |
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
           echo "target=${{ steps.build-fw.outputs.u5_target_hw }}" >> "$GITHUB_OUTPUT"
-
-      - name: 'Cleanup signing keystore'
-        if: always()
-        uses: ./.github/actions/cleanup-keystore
-        with:
-          keystore_path: ${{ runner.temp }}/commander_keys.json
-
 
   updater-tests:
     needs: build

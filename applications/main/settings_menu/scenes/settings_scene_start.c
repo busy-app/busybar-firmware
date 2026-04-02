@@ -100,7 +100,7 @@ static void settings_scene_start_on_enter(void* context) {
 
         data->back_card = title_card_alloc(instance->back_scene_window);
         title_card_set_title(data->back_card, "SETTINGS");
-        title_card_set_icon(data->back_card, SETTINGS_IMG_PATH("settings_back_18x18.bin"));
+        title_card_set_icon(data->back_card, SETTINGS_IMG_PATH("settings_back_18x18.image"));
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
     });

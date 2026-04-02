@@ -41,9 +41,8 @@ static void api_storage_write_data_callback(struct mg_connection* conn, struct m
 
     bool do_close_file = false;
 
-    if(write_ctx->file == NULL) {
-        return;
-    }
+    if(write_ctx == NULL) return;
+    if(write_ctx->file == NULL) return;
 
     if((data->len > 0) && (write_ctx->file)) {
         // Write file chunk
@@ -132,6 +131,8 @@ static bool api_storage_write_headers_callback(
     } else {
         MG_REPLY_BAD_REQUEST(conn);
         conn->is_draining = 1;
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        conn_ctx->context = NULL;
     }
 
     furi_string_free(file_path);

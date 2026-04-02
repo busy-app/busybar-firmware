@@ -6,6 +6,7 @@
 
 #include <furi_hal_rtc.h>
 #include <api_lock.h>
+#include <furi/core/state.h>
 
 #define TAG "TimeSvc"
 
@@ -29,10 +30,10 @@ typedef enum {
 } TimeMessageType;
 
 typedef enum {
-    TimeStateBoot,
-    TimeStateInSync,
-    TimeStateRetry,
-} TimeState;
+    TimeStatusBoot,
+    TimeStatusInSync,
+    TimeStatusRetry,
+} TimeStatus;
 
 typedef struct {
     TimeMessageType type;
@@ -52,9 +53,10 @@ struct Time {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     FuriMessageQueue* message_queue;
+    FuriState* state;
 
     TimeSettings settings;
-    TimeState state;
+    TimeStatus status;
     bool is_time_update_ongoing;
 
     Wifi* wifi;
@@ -106,6 +108,8 @@ static bool do_set_settings(Time* instance, TimeMessage* message) {
 
     instance->settings = *message->set_settings;
 
+    furi_state_set(instance->state, &instance->settings);
+
     if(instance->settings.is_enabled) {
         furi_event_loop_pend_callback(instance->event_loop, time_update_timer_callback, instance);
     } else {
@@ -154,7 +158,7 @@ static void custom_event_callback(uint32_t events, void* context) {
         if(instance->settings.is_enabled) {
             furi_event_loop_timer_start(
                 instance->timer, TIME_S_TO_MS(instance->settings.background_sync_interval));
-            instance->state = TimeStateInSync;
+            instance->status = TimeStatusInSync;
         }
 
     } else if(events & TimeCustomEventUpdateFailure) {
@@ -165,7 +169,7 @@ static void custom_event_callback(uint32_t events, void* context) {
         if(instance->settings.is_enabled) {
             furi_event_loop_timer_start(
                 instance->timer, TIME_S_TO_MS(instance->settings.retry_sync_interval));
-            instance->state = TimeStateRetry;
+            instance->status = TimeStatusRetry;
         }
     }
 
@@ -184,7 +188,7 @@ static void time_send_message(Time* instance, const TimeMessage* message) {
 Time* time_alloc() {
     Time* instance = malloc(sizeof(Time));
 
-    instance->state = TimeStateBoot;
+    instance->status = TimeStatusBoot;
     instance->is_time_update_ongoing = false;
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(TIME_MAX_MESSAGES, sizeof(TimeMessage));
@@ -202,6 +206,8 @@ Time* time_alloc() {
         instance->event_loop, custom_event_callback, instance);
 
     time_settings_load(&instance->settings);
+    instance->state = furi_state_alloc(sizeof(TimeSettings));
+    furi_state_set(instance->state, &instance->settings);
 
     if(instance->settings.is_enabled)
         furi_event_loop_timer_start(instance->timer, TIME_S_TO_MS(instance->settings.boot_delay));
@@ -249,7 +255,6 @@ bool time_set_settings(Time* instance, const TimeSettings* settings) {
 
 time_t time_get_timestamp(void) {
     return furi_hal_rtc_get_timestamp();
-    ;
 }
 
 time_t time_get_timestamp_ms(void) {
@@ -271,6 +276,10 @@ LocalTime time_get_local_time(Time* instance) {
     time_send_message(instance, &message);
 
     return result;
+}
+
+FuriState* time_get_settings_state(Time* instance) {
+    return instance->state;
 }
 
 int32_t time_srv(void* p) {

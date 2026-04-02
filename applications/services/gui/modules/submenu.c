@@ -137,10 +137,8 @@ static void submenu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* e
 
     if(code == LV_EVENT_FOCUSED) {
         lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
-        lv_label_set_long_mode(instance->label, LV_LABEL_LONG_SCROLL);
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
-        lv_label_set_long_mode(instance->label, LV_LABEL_LONG_CLIP);
     }
 }
 

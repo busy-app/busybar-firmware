@@ -64,6 +64,13 @@ LocalTime time_get_local_time(Time* instance);
  */
 time_t time_get_timestamp_ms(void);
 
+/**
+ * @brief Get FuriState holding TimeSettings.
+ *
+ * @param[in] instance
+ */
+FuriState* time_get_settings_state(Time* instance);
+
 #ifdef __cplusplus
 }
 #endif

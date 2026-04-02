@@ -14,9 +14,8 @@ import os
 import shutil
 import subprocess
 import sys
-import urllib.error
-import urllib.parse
-import urllib.request
+from http.client import HTTPResponse, HTTPSConnection, HTTPConnection
+from urllib.parse import urlsplit, urlencode
 
 
 def find_commander_cli(user_path=None):
@@ -96,62 +95,76 @@ def sign_rps(commander, keystore, input_rps, output_rps):
     return 0
 
 
-def build_signing_service_url(service_url, profile_name):
-    parsed = urllib.parse.urlsplit(service_url)
-    query = urllib.parse.urlencode({"profile_name": profile_name})
-    if parsed.query:
-        query = f"{parsed.query}&{query}"
-    return urllib.parse.urlunsplit(parsed._replace(query=query))
+def _build_query(service_url, profile_name):
+    """Append profile_name query param to the service URL, return (conn_cls, host, path)."""
+    parsed = urlsplit(service_url)
+    params = urlencode({"profile_name": profile_name})
+    query = f"{parsed.query}&{params}" if parsed.query else params
+    path = f"{parsed.path}?{query}"
+    conn_cls = HTTPSConnection if parsed.scheme == "https" else HTTPConnection
+    host = parsed.netloc
+    return conn_cls, host, path
 
 
-def _multipart_body(filename, data, boundary):
-    header = (
+def _encode_multipart(filename, data):
+    """Build a multipart/form-data body with a single file field."""
+    boundary = "----bsb-firmware-signer-boundary"
+    parts = [
         f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
-        "Content-Type: application/octet-stream\r\n\r\n"
-    ).encode()
-    footer = f"\r\n--{boundary}--\r\n".encode()
-    return header + data + footer
+        f"Content-Type: application/octet-stream\r\n\r\n",
+    ]
+    body = parts[0].encode() + data + f"\r\n--{boundary}--\r\n".encode()
+    content_type = f"multipart/form-data; boundary={boundary}"
+    return body, content_type
+
+
+def _read_response_body(resp: HTTPResponse) -> bytes:
+    return resp.read()
 
 
 def sign_rps_via_service(service_url, token, profile_name, input_rps, output_rps):
-    with open(input_rps, "rb") as src:
-        input_data = src.read()
+    with open(input_rps, "rb") as f:
+        file_data = f.read()
 
-    boundary = "bsb-signing-service-boundary"
-    body = _multipart_body(os.path.basename(input_rps), input_data, boundary)
-    request = urllib.request.Request(
-        build_signing_service_url(service_url, profile_name),
-        data=body,
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": f"multipart/form-data; boundary={boundary}",
-            "Content-Length": str(len(body)),
-        },
-    )
+    conn_cls, host, path = _build_query(service_url, profile_name)
+    body, content_type = _encode_multipart(os.path.basename(input_rps), file_data)
 
+    conn = conn_cls(host)
     try:
-        with urllib.request.urlopen(request) as response:
-            signed_data = response.read()
-    except urllib.error.HTTPError as exc:
-        error_body = exc.read().decode(errors="replace")
-        print(
-            f"Error signing {input_rps} via signing service: HTTP {exc.code}",
-            file=sys.stderr,
+        conn.request(
+            "POST",
+            path,
+            body=body,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": content_type,
+                "Accept": "application/octet-stream",
+                "User-Agent": "fbt-firmware-signer/1.0",
+            },
         )
-        if error_body:
-            print(error_body, file=sys.stderr)
-        return 1
-    except urllib.error.URLError as exc:
+        resp = conn.getresponse()
+        resp_data = _read_response_body(resp)
+
+        if resp.status != 200:
+            print(
+                f"Error signing {input_rps} via signing service: HTTP {resp.status}",
+                file=sys.stderr,
+            )
+            if resp_data:
+                print(resp_data.decode(errors="replace"), file=sys.stderr)
+            return 1
+    except OSError as exc:
         print(
             f"Error connecting to signing service for {input_rps}: {exc}",
             file=sys.stderr,
         )
         return 1
+    finally:
+        conn.close()
 
-    with open(output_rps, "wb") as dst:
-        dst.write(signed_data)
+    with open(output_rps, "wb") as f:
+        f.write(resp_data)
     return 0
 
 

@@ -14,6 +14,11 @@ def preserve_settings(settings_api: SettingsAPI):
     yield
 
     settings_api.set_name(name)
-    settings_api.set_access(access.mode)
+    # When mode is "key", we can't restore the key (GET doesn't return it).
+    # Fall back to "enabled" to keep some access protection.
+    if access.mode == "key":
+        settings_api.set_access("enabled")
+    else:
+        settings_api.set_access(access.mode)
     settings_api.set_brightness(value=brightness)
     settings_api.set_volume(int(volume))

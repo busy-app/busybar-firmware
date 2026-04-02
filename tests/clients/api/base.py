@@ -54,7 +54,7 @@ class BaseAPI:
         endpoint: str,
         response_model: Type[T] = None,
         step_name: str = None,
-        timeout: int = 10,
+        timeout: int = 5,
         **kwargs,
     ) -> T | dict | requests.Response:
         """
@@ -65,7 +65,7 @@ class BaseAPI:
             endpoint: API endpoint (e.g., "/api/version")
             response_model: Optional Pydantic model for response validation
             step_name: Custom step name for Allure report
-            timeout: Request timeout in seconds
+            timeout: Request timeout in seconds (default: 5)
             **kwargs: Additional arguments passed to requests
 
         Returns:
@@ -148,37 +148,28 @@ class BaseAPI:
         """Make OPTIONS request."""
         return self._request("OPTIONS", endpoint, model, step_name, **kwargs)
 
-    def get_raw(self, endpoint: str, **kwargs) -> requests.Response:
-        """
-        Make GET request and return raw Response (for error testing).
+    def _request_raw(self, method: str, endpoint: str, **kwargs) -> requests.Response:
+        """Make raw HTTP request and return Response without model validation.
 
-        Use this method when testing error responses (400, 404, etc.)
+        Use this for testing error responses (400, 404, etc.)
         that shouldn't be validated against a model.
         """
+        kwargs.setdefault("timeout", 5)
         url = f"{self.base_url}{endpoint}"
-        with allure.step(f"GET {endpoint} (raw)"):
-            self._attach_request("GET", url, **kwargs)
-            response = self.session.get(url, **kwargs)
+        with allure.step(f"{method} {endpoint} (raw)"):
+            self._attach_request(method, url, **kwargs)
+            response = self.session.request(method, url, **kwargs)
             self._attach_response(response)
             return response
+
+    def get_raw(self, endpoint: str, **kwargs) -> requests.Response:
+        return self._request_raw("GET", endpoint, **kwargs)
 
     def post_raw(self, endpoint: str, **kwargs) -> requests.Response:
-        """Make POST request and return raw Response (for error testing)."""
-        url = f"{self.base_url}{endpoint}"
-        with allure.step(f"POST {endpoint} (raw)"):
-            self._attach_request("POST", url, **kwargs)
-            response = self.session.post(url, **kwargs)
-            self._attach_response(response)
-            return response
+        return self._request_raw("POST", endpoint, **kwargs)
 
     def delete_raw(self, endpoint: str, **kwargs) -> requests.Response:
-        """Make DELETE request and return raw Response (for error testing)."""
-        url = f"{self.base_url}{endpoint}"
-        with allure.step(f"DELETE {endpoint} (raw)"):
-            self._attach_request("DELETE", url, **kwargs)
-            response = self.session.delete(url, **kwargs)
-            self._attach_response(response)
-            return response
+        return self._request_raw("DELETE", endpoint, **kwargs)
 
     def _validate(self, response: requests.Response, model: Type[T]) -> T:
         """Validate response against Pydantic model."""

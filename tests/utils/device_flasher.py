@@ -162,7 +162,7 @@ class DeviceFlasher:
         """Check if device is reachable via TCP connection."""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(2.0)
+            sock.settimeout(1.0)
             result = sock.connect_ex((self.device_ip, 80))
             sock.close()
             return result == 0
