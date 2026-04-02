@@ -17,14 +17,14 @@ typedef struct {
 typedef struct {
     const char* label;
     const char* color;
-} MatterCliSwithchStateDesc;
+} MatterCliSwitchStateDesc;
 
 typedef struct {
     const char* arg;
     const char* help;
 } MatterCliCertificationTypeDesc;
 
-static const MatterCliSwithchStateDesc switch_state_descs[MatterSwitchStateMax] = {
+static const MatterCliSwitchStateDesc switch_state_descs[MatterSwitchStateMax] = {
     [MatterSwitchStateUnknown] =
         {
             .label = "UNKNOWN",
@@ -256,7 +256,7 @@ static void matter_cli_cmd_cd(PipeSide* pipe, FuriString* args, void* context) {
 static void matter_cli_format_switch_state(FuriString* out, MatterSwitchState switch_state) {
     furi_assert(switch_state < MatterSwitchStateMax);
 
-    const MatterCliSwithchStateDesc* desc = &switch_state_descs[switch_state];
+    const MatterCliSwitchStateDesc* desc = &switch_state_descs[switch_state];
     furi_string_cat_printf(out, "Switch: %s%s%s", desc->color, desc->label, ANSI_RESET);
 }
 
