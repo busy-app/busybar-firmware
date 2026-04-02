@@ -67,10 +67,6 @@ typedef struct {
 
 typedef struct {
     BusyTimerProfileId profile_id;
-} BusyTimerApiMessageLoadProfile;
-
-typedef struct {
-    BusyTimerProfileId profile_id;
     BusyTimerPreset* preset;
 } BusyTimerApiMessageGetPreset;
 
@@ -91,7 +87,6 @@ typedef union {
     BusyTimerApiMessageGetRunInfo get_run_info;
     BusyTimerApiMessageGetProfile get_profile;
     BusyTimerApiMessageSetProfile set_profile;
-    BusyTimerApiMessageLoadProfile load_profile;
     BusyTimerApiMessageGetPreset get_preset;
     BusyTimerApiMessageSetPreset set_preset;
     BusyTimerApiMessageHandleMatter handle_matter;
