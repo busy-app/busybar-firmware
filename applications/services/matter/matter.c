@@ -100,7 +100,7 @@ static void matter_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
-void matter_switch_state_callback(const void* item, void* context) {
+static void matter_switch_state_callback(const void* item, void* context) {
     furi_assert(item);
     furi_assert(context);
 
