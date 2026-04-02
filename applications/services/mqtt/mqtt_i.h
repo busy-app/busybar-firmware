@@ -24,6 +24,14 @@
 #define MQTT_DEVICE_ROOT_TOPIC  "devices"
 #define MQTT_SESSION_ROOT_TOPIC "sessions"
 
+#define MQTT_TOPIC_STATE              "state"
+#define MQTT_TOPIC_UNLINK_FROM_DEVICE "unlink"
+#define MQTT_TOPIC_UNLINK_FROM_CLOUD  "gone"
+
+#define MQTT_TOPIC_LINK_REQUEST "link/request"
+#define MQTT_TOPIC_LINK_PIN     "link/otp"
+#define MQTT_TOPIC_LINK_DONE    "link/token"
+
 #define MQTT_DIRECTION_UP   "up"
 #define MQTT_DIRECTION_DOWN "down"
 
@@ -206,6 +214,13 @@ bool mqtt_publish_internal(
     void* callback_context);
 
 void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw_property);
+
+void mqtt_make_topic_path(
+    Mqtt* instance,
+    MqttScope scope,
+    const char* dir,
+    const char* topic,
+    FuriString* out);
 
 bool mqtt_tls_init(
     struct mg_connection* conn,

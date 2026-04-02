@@ -2,6 +2,7 @@
 
 #include <storage/storage.h>
 #include <busy_timer/time_macros.h>
+#include <version/version.h>
 
 #define MQTT_VERSION     (5)
 #define MQTT_PING_PERIOD M_TO_MS(10)
@@ -175,6 +176,32 @@ static void mqtt_tls_handshake_mg_event_handler(
     instance->ca_bundle = NULL;
 }
 
+static void mqtt_send_online_message(Mqtt* instance) {
+    FuriString* payload = furi_string_alloc_set("{");
+
+    const Version* firmware_version = version_get();
+    furi_string_cat_printf(
+        payload, "\"firmware_version\":\"%s\",", version_get_version(firmware_version));
+
+    furi_string_cat_printf(payload, "\"api_version\":\"%s\",", MQTT_API_VERSION);
+    furi_string_cat_printf(payload, "\"status\":\"online\"");
+    furi_string_cat(payload, "}");
+
+    mqtt_publish_internal(
+        instance,
+        MqttScopeSession,
+        MqttQosAtLeastOnce,
+        MQTT_TOPIC_STATE,
+        furi_string_get_cstr(payload),
+        furi_string_size(payload),
+        NULL,
+        0,
+        NULL,
+        NULL);
+
+    furi_string_free(payload);
+}
+
 static void mqtt_open_mg_event_handler(
     Mqtt* instance,
     struct mg_connection* connection,
@@ -201,6 +228,10 @@ static void mqtt_open_mg_event_handler(
         }
 
         mqtt_start_ping_timer(instance);
+
+        if(instance->status == MqttStatusConnectedLinked) {
+            mqtt_send_online_message(instance);
+        }
 
     } else {
         FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", status_code);
@@ -341,17 +372,36 @@ void mqtt_connection_open(Mqtt* instance) {
 
     const MqttSavedState* saved_state = &instance->saved_state;
 
-    const struct mg_mqtt_opts opts = {
+    struct mg_mqtt_opts opts = {
         .client_id = mg_str(saved_state->client_id),
         .user = mg_str(furi_string_get_cstr(username)),
         .pass = mg_str(saved_state->token),
         .clean = true,
-        .keepalive = 0,
+        .keepalive = MQTT_PING_PERIOD / 1000,
         .version = MQTT_VERSION,
     };
 
-    const char* server_url = mqtt_get_server_url(instance);
+    FuriString* last_will_topic = furi_string_alloc();
 
+    if(mqtt_saved_state_is_valid(&instance->saved_state)) {
+        mqtt_make_topic_path(
+            instance, MqttScopeSession, MQTT_DIRECTION_UP, MQTT_TOPIC_STATE, last_will_topic);
+
+        opts.topic = mg_str(furi_string_get_cstr(last_will_topic));
+        opts.message = mg_str("{\"status\":\"offline\"}");
+        opts.qos = MqttQosAtLeastOnce;
+
+        struct mg_mqtt_prop will_props[] = {
+            {
+                .id = MQTT_PROP_WILL_DELAY_INTERVAL,
+                .iv = 0,
+            },
+        };
+        opts.will_props = will_props;
+        opts.num_will_props = COUNT_OF(will_props);
+    }
+
+    const char* server_url = mqtt_get_server_url(instance);
     FURI_LOG_D(TAG, "Connecting to %s ...", server_url);
 
     instance->conn = mg_mqtt_connect(
@@ -362,6 +412,7 @@ void mqtt_connection_open(Mqtt* instance) {
     }
 
     furi_string_free(username);
+    furi_string_free(last_will_topic);
 }
 
 void mqtt_connection_close(Mqtt* instance, bool reconnect_now) {

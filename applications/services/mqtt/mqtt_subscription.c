@@ -28,7 +28,7 @@ static bool mqtt_is_valid_scope_for_current_status(Mqtt* instance, MqttScope sco
     return is_valid;
 }
 
-static void mqtt_make_topic_path(
+void mqtt_make_topic_path(
     Mqtt* instance,
     MqttScope scope,
     const char* dir,
