@@ -21,8 +21,11 @@ static void
     }
 
     if((switch_state != MatterSwitchStateMax) && (switch_state != instance->matter_switch_state)) {
-        instance->matter_switch_state = switch_state;
-        matter_set_switch_state(instance->matter, switch_state);
+        if(matter_set_switch_state(instance->matter, switch_state) == MatterStatusOk) {
+            instance->matter_switch_state = switch_state;
+        } else {
+            FURI_LOG_E(TAG, "Failed to set matter switch state");
+        }
     }
 }
 

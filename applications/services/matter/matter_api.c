@@ -1,5 +1,7 @@
 #include "matter_i.h"
 
+#define MATTER_API_TIMEOUT_TICKS 5000
+
 static void
     matter_api_send_message_internal(Matter* instance, const MatterApiMessage* api_message) {
     instance->api_message = *api_message;
@@ -12,10 +14,16 @@ static MatterStatus matter_api_send_message(Matter* instance, MatterApiMessage* 
     api_message->status = &status;
     api_message->lock = api_lock_alloc_locked();
 
-    furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
+    const FuriStatus sem_status = furi_semaphore_acquire(
+        instance->api_semaphore, furi_ms_to_ticks(MATTER_API_TIMEOUT_TICKS));
 
-    matter_api_send_message_internal(instance, api_message);
-    api_lock_wait_unlock_and_free(api_message->lock);
+    if(sem_status == FuriStatusOk) {
+        matter_api_send_message_internal(instance, api_message);
+        api_lock_wait_unlock_and_free(api_message->lock);
+    } else {
+        status = MatterStatusTimeout;
+        api_lock_free(api_message->lock);
+    }
 
     return status;
 }
