@@ -284,7 +284,7 @@ static MatterStatus
 }
 
 static MatterStatus
-    matter_set_switch_state_api_message_nandler(Matter* instance, MatterApiMessageData* data) {
+    matter_set_switch_state_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     MatterStatus status = MatterStatusOk;
 
     MatterSwitchState prev_switch_state;
@@ -304,7 +304,7 @@ static MatterStatus
     return status;
 }
 
-static MatterStatus matter_set_switch_startup_mode_api_message_nandler(
+static MatterStatus matter_set_switch_startup_mode_api_message_handler(
     Matter* instance,
     MatterApiMessageData* data) {
     const MatterIntercomFrame frame = {
@@ -316,7 +316,7 @@ static MatterStatus matter_set_switch_startup_mode_api_message_nandler(
 }
 
 static MatterStatus
-    matter_start_commissioning_api_message_nandler(Matter* instance, MatterApiMessageData* data) {
+    matter_start_commissioning_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
     const MatterIntercomFrame frame = {
         .type = MatterIntercomFrameTypeCommission,
@@ -326,7 +326,7 @@ static MatterStatus
     return (status != MatterStatusOk) ? status : MATTER_WAIT_FOR_RESPONSE;
 }
 
-static MatterStatus matter_get_commissioned_fabrics_api_message_nandler(
+static MatterStatus matter_get_commissioned_fabrics_api_message_handler(
     Matter* instance,
     MatterApiMessageData* data) {
     *data->get_fabrics.fabrics = instance->fabrics;
@@ -334,7 +334,7 @@ static MatterStatus matter_get_commissioned_fabrics_api_message_nandler(
 }
 
 static MatterStatus
-    matter_factory_reset_api_message_nandler(Matter* instance, MatterApiMessageData* data) {
+    matter_factory_reset_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
     const MatterIntercomFrame frame = {
         .type = MatterIntercomFrameTypeReset,
@@ -345,12 +345,12 @@ static MatterStatus
 
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax] = {
     [MatterApiMessageTypeInitBackend] = matter_init_backend_api_message_handler,
-    [MatterApiMessageTypeSetSwitchState] = matter_set_switch_state_api_message_nandler,
+    [MatterApiMessageTypeSetSwitchState] = matter_set_switch_state_api_message_handler,
     [MatterApiMessageTypeSetSwitchStartupMode] =
-        matter_set_switch_startup_mode_api_message_nandler,
-    [MatterApiMessageTypeStartCommissioning] = matter_start_commissioning_api_message_nandler,
-    [MatterApiMessageTypeGetFabrics] = matter_get_commissioned_fabrics_api_message_nandler,
-    [MatterApiMessageTypeFactoryReset] = matter_factory_reset_api_message_nandler,
+        matter_set_switch_startup_mode_api_message_handler,
+    [MatterApiMessageTypeStartCommissioning] = matter_start_commissioning_api_message_handler,
+    [MatterApiMessageTypeGetFabrics] = matter_get_commissioned_fabrics_api_message_handler,
+    [MatterApiMessageTypeFactoryReset] = matter_factory_reset_api_message_handler,
 };
 
 // ========= Service thread  =========
