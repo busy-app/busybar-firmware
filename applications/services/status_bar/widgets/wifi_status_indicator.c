@@ -53,11 +53,12 @@ void wifi_status_indicator_set_state(WifiStatusIndicator* instance, WifiStatusIn
     if(state != instance->state) {
         if(state == WifiStatusIndicatorStateDisconnected) {
             lv_image_set_src(
-                instance->wifi_image, STATUS_BAR_IMG_PATH("wifi_disconnected_8x8.bin"));
+                instance->wifi_image, STATUS_BAR_IMG_PATH("wifi_disconnected_8x8.image"));
         } else if(state == WifiStatusIndicatorStateConnecting) {
-            lv_image_set_src(instance->wifi_image, STATUS_BAR_IMG_PATH("wifi_connecting_8x8.bin"));
+            lv_image_set_src(
+                instance->wifi_image, STATUS_BAR_IMG_PATH("wifi_connecting_8x8.image"));
         } else if(state == WifiStatusIndicatorStateConnected) {
-            lv_image_set_src(instance->wifi_image, STATUS_BAR_IMG_PATH("wifi_8x8.bin"));
+            lv_image_set_src(instance->wifi_image, STATUS_BAR_IMG_PATH("wifi_8x8.image"));
         }
 
         const bool is_hidden = (state == WifiStatusIndicatorStateUnknown);

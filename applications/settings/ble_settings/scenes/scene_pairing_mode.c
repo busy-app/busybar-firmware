@@ -82,7 +82,7 @@ static void scene_pairing_mode_on_enter(void* context) {
             data->back_flex, FlexLayoutAlignCenter, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
 
         data->back_image = image_alloc(flex_layout_get_base(data->back_flex));
-        image_set_source(data->back_image, IMG_PATH("ble_back_white_11x11.bin"));
+        image_set_source(data->back_image, IMG_PATH("ble_back_white_11x11.image"));
         widget_set_size_content(image_get_base(data->back_image));
         widget_set_margin(image_get_base(data->back_image), 0, 0, 0, 6);
 

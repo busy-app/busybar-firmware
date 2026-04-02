@@ -1,1 +1,3 @@
-* @skotopes @DrZlo13 @hedger @gornekich @nminaylov @Skorpionm @gsurkov
+* @hedger @DrZlo13 @gornekich @nminaylov @Skorpionm @gsurkov
+# Code owners for specific files or directories
+tests/ @ssecsd @iMalkav

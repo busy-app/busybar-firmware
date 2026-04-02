@@ -22,11 +22,11 @@ static void audio_status_indicator_lvgl_constructor(const lv_obj_class_t* class_
 
     instance->sound_on_image = lv_image_create(obj);
     lv_obj_center(instance->sound_on_image);
-    lv_image_set_src(instance->sound_on_image, STATUS_BAR_IMG_PATH("sound_on_8x8.bin"));
+    lv_image_set_src(instance->sound_on_image, STATUS_BAR_IMG_PATH("sound_on_8x8.image"));
 
     instance->sound_off_image = lv_image_create(obj);
     lv_obj_center(instance->sound_off_image);
-    lv_image_set_src(instance->sound_off_image, STATUS_BAR_IMG_PATH("sound_off_8x8.bin"));
+    lv_image_set_src(instance->sound_off_image, STATUS_BAR_IMG_PATH("sound_off_8x8.image"));
 }
 
 /* Public API */

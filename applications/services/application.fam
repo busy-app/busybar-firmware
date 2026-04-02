@@ -56,6 +56,7 @@ App(
         "device_name",
         "busy_timer",
         "sl_info",
+        "state_publisher",
     ],
     targets=["f20", "f21", "f22"],
 )

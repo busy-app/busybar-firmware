@@ -95,7 +95,7 @@ static void apps_menu_scene_start_on_enter(void* context) {
 
         scene->back_card = title_card_alloc(app->back_scene_window);
         title_card_set_title(scene->back_card, "APPS");
-        title_card_set_icon(scene->back_card, APPS_MENU_IMG_PATH("apps_menu_back_18x18.bin"));
+        title_card_set_icon(scene->back_card, APPS_MENU_IMG_PATH("apps_menu_back_18x18.image"));
 
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), false);
     });

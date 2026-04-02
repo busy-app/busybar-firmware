@@ -1,7 +1,9 @@
 #include "http_api.h"
 #include <gui/gui.h>
 #include <front_display/front_display.h>
+#include <back_display/back_display.h>
 #include <toolbox/rle_encode.h>
+#include <toolbox/color.h>
 
 #define TAG "Stream"
 
@@ -345,6 +347,7 @@ bool http_api_streaming_ws_callback(
     furi_assert(ctx);
     UNUSED(method);
 
+    STREAM_LOG_D("ws_callback");
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     ApiStreamingCtx* instance = ctx;
@@ -385,13 +388,6 @@ static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
     } while(false);
 }
 
-static void back_buffer_l8_to_l4(uint8_t* dst_l4, const uint8_t* src_l8) {
-    for(uint32_t i = 0; i < RAW_BUFFER_SIZE; ++i) {
-        const uint32_t draw_idx = 2 * i;
-        dst_l4[i] = (src_l8[draw_idx] >> 4) | (src_l8[draw_idx + 1] & 0xF0);
-    }
-}
-
 static int32_t api_streaming_frame_update_thread(void* context) {
     ApiStreamingCtx* instance = context;
 
@@ -413,7 +409,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
             if(instance->display_id == GuiDisplayIdFront)
                 memcpy(instance->raw_buffer, frame, frame_size);
             else
-                back_buffer_l8_to_l4(instance->raw_buffer, frame);
+                color_buf_l8_to_l4(instance->raw_buffer, frame, BACK_DISPLAY_BUF_SIZE);
         });
 
         const uint8_t blk_size = instance->display_id == GuiDisplayIdFront ? 3 : 2;
@@ -454,6 +450,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
 }
 
 void* http_api_streaming_ws_alloc(void) {
+    STREAM_LOG_D("alloc");
     ApiStreamingCtx* instance = malloc(sizeof(ApiStreamingCtx));
     instance->clients_lock = furi_mutex_alloc(FuriMutexTypeNormal);
     StreamClientsList_init(instance->clients);
@@ -466,6 +463,7 @@ void* http_api_streaming_ws_alloc(void) {
 }
 
 void http_api_streaming_ws_free(void* ctx) {
+    STREAM_LOG_D("free");
     furi_assert(ctx);
     ApiStreamingCtx* instance = ctx;
     StreamClientsList_clear(instance->clients);
@@ -508,7 +506,7 @@ bool http_api_streaming_single_frame_callback(
             if(display_id == GuiDisplayIdFront)
                 memcpy(frame, buf, frame_size);
             else {
-                back_buffer_l8_to_l4(frame, buf);
+                color_buf_l8_to_l4(frame, buf, BACK_DISPLAY_BUF_SIZE);
             }
         });
         furi_record_close(RECORD_GUI);

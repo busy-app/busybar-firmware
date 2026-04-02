@@ -27,11 +27,11 @@ static void matter_scene_pairing_on_enter(void* context) {
 
     with_gui(app->gui, {
         scene->front_prompt = status_view_alloc(app->front_scene_window);
-        status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.bin"));
+        status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.image"));
         status_view_set_header(scene->front_prompt, "Look at back\nscreen");
 
         scene->back_codes = matter_code_view_alloc(app->back_scene_window);
-        matter_code_view_set_logo_path(scene->back_codes, IMG_PATH("matter_back_14x14.bin"));
+        matter_code_view_set_logo_path(scene->back_codes, IMG_PATH("matter_back_14x14.image"));
         matter_code_view_set_codes(
             scene->back_codes, furi_string_get_cstr(qr_code), furi_string_get_cstr(man_code));
     });

@@ -4,7 +4,7 @@
 
 #define TAG "HttpAudio"
 
-#define AUDIO_ASSETS_DIR  EXT_PATH("assets")
+#define AUDIO_ASSETS_DIR  EXT_PATH("user_assets")
 #define FILE_NAME_LEN_MAX 32
 
 typedef struct {
@@ -39,7 +39,7 @@ static bool api_audio_play_stop_callback(
             break;
         }
 
-        int var_len = mg_http_get_var(&msg->query, "app_id", temp_str, sizeof(temp_str));
+        int var_len = mg_http_get_var(&msg->query, "application_name", temp_str, sizeof(temp_str));
         if(var_len <= 0) {
             break;
         }

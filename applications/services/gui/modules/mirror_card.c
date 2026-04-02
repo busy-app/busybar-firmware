@@ -56,7 +56,7 @@ static void mirror_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     instance->header_left_image = lv_image_create(header_layout);
     lv_image_set_src(
-        instance->header_left_image, SHARED_IMG_PATH("active_indicator_left_28x7.bin"));
+        instance->header_left_image, SHARED_IMG_PATH("active_indicator_left_28x7.image"));
 
     instance->header_label = lv_label_create(header_layout);
     lv_obj_set_style_text_font(
@@ -66,7 +66,7 @@ static void mirror_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     instance->header_right_image = lv_image_create(header_layout);
     lv_image_set_src(
-        instance->header_right_image, SHARED_IMG_PATH("active_indicator_right_28x7.bin"));
+        instance->header_right_image, SHARED_IMG_PATH("active_indicator_right_28x7.image"));
 
     /* mask object for image rounded corners */
     instance->display_mirror = display_mirror_alloc(&instance->base);

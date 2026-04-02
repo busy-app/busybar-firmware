@@ -81,7 +81,7 @@ Widget* timer_indicator_get_base(TimerIndicator* instance);
  * TimerIndicator presets consist of the following parts:
  * - Background animation (.anim sequence file)
  * - Lottie animation, used for a visual progress representation
- * - Foreground image, containing static elements (.bin image file)
+ * - Foreground image, containing static elements (.image image file)
  *
  * Any of these parts may be omitted, in that case NULL should be passed
  * instead of the respective file path.
