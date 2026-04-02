@@ -41,10 +41,12 @@ static void busy_scene_start_handle_start(BusyApp* instance) {
 
     busy_prepare_transition(instance, BusyTransitionTypeSelect);
 
-    BusyTimerRunInfo timer_info;
-    busy_timer_get_run_info(instance->busy_timer, &timer_info);
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
 
-    if(timer_info.config.mode == BusyTimerModeInterval) {
+    const BusyTimerMode timer_mode = timer_preset.timer_config.mode;
+
+    if(timer_mode == BusyTimerModeInterval) {
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
     } else {
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
@@ -57,14 +59,10 @@ static void busy_scene_start_handle_setup(BusyApp* instance) {
 }
 
 static void busy_scene_start_apply_initial_params(BusyApp* instance) {
-    busy_timer_load_profile(instance->busy_timer, busy_get_profile_id(instance));
-
     busy_load_app_config(instance);
     busy_apply_app_config(instance);
 
     busy_set_front_display_blanking(instance, false);
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    busy_set_matter(instance, false);
     busy_set_priority(instance, false);
 }
 

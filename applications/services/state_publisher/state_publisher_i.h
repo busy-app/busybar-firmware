@@ -44,7 +44,7 @@ struct StatePublisher {
 
     Power* power;
     Audio* audio;
-    MatterSrv* matter;
+    Matter* matter;
     Updater* updater;
     BusyTimer* busy_timer;
     Gui* gui;

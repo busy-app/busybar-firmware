@@ -9,8 +9,6 @@
 #include <gui/modules/mirror_card.h>
 #include <gui/modules/transition_overlay.h>
 #include <audio/audio.h>
-#include <status_lights/status_lights.h>
-#include <matter/matter.h>
 #include <loader/loader.h>
 #include <front_display/front_display.h>
 #include <busy_timer/busy_timer.h>
@@ -86,12 +84,10 @@ struct BusyApp {
     FuriMessageQueue* api_queue;
     SceneManager* scene_manager;
     BusyTimer* busy_timer;
-    StatusLights* status_lights;
     FrontDisplaySrv* front_display;
     Audio* audio;
     Gui* gui;
     Updater* updater;
-    MatterSrv* matter;
     Loader* loader;
     // Containers & application windows
     Widget* front_window;
@@ -114,10 +110,6 @@ void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
 void busy_prepare_transition(BusyApp* instance, BusyTransitionType type);
 
 void busy_start_transition(BusyApp* instance);
-
-void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type);
-
-void busy_set_matter(BusyApp* instance, bool switch_state);
 
 void busy_set_priority(BusyApp* instance, bool active);
 
