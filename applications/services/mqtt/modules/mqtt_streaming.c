@@ -93,26 +93,25 @@ static void mqtt_streaming_timeout_timer_callback(void* context) {
 }
 
 static StatePublisherRateLimit parse_rate_limit(const char* json, size_t length) {
+    StatePublisherRateLimit result = STATE_PUBLISHER_RATE_UNLIMITED;
     cJSON* obj = cJSON_ParseWithLength(json, length);
-    if(obj) {
-        StatePublisherRateLimit result = STATE_PUBLISHER_RATE_UNLIMITED;
-        cJSON* limits_obj = cJSON_GetObjectItem(obj, "message_limits");
-        cJSON* max_count_obj = cJSON_GetObjectItem(limits_obj, "max_count");
-        cJSON* interval_obj = cJSON_GetObjectItem(limits_obj, "interval_s");
+    cJSON* limits_obj = cJSON_GetObjectItem(obj, "message_limits");
+    cJSON* max_count_obj = cJSON_GetObjectItem(limits_obj, "max_count");
+    cJSON* interval_obj = cJSON_GetObjectItem(limits_obj, "interval_s");
 
-        if(cJSON_IsNumber(max_count_obj) && cJSON_IsNumber(interval_obj)) {
-            double max_count = max_count_obj->valuedouble;
-            double interval_s = max_count_obj->valuedouble;
-            if(max_count >= 0.0 && interval_s >= 0.0) {
-                result.max_packet_count = (uint32_t)round(max_count);
-                result.period_ms = (uint32_t)roundf((float)interval_s * 1000.0f);
+    if(cJSON_IsNumber(max_count_obj) && cJSON_IsNumber(interval_obj)) {
+        double max_count = max_count_obj->valuedouble;
+        double interval_s = interval_obj->valuedouble;
+        if(max_count >= 0.0 && interval_s >= 0.0) {
+            result.max_packet_count = (uint32_t)round(max_count);
+            result.period_ms = (uint32_t)roundf((float)interval_s * 1000.0f);
+            if(result.max_packet_count == 0) {
+                result.period_ms = 0;
             }
         }
-        cJSON_free(obj);
-        return result;
-    } else {
-        return STATE_PUBLISHER_RATE_UNLIMITED;
     }
+    cJSON_Delete(obj);
+    return result;
 }
 
 static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* context) {

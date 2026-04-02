@@ -46,6 +46,14 @@ void state_publisher_send_message(StatePublisher* instance, const Message* messa
     }
 }
 
+static uint32_t ms_to_ticks(uint32_t ms) {
+    if(ms == UINT32_MAX) {
+        return UINT32_MAX;
+    } else {
+        return furi_ms_to_ticks(ms);
+    }
+}
+
 static StatePublisher* state_publisher_alloc(void) {
     StatePublisher* instance = malloc(sizeof(StatePublisher));
 
@@ -215,7 +223,7 @@ static bool is_sequential_update(const BSB_State_StateUpdate* update) {
 static uint32_t send_out_for_transport(Transport* t, bool heartbeat) {
     time_t now = time_get_timestamp_ms();
     bool send = false;
-    if(now - t->last_tick_ms > t->rate_limit.period_ms) {
+    if(now - t->last_tick_ms >= t->rate_limit.period_ms) {
         send = true;
         t->last_tick_ms = now;
         t->updates_since_last_tick = 0;
@@ -337,7 +345,7 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
 
     uint32_t sleep_time_ms = send_out(instance, flags, heartbeat);
 
-    furi_event_loop_timer_start(instance->rate_limiter_timer, furi_ms_to_ticks(sleep_time_ms));
+    furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
 
     return true;
 }
@@ -346,7 +354,7 @@ static void rate_limiter_timer_callback(void* context) {
     StatePublisher* instance = context;
     uint32_t sleep_time_ms = send_out(instance, StreamFlagAll, false);
 
-    furi_event_loop_timer_start(instance->rate_limiter_timer, furi_ms_to_ticks(sleep_time_ms));
+    furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
 }
 
 static bool handle_power_event(StatePublisher* instance, const Message* message) {
