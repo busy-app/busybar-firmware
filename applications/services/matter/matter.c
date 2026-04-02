@@ -13,13 +13,30 @@
 #define DEFAULT_HARDWARE_VERSION        4
 #define DEFAULT_HARDWARE_VERSION_STRING "4.F22.B7.C2"
 
-#define MATTER_WAIT_FOR_RESPONSE (MatterStatusMax)
+// Internal extension of MatterStatus enum
+typedef enum {
+    // A request needs a response from the backend
+    MatterStatusExWaitForResponse = MatterStatusMax,
+    MatterStatusExMax,
+} MatterStatusEx;
 
 typedef MatterStatus (*MatterApiMessageHandler)(Matter* instance, MatterApiMessageData* data);
 static const MatterApiMessageHandler matter_api_message_handlers[MatterApiMessageTypeMax];
 
 typedef bool (*MatterResponseHandler)(Matter* instance, const MatterIntercomFrame* response);
 static const MatterResponseHandler matter_response_handlers[MatterIntercomFrameTypeMax];
+
+static MatterStatus matter_get_error_status_or_wait_for_response(MatterStatus status) {
+    MatterStatus new_status;
+
+    if(status == MatterStatusOk) {
+        new_status = (MatterStatus)MatterStatusExWaitForResponse;
+    } else {
+        new_status = status;
+    }
+
+    return new_status;
+}
 
 static void matter_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_check(data);
@@ -84,7 +101,7 @@ static void matter_handle_api_message(Matter* instance) {
     const MatterStatus status =
         matter_api_message_handlers[message_type](instance, &api_message->data);
 
-    if(status == MATTER_WAIT_FOR_RESPONSE) {
+    if(status == (MatterStatus)MatterStatusExWaitForResponse) {
         furi_event_loop_timer_start(instance->timeout_timer, RESPONSE_TIMEOUT_MS);
     } else {
         matter_api_unlock(instance, status);
@@ -280,7 +297,7 @@ static MatterStatus
 
     } while(false);
 
-    return (status != MatterStatusOk) ? status : MATTER_WAIT_FOR_RESPONSE;
+    return matter_get_error_status_or_wait_for_response(status);
 }
 
 static MatterStatus
@@ -323,7 +340,7 @@ static MatterStatus
     };
 
     const MatterStatus status = matter_send_frame(instance, &frame);
-    return (status != MatterStatusOk) ? status : MATTER_WAIT_FOR_RESPONSE;
+    return matter_get_error_status_or_wait_for_response(status);
 }
 
 static MatterStatus matter_get_commissioned_fabrics_api_message_handler(
