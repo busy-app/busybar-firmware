@@ -125,7 +125,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
     StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms,
-    StatePublisherRateLimit rate_limit,
+    RateLimiterLimit rate_limit,
     StatePublisherPublishCb cb,
     void* context) {
     size_t i = 0;
@@ -138,9 +138,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
             t->frame_interval_ms = frame_interval_ms;
             t->cb = cb;
             t->cb_context = context;
-            t->last_tick_ms = 0;
-            t->updates_since_last_tick = 0;
-            t->rate_limit = rate_limit;
+            t->limiter = rate_limiter_init(rate_limit);
             break;
         }
     }
@@ -160,9 +158,9 @@ void state_publisher_del_transport(StatePublisher* instance, StatePublisherTrans
 void state_publisher_set_rate_limit(
     StatePublisher* instance,
     StatePublisherTransportHandle transport,
-    StatePublisherRateLimit rate_limit) {
+    RateLimiterLimit rate_limit) {
     furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
-    instance->transports[transport].rate_limit = rate_limit;
+    rate_limiter_set_limit(&instance->transports[transport].limiter, rate_limit);
     furi_mutex_release(instance->transports_mutex);
 }
 
@@ -220,84 +218,70 @@ static bool is_sequential_update(const BSB_State_StateUpdate* update) {
     }
 }
 
-static uint32_t send_out_for_transport(Transport* t, bool heartbeat) {
-    time_t now = time_get_timestamp_ms();
-    bool send = false;
-    if(now - t->last_tick_ms >= t->rate_limit.period_ms) {
-        send = true;
-        t->last_tick_ms = now;
-        t->updates_since_last_tick = 0;
-    } else if(t->updates_since_last_tick < t->rate_limit.max_packet_count) {
-        send = true;
+static bool send_out_for_transport(void* context, bool heartbeat) {
+    Transport* t = context;
+    StateUpdateArray_t updates;
+    StateUpdateArray_init_move(updates, t->seq_updates);
+    StateUpdateArray_init(t->seq_updates);
+
+    for(size_t i = 0; i != StateUpdateArray_size(t->state_updates); ++i) {
+        SharedStateUpdate_t* shared = StateUpdateArray_get(t->state_updates, i);
+        if(!SharedStateUpdate_NULL_p(*shared)) {
+            StateUpdateArray_push_move(updates, shared);
+        }
     }
 
-    uint32_t sleep_time_ms = UINT32_MAX;
+    size_t count = StateUpdateArray_size(updates);
 
-    if(send) {
-        StateUpdateArray_t updates;
-        StateUpdateArray_init_move(updates, t->seq_updates);
-        StateUpdateArray_init(t->seq_updates);
+    bool sent = false;
 
-        for(size_t i = 0; i != StateUpdateArray_size(t->state_updates); ++i) {
-            SharedStateUpdate_t* shared = StateUpdateArray_get(t->state_updates, i);
-            if(!SharedStateUpdate_NULL_p(*shared)) {
-                StateUpdateArray_push_move(updates, shared);
-            }
+    if(count > 0 || heartbeat) {
+        // shallow copy
+        BSB_State_StateUpdate* raw_updates =
+            count ? malloc(sizeof(BSB_State_StateUpdate) * count) : NULL;
+        for(size_t i = 0; i != count; ++i) {
+            SharedStateUpdate_t* shared = StateUpdateArray_get(updates, i);
+            memcpy(
+                raw_updates + i, SharedStateUpdate_cref(*shared), sizeof(BSB_State_StateUpdate));
         }
 
-        size_t count = StateUpdateArray_size(updates);
+        BSB_State_State state = {
+            .timestamp = time_get_timestamp_ms(),
+            .updates_count = count,
+            .updates = raw_updates,
+        };
 
-        if(count > 0 || heartbeat) {
-            // shallow copy
-            BSB_State_StateUpdate* raw_updates =
-                count ? malloc(sizeof(BSB_State_StateUpdate) * count) : NULL;
-            for(size_t i = 0; i != count; ++i) {
-                SharedStateUpdate_t* shared = StateUpdateArray_get(updates, i);
-                memcpy(
-                    raw_updates + i,
-                    SharedStateUpdate_cref(*shared),
-                    sizeof(BSB_State_StateUpdate));
-            }
+        SharedByteArray_t data;
+        SharedByteArray_init_new(data);
 
-            BSB_State_State state = {
-                .timestamp = now,
-                .updates_count = count,
-                .updates = raw_updates,
-            };
+        ByteArray_t* buf = SharedByteArray_ref(data);
+        pb_ostream_t stream = ostream_with_buffer(buf);
 
-            SharedByteArray_t data;
-            SharedByteArray_init_new(data);
-
-            ByteArray_t* buf = SharedByteArray_ref(data);
-            pb_ostream_t stream = ostream_with_buffer(buf);
-
-            bool result = pb_encode(&stream, BSB_State_State_fields, &state);
-            if(!result) {
-                FURI_LOG_E(TAG, "cannot encode");
-            } else {
-                t->cb(data, t->cb_context);
-            }
-
-            free(raw_updates);
-            SharedByteArray_clear(data);
-
-            t->updates_since_last_tick += 1;
+        bool result = pb_encode(&stream, BSB_State_State_fields, &state);
+        if(!result) {
+            FURI_LOG_E(TAG, "cannot encode");
+        } else {
+            t->cb(data, t->cb_context);
         }
-        StateUpdateArray_clear(updates);
-    } else {
-        // rate limited
-        sleep_time_ms = t->last_tick_ms + t->rate_limit.period_ms - now;
+
+        free(raw_updates);
+        SharedByteArray_clear(data);
+
+        sent = true;
     }
-    return sleep_time_ms;
+    StateUpdateArray_clear(updates);
+    return sent;
 }
 
 static uint32_t send_out(StatePublisher* instance, StreamFlag flags, bool heartbeat) {
     uint32_t min_sleep_time_ms = UINT32_MAX;
+    time_t now = time_get_timestamp_ms();
     furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
     for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
         Transport* t = instance->transports + i;
         if(t->valid && (t->flags & flags)) {
-            uint32_t sleep_time_ms = send_out_for_transport(t, heartbeat);
+            uint32_t sleep_time_ms = rate_limiter_send_if_allowed(
+                &t->limiter, now, send_out_for_transport, t, heartbeat);
             min_sleep_time_ms = MIN(min_sleep_time_ms, sleep_time_ms);
         }
     }

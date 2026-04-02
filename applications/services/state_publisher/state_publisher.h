@@ -12,6 +12,8 @@
 #include <mlib/m-array.h>
 #include <mlib/m-shared.h>
 
+#include "rate_limiter.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,16 +40,6 @@ typedef size_t StatePublisherTransportHandle;
 
 #define STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID ((StatePublisherTransportHandle) - 1)
 
-typedef struct StatePublisherRateLimit {
-    uint32_t period_ms;
-    uint32_t max_packet_count;
-} StatePublisherRateLimit;
-
-#define STATE_PUBLISHER_RATE_UNLIMITED \
-    (StatePublisherRateLimit) {        \
-        0                              \
-    }
-
 /**
  * Add transport (sink) to receive serialized updates.
  *
@@ -59,7 +51,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
     StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms,
-    StatePublisherRateLimit rate_limit,
+    RateLimiterLimit rate_limit,
     StatePublisherPublishCb cb,
     void* context);
 
@@ -76,7 +68,7 @@ void state_publisher_del_transport(StatePublisher* instance, StatePublisherTrans
 void state_publisher_set_rate_limit(
     StatePublisher* instance,
     StatePublisherTransportHandle transport,
-    StatePublisherRateLimit rate_limit);
+    RateLimiterLimit rate_limit);
 
 #ifdef __cplusplus
 }

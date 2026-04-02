@@ -92,8 +92,8 @@ static void mqtt_streaming_timeout_timer_callback(void* context) {
     stop_publisher(instance);
 }
 
-static StatePublisherRateLimit parse_rate_limit(const char* json, size_t length) {
-    StatePublisherRateLimit result = STATE_PUBLISHER_RATE_UNLIMITED;
+static RateLimiterLimit parse_rate_limit(const char* json, size_t length) {
+    RateLimiterLimit result = RATE_LIMITER_UNLIMITED;
     cJSON* obj = cJSON_ParseWithLength(json, length);
     cJSON* limits_obj = cJSON_GetObjectItem(obj, "message_limits");
     cJSON* max_count_obj = cJSON_GetObjectItem(limits_obj, "max_count");
@@ -123,8 +123,7 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
     MqttStreamingApiMessage api_msg;
     while(furi_message_queue_get(instance->api_queue, &api_msg, 0) == FuriStatusOk) {
         if(api_msg.type == MqttStreamingApiMessageTypeStart) {
-            StatePublisherRateLimit rate_limit =
-                parse_rate_limit(api_msg.payload, api_msg.payload_size);
+            RateLimiterLimit rate_limit = parse_rate_limit(api_msg.payload, api_msg.payload_size);
             if(instance->state_publisher_handle == STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
                 FURI_LOG_I(TAG, "Start");
                 instance->state_publisher_handle = state_publisher_add_transport(

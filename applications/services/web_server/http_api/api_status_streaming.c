@@ -225,7 +225,7 @@ static void client_set_enabled(Client* client, bool enabled) {
             client->parent->state_publisher,
             StatePublisherTransportClassWebSocket,
             FRAME_INTERVAL_MS,
-            STATE_PUBLISHER_RATE_UNLIMITED,
+            RATE_LIMITER_UNLIMITED,
             client_publish_callback,
             client);
     } else if(was_enabled && !enabled) {

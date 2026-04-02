@@ -40,9 +40,7 @@ typedef struct Transport {
     StreamFlag flags;
     uint32_t frame_interval_ms;
 
-    time_t last_tick_ms;
-    uint32_t updates_since_last_tick;
-    StatePublisherRateLimit rate_limit;
+    RateLimiter limiter;
     /// Updates that must be sent all of: sequential array
     StateUpdateArray_t seq_updates;
     /// State-like updates (only last one matters): array indexed by tag
