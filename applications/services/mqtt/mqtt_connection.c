@@ -201,9 +201,7 @@ static void mqtt_send_online_message(Mqtt* instance) {
         furi_string_get_cstr(payload),
         furi_string_size(payload),
         NULL,
-        0,
-        NULL,
-        NULL);
+        0);
 
     furi_string_free(payload);
 }
