@@ -1,7 +1,6 @@
 #pragma once
 
 #include <busy_timer/busy_timer.h>
-#include <status_lights/status_lights.h>
 
 #include <toolbox/color.h>
 
@@ -24,13 +23,6 @@ typedef enum {
 } BusyTransitionType;
 
 typedef enum {
-    BusyStatusLightsTypeOff,
-    BusyStatusLightsTypeWork,
-    BusyStatusLightsTypeRest,
-    BusyStatusLightsTypeMax,
-} BusyStatusLightsType;
-
-typedef enum {
     BusyTimerIndicatorTypeWork,
     BusyTimerIndicatorTypeRest,
     BusyTimerIndicatorTypeWorkBig,
@@ -42,11 +34,6 @@ typedef enum {
     BusyTimerIndicatorTransitionTypeInfToSimple,
     BusyTimerIndicatorTransitionTypeMax,
 } BusyTimerIndicatorTransitionType;
-
-typedef struct {
-    StatusLightsPreset preset;
-    Color color;
-} BusyStatusLightsPreset;
 
 typedef enum {
     BusyTimerLabelTypeWork,
@@ -67,8 +54,6 @@ typedef struct {
 } BusyAppGlobalPreset;
 
 extern const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax];
-
-extern const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax];
 
 extern const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMax];
 

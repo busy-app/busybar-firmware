@@ -78,17 +78,14 @@ static void busy_scene_progress_on_enter(void* context) {
     const uint32_t prev_interval_idx = curr_interval_idx - 1;
     const uint32_t num_cycles = timer_config->interval.cycles_count;
 
-    BusyStatusLightsType status_lights;
     uint32_t num_intervals_done;
     uint32_t num_intervals_total;
 
     if(timer_state == BusyTimerStateRest || timer_state == BusyTimerStateIdle) {
-        status_lights = BusyStatusLightsTypeWork;
         num_intervals_done = (curr_interval_idx + 1) / 2;
         num_intervals_total = num_cycles;
 
     } else if(timer_state == BusyTimerStateWork) {
-        status_lights = BusyStatusLightsTypeRest;
         num_intervals_done = curr_interval_idx / 2;
         num_intervals_total = num_cycles - 1;
 
@@ -124,7 +121,6 @@ static void busy_scene_progress_on_enter(void* context) {
         instance,
         NEXT_TRANSITION_DELAY_MS);
 
-    busy_set_status_lights(instance, status_lights);
     busy_start_transition(instance);
 }
 
@@ -136,8 +132,6 @@ static void busy_scene_progress_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
     run_later_cancel(data->run_later);
-
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
