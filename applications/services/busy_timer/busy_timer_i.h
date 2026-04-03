@@ -2,6 +2,7 @@
 
 #include "busy_timer.h"
 #include "settings/busy_timer_settings.h"
+#include "settings/busy_timer_saved_state.h"
 
 #include <furi.h>
 
