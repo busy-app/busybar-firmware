@@ -140,7 +140,9 @@ void state_publisher_publish_audio(StatePublisher* instance) {
 void state_publisher_publish_matter(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
 
-    MatterCommissionedFabrics info = matter_commissioned_fabrics(instance->matter);
+    MatterCommissionedFabrics info;
+    matter_get_commissioned_fabrics(instance->matter, &info);
+
     update->which_state = BSB_State_StateUpdate_matter_tag;
 
     update->state.matter.fabric_count = info.count;

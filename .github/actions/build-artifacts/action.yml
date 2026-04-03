@@ -39,8 +39,16 @@ inputs:
     description: Generate sha256 sums for produced artifacts
     required: false
     default: "true"
-  signing_keystore:
-    description: Path to commander-cli keystore JSON for signing Silabs RPS files. Leave empty to skip signing.
+  signing_service_url:
+    description: Signing service API endpoint URL for Silabs RPS files. Leave empty to skip signing.
+    required: false
+    default: ""
+  signing_service_token:
+    description: Bearer token for the signing service.
+    required: false
+    default: ""
+  signing_service_profile:
+    description: Signing service profile name.
     required: false
     default: ""
 
@@ -151,9 +159,13 @@ runs:
           ARGS+=( ${FBT_EXTRA_ARGS} )
         fi
         TARGETS=(dist)
-        SIGNING_KEYSTORE="${{ inputs.signing_keystore }}"
-        if [[ -n "$SIGNING_KEYSTORE" ]]; then
-          ARGS+=("SI917_SIGN_KEYSTORE=${SIGNING_KEYSTORE}")
+        SIGN_URL="${{ inputs.signing_service_url }}"
+        SIGN_TOKEN="${{ inputs.signing_service_token }}"
+        SIGN_PROFILE="${{ inputs.signing_service_profile }}"
+        if [[ -n "$SIGN_URL" && -n "$SIGN_TOKEN" && -n "$SIGN_PROFILE" ]]; then
+          ARGS+=("SI917_SIGN_SERVICE_URL=${SIGN_URL}")
+          ARGS+=("SI917_SIGN_SERVICE_TOKEN=${SIGN_TOKEN}")
+          ARGS+=("SI917_SIGN_SERVICE_PROFILE=${SIGN_PROFILE}")
           TARGETS+=(dist_signed)
         fi
         bash ./fbt "${ARGS[@]}" "${TARGETS[@]}"
