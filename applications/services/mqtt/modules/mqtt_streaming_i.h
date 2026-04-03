@@ -28,7 +28,6 @@ typedef struct {
     FuriMessageQueue* api_queue;
     Mqtt* mqtt;
     Gui* gui;
-    StatePublisher* state_publisher;
     StatePublisherTransportHandle state_publisher_handle;
     FuriString* response_topic;
 } MqttStreamingSrv;

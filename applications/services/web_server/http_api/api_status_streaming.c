@@ -54,8 +54,6 @@ typedef struct {
 typedef struct StatusStreaming {
     Client clients[MAX_CLIENTS_COUNT];
     FuriMutex* client_alloc_mutex; // protects clients[].valid
-
-    StatePublisher* state_publisher;
 } StatusStreaming;
 
 static inline void client_set_state(Client* client, ClientState new_state) {
@@ -120,7 +118,7 @@ static Client* client_alloc(StatusStreaming* instance, struct mg_connection* con
     return result;
 }
 
-static inline void client_free(Client* client, StatusStreaming* streaming_ctx) {
+static inline void client_free(Client* client) {
     if(client->valid) {
         switch(client->state) {
         case ClientStateActive:
@@ -128,8 +126,10 @@ static inline void client_free(Client* client, StatusStreaming* streaming_ctx) {
         case ClientStateWaitingPong:
         case ClientStateInvalid: {
             if(client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
+                StatePublisher* state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
                 state_publisher_del_transport(
-                    streaming_ctx->state_publisher, client->active.transport_handle);
+                    state_publisher, client->active.transport_handle);
+                furi_record_close(RECORD_STATE_PUBLISHER);
             }
             mg_timer_free(&client->conn->mgr->timers, client->active.heartbeat_timer);
             free(client->active.heartbeat_timer);
@@ -178,7 +178,7 @@ static void client_connection_close(struct mg_connection* conn) {
     if(client) {
         STREAM_LOG_D("Remove client: %ld", client->conn->id);
         furi_mutex_acquire(instance->client_alloc_mutex, FuriWaitForever);
-        client_free(client, instance);
+        client_free(client);
         furi_mutex_release(instance->client_alloc_mutex);
     }
 
@@ -219,10 +219,13 @@ static void client_set_enabled(Client* client, bool enabled) {
 
     STREAM_LOG_D("set enabled = %u", enabled ? 1 : 0);
 
+    StatePublisher* state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
+
     bool was_enabled = client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
+
     if(enabled && !was_enabled) {
         client->active.transport_handle = state_publisher_add_transport(
-            client->parent->state_publisher,
+            state_publisher,
             StatePublisherTransportClassWebSocket,
             FRAME_INTERVAL_MS,
             RATE_LIMITER_UNLIMITED,
@@ -230,8 +233,10 @@ static void client_set_enabled(Client* client, bool enabled) {
             client);
     } else if(was_enabled && !enabled) {
         state_publisher_del_transport(
-            client->parent->state_publisher, client->active.transport_handle);
+            state_publisher, client->active.transport_handle);
     }
+
+    furi_record_close(RECORD_STATE_PUBLISHER);
 }
 
 static void client_on_message(struct mg_connection* conn, struct mg_ws_message* ws_msg) {
@@ -304,8 +309,6 @@ void* http_api_status_ws_alloc(void) {
         instance->clients[i].valid = false;
     }
 
-    instance->state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
-
     return instance;
 }
 
@@ -315,10 +318,9 @@ void http_api_status_ws_free(void* ctx) {
     furi_mutex_acquire(instance->client_alloc_mutex, FuriWaitForever);
     for(size_t i = 0; i != COUNT_OF(instance->clients); ++i) {
         Client* client = instance->clients + i;
-        client_free(client, instance);
+        client_free(client);
     }
     furi_mutex_release(instance->client_alloc_mutex);
-    furi_record_close(RECORD_STATE_PUBLISHER);
 
     furi_mutex_free(instance->client_alloc_mutex);
     free(instance);

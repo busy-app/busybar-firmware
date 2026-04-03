@@ -75,7 +75,9 @@ static void mqtt_streaming_pubsub_callback(const void* message, void* context) {
 
 static void stop_publisher(MqttStreamingSrv* instance) {
     if(instance->state_publisher_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
-        state_publisher_del_transport(instance->state_publisher, instance->state_publisher_handle);
+        StatePublisher* state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
+        state_publisher_del_transport(state_publisher, instance->state_publisher_handle);
+        furi_record_close(RECORD_STATE_PUBLISHER);
         instance->state_publisher_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
 
         furi_string_free(instance->response_topic);
@@ -124,10 +126,11 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
     while(furi_message_queue_get(instance->api_queue, &api_msg, 0) == FuriStatusOk) {
         if(api_msg.type == MqttStreamingApiMessageTypeStart) {
             RateLimiterLimit rate_limit = parse_rate_limit(api_msg.payload, api_msg.payload_size);
+            StatePublisher* state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
             if(instance->state_publisher_handle == STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
                 FURI_LOG_I(TAG, "Start");
                 instance->state_publisher_handle = state_publisher_add_transport(
-                    instance->state_publisher,
+                    state_publisher,
                     StatePublisherTransportClassMQTT,
                     FRAME_PERIOD_MS,
                     rate_limit,
@@ -135,9 +138,12 @@ static void mqtt_streaming_api_queue_callback(FuriEventLoopObject* obj, void* co
                     instance);
             } else {
                 state_publisher_set_rate_limit(
-                    instance->state_publisher, instance->state_publisher_handle, rate_limit);
+                    state_publisher, instance->state_publisher_handle, rate_limit);
                 furi_string_free(instance->response_topic);
             }
+
+            furi_record_close(RECORD_STATE_PUBLISHER);
+
             instance->response_topic = api_msg.response_topic;
 
             furi_event_loop_timer_start(instance->timeout_timer, S_TO_MS(api_msg.expiry_interval));
@@ -192,7 +198,6 @@ static MqttStreamingSrv* mqtt_streaming_alloc(void) {
         furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(MqttStreamingApiMessage));
     instance->mqtt = furi_record_open(RECORD_MQTT);
     instance->gui = furi_record_open(RECORD_GUI);
-    instance->state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
     instance->state_publisher_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
     instance->response_topic = NULL;
 
