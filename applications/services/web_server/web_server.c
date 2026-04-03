@@ -289,3 +289,9 @@ int32_t web_srv_start(void* p) {
 struct mg_mgr* web_srv_get_mgr(void) {
     return (&srv.mgr);
 }
+
+void web_server_get_api_version(FuriString* version) {
+    furi_assert(version);
+    const uint8_t api_ver[] = API_VERSION;
+    furi_string_printf(version, "%u.%u.%u", api_ver[0], api_ver[1], api_ver[2]);
+}

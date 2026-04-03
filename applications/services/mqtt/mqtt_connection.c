@@ -3,6 +3,7 @@
 #include <storage/storage.h>
 #include <busy_timer/time_macros.h>
 #include <version/version.h>
+#include <web_server/web_server.h>
 
 #define MQTT_VERSION     (5)
 #define MQTT_PING_PERIOD M_TO_MS(10)
@@ -183,15 +184,20 @@ static void mqtt_send_online_message(Mqtt* instance) {
     furi_string_cat_printf(
         payload, "\"firmware_version\":\"%s\",", version_get_version(firmware_version));
 
-    furi_string_cat_printf(payload, "\"api_version\":\"%s\",", MQTT_API_VERSION);
+    FuriString* version_string = furi_string_alloc();
+    web_server_get_api_version(version_string);
+    furi_string_cat_printf(
+        payload, "\"api_version\":\"%s\",", furi_string_get_cstr(version_string));
+    furi_string_free(version_string);
+
     furi_string_cat_printf(payload, "\"status\":\"online\"");
     furi_string_cat(payload, "}");
 
     mqtt_publish_internal(
         instance,
-        MqttScopeSession,
+        MqttScopeDevice,
         MqttQosAtLeastOnce,
-        MQTT_TOPIC_STATE,
+        MQTT_TOPIC_PRESENCE,
         furi_string_get_cstr(payload),
         furi_string_size(payload),
         NULL,
@@ -385,7 +391,7 @@ void mqtt_connection_open(Mqtt* instance) {
 
     if(mqtt_saved_state_is_valid(&instance->saved_state)) {
         mqtt_make_topic_path(
-            instance, MqttScopeSession, MQTT_DIRECTION_UP, MQTT_TOPIC_STATE, last_will_topic);
+            instance, MqttScopeDevice, MQTT_DIRECTION_UP, MQTT_TOPIC_PRESENCE, last_will_topic);
 
         opts.topic = mg_str(furi_string_get_cstr(last_will_topic));
         opts.message = mg_str("{\"status\":\"offline\"}");

@@ -24,7 +24,7 @@
 #define MQTT_DEVICE_ROOT_TOPIC  "devices"
 #define MQTT_SESSION_ROOT_TOPIC "sessions"
 
-#define MQTT_TOPIC_STATE              "state"
+#define MQTT_TOPIC_PRESENCE           "presence"
 #define MQTT_TOPIC_UNLINK_FROM_DEVICE "unlink"
 #define MQTT_TOPIC_UNLINK_FROM_CLOUD  "gone"
 
