@@ -232,10 +232,7 @@ static void mqtt_open_mg_event_handler(
         }
 
         mqtt_start_ping_timer(instance);
-
-        if(instance->status == MqttStatusConnectedLinked) {
-            mqtt_send_online_message(instance);
-        }
+        mqtt_send_online_message(instance);
 
     } else {
         FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", status_code);
@@ -376,6 +373,12 @@ void mqtt_connection_open(Mqtt* instance) {
 
     const MqttSavedState* saved_state = &instance->saved_state;
 
+    FuriString* last_will_topic = furi_string_alloc();
+    mqtt_make_topic_path(
+        instance, MqttScopeDevice, MQTT_DIRECTION_UP, MQTT_TOPIC_PRESENCE, last_will_topic);
+
+    struct mg_mqtt_prop will_props[] = {{.id = MQTT_PROP_WILL_DELAY_INTERVAL, .iv = 0}};
+
     struct mg_mqtt_opts opts = {
         .client_id = mg_str(saved_state->client_id),
         .user = mg_str(furi_string_get_cstr(username)),
@@ -383,27 +386,13 @@ void mqtt_connection_open(Mqtt* instance) {
         .clean = true,
         .keepalive = MQTT_PING_PERIOD / 1000,
         .version = MQTT_VERSION,
+
+        .topic = mg_str(furi_string_get_cstr(last_will_topic)),
+        .message = mg_str("{\"status\":\"offline\"}"),
+        .qos = MqttQosAtLeastOnce,
+        .will_props = will_props,
+        .num_will_props = COUNT_OF(will_props),
     };
-
-    FuriString* last_will_topic = furi_string_alloc();
-
-    if(mqtt_saved_state_is_valid(&instance->saved_state)) {
-        mqtt_make_topic_path(
-            instance, MqttScopeDevice, MQTT_DIRECTION_UP, MQTT_TOPIC_PRESENCE, last_will_topic);
-
-        opts.topic = mg_str(furi_string_get_cstr(last_will_topic));
-        opts.message = mg_str("{\"status\":\"offline\"}");
-        opts.qos = MqttQosAtLeastOnce;
-
-        struct mg_mqtt_prop will_props[] = {
-            {
-                .id = MQTT_PROP_WILL_DELAY_INTERVAL,
-                .iv = 0,
-            },
-        };
-        opts.will_props = will_props;
-        opts.num_will_props = COUNT_OF(will_props);
-    }
 
     const char* server_url = mqtt_get_server_url(instance);
     FURI_LOG_D(TAG, "Connecting to %s ...", server_url);
