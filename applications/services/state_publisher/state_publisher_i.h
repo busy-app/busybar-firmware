@@ -12,6 +12,9 @@
 #include <busy_timer/busy_timer.h>
 #include <updater/updater.h>
 
+#include <mlib/m-array.h>
+#include <mlib/m-shared.h>
+
 #define TAG "StPubSrv"
 
 #define MAX_TRANSPORTS 16
@@ -24,10 +27,25 @@ typedef enum {
     StreamFlagAll = StreamFlagMQTT | StreamFlagWebSocket | StreamFlagBLE
 } StreamFlag;
 
+void state_publisher_free_state_update(BSB_State_StateUpdate* update);
+
+#define STATE_UPDATE_CLEAR(o) state_publisher_free_state_update(&(o))
+#define STATE_UPDATE_OPLIST   M_OPEXTEND(M_EMPTY_OPLIST, CLEAR(STATE_UPDATE_CLEAR))
+SHARED_PTR_DEF(SharedStateUpdate, BSB_State_StateUpdate, STATE_UPDATE_OPLIST);
+ARRAY_DEF(StateUpdateArray, SharedStateUpdate_t, SHARED_PTR_OPLIST(SharedStateUpdate));
+
 typedef struct Transport {
     bool valid;
+
     StreamFlag flags;
     uint32_t frame_interval_ms;
+
+    RateLimiter limiter;
+    /// Updates that must be sent all of: sequential array
+    StateUpdateArray_t seq_updates;
+    /// State-like updates (only last one matters): array indexed by tag
+    StateUpdateArray_t state_updates;
+
     StatePublisherPublishCb cb;
     void* cb_context;
 } Transport;
@@ -41,6 +59,7 @@ struct StatePublisher {
     ScreenStreamer* screen_streamer_front;
 
     FuriEventLoopTimer* heartbeat_timer;
+    FuriEventLoopTimer* rate_limiter_timer;
 
     Power* power;
     Audio* audio;

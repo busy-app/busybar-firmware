@@ -79,7 +79,6 @@ void state_publisher_subscribe(StatePublisher* instance) {
 static void brightness_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const BrightnessControlState* state = item;
-    FURI_LOG_D(TAG, "publish brightness");
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_brightness_tag;
@@ -102,7 +101,6 @@ static void brightness_state_callback(const void* item, void* context) {
 
 void state_publisher_publish_power(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish power");
 
     PowerInfo power_info;
     power_get_info(instance->power, &power_info);
@@ -129,7 +127,6 @@ void state_publisher_publish_power(StatePublisher* instance) {
 
 void state_publisher_publish_audio(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish audio");
 
     float volume = audio_get_volume(instance->audio);
 
@@ -142,7 +139,6 @@ void state_publisher_publish_audio(StatePublisher* instance) {
 
 void state_publisher_publish_matter(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish matter");
 
     MatterCommissionedFabrics info;
     matter_get_commissioned_fabrics(instance->matter, &info);
@@ -173,8 +169,6 @@ void state_publisher_publish_matter(StatePublisher* instance) {
 void state_publisher_publish_update_check(StatePublisher* instance, const UpdaterCheckState* info) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_update_check_tag;
-
-    FURI_LOG_D(TAG, "publish update check");
 
     switch(info->result) {
     case UpdaterCheckResultAvailable: {
@@ -213,7 +207,6 @@ void state_publisher_publish_update_check(StatePublisher* instance, const Update
 
 void state_publisher_publish_busy_timer(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish busy timer");
 
     update->which_state = BSB_State_StateUpdate_timer_tag;
 
@@ -259,7 +252,6 @@ static void device_name_pubsub_callback(const void* message, void* context) {
 
     if(event->type == DeviceNameEventTypeNameChanged) {
         BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-        FURI_LOG_D(TAG, "publish device name");
 
         update->which_state = BSB_State_StateUpdate_device_name_tag;
         static_assert(
@@ -305,8 +297,6 @@ static void input_event_pubsub_callback(const void* message, void* context) {
     }
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish input event");
-    FURI_LOG_D(TAG, "input event: type=%u, key=%u", event->type, event->key);
 
     update->which_state = BSB_State_StateUpdate_input_tag;
 
@@ -432,8 +422,6 @@ static void wifi_info_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const WifiInfo* info = item;
 
-    FURI_LOG_D(TAG, "publish wifi");
-
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_wifi_tag;
 
@@ -514,8 +502,6 @@ static void updater_update_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const UpdaterUpdateState* info = item;
 
-    FURI_LOG_D(TAG, "publish update state");
-
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_update_state_tag;
 
@@ -586,15 +572,6 @@ void screen_streamer_callback(
     uint8_t stream_flags,
     void* context) {
     StatePublisher* instance = context;
-    FURI_LOG_D(
-        TAG,
-        "frame for %hhx: %lux%lu (%zu) pf:%u c:%u",
-        stream_flags,
-        frame->width,
-        frame->height,
-        frame->data_size,
-        frame->pixel_format,
-        frame->compression);
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_frame_tag;

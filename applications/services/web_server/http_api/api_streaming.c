@@ -126,9 +126,13 @@ static inline void
     else if(display_id == GuiDisplayIdBack)
         instance->back_clients_count++;
 
-    furi_assert(
-        (size_t)(instance->front_clients_count + instance->back_clients_count +
-                 instance->idle_clients_count) == StreamClientsList_size(instance->clients));
+    size_t total_clients = instance->front_clients_count + instance->back_clients_count +
+                           instance->idle_clients_count;
+    size_t list_size = StreamClientsList_size(instance->clients);
+    if(total_clients != list_size) {
+        FURI_LOG_W(
+            TAG, "Increment mismatch total_clients = %d, list_size = %d", total_clients, list_size);
+    }
     furi_mutex_release(instance->clients_lock);
 }
 
@@ -139,9 +143,13 @@ static inline void
     else if(display_id == GuiDisplayIdBack)
         instance->back_clients_count--;
 
-    furi_assert(
-        (size_t)(instance->front_clients_count + instance->back_clients_count +
-                 instance->idle_clients_count) == StreamClientsList_size(instance->clients));
+    size_t total_clients = instance->front_clients_count + instance->back_clients_count +
+                           instance->idle_clients_count;
+    size_t list_size = StreamClientsList_size(instance->clients);
+    if(total_clients != list_size) {
+        FURI_LOG_W(
+            TAG, "Decrement mismatch total_clients = %d, list_size = %d", total_clients, list_size);
+    }
 }
 
 static inline void

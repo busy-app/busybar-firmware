@@ -12,6 +12,8 @@
 #include <mlib/m-array.h>
 #include <mlib/m-shared.h>
 
+#include "rate_limiter.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,6 +51,7 @@ StatePublisherTransportHandle state_publisher_add_transport(
     StatePublisher* instance,
     StatePublisherTransportClass transport_class,
     uint32_t frame_interval_ms,
+    RateLimiterLimit rate_limit,
     StatePublisherPublishCb cb,
     void* context);
 
@@ -58,6 +61,14 @@ StatePublisherTransportHandle state_publisher_add_transport(
  * @param handle transport handle received from state_publisher_add_transport.
  */
 void state_publisher_del_transport(StatePublisher* instance, StatePublisherTransportHandle handle);
+
+/**
+ * Set new rate limit for a transport.
+ */
+void state_publisher_set_rate_limit(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport,
+    RateLimiterLimit rate_limit);
 
 #ifdef __cplusplus
 }

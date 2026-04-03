@@ -216,9 +216,7 @@ static void mqtt_api_http_handler(struct mg_connection* connection, int event, v
                 msg->message.buf,
                 msg->message.len,
                 props,
-                COUNT_OF(props),
-                NULL,
-                NULL);
+                COUNT_OF(props));
         }
 
         connection->is_draining = 1;
@@ -254,9 +252,7 @@ static void mqtt_http_proxy_respond_error(const MqttHttpProxyRequest* request) {
         message,
         strlen(message),
         props,
-        COUNT_OF(props),
-        NULL,
-        NULL);
+        COUNT_OF(props));
 }
 
 static void mqtt_http_proxy_message_callback(const MqttMessage* message, void* context) {

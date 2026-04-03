@@ -115,9 +115,7 @@ bool mqtt_publish_internal(
     const void* data,
     size_t data_size,
     const MqttProperty* props,
-    uint32_t props_count,
-    MqttPublishDoneCallback publish_done_callback,
-    void* callback_context) {
+    uint32_t props_count) {
     if(!mqtt_is_valid_scope_for_current_status(instance, scope)) {
         FURI_LOG_E(TAG, "Unable to publish: scope: %d, status: %d", scope, instance->status);
         return false;
@@ -158,10 +156,6 @@ bool mqtt_publish_internal(
     }
 
     furi_string_free(path);
-
-    if(publish_done_callback) {
-        publish_done_callback(callback_context);
-    }
 
     return true;
 }
