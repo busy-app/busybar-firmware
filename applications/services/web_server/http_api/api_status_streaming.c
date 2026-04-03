@@ -127,8 +127,7 @@ static inline void client_free(Client* client) {
         case ClientStateInvalid: {
             if(client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID) {
                 StatePublisher* state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
-                state_publisher_del_transport(
-                    state_publisher, client->active.transport_handle);
+                state_publisher_del_transport(state_publisher, client->active.transport_handle);
                 furi_record_close(RECORD_STATE_PUBLISHER);
             }
             mg_timer_free(&client->conn->mgr->timers, client->active.heartbeat_timer);
@@ -232,8 +231,7 @@ static void client_set_enabled(Client* client, bool enabled) {
             client_publish_callback,
             client);
     } else if(was_enabled && !enabled) {
-        state_publisher_del_transport(
-            state_publisher, client->active.transport_handle);
+        state_publisher_del_transport(state_publisher, client->active.transport_handle);
     }
 
     furi_record_close(RECORD_STATE_PUBLISHER);
