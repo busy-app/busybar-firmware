@@ -1045,7 +1045,9 @@ static void busy_timer_load_settings(BusyTimer* instance) {
 static void busy_timer_load_saved_state(BusyTimer* instance) {
     BusyTimerSavedState saved_state;
     busy_timer_saved_state_load(&saved_state);
-    busy_timer_apply_snapshot(instance, &saved_state.snapshot);
+    UNUSED(instance);
+    // FIXME: Desktop changes are needed in order for this to work
+    // busy_timer_apply_snapshot(instance, &saved_state.snapshot);
 }
 
 static BusyTimer* busy_timer_alloc(void) {
