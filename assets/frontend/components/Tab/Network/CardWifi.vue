@@ -41,6 +41,12 @@
         Connecting...
       </div>
       <div
+        v-else-if="wifiStore.wifi?.state === 'reconnecting'"
+        data-id="network-section-wifi-status-reconnecting"
+      >
+        Reconnecting...
+      </div>
+      <div
         v-else
         data-id="network-section-wifi-status-disconnected"
       >
@@ -61,7 +67,7 @@
         @click="listWifiNetworks"
       />
       <UButton
-        v-if="connected && !showNetworksList"
+        v-if="(connected || wifiStore.wifi?.state === 'reconnecting') && !showNetworksList"
         data-id="network-section-wifi-forget-button"
         label="Forget network"
         variant="outline"
@@ -524,7 +530,7 @@ async function forgetNetwork () {
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
 
 const title = computed(() => {
-  if (wifiStore.wifi?.state === 'connected' || wifiStore.wifi?.state === 'connecting') {
+  if (wifiStore.wifi?.state === 'connected' || wifiStore.wifi?.state === 'connecting' || wifiStore.wifi?.state === 'reconnecting') {
     return wifiStore.wifi?.ssid || 'Wi-Fi';
   } else if (networks.value.length > 0) {
     return 'Select network';
@@ -552,7 +558,7 @@ const sectionIcon = computed(() => {
   if (showNetworksList.value) {
     return undefined;
   }
-  if (wifiStore.wifi?.state === 'connecting') {
+  if (wifiStore.wifi?.state === 'connecting' || wifiStore.wifi?.state === 'reconnecting') {
     return 'i-bi-wifi-4';
   }
   if (connected.value) {
