@@ -14,6 +14,19 @@ function getNumber (value: unknown): number | undefined {
   return typeof value === 'number' ? value : undefined;
 }
 
+function getNumericValue (value: unknown): number | undefined {
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  return undefined;
+}
+
 function lowerCaseEnum (value: string | undefined): string | undefined {
   return value?.toLowerCase();
 }
@@ -272,7 +285,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
       latestStatus: state
         ? {
           value: mapMatterStatus(getString(state.status)),
-          timestamp: getString(state.timestamp)
+          timestamp: getNumericValue(state.timestamp)
         }
         : undefined
     };

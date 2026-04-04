@@ -176,7 +176,7 @@ async function composeAndUpload () {
 
 async function deleteAssets () {
   return deviceStore.busyBar.AssetsDelete({
-    appId: 'virtual-lan-animation-test'
+    application_name: 'virtual-lan-animation-test'
   })
     .catch(async error => {
       if (String(error).startsWith('Error: Assets missing')) {
@@ -191,9 +191,9 @@ async function deleteAssets () {
 
 async function uploadAnimation (animation: Blob) {
   return deviceStore.busyBar.AssetsUpload({
-    appId: 'virtual-lan-animation-test',
-    file: animation,
-    fileName: 'test.anim'
+    application_name: 'virtual-lan-animation-test',
+    data: animation,
+    file: 'test.anim'
   })
     .catch(async error => {
       await handleHTTPError(error, 'Couldn\'t upload animation file', true);
@@ -203,7 +203,7 @@ async function uploadAnimation (animation: Blob) {
 
 async function drawAnimation () {
   return deviceStore.busyBar.DisplayDraw({
-    appId: 'virtual-lan-animation-test',
+    application_name: 'virtual-lan-animation-test',
     elements: [
       {
         id: '0',

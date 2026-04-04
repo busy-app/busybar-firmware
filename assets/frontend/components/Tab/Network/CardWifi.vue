@@ -342,7 +342,7 @@
           <div class="flex flex-col gap-6">
             <UFormField label="IP Settings">
               <USelect
-                v-model="connectModel.ipConfig.ipMethod"
+                v-model="connectModel.ip_config.ip_method"
                 name="ip-method"
                 :items="['dhcp', 'static']"
                 size="xl"
@@ -351,10 +351,10 @@
                 class="w-full"
               />
             </UFormField>
-            <template v-if="connectModel.ipConfig.ipMethod === 'static'">
+            <template v-if="connectModel.ip_config.ip_method === 'static'">
               <UFormField label="Address">
                 <UInput
-                  v-model="connectModel.ipConfig.address"
+                  v-model="connectModel.ip_config.address"
                   v-maska="'###.###.###.###'"
                   name="ip-address"
                   placeholder="___ ___ ___ ___"
@@ -366,7 +366,7 @@
               </UFormField>
               <UFormField label="Subnet Mask">
                 <UInput
-                  v-model="connectModel.ipConfig.mask"
+                  v-model="connectModel.ip_config.mask"
                   v-maska="'###.###.###.###'"
                   name="subnet-mask"
                   placeholder="___ ___ ___ ___"
@@ -378,7 +378,7 @@
               </UFormField>
               <UFormField label="Gateway">
                 <UInput
-                  v-model="connectModel.ipConfig.gateway"
+                  v-model="connectModel.ip_config.gateway"
                   v-maska="'###.###.###.###'"
                   name="gateway"
                   placeholder="___ ___ ___ ___"
@@ -476,8 +476,8 @@ const connectModel = ref<WifiConnectParams>({
   ssid: '',
   security: 'Open',
   password: '',
-  ipConfig: {
-    ipMethod: 'dhcp' as 'dhcp' | 'static',
+  ip_config: {
+    ip_method: 'dhcp' as 'dhcp' | 'static',
     address: '',
     mask: '',
     gateway: ''
@@ -488,8 +488,8 @@ const initConnectModel = () => {
     ssid: '',
     security: 'Open',
     password: '',
-    ipConfig: {
-      ipMethod: 'dhcp',
+    ip_config: {
+      ip_method: 'dhcp',
       address: '',
       mask: '',
       gateway: ''
