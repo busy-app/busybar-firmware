@@ -47,8 +47,8 @@
         </template>
       </UFileUpload>
 
-      <div class="w-full flex items-end justify-between gap-6">
-        <div class="flex gap-4">
+      <div class="w-full flex flex-wrap sm:flex-nowrap items-end justify-between gap-6">
+        <div class="flex flex-wrap md:flex-nowrap gap-4">
           <UFormField label="FPS">
             <UInput
               v-model="fpsModel"
@@ -67,7 +67,7 @@
           </UFormField>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex flex-wrap sm:flex-nowrap gap-2">
           <UButton
             icon="i-bi-download"
             label="Save animation file"
