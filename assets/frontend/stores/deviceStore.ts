@@ -120,7 +120,7 @@ export const useDeviceStore = defineStore('device', () => {
         baseURL: useRuntimeConfig().public.barUrl
       });
       const elapsed = Date.now() - now;
-      if (elapsed < 50) {
+      if (elapsed <= 75) {
         connectionType.value = 'usb';
       } else {
         console.debug(`Connection check took ${elapsed}ms, treating as wifi connection`);
