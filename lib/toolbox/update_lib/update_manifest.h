@@ -20,6 +20,14 @@ typedef enum {
     UpdateManifestPathDfu,
 } UpdateManifestPath;
 
+typedef enum {
+    UpdateManifestSecurityFlagNwpSigned = (1u << 0),
+    UpdateManifestSecurityFlagM4Signed = (1u << 1),
+    UpdateManifestSecurityFlagNwpEncrypted = (1u << 2),
+    UpdateManifestSecurityFlagM4Encrypted = (1u << 3),
+    UpdateManifestSecurityFlagU5Encrypted = (1u << 4),
+} UpdateManifestSecurityFlag;
+
 /**
  * @brief Manifest version.
  */
@@ -101,6 +109,13 @@ uint32_t updater_manifest_get_version(const UpdateManifest* config);
  * @return Constant pointer to a FuriString containing the update name
  */
 const FuriString* updater_manifest_get_update_name(const UpdateManifest* config);
+
+/**
+ * @brief Gets the security flags bitmask from the manifest.
+ * @param config Pointer to the UpdateManifest.
+ * @return The security flags bitmask (see UpdateManifestSecurityFlag).
+ */
+uint32_t updater_manifest_get_security_flags(const UpdateManifest* config);
 
 #ifdef __cplusplus
 }

@@ -6,7 +6,7 @@
 
 #define TAG "HttpAssets"
 
-#define ASSETS_UPLOAD_DIR EXT_PATH("assets")
+#define ASSETS_UPLOAD_DIR EXT_PATH("user_assets")
 #define FILE_NAME_LEN_MAX 32
 
 typedef struct {
@@ -20,9 +20,8 @@ static void api_assets_upload_data_callback(struct mg_connection* conn, struct m
 
     bool do_close_file = false;
 
-    if(upload_ctx->file == NULL) {
-        return;
-    }
+    if(upload_ctx == NULL) return;
+    if(upload_ctx->file == NULL) return;
 
     if((data->len > 0) && (upload_ctx->file)) {
         // Write file chunk
@@ -60,6 +59,8 @@ static void api_assets_upload_data_callback(struct mg_connection* conn, struct m
 static void api_assets_upload_close_callback(struct mg_connection* conn) {
     ConnectionContext* conn_ctx = (void*)conn->data;
     UploadClientCtx* upload_ctx = conn_ctx->context;
+    furi_assert(upload_ctx);
+
     if(upload_ctx->file) {
         http_fs_get()->cl(upload_ctx->file);
         upload_ctx->file = NULL;
@@ -77,7 +78,7 @@ static bool api_assets_upload_parse_parameters(struct mg_str* params_str, FuriSt
 
     char temp_str[FILE_NAME_LEN_MAX];
 
-    int var_len = mg_http_get_var(params_str, "app_id", temp_str, sizeof(temp_str));
+    int var_len = mg_http_get_var(params_str, "application_name", temp_str, sizeof(temp_str));
     if(var_len <= 0) {
         return false;
     }
@@ -94,12 +95,14 @@ static bool api_assets_upload_parse_parameters(struct mg_str* params_str, FuriSt
 
 static bool api_assets_upload_headers_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodPost) return false;
 
     FuriString* file_path = furi_string_alloc();
     if(api_assets_upload_parse_parameters(&msg->query, file_path)) {
@@ -133,6 +136,8 @@ static bool api_assets_upload_headers_callback(
     } else {
         MG_REPLY_BAD_REQUEST(conn);
         conn->is_draining = 1;
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        conn_ctx->context = NULL;
     }
 
     furi_string_free(file_path);
@@ -148,12 +153,14 @@ static bool api_assets_upload_headers_callback(
 
 static bool api_assets_delete_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodDelete) return false;
 
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
@@ -163,14 +170,15 @@ static bool api_assets_delete_callback(
             break;
         }
 
-        char app_id_str[FILE_NAME_LEN_MAX];
+        char app_name_str[FILE_NAME_LEN_MAX];
 
-        int var_len = mg_http_get_var(&msg->query, "app_id", app_id_str, sizeof(app_id_str));
+        int var_len =
+            mg_http_get_var(&msg->query, "application_name", app_name_str, sizeof(app_name_str));
         if(var_len <= 0) {
             MG_REPLY_BAD_REQUEST(conn);
             break;
         }
-        furi_string_printf(dir_path, "%s/%.*s", ASSETS_UPLOAD_DIR, var_len, app_id_str);
+        furi_string_printf(dir_path, "%s/%.*s", ASSETS_UPLOAD_DIR, var_len, app_name_str);
 
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         if(!storage_dir_exists(fs_api, furi_string_get_cstr(dir_path))) {
@@ -197,14 +205,9 @@ static bool api_assets_delete_callback(
 static const HttpHandler handlers_assets[] = {
     {
         .uri = "upload",
-        .method = "POST",
+        .method = HttpMethodPost | HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_headers = api_assets_upload_headers_callback,
-    },
-    {
-        .uri = "upload",
-        .method = "DELETE",
-        .type = HttpHandlerCustom,
         .on_request = api_assets_delete_callback,
     },
 };
@@ -235,18 +238,20 @@ void http_api_assets_free(void* ctx) {
 
 bool http_api_assets_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiAssetsCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }
 
 bool http_api_assets_hdr_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiAssetsCtx* context = ctx;
-    return http_handle_headers(path, context->handlers, conn, msg);
+    return http_handle_headers(path, method, context->handlers, conn, msg);
 }

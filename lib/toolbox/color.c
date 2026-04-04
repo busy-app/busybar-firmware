@@ -99,3 +99,13 @@ bool color_parse_hexa_string(const char* hexa, Color* color_out) {
     *color_out = color_hexa_to_rgb(hexa_int);
     return true;
 }
+
+void color_buf_l8_to_l4(void* dst, const void* src, size_t size) {
+    const uint8_t* src_u8 = src;
+    uint8_t* dst_u8 = dst;
+    size_t dst_size = size / 2;
+    for(uint32_t dst_i = 0; dst_i < dst_size; ++dst_i) {
+        const size_t src_i = 2 * dst_i;
+        dst_u8[dst_i] = (src_u8[src_i] >> 4) | (src_u8[src_i + 1] & 0xF0);
+    }
+}

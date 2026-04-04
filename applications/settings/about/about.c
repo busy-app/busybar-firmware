@@ -156,8 +156,8 @@ int32_t about_entry(void* arg) {
         furi_string_set_str(descriptor->front_title, "About");
         furi_string_set_str(descriptor->back_title, "About");
 
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("info_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("info_back_11x11.bin"));
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("info_front_8x8.image"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("info_back_11x11.image"));
         return 0;
     }
 

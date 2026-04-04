@@ -53,11 +53,12 @@ void ble_status_indicator_set_state(BleStatusIndicator* instance, BleStatusIndic
 
     if(state != instance->state) {
         if(state == BleStatusIndicatorStateDisconnected) {
-            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_disconnected_8x8.bin"));
+            lv_image_set_src(
+                instance->ble_image, STATUS_BAR_IMG_PATH("ble_disconnected_8x8.image"));
         } else if(state == BleStatusIndicatorStateConnectable) {
-            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_connecting_8x8.bin"));
+            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_connecting_8x8.image"));
         } else if(state == BleStatusIndicatorStateConnected) {
-            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_8x8.bin"));
+            lv_image_set_src(instance->ble_image, STATUS_BAR_IMG_PATH("ble_8x8.image"));
         }
 
         const bool is_hidden = (state == BleStatusIndicatorStateUnknown);

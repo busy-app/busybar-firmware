@@ -18,15 +18,35 @@ def _icons_emitter(target, source, env):
     ]
     return target, icons_src
 
+def _common_path(source):
+    source_dirs = {os.path.dirname(str(s)) for s in source}
+    return os.path.commonpath(list(source_dirs))
 
 def _proto_emitter(target, source, env):
     target = []
+    common_path = _common_path(source)
     for src in source:
-        basename = os.path.splitext(src.name)[0]
-        target.append(env.File(f"compiled/{basename}.pb.c"))
-        target.append(env.File(f"compiled/{basename}.pb.h"))
+        rel_path = os.path.relpath(str(src), common_path)
+        basename = os.path.splitext(rel_path)[0]
+        target.append(env.File(f"{basename}.pb.c"))
     return target, source
 
+def _proto_action(target, source, env):
+    include_dir = _common_path(source)
+    target_dir = _common_path(target)
+
+    cmd = [
+        env.subst("$PYTHON3"),
+        env.subst("$NANOPB_COMPILER"),
+        "-q",
+        "--strip-path",
+        f"-I{include_dir}",
+        f"-D{target_dir}",
+    ]
+
+    cmd.extend([str(s) for s in source])
+
+    return env.Execute([cmd])
 
 def _dolphin_emitter(target, source, env):
     res_root_dir = source[0].Dir(env["DOLPHIN_RES_TYPE"])
@@ -169,16 +189,7 @@ def generate(env):
             ),
             "ProtoBuilder": Builder(
                 action=Action(
-                    [
-                        [
-                            "${PYTHON3}",
-                            "${NANOPB_COMPILER}",
-                            "-q",
-                            "-I${SOURCE.dir.posix}",
-                            "-D${TARGET.dir.posix}",
-                            "${SOURCES.posix}",
-                        ],
-                    ],
+                    _proto_action,
                     "${PROTOCOMSTR}",
                 ),
                 emitter=_proto_emitter,

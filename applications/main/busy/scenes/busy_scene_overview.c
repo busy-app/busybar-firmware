@@ -52,11 +52,13 @@ static void busy_scene_overview_on_enter(void* context) {
     BusySceneOverview* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdOverview);
 
-    BusyTimerRunInfo timer_info;
-    busy_timer_get_run_info(instance->busy_timer, &timer_info);
+    BusyTimerPreset timer_preset;
+    busy_get_timer_preset(instance, &timer_preset);
 
-    furi_check(timer_info.config.mode == BusyTimerModeInterval);
-    const BusyTimerIntervalConfig* interval_config = &timer_info.config.interval;
+    const BusyTimerConfig* timer_config = &timer_preset.timer_config;
+
+    furi_check(timer_config->mode == BusyTimerModeInterval);
+    const BusyTimerIntervalConfig* interval_config = &timer_config->interval;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);

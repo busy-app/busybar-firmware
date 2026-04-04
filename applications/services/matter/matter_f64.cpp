@@ -68,7 +68,7 @@ static MatterSrv* matter_global_srv;
 // =========
 
 static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
-    furi_check(buf_size >= (MATTER_MAX_MAN_CODE_LEN + 1));
+    furi_check(buf_size >= (MATTER_MAN_CODE_LEN_MAX + 1));
 
     static const size_t pattern[2] = {4, 3};
     const size_t original_len = strlen(buffer);
@@ -135,9 +135,11 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 
     if(frame->type == MatterIntercomFrameTypeInitialization) {
         FURI_LOG_D(TAG, "Initialization frame");
-        auto init = &frame->initialization;
+        const auto init = &frame->initialization;
+        const auto cd = &init->cd;
+
         Credentials::BSB::GetDeviceAttestationCredentialsProvider()->SetCertificationDeclaration(
-            init->cd_certificate, init->cd_certificate_length);
+            cd->data, cd->length);
 
         DeviceLayer::BSB::GetDeviceInstanceInfoProvider()->SetHardwareVersion(
             init->hardware_version_num, init->hardware_version_str);
@@ -152,7 +154,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
                 OnOffServer::Instance().setOnOffValue(
                     onOffEndpointId, static_cast<bool>(arg), false);
             },
-            frame->switch_state.value);
+            frame->switch_state.state == MatterSwitchStateOn);
 
     } else if(frame->type == MatterIntercomFrameTypeSwitchStartupMode) {
         FURI_LOG_D(TAG, "SwitchStartupMode frame");
@@ -210,7 +212,7 @@ static void matter_send_state_update(MatterSrv* matter, bool state) {
         .type = MatterIntercomFrameTypeSwitchState,
         .switch_state =
             {
-                .value = state,
+                .state = state ? MatterSwitchStateOn : MatterSwitchStateOff,
             },
     };
     matter_send_frame(matter, &frame);

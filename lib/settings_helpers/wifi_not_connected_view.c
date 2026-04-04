@@ -35,7 +35,7 @@ static void
     lv_obj_set_flex_grow(image_cont, 0);
 
     lv_obj_t* image = lv_img_create(image_cont);
-    lv_img_set_src(image, SETTINGS_IMG_PATH("wifi_front_7x7.bin"));
+    lv_img_set_src(image, SETTINGS_IMG_PATH("wifi_front_7x7.image"));
     lv_obj_align(image, LV_ALIGN_RIGHT_MID, 0, 0);
 
     lv_obj_t* label = lv_label_create(obj);
@@ -68,7 +68,7 @@ static void
     lv_obj_set_scrollbar_mode(text_column, LV_SCROLLBAR_MODE_OFF);
 
     lv_obj_t* logo = lv_image_create(text_column);
-    lv_image_set_src(logo, SETTINGS_IMG_PATH("wifi_back_12x12.bin"));
+    lv_image_set_src(logo, SETTINGS_IMG_PATH("wifi_back_12x12.image"));
     lv_obj_set_style_image_recolor_opa(logo, LV_OPA_COVER, 0);
     lv_obj_set_style_image_recolor(logo, lv_color_white(), LV_PART_MAIN);
 

@@ -113,7 +113,7 @@ static void wifi_info_view_front_lvgl_constructor(const lv_obj_class_t* class_p,
     lv_obj_set_style_text_font(instance->ip_label, font, LV_PART_MAIN);
 
     lv_obj_t* arrow = lv_img_create(obj);
-    lv_img_set_src(arrow, IMG_PATH("back_arrow_5x5.bin"));
+    lv_img_set_src(arrow, IMG_PATH("back_arrow_5x5.image"));
     lv_obj_set_style_pad_all(arrow, 2, LV_PART_MAIN);
     lv_obj_set_flex_grow(arrow, 0);
 }

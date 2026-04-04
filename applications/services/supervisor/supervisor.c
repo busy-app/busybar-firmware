@@ -12,6 +12,8 @@
 #define SUPERVISOR_BATTERY_LOW_TIMEOUT_MS 5000
 #define SUPERVISOR_BATTERY_TIME_TO_DIE_S  30
 
+#define SUPERVISOR_REBOOT_GRACE_PERIOD_MS (30000)
+
 typedef struct Supervisor Supervisor;
 
 typedef void (*SupervisorGuiOkCb)(Supervisor* supervisor);
@@ -46,12 +48,15 @@ typedef enum {
     SupervisorEventTypeBatteryNotPresent,
     SupervisorEventTypeBatteryPresent,
     SupervisorEventTypeTickToDie,
-    SupervisorEventTypeIntercomError,
+    SupervisorEventTypeIntercomStatusChanged,
     SupervisorEventTypeOKPressed,
 } SupervisorEventType;
 
 typedef struct {
     SupervisorEventType type;
+    union {
+        IntercomStatus intercom_status;
+    };
 } SupervisorEvent;
 
 typedef struct {
@@ -140,13 +145,19 @@ static_assert(
     SUPERVISOR_WARNINGS_SIZE < 32,
     "SupervisorWarningType enum must fit into a 32-bit integer");
 
+static void supervisor_send_event_ex(Supervisor* instance, const SupervisorEvent* event) {
+    furi_check(
+        furi_message_queue_put(instance->message_queue, event, FuriWaitForever) == FuriStatusOk);
+}
+
 static void supervisor_send_event(Supervisor* instance, SupervisorEventType type) {
     furi_check(instance);
-    SupervisorEvent event;
-    event.type = type;
 
-    furi_check(
-        furi_message_queue_put(instance->message_queue, &event, FuriWaitForever) == FuriStatusOk);
+    const SupervisorEvent event = {
+        .type = type,
+    };
+
+    supervisor_send_event_ex(instance, &event);
 }
 
 static void supervisor_intercom_state_callback(const void* message, void* context) {
@@ -154,11 +165,13 @@ static void supervisor_intercom_state_callback(const void* message, void* contex
     furi_assert(context);
 
     Supervisor* instance = context;
-    const IntercomStatus intercom_status = *(IntercomStatus*)message;
 
-    if(intercom_status != IntercomStatusUnknown && intercom_status != IntercomStatusOk) {
-        supervisor_send_event(instance, SupervisorEventTypeIntercomError);
-    }
+    const SupervisorEvent event = {
+        .type = SupervisorEventTypeIntercomStatusChanged,
+        .intercom_status = *(IntercomStatus*)message,
+    };
+
+    supervisor_send_event_ex(instance, &event);
 }
 
 static void supervisor_power_callback(const void* message, void* context) {
@@ -404,6 +417,25 @@ static void supervisor_update_time_to_die(Supervisor* supervisor, size_t seconds
     });
 }
 
+static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStatus status) {
+    if(status == IntercomStatusUnknown || status == IntercomStatusOk) {
+        return;
+    }
+
+    FURI_LOG_E(TAG, "Intercom error received: 0x%X", status);
+
+    if(status != IntercomStatusErrorSync && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        if(furi_get_tick() > furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS)) {
+            FURI_LOG_I(TAG, "Rebooting...");
+            furi_delay_ms(100);
+
+            power_reboot(instance->power, PowerRebootNormal);
+        }
+    }
+
+    supervisor_update_warning(&instance->gui, SupervisorWarningTypeIntercomError, true);
+}
+
 static void supervisor_process(FuriEventLoopObject* object, void* context) {
     Supervisor* instance = context;
     furi_assert(object == instance->message_queue);
@@ -469,9 +501,8 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
             }
         }
     } break;
-    case SupervisorEventTypeIntercomError: {
-        FURI_LOG_E(TAG, "Intercom error received");
-        supervisor_update_warning(&instance->gui, SupervisorWarningTypeIntercomError, true);
+    case SupervisorEventTypeIntercomStatusChanged: {
+        supervisor_handle_intercom_status(instance, event.intercom_status);
     } break;
     }
 }

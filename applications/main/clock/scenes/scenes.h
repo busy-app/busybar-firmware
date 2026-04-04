@@ -7,14 +7,14 @@ extern "C" {
 #endif
 
 typedef enum {
-    ThisSceneIdxMain,
-    ThisSceneIdxClock,
-    ThisSceneIdxSetup,
+    ClockSceneIdxMain,
+    ClockSceneIdxClock,
+    ClockSceneIdxSetup,
 
-    ThisSceneIdxsCount,
-} ThisSceneIdx;
+    ClockSceneIdxsCount,
+} ClockSceneIdx;
 
-extern const Scene* const clock_app_scenes[];
+extern const Scene* const clock_internal_scenes[];
 
 #ifdef __cplusplus
 }

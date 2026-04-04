@@ -37,7 +37,16 @@ static void matter_scene_on_enter(void* context) {
 
     scene->ui_initialized = false;
 
-    if(matter_commissioned_fabrics(app->matter).count == 0) {
+    MatterCommissionedFabrics fabrics;
+    const MatterStatus status = matter_get_commissioned_fabrics(app->matter, &fabrics);
+
+    if(status != MatterStatusOk) {
+        // TODO: Better way of handling errors at this point
+        furi_event_loop_stop(app->event_loop);
+        return;
+    }
+
+    if(fabrics.count == 0) {
         matter_settings_send_custom_event(app, SceneCustomEventSwitchToPairing);
         return;
     }

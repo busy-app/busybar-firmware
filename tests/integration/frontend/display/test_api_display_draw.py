@@ -85,7 +85,7 @@ def _image(overrides: dict | None = None, **extra) -> dict:
     base = {
         "id": "img1",
         "type": "image",
-        "builtin_image": _BUILTIN_IMAGE,
+        "stock_path": _BUILTIN_IMAGE,
         "timeout": 5,
     }
     if overrides:
@@ -96,7 +96,7 @@ def _image(overrides: dict | None = None, **extra) -> dict:
 
 def _anim(overrides: dict | None = None, **extra) -> dict:
     """Build a minimal valid anim element using a real builtin animation."""
-    base = {"id": "a1", "type": "anim", "builtin_anim": _BUILTIN_ANIM, "timeout": 5}
+    base = {"id": "a1", "type": "animation", "stock_path": _BUILTIN_ANIM, "timeout": 5}
     if overrides:
         base.update(overrides)
     base.update(extra)
@@ -127,7 +127,7 @@ class TestDrawRequestValidation:
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_elements(self, assets_api: AssetsAPI):
-        resp = _draw_raw(assets_api, {"app_id": _APP, "priority": _PRI})
+        resp = _draw_raw(assets_api, {"application_name": _APP, "priority": _PRI})
         assets_api.assert_status(resp, 400)
 
     @allure.title("Elements not an array → 400")
@@ -135,7 +135,7 @@ class TestDrawRequestValidation:
     @pytest.mark.frontend
     def test_elements_not_array(self, assets_api: AssetsAPI):
         resp = _draw_raw(
-            assets_api, {"app_id": _APP, "elements": "oops", "priority": _PRI}
+            assets_api, {"application_name": _APP, "elements": "oops", "priority": _PRI}
         )
         assets_api.assert_status(resp, 400)
 
@@ -143,7 +143,7 @@ class TestDrawRequestValidation:
     @pytest.mark.api
     @pytest.mark.frontend
     def test_empty_elements(self, assets_api: AssetsAPI):
-        resp = _draw_raw(assets_api, {"app_id": _APP, "elements": [], "priority": _PRI})
+        resp = _draw_raw(assets_api, {"application_name": _APP, "elements": [], "priority": _PRI})
         assets_api.assert_status(resp, 400)
 
     @allure.title("Empty JSON body → 400")
@@ -576,7 +576,7 @@ class TestCountdownElement:
 @allure.story("Draw API – Image Element")
 class TestImageElement:
     """
-    Image requires exactly one of ``path`` or ``builtin_image``.
+    Image requires exactly one of ``path`` or ``stock_path``.
     Providing both or neither is rejected.
     """
 
@@ -588,21 +588,21 @@ class TestImageElement:
         # 200 if the canvas app can process it; never 400 for valid schema
         assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
 
-    @allure.title("Image with builtin_image accepted")
+    @allure.title("Image with stock_path accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_image_with_builtin(self, assets_api: AssetsAPI, busy_timer_stopped):
         elem = {
             "id": "bi1",
             "type": "image",
-            "builtin_image": _BUILTIN_IMAGE,
+            "stock_path": _BUILTIN_IMAGE,
             "timeout": 5,
         }
         resp = _draw(assets_api, [elem])
         # Should not be a schema error; actual rendering depends on asset presence
         assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
 
-    @allure.title("Image with both path and builtin_image → 400")
+    @allure.title("Image with both path and stock_path \u2192 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_image_both_path_and_builtin(
@@ -612,13 +612,13 @@ class TestImageElement:
             "id": "bad1",
             "type": "image",
             "path": "nonexistent.png",
-            "builtin_image": _BUILTIN_IMAGE,
+            "stock_path": _BUILTIN_IMAGE,
             "timeout": 5,
         }
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Image with neither path nor builtin_image → 400")
+    @allure.title("Image with neither path nor stock_path → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_image_no_source(self, assets_api: AssetsAPI, busy_timer_stopped):
@@ -636,7 +636,7 @@ class TestImageElement:
 @allure.story("Draw API – Anim Element")
 class TestAnimElement:
     """
-    Anim requires exactly one of ``path`` or ``builtin_anim``.
+    Animation requires exactly one of ``path`` or ``stock_path``.
     Optional: section (string), loop (bool), await_previous_end (bool).
     """
 
@@ -647,20 +647,20 @@ class TestAnimElement:
         resp = _draw(assets_api, [_anim()])
         assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
 
-    @allure.title("Anim with builtin_anim accepted")
+    @allure.title("Anim with stock_path accepted")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_anim_with_builtin(self, assets_api: AssetsAPI, busy_timer_stopped):
         elem = {
             "id": "ba1",
-            "type": "anim",
-            "builtin_anim": _BUILTIN_ANIM,
+            "type": "animation",
+            "stock_path": _BUILTIN_ANIM,
             "timeout": 5,
         }
         resp = _draw(assets_api, [elem])
         assert resp.status_code != 400, f"Unexpected 400: {resp.text}"
 
-    @allure.title("Anim with both path and builtin_anim → 400")
+    @allure.title("Anim with both path and stock_path \u2192 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_anim_both_path_and_builtin(
@@ -668,19 +668,19 @@ class TestAnimElement:
     ):
         elem = {
             "id": "bad1",
-            "type": "anim",
+            "type": "animation",
             "path": "nonexistent.anim",
-            "builtin_anim": _BUILTIN_ANIM,
+            "stock_path": _BUILTIN_ANIM,
             "timeout": 5,
         }
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 
-    @allure.title("Anim with neither path nor builtin_anim → 400")
+    @allure.title("Anim with neither path nor stock_path \u2192 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_anim_no_source(self, assets_api: AssetsAPI, busy_timer_stopped):
-        elem = {"id": "bad2", "type": "anim", "timeout": 5}
+        elem = {"id": "bad2", "type": "animation", "timeout": 5}
         resp = _draw(assets_api, [elem])
         assets_api.assert_status(resp, 400)
 

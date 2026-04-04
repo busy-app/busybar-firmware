@@ -1,0 +1,10 @@
+App(
+    appid="time_test",
+    name="Time Test",
+    apptype=FlipperAppType.DEBUG,
+    order=0,
+    entry_point="time_test_app",
+    requires=[],
+    stack_size=4 * 1024,
+    targets=["f20", "f21", "f22"],
+)

@@ -5,6 +5,8 @@
 
 #define MY_CLASS (&clock_view_lvgl_class)
 
+#define ICON_LABEL_DATE_TEXT_COLOR_HEX 0x323232
+
 struct ClockView {
     Widget base;
 
@@ -16,10 +18,13 @@ struct ClockView {
     lv_obj_t* text_label_date;
 
     FontRegistry* font_registry;
+    const lv_font_t* font_busy_bold_7;
+    const lv_font_t* font_busy_regular_5;
+    const lv_font_t* font_busy_superscript_7;
 
     bool show_seconds;
     bool show_date;
-    SntpSettingTimeFormat time_format;
+    TimeSettingTimeFormat time_format;
 };
 
 const lv_obj_class_t clock_view_lvgl_class;
@@ -57,6 +62,12 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     ClockView* instance = (ClockView*)obj;
 
     instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_busy_bold_7 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7);
+    instance->font_busy_regular_5 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5);
+    instance->font_busy_superscript_7 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_SUPERSCRIPT_7);
 
     lv_obj_t* primary_container = lv_obj_create(obj);
     lv_obj_set_flex_flow(primary_container, LV_FLEX_FLOW_ROW);
@@ -66,12 +77,14 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_size(primary_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     instance->icon = lv_img_create(primary_container);
-    lv_image_set_src(instance->icon, THIS_IMG_PATH("calendar_13x14.bin"));
+    lv_image_set_src(instance->icon, THIS_IMG_PATH("calendar_13x14.image"));
 
     instance->icon_label_date = lv_label_create(instance->icon);
+    lv_obj_set_style_text_font(
+        instance->icon_label_date, instance->font_busy_superscript_7, LV_PART_MAIN);
     lv_obj_set_style_text_color(
-        instance->icon_label_date, lv_color_make(0x32, 0x32, 0x32), LV_PART_MAIN);
-    lv_obj_set_style_translate_y(instance->icon_label_date, -1, LV_PART_MAIN);
+        instance->icon_label_date, lv_color_hex(ICON_LABEL_DATE_TEXT_COLOR_HEX), LV_PART_MAIN);
+    lv_obj_set_style_translate_y(instance->icon_label_date, 2, LV_PART_MAIN);
     lv_obj_set_style_pad_left(instance->icon_label_date, 1, LV_PART_MAIN);
     lv_obj_set_align(instance->icon_label_date, LV_ALIGN_BOTTOM_MID);
 
@@ -88,27 +101,20 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     instance->text_label_time = lv_label_create(time_container);
     lv_obj_set_style_text_font(
-        instance->text_label_time,
-        font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_7),
-        LV_PART_MAIN);
+        instance->text_label_time, instance->font_busy_bold_7, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->text_label_time, lv_color_white(), LV_PART_MAIN);
 
     instance->text_label_meridian = lv_label_create(time_container);
-    lv_obj_set_style_translate_y(instance->text_label_meridian, -1, LV_PART_MAIN);
     lv_obj_set_style_text_font(
-        instance->text_label_meridian,
-        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5),
-        LV_PART_MAIN);
+        instance->text_label_meridian, instance->font_busy_regular_5, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->text_label_meridian, lv_color_white(), LV_PART_MAIN);
 
     instance->text_label_date = lv_label_create(text_container);
-    lv_obj_set_style_translate_y(instance->text_label_date, -2, LV_PART_MAIN);
     lv_obj_set_style_text_font(
-        instance->text_label_date,
-        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5),
-        LV_PART_MAIN);
+        instance->text_label_date, instance->font_busy_regular_5, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->text_label_date, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_opa(instance->text_label_date, LV_OPA_50, LV_PART_MAIN);
+    lv_obj_set_style_translate_y(instance->text_label_date, -2, LV_PART_MAIN);
 }
 
 static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -116,14 +122,9 @@ static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
     ClockView* instance = (ClockView*)obj;
 
-    font_registry_unload_font(
-        instance->font_registry,
-        lv_obj_get_style_text_font(instance->text_label_time, LV_PART_MAIN));
-
-    font_registry_unload_font(
-        instance->font_registry,
-        lv_obj_get_style_text_font(instance->text_label_date, LV_PART_MAIN));
-
+    font_registry_unload_font(instance->font_registry, instance->font_busy_superscript_7);
+    font_registry_unload_font(instance->font_registry, instance->font_busy_regular_5);
+    font_registry_unload_font(instance->font_registry, instance->font_busy_bold_7);
     furi_record_close(RECORD_FONT_REGISTRY);
 }
 
@@ -153,7 +154,7 @@ ClockView* clock_view_alloc(Widget* parent) {
 
     instance->show_seconds = true;
     instance->show_date = true;
-    instance->time_format = SntpSettingTimeFormat12h;
+    instance->time_format = TimeSettingTimeFormat12h;
 
     return instance;
 }
@@ -185,16 +186,16 @@ void clock_view_set_show_date(ClockView* instance, bool show_date) {
     instance->show_seconds = show_date;
 }
 
-void clock_view_set_time_format(ClockView* instance, SntpSettingTimeFormat time_format) {
+void clock_view_set_time_format(ClockView* instance, TimeSettingTimeFormat time_format) {
     furi_check(instance);
 
     bool do_hide_meridian;
     switch(time_format) {
-    case SntpSettingTimeFormat24h:
+    case TimeSettingTimeFormat24h:
         do_hide_meridian = true;
         break;
 
-    case SntpSettingTimeFormat12h:
+    case TimeSettingTimeFormat12h:
         do_hide_meridian = false;
         break;
 
@@ -225,13 +226,13 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     uint8_t display_hour;
 
     switch(instance->time_format) {
-    case SntpSettingTimeFormat24h:
+    case TimeSettingTimeFormat24h:
         meridian = NULL;
         display_hour_min_width = 2;
         display_hour = date_time->hour;
         break;
 
-    case SntpSettingTimeFormat12h:
+    case TimeSettingTimeFormat12h:
         meridian = (date_time->hour >= 12) ? "PM" : "AM";
         display_hour_min_width = 0;
         display_hour = (date_time->hour == 0) ? 12 :

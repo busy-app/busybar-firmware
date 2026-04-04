@@ -6,6 +6,7 @@
 #include <time.h>
 #include <furi.h>
 
+#define MG_LOG_LEVEL                MG_LL_INFO
 #define MG_ARCH                     MG_ARCH_CUSTOM
 #define MG_TLS                      MG_TLS_MBED
 #define MG_MBEDTLS_DEBUG_LEVEL      0 // Set to 4 for verbose mbedtls debug

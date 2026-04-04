@@ -171,15 +171,21 @@ static const struct {
 
 bool http_api_status_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(msg);
+    UNUSED(method);
 
     ApiStatusCtx* context = ctx;
     furi_assert(context);
 
     if(IS_HTTP_ENDPOINT(path)) {
+        if(method != HttpMethodGet) {
+            MG_REPLY_METHOD_NOT_ALLOWED(conn);
+            return true;
+        }
         FuriString* json_response = furi_string_alloc();
 
         bool success = false;
@@ -209,6 +215,10 @@ bool http_api_status_callback(
 
     for(size_t i = 0; i < COUNT_OF(status_handlers); i++) {
         if(furi_string_equal(path, status_handlers[i].name)) {
+            if(method != HttpMethodGet) {
+                MG_REPLY_METHOD_NOT_ALLOWED(conn);
+                return true;
+            }
             FuriString* json_response = furi_string_alloc();
 
             furi_assert(status_handlers[i].callback);

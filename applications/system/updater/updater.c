@@ -1,4 +1,5 @@
 #include "updater_i.h"
+
 #include "updater_paths.h"
 #include "settings/settings_i.h"
 #include "session/session_config.h"
@@ -6,6 +7,82 @@
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
 #include <version.h>
+
+#if defined(SRV_SL_INFO)
+#include <sl_info/sl_info.h>
+#endif // SRV_SL_INFO
+
+#define TAG "Updater"
+
+#if defined(SRV_SL_INFO)
+typedef struct {
+    const char* key;
+    const char* enabled_value; // value that means "flag is active"
+    uint32_t flag;
+} SlInfoSecurityMapping;
+
+static const SlInfoSecurityMapping sl_security_mappings[] = {
+    {"sl_nwp_signature", "true", UpdateManifestSecurityFlagNwpSigned},
+    {"sl_m4_signature", "true", UpdateManifestSecurityFlagM4Signed},
+    {"sl_nwp_encrypt", NULL, UpdateManifestSecurityFlagNwpEncrypted},
+    {"sl_m4_encrypt", "true", UpdateManifestSecurityFlagM4Encrypted},
+};
+
+static bool updater_get_device_security_flags(uint32_t* flags_out) {
+    uint32_t device_flags = 0;
+    bool is_ready = true;
+    const SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
+
+    for(size_t i = 0; i < COUNT_OF(sl_security_mappings); i++) {
+        const char* value = NULL;
+        SlInfoStatus status = sl_info_get_value(sl_info, sl_security_mappings[i].key, &value);
+        if(status == SlInfoStatusNotReady) {
+            is_ready = false;
+            break;
+        }
+        if(status == SlInfoStatusOk) {
+            const char* expected = sl_security_mappings[i].enabled_value;
+            if(expected) {
+                if(strcmp(value, expected) == 0) {
+                    device_flags |= sl_security_mappings[i].flag;
+                }
+            } else {
+                // For mode-style values (e.g. "none"/"ctr"/"xts"), any value other than "none" means enabled
+                if(strcmp(value, "none") != 0) {
+                    device_flags |= sl_security_mappings[i].flag;
+                }
+            }
+        }
+    }
+
+    furi_record_close(RECORD_SL_INFO);
+    *flags_out = device_flags;
+    return is_ready;
+}
+
+static UpdaterStatus updater_verify_security_flags(const UpdateManifest* manifest) {
+    const uint32_t manifest_flags = updater_manifest_get_security_flags(manifest);
+
+    uint32_t device_flags = 0;
+    if(!updater_get_device_security_flags(&device_flags)) {
+        FURI_LOG_W(TAG, "SL info not ready, skipping security check");
+        return UpdaterStatusOk;
+    }
+
+    const uint32_t check_mask =
+        UpdateManifestSecurityFlagNwpSigned | UpdateManifestSecurityFlagM4Signed |
+        UpdateManifestSecurityFlagNwpEncrypted | UpdateManifestSecurityFlagM4Encrypted;
+
+    if((manifest_flags & check_mask) != (device_flags & check_mask)) {
+        FURI_LOG_E(
+            TAG, "Security mismatch: manifest=0x%lx, device=0x%lx", manifest_flags, device_flags);
+        return UpdaterStatusInstallationPrepareSecurityMismatch;
+    }
+
+    FURI_LOG_I(TAG, "Security flags OK (0x%lx)", manifest_flags);
+    return UpdaterStatusOk;
+}
+#endif // SRV_SL_INFO
 
 #define MESSAGE_QUEUE_ITEMS_COUNT 8
 
@@ -111,10 +188,19 @@ static UpdaterStatus updater_do_installation_prepare(Updater* instance, UpdaterM
             break;
         }
 
+        const UpdateManifest* manifest = update_config_get_manifest(config);
+
+#if defined(SRV_SL_INFO)
+        FURI_LOG_D(TAG, "Checking security flags...");
+        update_status = updater_verify_security_flags(manifest);
+        if(update_status != UpdaterStatusOk) {
+            break;
+        }
+#endif // SRV_SL_INFO
+
         FURI_LOG_D(TAG, "Setting up session config...");
 
         UpdaterSessionConfig session_config;
-        const UpdateManifest* manifest = update_config_get_manifest(config);
         updater_session_config_compose(manifest, &session_config);
         if(!updater_session_config_save(&session_config)) {
             FURI_LOG_E(TAG, "Failed to set up session config");
@@ -377,6 +463,7 @@ static const char* const status_strings[] = {
 
     [UpdaterStatusInstallationPrepareManifestNotFound] = "Manifest not found",
     [UpdaterStatusInstallationPrepareManifestInvalid] = "Failed to validate manifest",
+    [UpdaterStatusInstallationPrepareSecurityMismatch] = "Bundle security mismatch",
     [UpdaterStatusInstallationPrepareSessionConfigSetupFailure] = "Failed to save session config",
     [UpdaterStatusInstallationPreparePointerSetupFailure] = "Failed to write pointer file",
 

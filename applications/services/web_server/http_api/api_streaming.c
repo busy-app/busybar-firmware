@@ -1,7 +1,9 @@
 #include "http_api.h"
 #include <gui/gui.h>
 #include <front_display/front_display.h>
+#include <back_display/back_display.h>
 #include <toolbox/rle_encode.h>
+#include <toolbox/color.h>
 
 #define TAG "Stream"
 
@@ -124,9 +126,13 @@ static inline void
     else if(display_id == GuiDisplayIdBack)
         instance->back_clients_count++;
 
-    furi_assert(
-        (size_t)(instance->front_clients_count + instance->back_clients_count +
-                 instance->idle_clients_count) == StreamClientsList_size(instance->clients));
+    size_t total_clients = instance->front_clients_count + instance->back_clients_count +
+                           instance->idle_clients_count;
+    size_t list_size = StreamClientsList_size(instance->clients);
+    if(total_clients != list_size) {
+        FURI_LOG_W(
+            TAG, "Increment mismatch total_clients = %d, list_size = %d", total_clients, list_size);
+    }
     furi_mutex_release(instance->clients_lock);
 }
 
@@ -137,9 +143,13 @@ static inline void
     else if(display_id == GuiDisplayIdBack)
         instance->back_clients_count--;
 
-    furi_assert(
-        (size_t)(instance->front_clients_count + instance->back_clients_count +
-                 instance->idle_clients_count) == StreamClientsList_size(instance->clients));
+    size_t total_clients = instance->front_clients_count + instance->back_clients_count +
+                           instance->idle_clients_count;
+    size_t list_size = StreamClientsList_size(instance->clients);
+    if(total_clients != list_size) {
+        FURI_LOG_W(
+            TAG, "Decrement mismatch total_clients = %d, list_size = %d", total_clients, list_size);
+    }
 }
 
 static inline void
@@ -338,40 +348,35 @@ static void
 
 bool http_api_streaming_ws_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     furi_assert(ctx);
+    UNUSED(method);
 
+    STREAM_LOG_D("ws_callback");
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     ApiStreamingCtx* instance = ctx;
 
-    bool success = false;
-    do {
-        bool is_ws_upgrade = (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL);
-        if(!is_ws_upgrade) break;
+    if(StreamClientsList_size(instance->clients) >= MAX_CLIENTS_COUNT) {
+        MG_REPLY_ERROR(conn, 400, "Exceed max clients count");
+        return true;
+    }
 
-        if(StreamClientsList_size(instance->clients) >= MAX_CLIENTS_COUNT) {
-            MG_REPLY_ERROR(conn, 400, "Exceed max clients count");
-            break;
-        }
+    // Assign connection callbacks
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    conn_ctx->ws.on_open = api_streaming_client_connection_open;
+    conn_ctx->on_close = api_streaming_client_connection_close;
+    conn_ctx->ws.on_message = api_streaming_client_on_message;
+    conn_ctx->on_wakeup = api_streaming_client_send_frame;
+    conn_ctx->context = instance;
 
-        // Assign connection callbacks
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->ws.on_open = api_streaming_client_connection_open;
-        conn_ctx->on_close = api_streaming_client_connection_close;
-        conn_ctx->ws.on_message = api_streaming_client_on_message;
-        conn_ctx->on_wakeup = api_streaming_client_send_frame;
-        conn_ctx->context = instance;
+    // Upgrade connection to WebSocket
+    mg_ws_upgrade(conn, msg, NULL);
 
-        // Upgrade connection to WebSocket
-        mg_ws_upgrade(conn, msg, NULL);
-
-        success = true;
-    } while(false);
-
-    return success;
+    return true;
 }
 
 static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
@@ -389,13 +394,6 @@ static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
         }
         furi_mutex_release(instance->mutex);
     } while(false);
-}
-
-static void back_buffer_l8_to_l4(uint8_t* dst_l4, const uint8_t* src_l8) {
-    for(uint32_t i = 0; i < RAW_BUFFER_SIZE; ++i) {
-        const uint32_t draw_idx = 2 * i;
-        dst_l4[i] = (src_l8[draw_idx] >> 4) | (src_l8[draw_idx + 1] & 0xF0);
-    }
 }
 
 static int32_t api_streaming_frame_update_thread(void* context) {
@@ -419,7 +417,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
             if(instance->display_id == GuiDisplayIdFront)
                 memcpy(instance->raw_buffer, frame, frame_size);
             else
-                back_buffer_l8_to_l4(instance->raw_buffer, frame);
+                color_buf_l8_to_l4(instance->raw_buffer, frame, BACK_DISPLAY_BUF_SIZE);
         });
 
         const uint8_t blk_size = instance->display_id == GuiDisplayIdFront ? 3 : 2;
@@ -460,6 +458,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
 }
 
 void* http_api_streaming_ws_alloc(void) {
+    STREAM_LOG_D("alloc");
     ApiStreamingCtx* instance = malloc(sizeof(ApiStreamingCtx));
     instance->clients_lock = furi_mutex_alloc(FuriMutexTypeNormal);
     StreamClientsList_init(instance->clients);
@@ -472,6 +471,7 @@ void* http_api_streaming_ws_alloc(void) {
 }
 
 void http_api_streaming_ws_free(void* ctx) {
+    STREAM_LOG_D("free");
     furi_assert(ctx);
     ApiStreamingCtx* instance = ctx;
     StreamClientsList_clear(instance->clients);
@@ -483,13 +483,19 @@ void http_api_streaming_ws_free(void* ctx) {
 
 bool http_api_streaming_single_frame_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodGet) {
+        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        return true;
+    }
 
     char display_str[2];
     int var_len = mg_http_get_var(&msg->query, "display", display_str, sizeof(display_str));
@@ -508,7 +514,7 @@ bool http_api_streaming_single_frame_callback(
             if(display_id == GuiDisplayIdFront)
                 memcpy(frame, buf, frame_size);
             else {
-                back_buffer_l8_to_l4(frame, buf);
+                color_buf_l8_to_l4(frame, buf, BACK_DISPLAY_BUF_SIZE);
             }
         });
         furi_record_close(RECORD_GUI);

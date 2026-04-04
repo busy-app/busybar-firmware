@@ -19,27 +19,26 @@ static void matter_scene_pairing_on_enter(void* context) {
     scene->ui_initialized = false;
     if(!matter_settings_check_wifi_connectivity(app)) return;
 
-    FuriString* qr_code = furi_string_alloc();
-    FuriString* man_code = furi_string_alloc();
+    MatterCommissioningInfo info;
+    const MatterStatus status = matter_enable_commissioning(app->matter, &info);
 
-    size_t window_secs = matter_enable_commissioning(app->matter, qr_code, man_code);
-    UNUSED(window_secs);
+    if(status != MatterStatusOk) {
+        // TODO: Better way of handling errors at this point
+        furi_event_loop_stop(app->event_loop);
+        return;
+    }
 
     with_gui(app->gui, {
         scene->front_prompt = status_view_alloc(app->front_scene_window);
-        status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.bin"));
+        status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.image"));
         status_view_set_header(scene->front_prompt, "Look at back\nscreen");
 
         scene->back_codes = matter_code_view_alloc(app->back_scene_window);
         matter_code_view_set_logo_path(scene->back_codes, IMG_PATH("matter_back_14x14.bin"));
-        matter_code_view_set_codes(
-            scene->back_codes, furi_string_get_cstr(qr_code), furi_string_get_cstr(man_code));
+        matter_code_view_set_codes(scene->back_codes, info.qr_code, info.manual_code);
     });
 
     scene->ui_initialized = true;
-
-    furi_string_free(qr_code);
-    furi_string_free(man_code);
 }
 
 static void matter_scene_pairing_on_exit(void* context) {

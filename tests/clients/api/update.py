@@ -247,6 +247,10 @@ class UpdateAPI(BaseAPI):
         """Abort ongoing download."""
         return self.post("/api/update/abort_download", UpdateResultResponse, data=b"")
 
+    def abort_download_raw(self):
+        """Abort ongoing download and return raw response."""
+        return self.post_raw("/api/update/abort_download", data=b"")
+
     def get_autoupdate(self) -> AutoupdateSettings:
         """Get autoupdate settings."""
         return self.get("/api/update/autoupdate", AutoupdateSettings)

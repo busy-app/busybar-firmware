@@ -1,0 +1,40 @@
+name: Setup Simplicity Commander
+description: Download Simplicity Commander CLI and add it to PATH
+
+inputs:
+  commander_url:
+    description: URL to the Commander Linux zip archive
+    required: false
+    default: "https://www.silabs.com/documents/login/software/SimplicityCommander-Linux.zip"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download and install Commander
+      shell: bash
+      run: |
+        set -euo pipefail
+        INSTALL_DIR="${RUNNER_TEMP}/commander"
+        mkdir -p "$INSTALL_DIR"
+        echo "Downloading Simplicity Commander..."
+        curl -fsSL "${{ inputs.commander_url }}" -o "${INSTALL_DIR}/commander.zip"
+        unzip -q "${INSTALL_DIR}/commander.zip" -d "${INSTALL_DIR}"
+        rm -f "${INSTALL_DIR}/commander.zip"
+        # The zip contains per-architecture tar.bz archives; extract the x86_64 CLI one
+        INNER_TAR="$(find "${INSTALL_DIR}" -name 'Commander-cli_linux_x86_64_*.tar.bz' -type f | head -1)"
+        if [[ -z "$INNER_TAR" ]]; then
+          echo "::error::Commander-cli x86_64 tar.bz not found in archive"
+          exit 1
+        fi
+        tar xf "$INNER_TAR" -C "${INSTALL_DIR}"
+        rm -rf "${INSTALL_DIR}/SimplicityCommander-Linux"
+        # Find the extracted commander-cli binary (dir name case varies by OS)
+        COMMANDER_BIN="$(find "${INSTALL_DIR}" -maxdepth 2 -name 'commander-cli' -type f | head -1)"
+        if [[ -z "$COMMANDER_BIN" || ! -x "$COMMANDER_BIN" ]]; then
+          echo "::error::commander-cli executable not found in extracted archive"
+          ls -laR "${INSTALL_DIR}" >&2
+          exit 1
+        fi
+        COMMANDER_DIR="$(dirname "$COMMANDER_BIN")"
+        echo "Commander installed at: $COMMANDER_DIR"
+        echo "$COMMANDER_DIR" >> "$GITHUB_PATH"

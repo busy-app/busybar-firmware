@@ -47,7 +47,7 @@ const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
                     .out_ms = 1000,
                 },
             .effect = TransitionOverlayEffectPress,
-            .mask.file_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
+            .mask.file_path = SHARED_ANIM_PATH("transition_select_72x16.anim"),
         },
     [BusyTransitionTypeWork] =
         {
@@ -108,23 +108,6 @@ const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
         },
 };
 
-const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax] = {
-    [BusyStatusLightsTypeOff] =
-        {
-            .preset = StatusLightsPresetOff,
-        },
-    [BusyStatusLightsTypeWork] =
-        {
-            .preset = StatusLightsPresetStaticColor,
-            .color = COLOR_MAKE_RGB(150, 0, 0),
-        },
-    [BusyStatusLightsTypeRest] =
-        {
-            .preset = StatusLightsPresetStaticColor,
-            .color = COLOR_MAKE_RGB(10, 150, 5),
-        },
-};
-
 const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMax] = {
     [BusyTimerIndicatorTypeWork] =
         {
@@ -140,7 +123,7 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                 },
             .foreground_config =
                 {
-                    .image_path = BUSY_IMG_PATH("indicator_busy_41x16.bin"),
+                    .image_path = BUSY_IMG_PATH("indicator_busy_41x16.image"),
                 },
         },
     [BusyTimerIndicatorTypeRest] =
@@ -157,7 +140,7 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                 },
             .foreground_config =
                 {
-                    .image_path = BUSY_IMG_PATH("indicator_rest_41x16.bin"),
+                    .image_path = BUSY_IMG_PATH("indicator_rest_41x16.image"),
                 },
         },
     [BusyTimerIndicatorTypeWorkBig] =
@@ -203,14 +186,14 @@ const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax] = {
 const BusyAppGlobalPreset busy_app_global_presets[BusyAppPresetIdMax] = {
     [BusyAppPresetIdBusy] =
         {
-            .header_img_path = BUSY_IMG_PATH("header_busy_41x16.bin"),
+            .header_img_path = BUSY_IMG_PATH("header_busy_41x16.image"),
             .start_anim_path = BUSY_ANIM_PATH("start_logo_busy_41x16.anim"),
             .timer_profile_id = BusyTimerProfileIdBusy,
         },
 
     [BusyAppPresetIdCustom] =
         {
-            .header_img_path = BUSY_IMG_PATH("header_custom_41x16.bin"),
+            .header_img_path = BUSY_IMG_PATH("header_custom_41x16.image"),
             .start_anim_path = BUSY_ANIM_PATH("start_logo_custom_41x16.anim"),
             .timer_profile_id = BusyTimerProfileIdCustom,
         },

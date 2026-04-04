@@ -61,6 +61,9 @@ jobs:
           echo "build_profile=$PROFILE" >> "$GITHUB_OUTPUT"
           python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
 
+      - name: 'Setup Simplicity Commander'
+        uses: ./.github/actions/setup-commander
+
       - name: 'Build firmware artifacts'
         id: build-fw
         uses: ./.github/actions/build-artifacts
@@ -68,6 +71,9 @@ jobs:
           target_spec: ${{ matrix.target_spec }}
           build_type: ${{ steps.names.outputs.build_profile }}
           artifact_path: artifacts
+          signing_service_url: ${{ secrets.SI917_SIGN_SERVICE_URL }}
+          signing_service_token: ${{ secrets.SI917_SIGN_SERVICE_TOKEN }}
+          signing_service_profile: ${{ secrets.SI917_SIGN_SERVICE_PROFILE }}
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
@@ -139,7 +145,6 @@ jobs:
         run: |
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
           echo "target=${{ steps.build-fw.outputs.u5_target_hw }}" >> "$GITHUB_OUTPUT"
-
 
   updater-tests:
     needs: build

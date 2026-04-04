@@ -42,7 +42,7 @@ class TestAccountStatusAPI:
         """Test GET /api/account/status endpoint"""
         response = account_api.get_status()
 
-        assert response.state in ["error", "disconnected", "connected"]
+        assert response.status in ["error", "disconnected", "connected"]
 
 
 @allure.feature("5. Web Frontend")
@@ -58,9 +58,9 @@ class TestAccountProfileAPI:
         """Test GET /api/account/profile endpoint"""
         response = account_api.get_profile()
 
-        assert response.state in ["dev", "prod", "local", "custom"]
+        assert response.profile in ["dev", "prod", "local", "custom"]
 
-        if response.state == "custom":
+        if response.profile == "custom":
             assert response.custom_url
 
     @allure.id("3487")
@@ -73,7 +73,7 @@ class TestAccountProfileAPI:
         with allure.step("Get current profile to restore later"):
             original = account_api.get_profile()
             allure.attach(
-                json.dumps({"state": original.state, "custom_url": original.custom_url}, indent=2),
+                json.dumps({"profile": original.profile, "custom_url": original.custom_url}, indent=2),
                 name="Original Profile",
                 attachment_type=allure.attachment_type.JSON
             )
@@ -82,12 +82,12 @@ class TestAccountProfileAPI:
 
         with allure.step("Verify profile was updated"):
             verify = account_api.get_profile()
-            assert verify.state == profile
+            assert verify.profile == profile
 
         # Restore original profile
-        if original.state != profile:
-            with allure.step(f"Restore original profile: {original.state}"):
-                account_api.set_profile(original.state, original.custom_url)
+        if original.profile != profile:
+            with allure.step(f"Restore original profile: {original.profile}"):
+                account_api.set_profile(original.profile, original.custom_url)
 
     @allure.id("3835")
     @allure.title("POST /api/account/profile (custom)")
@@ -104,13 +104,13 @@ class TestAccountProfileAPI:
 
         with allure.step("Verify custom profile was set"):
             verify = account_api.get_profile()
-            assert verify.state == "custom"
+            assert verify.profile == "custom"
             assert verify.custom_url == custom_url
 
         # Restore original profile
-        if original.state:
-            with allure.step(f"Restore original profile: {original.state}"):
-                account_api.set_profile(original.state, original.custom_url)
+        if original.profile:
+            with allure.step(f"Restore original profile: {original.profile}"):
+                account_api.set_profile(original.profile, original.custom_url)
 
     @allure.id("3836")
     @allure.title("POST /api/account/profile (invalid)")
@@ -143,11 +143,11 @@ class TestAccountLinkAPI:
                 pytest.skip("Account is already linked")
 
         with allure.step("Check MQTT status before linking"):
-            status = account_api.get_status()
-            allure.attach(json.dumps({"state": status.state}, indent=2), name="MQTT Status Before Link", attachment_type=allure.attachment_type.JSON)
+            response = account_api.get_status()
+            allure.attach(json.dumps({"state": response.status}, indent=2), name="MQTT Status Before Link", attachment_type=allure.attachment_type.JSON)
 
-            if status.state != "connected":
-                pytest.skip(f"MQTT is not connected (state: {status.state})")
+            if response.status != "connected":
+                pytest.skip(f"MQTT is not connected (state: {response.status})")
 
         response = account_api.link()
 

@@ -1,4 +1,4 @@
-name: 'Local API tests'
+name: 'Integration Tests'
 
 on:
   workflow_call:
@@ -39,14 +39,18 @@ on:
 permissions:
   contents: read
   checks: write
+  pull-requests: write
   id-token: write
 
 env:
   U5_HW_TARGET: ${{ inputs.target || '21' }}
+  FIRMWARE_BASE_URL: https://update.flipperzero.one/builds/busybar-firmware
 
 jobs:
   integration-tests:
     runs-on: BusyBarTest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -70,75 +74,44 @@ jobs:
         id: resolve_firmware
         run: |
           set -euo pipefail
-          BASE_URL="https://update.flipperzero.one/builds/busybar-firmware"
           TARGET="f${{ env.U5_HW_TARGET }}"
 
           if [ -n "${{ inputs.update_url }}" ]; then
-            # Explicit URL provided via workflow_call or workflow_dispatch
             UPDATE_PATH="${{ inputs.update_url }}"
-            echo "Using explicit path: $UPDATE_PATH"
           elif [ -n "${{ github.event.inputs.firmware_branch }}" ]; then
-            # Auto-detect latest build from branch/tag (workflow_dispatch only)
             BRANCH="${{ github.event.inputs.firmware_branch }}"
-            echo "Resolving latest build for branch: $BRANCH"
-
-            # Fetch directory listing and find latest update file
-            LISTING=$(curl -sL "${BASE_URL}/${BRANCH}/")
+            LISTING=$(curl -sL "${FIRMWARE_BASE_URL}/${BRANCH}/")
             UPDATE_FILE=$(echo "$LISTING" | grep -oE "busybar-${TARGET}-update-[^\"]+\.(tgz|tar)" | sort -V | tail -1)
-
-            if [ -z "$UPDATE_FILE" ]; then
-              echo "ERROR: Could not find update file for branch $BRANCH"
-              exit 1
-            fi
-
+            [ -n "$UPDATE_FILE" ] || { echo "ERROR: No update file for branch $BRANCH"; exit 1; }
             UPDATE_PATH="${BRANCH}/${UPDATE_FILE}"
-            echo "Found latest: $UPDATE_PATH"
           else
-            echo "ERROR: No update_url or firmware_branch provided"
-            exit 1
+            echo "ERROR: No update_url or firmware_branch provided"; exit 1
           fi
 
-          # Derive ELF paths from update path (U5 and Si917)
-          # Replace only in filename, not in directory part (branch name may contain -update-)
           UPDATE_DIR="$(dirname "$UPDATE_PATH")"
           UPDATE_FILE="$(basename "$UPDATE_PATH")"
 
-          U5_ELF_FILE="${UPDATE_FILE/-update-/-firmware-}"
-          U5_ELF_FILE="${U5_ELF_FILE%.tgz}"
-          U5_ELF_FILE="${U5_ELF_FILE%.tar}.elf"
-          U5_ELF_PATH="${UPDATE_DIR}/${U5_ELF_FILE}"
+          U5_ELF="${UPDATE_DIR}/${UPDATE_FILE/-update-/-firmware-}"
+          U5_ELF="${U5_ELF%.tgz}"; U5_ELF="${U5_ELF%.tar}.elf"
 
-          SI917_ELF_FILE="${UPDATE_FILE/-update-/-sil_firmware-}"
-          SI917_ELF_FILE="${SI917_ELF_FILE%.tgz}"
-          SI917_ELF_FILE="${SI917_ELF_FILE%.tar}.elf"
-          SI917_ELF_PATH="${UPDATE_DIR}/${SI917_ELF_FILE}"
+          SI917_ELF="${UPDATE_DIR}/${UPDATE_FILE/-update-/-sil_firmware-}"
+          SI917_ELF="${SI917_ELF%.tgz}"; SI917_ELF="${SI917_ELF%.tar}.elf"
 
-          echo "update_url=${BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
-          echo "u5_elf_url=${BASE_URL}/${U5_ELF_PATH}" >> $GITHUB_OUTPUT
-          echo "si917_elf_url=${BASE_URL}/${SI917_ELF_PATH}" >> $GITHUB_OUTPUT
-          echo "Update URL: ${BASE_URL}/${UPDATE_PATH}"
-          echo "U5 ELF URL: ${BASE_URL}/${U5_ELF_PATH}"
-          echo "Si917 ELF URL: ${BASE_URL}/${SI917_ELF_PATH}"
+          echo "update_url=${FIRMWARE_BASE_URL}/${UPDATE_PATH}" >> $GITHUB_OUTPUT
+          echo "u5_elf_url=${FIRMWARE_BASE_URL}/${U5_ELF}" >> $GITHUB_OUTPUT
+          echo "si917_elf_url=${FIRMWARE_BASE_URL}/${SI917_ELF}" >> $GITHUB_OUTPUT
 
-      - name: 'Download update package'
+      - name: 'Download firmware artifacts'
         run: |
           set -euo pipefail
-          echo "Downloading: ${{ steps.resolve_firmware.outputs.update_url }}"
-          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tgz "${{ steps.resolve_firmware.outputs.update_url }}"
+          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tgz \
+            "${{ steps.resolve_firmware.outputs.update_url }}"
 
-      - name: 'Download firmware ELF files for crash tracing'
-        run: |
-          set -euo pipefail
           mkdir -p /_work/elf
-
-          echo "Downloading U5 ELF: ${{ steps.resolve_firmware.outputs.u5_elf_url }}"
-          curl --fail -L -o /_work/elf/busybar-f${{ env.U5_HW_TARGET }}-firmware.elf "${{ steps.resolve_firmware.outputs.u5_elf_url }}"
-
-          echo "Downloading Si917 ELF: ${{ steps.resolve_firmware.outputs.si917_elf_url }}"
-          curl --fail -L -o /_work/elf/busybar-f${{ env.U5_HW_TARGET }}-sil_firmware.elf "${{ steps.resolve_firmware.outputs.si917_elf_url }}"
-
-          echo "ELF files downloaded to /_work/elf/"
-          ls -la /_work/elf/
+          curl --fail -L -o /_work/elf/busybar-f${{ env.U5_HW_TARGET }}-firmware.elf \
+            "${{ steps.resolve_firmware.outputs.u5_elf_url }}"
+          curl --fail -L -o /_work/elf/busybar-f${{ env.U5_HW_TARGET }}-sil_firmware.elf \
+            "${{ steps.resolve_firmware.outputs.si917_elf_url }}"
 
       - name: 'Flash firmware'
         id: flashing
@@ -151,7 +124,7 @@ jobs:
           python3 scripts/testops.py wait -t 260
 
       - name: 'Sanity check after flashing'
-        if: ${{ steps.flashing.outcome == 'success' }}
+        if: steps.flashing.outcome == 'success'
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
@@ -167,20 +140,25 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
-      - name: Run smoke tests
+      - name: Run integration tests
         id: smoke_tests
         run: |
+          set +e
           cd tests
-          export BSB_FIRMWARE_PATH=${{ github.workspace }}
-          # python debug_reset_test.py
           python3 -m pytest . -v \
             --alluredir=allure-results \
             --clean-alluredir \
-            --ignore=playwright-automation \
             --junitxml=test-results.xml
-
-        continue-on-error: true
+          PYTEST_EXIT=$?
+          echo "pytest_exit=$PYTEST_EXIT" >> $GITHUB_OUTPUT
+          # 0 = all passed, 1 = some failed — both mean tests ran
+          # 2+ = collection error, internal error, no tests collected
+          if [ $PYTEST_EXIT -ge 2 ]; then
+            echo "Pytest failed to run properly (exit code $PYTEST_EXIT)"
+            exit $PYTEST_EXIT
+          fi
         env:
+          BSB_FIRMWARE_PATH: ${{ github.workspace }}
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
           WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
@@ -188,7 +166,6 @@ jobs:
           LOG_TO_FILE: true
 
       - name: Setup allurectl
-        if: always()
         continue-on-error: true
         uses: allure-framework/setup-allurectl@v1
         with:
@@ -198,18 +175,21 @@ jobs:
 
       - name: Upload test results to Allure TestOps
         id: allure_upload
-        if: always()
         continue-on-error: true
         run: |
           cd tests
-          allurectl upload allure-results \
+          OUTPUT=$(allurectl upload allure-results \
             --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
+            --launch-name "BSB Firmware - Integration Tests - ${{ inputs.branch_name || github.head_ref || github.ref_name }} - ${GITHUB_SHA::7}" 2>&1) || true
+          echo "$OUTPUT"
+          LAUNCH_ID=$(echo "$OUTPUT" | grep -oP 'Launch \[\K[0-9]+' | head -1)
+          if [ -n "$LAUNCH_ID" ]; then
+            echo "allure_launch_url=${{ secrets.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> $GITHUB_OUTPUT
+          fi
 
       - name: 'Configure AWS CLI'
-        if: always()
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -217,40 +197,29 @@ jobs:
           aws-region: eu-central-1
 
       - name: 'Upload runner logs to S3'
-        if: always()
         run: |
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
           LOG_FILE="$RUNNER_LOG_DIR/latest/runlog.log"
           S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/integration-tests/$RUN_ID/runlog.log"
-          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/integration-tests/$RUN_ID/runlog.log"
 
           if [ -f "$LOG_FILE" ]; then
             aws s3 cp "$LOG_FILE" "$S3_PATH"
-            echo "## 📋 Runner Logs" >> $GITHUB_STEP_SUMMARY
-            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Log file not found: $LOG_FILE"
           fi
 
-      - name: Create Job Summary
-        if: always()
-        run: |
-          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
-          BRANCH_NAME="${{ inputs.branch_name || github.head_ref || github.ref_name }}"
+      - name: 'Report test results'
+        continue-on-error: true
+        env:
+          JUNIT_XML: tests/test-results.xml
+          ALLURE_URL: ${{ steps.allure_upload.outputs.allure_launch_url }}
+          FIRMWARE_URL: ${{ steps.resolve_firmware.outputs.update_url }}
+          BRANCH_NAME: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 tests/utils/report_test_results.py
 
-          echo "# BSB Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Run:** $RUN_ID | **Branch:** $BRANCH_NAME | **Commit:** \`${{ inputs.commit_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "**Firmware:** ${{ steps.resolve_firmware.outputs.update_url }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "## 📊 Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **Smoke Tests:** ${{ steps.smoke_tests.outcome }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "## 📋 Reports" >> $GITHUB_STEP_SUMMARY
-          echo "- [Allure TestOps](${{ secrets.ALLURE_TESTOPS_URL }}/project/${{ secrets.ALLURE_PROJECT_ID }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [This Run Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Latest Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY
+      - name: 'Comment PR on crash'
+        if: always() && github.event.pull_request.number
+        continue-on-error: true
+        env:
+          CRASH_FLAG: ${{ env.RUNNER_LOG_DIR }}/latest/crash_detected.flag
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 tests/utils/report_test_results.py
