@@ -83,7 +83,10 @@ function logStateUpdates (message: StateMessage) {
 
 async function initStateStream () {
   try {
+    const now = Date.now();
+    console.debug('Starting state stream');
     await stateStreamStore.startStateStream(logStateUpdates, console.error);
+    console.debug(`State stream started (took ${Date.now() - now}ms)`);
 
     // if polling was active, stop it since we now have a successful state stream connection
     deviceStore.clearRefreshInterval();
@@ -111,10 +114,15 @@ async function handleDeviceReconnected () {
   await initStateStream();
 }
 
+async function handleStateStreamRestart () {
+  await initStateStream();
+}
+
 onMounted(async () => {
   await init();
   await initStateStream();
   window.addEventListener('device-reconnected', handleDeviceReconnected);
+  window.addEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 
@@ -123,6 +131,7 @@ onBeforeUnmount(() => {
   firmwareStore.clearAutoUpdateBackgroundCheckInterval();
   stateStreamStore.stopStateStream();
   window.removeEventListener('device-reconnected', handleDeviceReconnected);
+  window.removeEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.removeEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
 });
 </script>

@@ -34,7 +34,7 @@ export const useDeviceStore = defineStore('device', () => {
         }
       }
       isConnected.value = true;
-
+      console.debug('Device is connected');
       toast.remove('device-disconnected');
     } catch (error) {
       // if the request was aborted/cancelled, don't treat it as disconnection
@@ -49,6 +49,7 @@ export const useDeviceStore = defineStore('device', () => {
       }
 
       isConnected.value = false;
+      console.debug('Device is disconnected');
       if (
         firmwareStore.autoUpdate.stage !== UpdateStage.UPDATING
         && !(firmwareStore.autoUpdate.stage === UpdateStage.SUCCESS && wifiStore.wifi?.state !== 'connected')

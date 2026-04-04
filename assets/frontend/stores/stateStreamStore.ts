@@ -107,7 +107,33 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   type DataCallback = (data: StateMessage) => void;
   type StopCallback = () => void;
 
-  // const restartTimeout = ref<NodeJS.Timeout | null>(null);
+  const restartTimeout = ref<NodeJS.Timeout | null>(null);
+
+  function clearRestartTimeout () {
+    if (restartTimeout.value) {
+      clearTimeout(restartTimeout.value);
+      restartTimeout.value = null;
+    }
+  }
+
+  function releaseWebsocket (socket: WebSocket | null) {
+    if (!socket) {
+      return;
+    }
+
+    if (websocket.value === socket) {
+      websocket.value = null;
+    }
+
+    socket.onopen = null;
+    socket.onmessage = null;
+    socket.onclose = null;
+    socket.onerror = null;
+
+    if (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN) {
+      socket.close();
+    }
+  }
 
   function applyDeviceNameUpdate (payload: Record<string, unknown>) {
     const name = getString(payload.name);
@@ -356,13 +382,23 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     stopCallback: StopCallback | undefined = () => {
     }
   ) {
-    websocket.value = new WebSocket(barUrl.replace(/^http/, 'ws') + '/api/status/ws');
-    websocket.value.binaryType = 'arraybuffer';
-    websocket.value.onopen = () => {
+    const socket = new WebSocket(barUrl.replace(/^http/, 'ws') + '/api/status/ws');
+    websocket.value = socket;
+
+    socket.binaryType = 'arraybuffer';
+    socket.onopen = () => {
+      if (websocket.value !== socket) {
+        return;
+      }
+
       isWebSocketConnected.value = true;
     };
 
-    websocket.value.onmessage = event => {
+    socket.onmessage = event => {
+      if (websocket.value !== socket) {
+        return;
+      }
+
       try {
         const data = decodeStateMessage(event.data);
         applyStateMessage(data);
@@ -371,49 +407,80 @@ export const useStateStreamStore = defineStore('stateStream', () => {
         console.error('State publisher websocket decode error', error);
       }
 
-      /* if (restartTimeout.value) {
-        clearTimeout(restartTimeout.value);
-        restartTimeout.value = null;
-      }
-      restartTimeout.value = setTimeout(() => {
-        console.warn('State publisher websocket connection seems to be lost, restarting...');
-        closeWebsocket();
-        window.dispatchEvent(new CustomEvent('protobuf-websocket-restart'));
-      }, 10000); */
+      clearRestartTimeout();
+      restartTimeout.value = setTimeout(async () => {
+        console.debug('No state updates received for a while, checking connection...');
+        deviceStore.setRefreshInterval(); // trigger an immediate connectivity check and restart of the state stream if needed
+        await deviceStore.checkConnection();
+
+        if (deviceStore.isConnected) {
+          console.warn('State publisher websocket connection seems to be lost, restarting...');
+          releaseWebsocket(socket);
+          window.dispatchEvent(new CustomEvent('protobuf-websocket-restart'));
+        }
+      }, 5000);
     };
 
-    websocket.value.onclose = () => {
+    socket.onclose = () => {
+      if (websocket.value !== socket) {
+        return;
+      }
+
+      clearRestartTimeout();
+      websocket.value = null;
       isWebSocketConnected.value = false;
       deviceStore.checkConnection();
       stopCallback();
     };
 
-    websocket.value.onerror = error => {
+    socket.onerror = error => {
+      if (websocket.value !== socket) {
+        return;
+      }
+
       console.error('State publisher websocket error', error);
+      clearRestartTimeout();
       isWebSocketConnected.value = false;
       deviceStore.checkConnection();
       stopCallback();
     };
 
     await new Promise((resolve, reject) => {
-      websocket.value?.addEventListener('open', resolve);
-      websocket.value?.addEventListener('error', reject);
+      socket.addEventListener('open', resolve, { once: true });
+      socket.addEventListener('error', reject, { once: true });
     });
 
     // open websocket and send {"enable":true}
-    websocket.value.send(JSON.stringify({ enable: true }));
+    if (websocket.value !== socket) {
+      return;
+    }
+
+    socket.send(JSON.stringify({ enable: true }));
   }
 
-  function closeWebsocket (): Promise<void> {
+  function closeWebsocket (target: WebSocket | null = websocket.value): Promise<void> {
     isWebSocketConnected.value = false;
+    clearRestartTimeout();
 
     return new Promise(resolve => {
-      if (websocket.value) {
-        websocket.value.onclose = () => {
+      if (target) {
+        if (websocket.value === target) {
           websocket.value = null;
+        }
+
+        target.onopen = null;
+        target.onmessage = null;
+        target.onerror = null;
+        target.onclose = () => {
           resolve();
         };
-        websocket.value.close();
+
+        if (target.readyState === WebSocket.CLOSING || target.readyState === WebSocket.CLOSED) {
+          resolve();
+          return;
+        }
+
+        target.close();
       } else {
         resolve();
       }
@@ -426,7 +493,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     stopCallback?: StopCallback
   ) {
     if (websocket.value && websocket.value.readyState !== WebSocket.CLOSED) {
-      return closeWebsocket().then(() => openStateWebsocket(dataCallback, stopCallback));
+      releaseWebsocket(websocket.value);
     }
 
     return openStateWebsocket(dataCallback, stopCallback);
