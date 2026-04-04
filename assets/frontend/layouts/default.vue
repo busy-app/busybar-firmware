@@ -69,17 +69,20 @@ async function init () {
       await firmwareStore.fetchAutoUpdateStatus();
     }
   } catch (error) {
-    if ((error as { status: number }).status === 403) {
+    if ((error as { status: number })?.status === 403) {
       return await navigateTo('/login');
     }
   }
   shouldLoadDefaultPage.value = true;
 }
 
+const lastMessageTimestamp = ref(0);
 function logStateUpdates (message: StateMessage) {
+  const currentMessageTimestamp = Number(message.timestamp);
   for (const update of message.updates) {
-    console.log(update.state, update); // log the raw protobuf message for now
+    console.log(`[${currentMessageTimestamp}] (Δ${String(currentMessageTimestamp - lastMessageTimestamp.value).padStart(4, ' ')}ms)`, update); // log the raw protobuf message for now
   }
+  lastMessageTimestamp.value = currentMessageTimestamp;
 }
 
 async function initStateStream () {
@@ -90,9 +93,9 @@ async function initStateStream () {
     toast.add({
       id: 'state-stream-error',
       title: 'Error starting state stream',
-      description: error instanceof Error ? error.message : 'An error occurred while starting the state stream.',
+      description: error instanceof Error ? error.message : 'Please reboot the device.',
       color: 'error',
-      duration: 5000
+      duration: 10000
     });
   }
 }
