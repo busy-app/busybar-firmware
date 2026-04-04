@@ -101,6 +101,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const barUrl = useRuntimeConfig().public.barUrl || window.location.origin;
 
   const isWebSocketConnected = ref(false);
+  const showStateStreamFailBanner = ref(false);
 
   const websocket = ref<WebSocket | null>(null);
 
@@ -505,6 +506,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
   return {
     isWebSocketConnected,
+    showStateStreamFailBanner,
 
     startStateStream,
     stopStateStream

@@ -23,6 +23,7 @@
             <!-- <DevtoolsPalette /> -->
 
             <DefaultLayoutUpdateBanner />
+            <DefaultLayoutStateStreamFailBanner />
             <slot />
           </div>
         </div>
@@ -83,6 +84,8 @@ function logStateUpdates (message: StateMessage) {
 
 async function initStateStream () {
   try {
+    stateStreamStore.showStateStreamFailBanner = false;
+
     const now = Date.now();
     console.debug('Starting state stream');
     await stateStreamStore.startStateStream(logStateUpdates, console.error);
@@ -92,20 +95,13 @@ async function initStateStream () {
     deviceStore.clearRefreshInterval();
     firmwareStore.clearAutoUpdateBackgroundCheckInterval();
   } catch (error) {
-    console.error('Error starting state stream:', error);
-    toast.add({
-      id: 'state-stream-error',
-      title: 'Error starting state stream',
-      description: error instanceof Error ? error.message : 'Please reboot the device.',
-      color: 'error',
-      duration: 10000
-    });
+    console.error('Error starting state websocket:', error);
 
-    if (!useRuntimeConfig().public.disablePolling) {
-      console.log('Falling back to polling for device state updates');
-      deviceStore.setRefreshInterval();
-      firmwareStore.setAutoUpdateBackgroundCheckInterval();
-    }
+    stateStreamStore.showStateStreamFailBanner = true;
+
+    console.log('Falling back to polling for device state updates');
+    deviceStore.setRefreshInterval();
+    firmwareStore.setAutoUpdateBackgroundCheckInterval();
   }
 }
 
