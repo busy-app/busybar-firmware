@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia';
 import { decodeStateMessage, type StateMessage } from '@/util/stateStreamMessage';
 import { UpdateStage } from '@/stores/firmwareStore';
+import {
+  stateStreamWebSocketClient,
+  type StateStreamSubscription
+} from '@/utils/state-stream/stateStreamWebSocketClient';
 
 function isProtoMessage (value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Uint8Array);
@@ -103,37 +107,22 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const isWebSocketConnected = ref(false);
   const showStateStreamFailBanner = ref(false);
 
-  const websocket = ref<WebSocket | null>(null);
-
   type DataCallback = (data: StateMessage) => void;
   type StopCallback = () => void;
 
-  const restartTimeout = ref<NodeJS.Timeout | null>(null);
+  let activeSubscription: StateStreamSubscription | null = null;
+  let connectionGeneration = 0;
 
-  function clearRestartTimeout () {
-    if (restartTimeout.value) {
-      clearTimeout(restartTimeout.value);
-      restartTimeout.value = null;
-    }
-  }
-
-  function releaseWebsocket (socket: WebSocket | null) {
-    if (!socket) {
+  function releaseSubscription (subscription: StateStreamSubscription | null) {
+    if (!subscription) {
       return;
     }
 
-    if (websocket.value === socket) {
-      websocket.value = null;
+    if (activeSubscription === subscription) {
+      activeSubscription = null;
     }
 
-    socket.onopen = null;
-    socket.onmessage = null;
-    socket.onclose = null;
-    socket.onerror = null;
-
-    if (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN) {
-      socket.close();
-    }
+    stateStreamWebSocketClient.disconnect(subscription);
   }
 
   function applyDeviceNameUpdate (payload: Record<string, unknown>) {
@@ -383,109 +372,67 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     stopCallback: StopCallback | undefined = () => {
     }
   ) {
-    const socket = new WebSocket(barUrl.replace(/^http/, 'ws') + '/api/status/ws');
-    websocket.value = socket;
+    const generation = ++connectionGeneration;
+    releaseSubscription(activeSubscription);
 
-    socket.binaryType = 'arraybuffer';
-    socket.onopen = () => {
-      if (websocket.value !== socket) {
-        return;
-      }
-
-      isWebSocketConnected.value = true;
-    };
-
-    socket.onmessage = event => {
-      if (websocket.value !== socket) {
-        return;
-      }
-
-      try {
-        const data = decodeStateMessage(event.data);
-        applyStateMessage(data);
-        dataCallback(data);
-      } catch (error) {
-        console.error('State publisher websocket decode error', error);
-      }
-
-      clearRestartTimeout();
-      restartTimeout.value = setTimeout(async () => {
-        console.debug('No state updates received for a while, checking connection...');
-        deviceStore.setRefreshInterval(); // trigger an immediate connectivity check and restart of the state stream if needed
-        await deviceStore.checkConnection();
-
-        if (deviceStore.isConnected) {
-          console.warn('State publisher websocket connection seems to be lost, restarting...');
-          releaseWebsocket(socket);
-          window.dispatchEvent(new CustomEvent('protobuf-websocket-restart'));
-        }
-      }, 5000);
-    };
-
-    socket.onclose = () => {
-      if (websocket.value !== socket) {
-        return;
-      }
-
-      clearRestartTimeout();
-      websocket.value = null;
-      isWebSocketConnected.value = false;
-      deviceStore.checkConnection();
-      stopCallback();
-    };
-
-    socket.onerror = error => {
-      if (websocket.value !== socket) {
-        return;
-      }
-
-      console.error('State publisher websocket error', error);
-      clearRestartTimeout();
-      isWebSocketConnected.value = false;
-      deviceStore.checkConnection();
-      stopCallback();
-    };
-
-    await new Promise((resolve, reject) => {
-      socket.addEventListener('open', resolve, { once: true });
-      socket.addEventListener('error', reject, { once: true });
-    });
-
-    // open websocket and send {"enable":true}
-    if (websocket.value !== socket) {
-      return;
-    }
-
-    socket.send(JSON.stringify({ enable: true }));
-  }
-
-  function closeWebsocket (target: WebSocket | null = websocket.value): Promise<void> {
-    isWebSocketConnected.value = false;
-    clearRestartTimeout();
-
-    return new Promise(resolve => {
-      if (target) {
-        if (websocket.value === target) {
-          websocket.value = null;
-        }
-
-        target.onopen = null;
-        target.onmessage = null;
-        target.onerror = null;
-        target.onclose = () => {
-          resolve();
-        };
-
-        if (target.readyState === WebSocket.CLOSING || target.readyState === WebSocket.CLOSED) {
-          resolve();
+    const subscription = await stateStreamWebSocketClient.connect(barUrl, {
+      onStatus: (connected, reconnected) => {
+        if (generation !== connectionGeneration) {
           return;
         }
 
-        target.close();
-      } else {
-        resolve();
+        isWebSocketConnected.value = connected;
+
+        if (connected) {
+          return;
+        }
+
+        if (!reconnected) {
+          void deviceStore.checkConnection();
+          stopCallback?.();
+        }
+      },
+      onData: data => {
+        if (generation !== connectionGeneration) {
+          return;
+        }
+
+        try {
+          const message = decodeStateMessage(data);
+          applyStateMessage(message);
+          dataCallback(message);
+        } catch (error) {
+          console.error('State publisher websocket decode error', error);
+        }
+      },
+      onError: message => {
+        if (generation !== connectionGeneration) {
+          return;
+        }
+
+        console.error('State publisher websocket error', message);
+      },
+      onCheckConnection: async () => {
+        console.debug('No state updates received for a while, checking connection...');
+        deviceStore.setRefreshInterval();
+        await deviceStore.checkConnection();
       }
     });
+
+    if (generation !== connectionGeneration) {
+      releaseSubscription(subscription);
+      return;
+    }
+
+    activeSubscription = subscription;
+    isWebSocketConnected.value = true;
+  }
+
+  function closeWebsocket (): Promise<void> {
+    connectionGeneration++;
+    isWebSocketConnected.value = false;
+    releaseSubscription(activeSubscription);
+    return Promise.resolve();
   }
 
   function startStateStream (
@@ -493,10 +440,6 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     },
     stopCallback?: StopCallback
   ) {
-    if (websocket.value && websocket.value.readyState !== WebSocket.CLOSED) {
-      releaseWebsocket(websocket.value);
-    }
-
     return openStateWebsocket(dataCallback, stopCallback);
   }
 

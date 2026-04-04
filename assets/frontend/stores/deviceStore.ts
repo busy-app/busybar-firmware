@@ -25,6 +25,7 @@ export const useDeviceStore = defineStore('device', () => {
       return;
     }
     checkingConnection.value = true;
+    const wasConnected = isConnected.value;
     try {
       await apiRequest('/api/name', { timeout: 3000 });
       if (!isConnected.value) {
@@ -48,6 +49,9 @@ export const useDeviceStore = defineStore('device', () => {
         }
       }
 
+      if (wasConnected) {
+        window.dispatchEvent(new Event('device-disconnected'));
+      }
       isConnected.value = false;
       console.debug('Device is disconnected');
       if (
