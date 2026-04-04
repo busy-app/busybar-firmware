@@ -179,7 +179,7 @@ async function deleteAssets () {
     application_name: 'virtual-lan-animation-test'
   })
     .catch(async error => {
-      if (String(error).startsWith('Error: Assets missing')) {
+      if (String(error).includes('Assets missing')) {
         // if there are no existing assets, we can ignore the error and proceed with upload
         return;
       }
@@ -212,13 +212,13 @@ async function drawAnimation () {
         display: 'front',
         x: 0,
         y: 0,
-        type: 'anim',
+        type: 'animation',
         path: 'test.anim',
-        section_name: 'loop',
         loop: true
       }
-    ]
-  } as unknown as DisplayDrawParams)
+    ],
+    priority: 50
+  } as DisplayDrawParams)
     .catch(async error => {
       await handleHTTPError(error, 'Display draw command failed', true);
       throw error;
