@@ -73,7 +73,10 @@ const lastMessageTimestamp = ref(0);
 function logStateUpdates (message: StateMessage) {
   const currentMessageTimestamp = Number(message.timestamp);
   for (const update of message.updates) {
-    console.log(`[${currentMessageTimestamp}] (Δ${String(currentMessageTimestamp - lastMessageTimestamp.value).padStart(4, ' ')}ms)`, update); // log the raw protobuf message for now
+    console.debug(`[${currentMessageTimestamp}] (Δ${String(currentMessageTimestamp - lastMessageTimestamp.value).padStart(4, ' ')}ms)`, update);
+  }
+  if (message.updates.length === 0) {
+    console.debug(`[${currentMessageTimestamp}] (Δ${String(currentMessageTimestamp - lastMessageTimestamp.value).padStart(4, ' ')}ms) heartbeat (no updates)`);
   }
   lastMessageTimestamp.value = currentMessageTimestamp;
 }
