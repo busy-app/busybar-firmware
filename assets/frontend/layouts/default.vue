@@ -45,13 +45,6 @@ const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 const stateStreamStore = useStateStreamStore();
 
-if (!useRuntimeConfig().public.disablePolling) {
-  deviceStore.setRefreshInterval();
-  firmwareStore.setAutoUpdateBackgroundCheckInterval();
-} else {
-  console.log('Polling disabled');
-}
-
 const shouldLoadDefaultPage = ref(false);
 async function init () {
   try {
@@ -88,6 +81,10 @@ function logStateUpdates (message: StateMessage) {
 async function initStateStream () {
   try {
     await stateStreamStore.startStateStream(logStateUpdates, console.error);
+
+    // if polling was active, stop it since we now have a successful state stream connection
+    deviceStore.clearRefreshInterval();
+    firmwareStore.clearAutoUpdateBackgroundCheckInterval();
   } catch (error) {
     console.error('Error starting state stream:', error);
     toast.add({
@@ -97,6 +94,12 @@ async function initStateStream () {
       color: 'error',
       duration: 10000
     });
+
+    if (!useRuntimeConfig().public.disablePolling) {
+      console.log('Falling back to polling for device state updates');
+      deviceStore.setRefreshInterval();
+      firmwareStore.setAutoUpdateBackgroundCheckInterval();
+    }
   }
 }
 
