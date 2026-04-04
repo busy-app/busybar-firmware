@@ -110,10 +110,17 @@ export const useDeviceStore = defineStore('device', () => {
   const connectionType = ref<'usb' | 'wifi'>('wifi');
   async function detectConnectionType () {
     try {
+      const now = Date.now();
       await $fetch('/api/name', {
         baseURL: useRuntimeConfig().public.barUrl
       });
-      connectionType.value = 'usb';
+      const elapsed = Date.now() - now;
+      if (elapsed < 50) {
+        connectionType.value = 'usb';
+      } else {
+        console.debug(`Connection check took ${elapsed}ms, treating as wifi connection`);
+        connectionType.value = 'wifi';
+      }
     } catch {
       connectionType.value = 'wifi';
     }
