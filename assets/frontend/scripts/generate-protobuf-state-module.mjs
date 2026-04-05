@@ -1,15 +1,40 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import protobuf from 'protobufjs';
 
 const { Root } = protobuf;
 
-// expecting a submodule at assets/proto
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-const assetsDir = resolve(scriptDir, '../..');
-const inputProto = resolve(assetsDir, 'proto', 'state.proto');
-const outputModule = resolve(assetsDir, 'generated', 'protobuf', 'stateDescriptor.ts');
+const frontendDir = resolve(scriptDir, '..');
+
+const getRepoRoot = () => {
+  try {
+    return execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: frontendDir,
+      encoding: 'utf8'
+    }).trim();
+  } catch {
+    return null;
+  }
+};
+
+const inputProtoCandidates = [
+  resolve(frontendDir, '..', 'proto', 'state.proto')
+];
+
+const repoRoot = getRepoRoot();
+if (repoRoot) {
+  inputProtoCandidates.push(resolve(repoRoot, 'assets', 'proto', 'state.proto'));
+}
+
+const inputProto = inputProtoCandidates.find(candidate => existsSync(candidate));
+if (!inputProto) {
+  throw new Error(`Unable to locate assets/proto/state.proto. Checked: ${inputProtoCandidates.join(', ')}`);
+}
+
+const outputModule = resolve(frontendDir, 'generated', 'protobuf', 'stateDescriptor.ts');
 
 const root = new Root();
 root.loadSync(inputProto);
