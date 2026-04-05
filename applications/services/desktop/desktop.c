@@ -20,6 +20,8 @@
 #define EXIT_SEMAPH_COUNT (1)
 #define EXIT_SEMAPH_INIT  (1)
 
+#define DESKTOP_STARTUP_APP_NAME "Power On"
+
 typedef struct {
     const char* name;
     const char* args;
@@ -28,6 +30,7 @@ typedef struct {
 typedef struct {
     FuriString* name;
     FuriString* args;
+    bool is_default;
 } DesktopStartRequest;
 
 struct Desktop {
@@ -47,8 +50,6 @@ struct Desktop {
 };
 
 static const DesktopDefaultApp desktop_default_apps[];
-static const DesktopDefaultApp power_on_app = {"power_on", NULL};
-#define POWER_ON_APP_FULL_NAME "Power On"
 
 // Called by the Input service thread when the user interacts with the rotary switch
 static void desktop_input_switch_state_callback(const void* message, void* context) {
@@ -88,6 +89,7 @@ static DesktopStartRequest* desktop_start_request_alloc(void) {
 
     request->name = furi_string_alloc();
     request->args = furi_string_alloc();
+    request->is_default = false;
 
     return request;
 }
@@ -119,10 +121,15 @@ static const char* desktop_start_request_get_args(const DesktopStartRequest* req
 }
 
 // Schedule an app to be started (can be called from any thread)
-static bool desktop_enqueue_start_request(Desktop* instance, const char* name, const char* args) {
+static bool desktop_enqueue_start_request(
+    Desktop* instance,
+    const char* name,
+    const char* args,
+    bool is_default) {
     DesktopStartRequest* request = desktop_start_request_alloc();
     desktop_start_request_set_name(request, name);
     desktop_start_request_set_args(request, args);
+    request->is_default = is_default;
 
     // No waiting to avoid complex deadlock situations, excess requests are dropped
     const bool success = furi_message_queue_put(instance->start_queue, &request, 0) ==
@@ -167,23 +174,24 @@ static void desktop_handle_switch_finished(Desktop* instance) {
     desktop_overlay_hide(instance->overlay, transition_type);
 }
 
-static void desktop_prepare_power_on_app(Desktop* instance) {
-    desktop_start_request_set_name(instance->current_request, power_on_app.name);
-    desktop_start_request_set_args(instance->current_request, power_on_app.args);
+static void desktop_run_startup_app(Desktop* instance) {
+    loader_start(instance->loader, DESKTOP_STARTUP_APP_NAME, NULL, NULL);
 }
 
-static bool desktop_power_on_app_is_running(Desktop* instance) {
-    FuriString* current_app = furi_string_alloc();
-    loader_get_application_name(instance->loader, current_app);
-    bool result = furi_string_equal_str(current_app, POWER_ON_APP_FULL_NAME);
-    furi_string_free(current_app);
+static bool desktop_startup_app_is_running(Desktop* instance) {
+    FuriString* current_app_name = furi_string_alloc();
+
+    loader_get_application_name(instance->loader, current_app_name);
+    const bool result = furi_string_equal(current_app_name, DESKTOP_STARTUP_APP_NAME);
+
+    furi_string_free(current_app_name);
     return result;
 }
 
 // Check if desktop_handle_switch_start() should be called
 static bool desktop_should_handle_switch_start(Desktop* instance) {
     return (!desktop_overlay_show_requested(instance->overlay)) &&
-           (!desktop_power_on_app_is_running(instance));
+           (!desktop_startup_app_is_running(instance));
 }
 
 // Called if the requested app failed to start (Shows error message via the Message app)
@@ -191,36 +199,41 @@ static void desktop_handle_error(Desktop* instance) {
     FURI_LOG_D(TAG, "Error starting app: %s", furi_string_get_cstr(instance->error_message));
 
     desktop_enqueue_start_request(
-        instance, "message", (void*)furi_string_get_cstr(instance->error_message));
-}
-
-// Reset the pending app to a default one (w/ respect the the switch position)
-static void desktop_prepare_default_app(Desktop* instance) {
-    const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
-    desktop_start_request_set_name(instance->current_request, default_app->name);
-    desktop_start_request_set_args(instance->current_request, default_app->args);
+        instance, "message", (void*)furi_string_get_cstr(instance->error_message), false);
 }
 
 // Start the pending app immediately (the previous app MUST have exited at this point)
 static void desktop_start_current_app(Desktop* instance) {
-    furi_assert(!furi_string_empty(instance->current_request->name));
-
-    const char* app_name = desktop_start_request_get_name(instance->current_request);
-    const char* app_args = desktop_start_request_get_args(instance->current_request);
-
     furi_event_loop_timer_stop(instance->start_timer);
 
-    if(app_args) {
-        FURI_LOG_D(TAG, "Starting application '%s' with args '%s'", app_name, app_args);
+    const char* name;
+    const char* args;
+
+    if(instance->current_request) {
+        name = desktop_start_request_get_name(instance->current_request);
+        args = desktop_start_request_get_args(instance->current_request);
+
     } else {
-        FURI_LOG_D(TAG, "Starting application '%s' with no args", app_name);
+        const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
+        name = default_app->name;
+        args = default_app->args;
     }
 
-    if(loader_start(instance->loader, app_name, app_args, instance->error_message) ==
-       LoaderStatusOk) {
+    if(args) {
+        FURI_LOG_D(TAG, "Starting application '%s' with args '%s'", name, args);
+    } else {
+        FURI_LOG_D(TAG, "Starting application '%s' with no args", name);
+    }
+
+    if(loader_start(instance->loader, name, args, instance->error_message) == LoaderStatusOk) {
         desktop_handle_switch_finished(instance);
     } else {
         desktop_handle_error(instance);
+    }
+
+    if(instance->current_request) {
+        desktop_start_request_free(instance->current_request);
+        instance->current_request = NULL;
     }
 }
 
@@ -239,7 +252,6 @@ static void desktop_do_replace_current_app(Desktop* instance) {
         } else if(status == LoaderStatusErrorAppNotRunning) {
             // App will be started immediately
             desktop_start_current_app(instance);
-            desktop_prepare_default_app(instance);
             break;
 
         } else if(status == LoaderStatusErrorNoSignalHandler) {
@@ -291,9 +303,9 @@ static void desktop_switch_timer_callback(void* context) {
     Desktop* instance = context;
 
     if(instance->switch_pos == InputSwitchPositionMAX) return;
-    const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
 
-    desktop_enqueue_start_request(instance, default_app->name, default_app->args);
+    const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
+    desktop_enqueue_start_request(instance, default_app->name, default_app->args, true);
 }
 
 // Called in the Desktop thread when the pending app is ready to be started programmatically
@@ -315,7 +327,15 @@ static void desktop_app_queue_callback(FuriEventLoopObject* object, void* contex
 
     // Only process the last request in the queue
     while(furi_message_queue_get(instance->start_queue, &request, 0) == FuriStatusOk) {
-        desktop_start_request_free(instance->current_request);
+        if(instance->current_request) {
+            if(!instance->current_request->is_default && request->is_default) {
+                desktop_start_request_free(request);
+                continue;
+            }
+
+            desktop_start_request_free(instance->current_request);
+        }
+
         instance->current_request = request;
     }
     // Determine whether the animation should be played
@@ -390,11 +410,9 @@ static Desktop* desktop_alloc(void) {
     FuriPubSub* loader_events = loader_get_pubsub(instance->loader);
     furi_pubsub_subscribe(loader_events, desktop_loader_pubsub_callback, instance);
 
-    instance->current_request = desktop_start_request_alloc();
-    desktop_prepare_power_on_app(instance);
-    if(!loader_is_locked(instance->loader)) {
-        desktop_start_current_app(instance);
-    }
+    // FIXME: Should the startup app be handled by loader internally?
+    // Such functionality already exists via FLIPPER_AUTORUN_APP_NAME
+    desktop_run_startup_app(instance);
 
 #if defined(SRV_INPUT)
     Input* input = furi_record_open(RECORD_INPUT);
@@ -412,7 +430,7 @@ bool desktop_replace_current_app(Desktop* instance, const char* name, const char
     furi_check(instance);
     furi_check(name);
 
-    return desktop_enqueue_start_request(instance, name, args);
+    return desktop_enqueue_start_request(instance, name, args, false);
 }
 
 void desktop_pin_current_app(Desktop* instance, bool pin) {
