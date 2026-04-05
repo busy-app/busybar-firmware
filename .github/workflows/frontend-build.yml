@@ -16,7 +16,11 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-          submodules: recursive
+
+      - name: Checkout protobuf submodule
+        run: |
+          git submodule sync -- assets/proto
+          git submodule update --init --depth 1 assets/proto
 
       - name: Copy frontend assets to working directory
         run: |
