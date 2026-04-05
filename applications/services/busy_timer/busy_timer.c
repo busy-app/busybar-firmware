@@ -139,11 +139,14 @@ static void busy_timer_notify_interval_ended(const BusyTimer* instance, bool for
 }
 
 static void busy_timer_notify_paused(const BusyTimer* instance) {
-    FURI_LOG_D(TAG, "Paused: %s", busy_timer_get_state_name(instance->state));
+    const bool is_paused = !busy_timer_is_running(instance);
+
+    const char* message = is_paused ? "Paused" : "Resumed";
+    FURI_LOG_D(TAG, "%s: %s", message, busy_timer_get_state_name(instance->state));
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypePaused,
-        .paused.is_paused = !instance->is_timer_running,
+        .paused.is_paused = is_paused,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -1046,8 +1049,7 @@ static void busy_timer_load_saved_state(BusyTimer* instance) {
     BusyTimerSavedState saved_state;
     busy_timer_saved_state_load(&saved_state);
     UNUSED(instance);
-    // FIXME: Desktop changes are needed in order for this to work
-    // busy_timer_apply_snapshot(instance, &saved_state.snapshot);
+    // busy_timer_set_snapshot(instance, &saved_state.snapshot);
 }
 
 static BusyTimer* busy_timer_alloc(void) {
