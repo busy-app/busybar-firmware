@@ -3,17 +3,21 @@
 
 #define TAG "FontRegistry"
 
+#define FONT_CACHE_CAPACITY 7
+
 typedef struct {
     const char* key;
     struct {
         lv_font_t* loaded_data;
         size_t references;
+        size_t last_access;
     } value;
 } LoadedFont;
 
 struct FontRegistry {
     FuriMutex* mutex;
     LoadedFont* loaded_fonts;
+    size_t access_counter;
 };
 
 typedef struct {
@@ -57,12 +61,36 @@ static const lv_font_t*
     LoadedFont* already_loaded = stbds_shgetp_null(instance->loaded_fonts, font_path);
     if(already_loaded) {
         already_loaded->value.references++;
+        already_loaded->value.last_access = ++instance->access_counter;
         FURI_LOG_T(
             TAG, "Font \"%s\": references=%zu (+1)", font_path, already_loaded->value.references);
         return already_loaded->value.loaded_data;
     }
 
     return NULL;
+}
+
+static void font_registry_cache_evict(FontRegistry* instance) {
+    furi_assert(instance);
+
+    if(stbds_shlenu(instance->loaded_fonts) <= FONT_CACHE_CAPACITY) return;
+
+    size_t oldest_access = SIZE_MAX;
+    LoadedFont* font_to_evict = NULL;
+    for(size_t i = 0; i < stbds_shlenu(instance->loaded_fonts); i++) {
+        LoadedFont* item = &instance->loaded_fonts[i];
+        if(item->value.references == 0 && item->value.last_access < oldest_access) {
+            oldest_access = item->value.last_access;
+            font_to_evict = item;
+        }
+    }
+
+    if(font_to_evict) {
+        FURI_LOG_T(TAG, "Font \"%s\": evicting from cache", font_to_evict->key);
+        lv_binfont_destroy(font_to_evict->value.loaded_data);
+        bool was_deletion_successful = stbds_shdel(instance->loaded_fonts, font_to_evict->key);
+        furi_check(was_deletion_successful);
+    }
 }
 
 static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const char* font_path) {
@@ -78,6 +106,7 @@ static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const
             {
                 .loaded_data = font_data,
                 .references = 1,
+                .last_access = ++instance->access_counter,
             },
     };
 
@@ -136,22 +165,17 @@ void font_registry_unload_font(FontRegistry* instance, const lv_font_t* const_fo
 
     for(size_t i = 0; i < stbds_shlenu(instance->loaded_fonts); i++) {
         LoadedFont* item = &instance->loaded_fonts[i];
-        if(item->value.loaded_data != font) continue;
-
-        found_font = true;
-        item->value.references--;
-        FURI_LOG_T(TAG, "Font \"%s\": references=%zu (-1)", item->key, item->value.references);
-
-        if(!item->value.references) {
-            FURI_LOG_T(TAG, "Font \"%s\": unloading", item->key);
-            lv_binfont_destroy(item->value.loaded_data);
-            bool did_delete = stbds_shdel(instance->loaded_fonts, item->key);
-            furi_check(did_delete);
+        if(item->value.loaded_data == font) {
+            found_font = true;
+            item->value.references--;
+            FURI_LOG_T(TAG, "Font \"%s\": references=%zu (-1)", item->key, item->value.references);
+            break;
         }
     }
 
     if(!found_font) furi_crash("Font provided to `unload` is not loaded in this FontRegistry");
 
+    font_registry_cache_evict(instance);
     furi_check(furi_mutex_release(instance->mutex) == FuriStatusOk);
 }
 
