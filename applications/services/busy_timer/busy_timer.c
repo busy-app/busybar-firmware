@@ -475,12 +475,14 @@ static void busy_timer_capture_snapshot(BusyTimer* instance) {
     snapshot->app_config = instance->app_config;
 }
 
-static void busy_timer_store_saved_state(const BusyTimer* instance) {
-    const BusyTimerSavedState saved_state = {
-        .snapshot = instance->last_known_snapshot,
-    };
+static void busy_timer_store_saved_state(BusyTimer* instance) {
+    BusyTimerSavedState* saved_state = &instance->saved_state;
+    const BusyTimerSnapshot* last_known_snapshot = &instance->last_known_snapshot;
 
-    busy_timer_saved_state_save(&saved_state);
+    if(last_known_snapshot->timestamp_ms > saved_state->snapshot.timestamp_ms) {
+        saved_state->snapshot = *last_known_snapshot;
+        busy_timer_saved_state_save(saved_state);
+    }
 }
 
 static void busy_timer_publish_last_known_snapshot(const BusyTimer* instance) {
@@ -1046,9 +1048,8 @@ static void busy_timer_load_settings(BusyTimer* instance) {
 }
 
 static void busy_timer_load_saved_state(BusyTimer* instance) {
-    BusyTimerSavedState saved_state;
-    busy_timer_saved_state_load(&saved_state);
-    busy_timer_set_snapshot(instance, &saved_state.snapshot);
+    busy_timer_saved_state_load(&instance->saved_state);
+    busy_timer_set_snapshot(instance, &instance->saved_state.snapshot);
 }
 
 static BusyTimer* busy_timer_alloc(void) {

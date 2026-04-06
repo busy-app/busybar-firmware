@@ -121,6 +121,7 @@ struct BusyTimer {
     StatusLights* status_lights;
     BusyTimerSnapshot last_known_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
+    BusyTimerSavedState saved_state;
     // TODO FW-635: Refactor & simplify internals ---->
     BusyTimerState state;
     BusyAppConfig app_config;
