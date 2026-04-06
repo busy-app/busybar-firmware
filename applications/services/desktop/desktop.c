@@ -84,12 +84,15 @@ static void desktop_loader_pubsub_callback(const void* message, void* context) {
 }
 
 // DesktopStartRequest is a non-trivial type, so it gets its own class
-static DesktopStartRequest* desktop_start_request_alloc(void) {
+static DesktopStartRequest*
+    desktop_start_request_alloc(const char* name, const char* args, bool is_default) {
+    furi_assert(name);
+
     DesktopStartRequest* request = malloc(sizeof(DesktopStartRequest));
 
-    request->name = furi_string_alloc();
-    request->args = furi_string_alloc();
-    request->is_default = false;
+    request->name = furi_string_alloc_set(name);
+    request->args = args ? furi_string_alloc_set(args) : furi_string_alloc();
+    request->is_default = is_default;
 
     return request;
 }
@@ -98,18 +101,6 @@ static void desktop_start_request_free(DesktopStartRequest* request) {
     furi_string_free(request->name);
     furi_string_free(request->args);
     free(request);
-}
-
-static void desktop_start_request_set_name(DesktopStartRequest* request, const char* name) {
-    furi_string_set(request->name, name);
-}
-
-static void desktop_start_request_set_args(DesktopStartRequest* request, const char* args) {
-    if(args) {
-        furi_string_set(request->args, args);
-    } else {
-        furi_string_reset(request->args);
-    }
 }
 
 static const char* desktop_start_request_get_name(const DesktopStartRequest* request) {
@@ -126,15 +117,12 @@ static bool desktop_enqueue_start_request(
     const char* name,
     const char* args,
     bool is_default) {
-    DesktopStartRequest* request = desktop_start_request_alloc();
-    desktop_start_request_set_name(request, name);
-    desktop_start_request_set_args(request, args);
-    request->is_default = is_default;
-
+    DesktopStartRequest* request = desktop_start_request_alloc(name, args, is_default);
     // No waiting to avoid complex deadlock situations, excess requests are dropped
     const bool success = furi_message_queue_put(instance->start_queue, &request, 0) ==
                          FuriStatusOk;
     if(!success) {
+        FURI_LOG_W(TAG, "Dropping request for app '%s': queue full", name);
         desktop_start_request_free(request);
     }
 
@@ -196,10 +184,14 @@ static bool desktop_should_handle_switch_start(Desktop* instance) {
 
 // Called if the requested app failed to start (Shows error message via the Message app)
 static void desktop_handle_error(Desktop* instance) {
-    FURI_LOG_D(TAG, "Error starting app: %s", furi_string_get_cstr(instance->error_message));
+    const char* error_message = furi_string_get_cstr(instance->error_message);
+    desktop_enqueue_start_request(instance, "message", error_message, false);
 
-    desktop_enqueue_start_request(
-        instance, "message", (void*)furi_string_get_cstr(instance->error_message), false);
+    FURI_LOG_D(TAG, "Error starting app: %s", error_message);
+}
+
+static const DesktopDefaultApp* desktop_get_current_default_app(const Desktop* instance) {
+    return &desktop_default_apps[instance->switch_pos];
 }
 
 // Start the pending app immediately (the previous app MUST have exited at this point)
@@ -214,7 +206,7 @@ static void desktop_start_current_app(Desktop* instance) {
         args = desktop_start_request_get_args(instance->current_request);
 
     } else {
-        const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
+        const DesktopDefaultApp* default_app = desktop_get_current_default_app(instance);
         name = default_app->name;
         args = default_app->args;
     }
@@ -302,10 +294,10 @@ static void desktop_switch_timer_callback(void* context) {
     furi_assert(context);
     Desktop* instance = context;
 
-    if(instance->switch_pos == InputSwitchPositionMAX) return;
-
-    const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
-    desktop_enqueue_start_request(instance, default_app->name, default_app->args, true);
+    if(instance->switch_pos != InputSwitchPositionMAX) {
+        const DesktopDefaultApp* default_app = desktop_get_current_default_app(instance);
+        desktop_enqueue_start_request(instance, default_app->name, default_app->args, true);
+    }
 }
 
 // Called in the Desktop thread when the pending app is ready to be started programmatically
@@ -409,7 +401,6 @@ static Desktop* desktop_alloc(void) {
 
     FuriPubSub* loader_events = loader_get_pubsub(instance->loader);
     furi_pubsub_subscribe(loader_events, desktop_loader_pubsub_callback, instance);
-
     // FIXME: Should the startup app be handled by loader internally?
     // Such functionality already exists via FLIPPER_AUTORUN_APP_NAME
     desktop_run_startup_app(instance);
