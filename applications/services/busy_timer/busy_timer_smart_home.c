@@ -2,6 +2,10 @@
 
 #define TIMER_SMART_HOME_PROFILE_ID (BusyTimerProfileIdBusy)
 
+static bool busy_timer_smart_home_initial_state_received(const BusyTimer* instance) {
+    return instance->matter_switch_state != MatterSwitchStateUnknown;
+}
+
 static void
     busy_timer_smart_home_handle_timer_event(BusyTimer* instance, const BusyTimerEvent* event) {
     const BusyTimerEventType event_type = event->type;
@@ -22,7 +26,9 @@ static void
 
     if((switch_state != MatterSwitchStateMax) && (switch_state != instance->matter_switch_state)) {
         if(matter_set_switch_state(instance->matter, switch_state) == MatterStatusOk) {
-            instance->matter_switch_state = switch_state;
+            if(busy_timer_smart_home_initial_state_received(instance)) {
+                instance->matter_switch_state = switch_state;
+            }
         } else {
             FURI_LOG_E(TAG, "Failed to set matter switch state");
         }
@@ -129,7 +135,11 @@ void busy_timer_smart_home_handle_switch_state(BusyTimer* instance, MatterSwitch
     MatterSwitchState new_switch_state = MatterSwitchStateMax;
 
     if(instance->matter_switch_state != switch_state) {
-        new_switch_state = busy_timer_smart_home_process_switch_state(instance, switch_state);
+        if(busy_timer_smart_home_initial_state_received(instance)) {
+            new_switch_state = busy_timer_smart_home_process_switch_state(instance, switch_state);
+        } else {
+            new_switch_state = switch_state;
+        }
     }
 
     if(new_switch_state != MatterSwitchStateMax) {
