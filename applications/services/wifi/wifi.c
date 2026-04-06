@@ -5,7 +5,6 @@
 #include "wifi_state.h"
 
 #include <device_name/device_name.h>
-#include <device_name/settings/device_name_settings_interface_v1.h>
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
