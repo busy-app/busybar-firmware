@@ -773,8 +773,8 @@ void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProfileId p
 
 void busy_timer_start_internal(BusyTimer* instance) {
     if(instance->state == BusyTimerStateIdle) {
-        busy_timer_next_state(instance, true);
         busy_timer_notify_mode_changed(instance);
+        busy_timer_next_state(instance, true);
 
         FURI_LOG_I(TAG, "Started");
 
