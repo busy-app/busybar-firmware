@@ -24,6 +24,11 @@
 #define WEBSOCKET_PONG(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_PONG))
 #define WEBSOCKET_TEXT(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_TEXT))
 
+#define RATE_LIMIT                                \
+    (RateLimiterLimit) {                          \
+        .max_packet_count = 11, .period_ms = 1000 \
+    }
+
 typedef enum {
     ClientStateHandshake,
     ClientStateActive,
@@ -225,7 +230,7 @@ static void client_set_enabled(Client* client, bool enabled) {
             client->parent->state_publisher,
             StatePublisherTransportClassWebSocket,
             FRAME_INTERVAL_MS,
-            RATE_LIMITER_UNLIMITED,
+            RATE_LIMIT,
             client_publish_callback,
             client);
     } else if(was_enabled && !enabled) {
