@@ -137,7 +137,8 @@ static const DesktopDefaultApp* desktop_get_current_default_app(const Desktop* i
  * This is to ensure that programmatically started apps (e.g. via desktop_replace_current_app())
  * don't get erroneously closed either by initial switch state or user switch interaction.
  */
-static bool desktop_should_drop_request(const Desktop* instance, const DesktopStartRequest* request) {
+static bool
+    desktop_should_drop_request(const Desktop* instance, const DesktopStartRequest* request) {
     furi_assert(instance->current_request);
     return desktop_start_request_is_default(request) &&
            !desktop_start_request_is_default(instance->current_request);
