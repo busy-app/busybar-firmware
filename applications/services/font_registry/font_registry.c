@@ -1,24 +1,8 @@
-#include "font_registry.h"
-#include <stb/stb.h>
+#include "font_registry_i.h"
 
 #define TAG "FontRegistry"
 
 #define FONT_CACHE_CAPACITY 7
-
-typedef struct {
-    const char* key;
-    struct {
-        lv_font_t* loaded_data;
-        size_t references;
-        size_t last_access;
-    } value;
-} LoadedFont;
-
-struct FontRegistry {
-    FuriMutex* mutex;
-    LoadedFont* loaded_fonts;
-    size_t access_counter;
-};
 
 typedef struct {
     const char* simulated_path;
@@ -58,7 +42,7 @@ static const lv_font_t*
     furi_assert(instance);
     furi_assert(font_path);
 
-    LoadedFont* already_loaded = stbds_shgetp_null(instance->loaded_fonts, font_path);
+    FontRegistryLoadedFont* already_loaded = stbds_shgetp_null(instance->loaded_fonts, font_path);
     if(already_loaded) {
         already_loaded->value.references++;
         already_loaded->value.last_access = ++instance->access_counter;
@@ -76,9 +60,9 @@ static void font_registry_cache_evict(FontRegistry* instance) {
     if(stbds_shlenu(instance->loaded_fonts) <= FONT_CACHE_CAPACITY) return;
 
     size_t oldest_access = SIZE_MAX;
-    LoadedFont* font_to_evict = NULL;
+    FontRegistryLoadedFont* font_to_evict = NULL;
     for(size_t i = 0; i < stbds_shlenu(instance->loaded_fonts); i++) {
-        LoadedFont* item = &instance->loaded_fonts[i];
+        FontRegistryLoadedFont* item = &instance->loaded_fonts[i];
         if(item->value.references == 0 && item->value.last_access < oldest_access) {
             oldest_access = item->value.last_access;
             font_to_evict = item;
@@ -100,7 +84,7 @@ static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const
     lv_font_t* font_data = lv_binfont_create(font_path);
     if(!font_data) return NULL;
 
-    LoadedFont now_loaded = {
+    FontRegistryLoadedFont now_loaded = {
         .key = font_path,
         .value =
             {
@@ -164,7 +148,7 @@ void font_registry_unload_font(FontRegistry* instance, const lv_font_t* const_fo
     bool found_font = false;
 
     for(size_t i = 0; i < stbds_shlenu(instance->loaded_fonts); i++) {
-        LoadedFont* item = &instance->loaded_fonts[i];
+        FontRegistryLoadedFont* item = &instance->loaded_fonts[i];
         if(item->value.loaded_data == font) {
             found_font = true;
             item->value.references--;
