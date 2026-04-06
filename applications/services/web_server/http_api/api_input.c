@@ -134,7 +134,7 @@ bool http_api_input_callback(
             MG_REPLY_BAD_REQUEST(conn);
         }
     } else {
-        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodWebSocket);
     }
 
     return true;
