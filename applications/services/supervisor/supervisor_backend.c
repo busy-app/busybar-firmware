@@ -31,7 +31,7 @@ typedef struct {
 static bool supervisor_is_tls_crypto_healthy(void) {
     bool is_healthy = false;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKeyDeprecated* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
         const FuriHalCryptoStatus status = furi_hal_crypto_storage_read(

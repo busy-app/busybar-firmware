@@ -39,7 +39,7 @@ CHIP_ERROR LoadCryptoStorageKey(
     MutableByteSpan& out_span) {
     CHIP_ERROR err;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKeyDeprecated* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
         err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(key, key_type, key_id));
@@ -64,7 +64,7 @@ CHIP_ERROR SignWithECDSA256Key(
     MutableByteSpan& out_span) {
     CHIP_ERROR err;
 
-    FuriHalCryptoKey* private_key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKeyDeprecated* private_key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
         err = TranslateFuriHalCryptoStatus(

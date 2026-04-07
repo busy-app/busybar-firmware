@@ -57,18 +57,39 @@ typedef struct {
     uint32_t id;
     uint32_t reserved1;
     uint32_t crc32;
-} FURI_PACKED FuriHalCryptoKeyHeader;
+} FURI_PACKED FuriHalCryptoKeySlotHeader;
 _Static_assert(
-    sizeof(FuriHalCryptoKeyHeader) == 28,
-    "Size check for 'FuriHalCryptoKeyHeader' failed.");
+    sizeof(FuriHalCryptoKeySlotHeader) == 28,
+    "Size check for 'FuriHalCryptoKeySlotHeader' failed.");
 
 typedef struct {
-    FuriHalCryptoKeyHeader header;
+    FuriHalCryptoKeySlotHeader header;
     FuriHalCryptoPartition partition;
     uint32_t address; // Address in NWP flash where the key is stored
     uint16_t length;
     uint8_t data[FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX];
+} FuriHalCryptoKeyDeprecated;
+
+typedef struct {
+    FuriHalCryptoPartition partition;
+    uint32_t offset; // Address in NWP flash where the key is stored (offset from partition start)
+} FuriHalCryptoKeyAddress;
+
+typedef struct {
+    FuriHalCryptoKeySlotHeader header;
+    FuriHalCryptoKeyAddress address;
+} FuriHalCryptoKeySlot;
+
+typedef struct {
+    FuriHalCryptoKeyType type;
+    FuriHalCryptoKeyFlag flags;
+    uint16_t length;
+    uint8_t data[FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX];
 } FuriHalCryptoKey;
+
+typedef struct {
+    FuriHalCryptoKeyAddress address;
+} FuriHalCryptoKeyIter;
 
 typedef enum {
     FuriHalCryptoStatusOk,
@@ -84,24 +105,43 @@ typedef enum {
 extern "C" {
 #endif
 
+FuriHalCryptoKeySlot* furi_hal_crypto_storage_save(
+    const FuriHalCryptoKey* key,
+    FuriHalCryptoPartition partition,
+    uint32_t id);
+
+FuriHalCryptoStatus furi_hal_crypto_storage_load(
+    FuriHalCryptoKey* key,
+    FuriHalCryptoPartition partition,
+    uint32_t id);
+
+FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partition);
+
+FuriHalCryptoStatus furi_hal_crypto_key_iter_get(
+    const FuriHalCryptoKeyIter* iter,
+    FuriHalCryptoKey* key_out,
+    FuriHalCryptoKeySlot* slot_out);
+
+FuriHalCryptoStatus furi_hal_crypto_key_iter_advance(FuriHalCryptoKeyIter* iter);
+
 /*
 * Allocate a key structure.
 * @param[in] partition Partition to get the start address of.
 * @return Pointer to the allocated key structure.
 */
-FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition);
+FuriHalCryptoKeyDeprecated* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition);
 
 /*
 * Free the key structure.
 * @param[in] key Pointer to the key structure to free.
 */
-void furi_hal_crypto_storage_free(FuriHalCryptoKey* key);
+void furi_hal_crypto_storage_free(FuriHalCryptoKeyDeprecated* key);
 
 /** Write a key to the NWP flash.
 * @param[in] key Pointer to the key
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
+FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKeyDeprecated* key);
 
 /** Read a key from the NWP flash.
 * @param[in] key Pointer to the key
@@ -109,28 +149,32 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
 * @param[in] id ID of the key to read.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus
-    furi_hal_crypto_storage_read(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, uint32_t id);
+FuriHalCryptoStatus furi_hal_crypto_storage_read(
+    FuriHalCryptoKeyDeprecated* key,
+    FuriHalCryptoKeyType type,
+    uint32_t id);
 
 /** Get the next key in the storage.
 * @param[in] key Pointer to the key structure to fill with the next key.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key);
+FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKeyDeprecated* key);
 
 /** Generate an asymmetric public key from a private key.
 * @param[in] key Pointer to the private key.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus furi_hal_crypto_storage_gen_asymmetric_pub_key(FuriHalCryptoKey* key);
+FuriHalCryptoStatus
+    furi_hal_crypto_storage_gen_asymmetric_pub_key(FuriHalCryptoKeyDeprecated* key);
 
 /** Generate a CSR in DER format for ECDSA 256.
 * @param[in] key Pointer to the private key.
 * @param[in] subject_name Subject name for the CSR.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus
-    furi_hal_crypto_storage_gen_csr_der_ecdsa256(FuriHalCryptoKey* key, const char* subject_name);
+FuriHalCryptoStatus furi_hal_crypto_storage_gen_csr_der_ecdsa256(
+    FuriHalCryptoKeyDeprecated* key,
+    const char* subject_name);
 
 /** Generate a random buffer of the specified size.
 * @param[out] buf Pointer to the buffer to fill with random data.

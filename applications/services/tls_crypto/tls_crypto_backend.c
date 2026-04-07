@@ -48,7 +48,7 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
 
     const uint32_t internal_key_id = (uint32_t)sign_message_request->key_id + KEY_ID_OFFSET;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKeyDeprecated* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
     FuriHalCryptoStatus hal_status =
         furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
 
@@ -94,7 +94,7 @@ static TlsCryptoStatus tls_crypto_get_certificate_request_handler(
 
     const uint32_t internal_key_id = (uint32_t)get_cert_request->key_id + KEY_ID_OFFSET;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKeyDeprecated* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
     FuriHalCryptoStatus hal_status =
         furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeCrtDerEcdsa256, internal_key_id);
 

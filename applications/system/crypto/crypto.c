@@ -12,14 +12,43 @@
 
 #include <wifi/wifi_common.h>
 
+static void print_status(FuriHalCryptoStatus status) {
+    switch(status) {
+    case FuriHalCryptoStatusOk:
+        printf("Success\r\n");
+        break;
+    case FuriHalCryptoStatusFail:
+        printf("Fail\r\n");
+        break;
+    case FuriHalCryptoStatusFailWrite:
+        printf("Write error\r\n");
+        break;
+    case FuriHalCryptoStatusStorageFull:
+        printf("Storage full\r\n");
+        break;
+    case FuriHalCryptoStatusDuplicate:
+        printf("Duplicate key\r\n");
+        break;
+    case FuriHalCryptoStatusNotFound:
+        printf("Key not found\r\n");
+        break;
+    case FuriHalCryptoStatusErrorCrc:
+        printf("CRC error\r\n");
+        break;
+    default:
+        printf("Unknown error\r\n");
+        break;
+    }
+}
+
 static void crypto_command_show_status(
     FuriHalCryptoStatus status,
-    const FuriHalCryptoKey* key,
+    const FuriHalCryptoKeyDeprecated* key,
     const char* name) {
     furi_assert(key);
     furi_assert(name);
 
-    const FuriHalCryptoKeyHeader* header = &key->header;
+    const FuriHalCryptoKeySlotHeader* header = &key->header;
     const FuriHalCryptoPartition key_part = key->partition;
     const FuriHalCryptoKeyType key_type = header->type;
     const uint32_t key_id = header->id;
@@ -29,29 +58,28 @@ static void crypto_command_show_status(
     } else {
         printf("Key %d:%d:%lX %s ERROR: ", key_part, key_type, key_id, name);
 
-        switch(status) {
-        case FuriHalCryptoStatusFail:
-            printf("Fail\r\n");
-            break;
-        case FuriHalCryptoStatusFailWrite:
-            printf("Write error\r\n");
-            break;
-        case FuriHalCryptoStatusStorageFull:
-            printf("Storage full\r\n");
-            break;
-        case FuriHalCryptoStatusDuplicate:
-            printf("Duplicate key\r\n");
-            break;
-        case FuriHalCryptoStatusNotFound:
-            printf("Key not found\r\n");
-            break;
-        case FuriHalCryptoStatusErrorCrc:
-            printf("CRC error\r\n");
-            break;
-        default:
-            printf("Unknown error\r\n");
-            break;
-        }
+        print_status(status);
+
+        printf(CLI_STATUS_ERROR);
+    }
+}
+
+static void
+    show_status(FuriHalCryptoStatus status, const FuriHalCryptoKeySlot* slot, const char* name) {
+    furi_assert(slot);
+    furi_assert(name);
+
+    const FuriHalCryptoKeySlotHeader* header = &slot->header;
+    const FuriHalCryptoPartition key_part = slot->address.partition;
+    const FuriHalCryptoKeyType key_type = header->type;
+    const uint32_t key_id = header->id;
+
+    if(status == FuriHalCryptoStatusOk) {
+        printf("Key %d:%d:%lX %s SUCCESS\r\n" CLI_STATUS_OK, key_part, key_type, key_id, name);
+    } else {
+        printf("Key %d:%d:%lX %s ERROR: ", key_part, key_type, key_id, name);
+
+        print_status(status);
 
         printf(CLI_STATUS_ERROR);
     }
@@ -172,7 +200,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     uint32_t temp = 0xFF;
-    FuriHalCryptoKey* key = NULL;
+    FuriHalCryptoKeyDeprecated* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     if(furi_string_size(args)) {
         char* args_cstr = (char*)furi_string_get_cstr(args);
@@ -236,7 +264,7 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
-    FuriHalCryptoKey* key = NULL;
+    FuriHalCryptoKeyDeprecated* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
     uint32_t id = 0;
@@ -342,7 +370,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
-    FuriHalCryptoKey* key = NULL;
+    FuriHalCryptoKeyDeprecated* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
     FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
@@ -474,7 +502,7 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
-    FuriHalCryptoKey* key = NULL;
+    FuriHalCryptoKeyDeprecated* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeEcdsaPriv256;
     FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
@@ -585,7 +613,6 @@ void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
-    FuriHalCryptoKey* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     uint32_t temp = 0xFF;
 
@@ -611,24 +638,32 @@ void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
         return;
     }
 
-    key = furi_hal_crypto_storage_alloc(partition);
+    FuriHalCryptoKeyIter iter = furi_hal_crypto_key_iter_init(partition);
     printf("\t<part>\t<type>\t<id>\r\n");
     bool read_next = true;
     FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
     do {
-        status = furi_hal_crypto_storage_get_next_key(key);
+        FuriHalCryptoKey key;
+        FuriHalCryptoKeySlot slot;
+        status = furi_hal_crypto_key_iter_get(&iter, &key, &slot);
         if(status == FuriHalCryptoStatusOk) {
-            printf("key:\t%d\t%d\t0x%08lX\r\n", key->partition, key->header.type, key->header.id);
-            read_next = true;
-        } else if(status == FuriHalCryptoStatusNotFound || status == FuriHalCryptoStatusStorageFull) {
+            printf("key:\t%d\t%d\t0x%08lX\r\n", slot.address.partition, key.type, slot.header.id);
+            status = furi_hal_crypto_key_iter_advance(&iter);
+        }
+        switch(status) {
+        case FuriHalCryptoStatusOk:
+            break;
+        case FuriHalCryptoStatusNotFound:
+        case FuriHalCryptoStatusStorageFull:
             read_next = false;
-        } else {
-            crypto_command_show_status(status, key, "read");
+            break;
+        default:
+            show_status(status, &slot, "read");
             read_next = false;
+            break;
         }
     } while(read_next);
 
-    furi_hal_crypto_storage_free(key);
     if(status == FuriHalCryptoStatusNotFound || status == FuriHalCryptoStatusStorageFull) {
         printf(CLI_STATUS_OK);
     } else {
