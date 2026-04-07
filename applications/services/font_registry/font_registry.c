@@ -97,6 +97,7 @@ static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const
     FURI_LOG_T(TAG, "Font \"%s\": references=1 (newly loaded)", font_path);
 
     stbds_shputs(instance->loaded_fonts, now_loaded);
+    font_registry_cache_evict(instance);
     return font_data;
 }
 
