@@ -121,6 +121,9 @@ watch(() => firmwareStore.fileUpdate.stage, newStage => {
     if (newStage === UpdateStage.SUCCESS) {
       if (updatePollingInterval.value) {
         clearInterval(updatePollingInterval.value);
+
+        localStorage.setItem('successfulUpdate', 'true');
+        window.location.reload();
       }
       return;
     }
@@ -139,9 +142,6 @@ watch(() => firmwareStore.fileUpdate.stage, newStage => {
         clearInterval(updatePollingInterval.value!);
         firmwareStore.fileUpdate.stage = UpdateStage.SUCCESS;
         firmwareStore.fileUpdate.progress = 0;
-
-        localStorage.setItem('successfulUpdate', 'true');
-        window.location.reload();
       })
       .catch(() => {
         // ignore the error
