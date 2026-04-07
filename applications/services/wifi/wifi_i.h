@@ -78,3 +78,6 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);
 void wifi_net_down(Wifi* instance);
 
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config);
+
+// Power management
+void wifi_power_init(Wifi* instance);

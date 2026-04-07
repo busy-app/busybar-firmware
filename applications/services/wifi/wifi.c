@@ -319,6 +319,7 @@ static Wifi* wifi_alloc(void) {
     instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
+    wifi_power_init(instance);
     wifi_generate_dhcp_hostname(instance);
 
     furi_record_open(RECORD_NETWORK);
