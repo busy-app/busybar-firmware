@@ -26,7 +26,7 @@ typedef struct FURI_PACKED {
     uint32_t num;
     BleIntercomFrameSource source;
     BleIntercomFrameType frame_type;
-    size_t data_size;
+    uint32_t data_size;
 } BleIntercomFrameHeader;
 
 #define MAX_BLE_INTERCOM_FRAME_SIZE (INTERCOM_FRAME_DATA_SIZE - sizeof(BleIntercomFrameHeader))
@@ -50,7 +50,7 @@ typedef struct FURI_PACKED {
     uint8_t data[];
 } BleCharacteristicData;
 
-typedef size_t BleCharacteristicCountType;
+typedef uint32_t BleCharacteristicCountType;
 
 typedef struct FURI_PACKED {
     BleCharacteristicCountType char_count;
