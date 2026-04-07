@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type { SmartHomePairingInfo } from '@busy-app/busy-lib';
 import encodeQR from 'qr';
+import type { QrCodeMatrix } from '../util/qrCode';
 
 export const useMatterStore = defineStore('matter', () => {
   const deviceStore = useDeviceStore();
@@ -10,7 +11,7 @@ export const useMatterStore = defineStore('matter', () => {
     latestStatus: undefined as SmartHomePairingInfo['latest_pairing_status']
   });
   const matterLink = ref({
-    qrCode: '',
+    qrCodeMatrix: null as QrCodeMatrix | null,
     manualCode: '',
     availableUntil: null as Date | null,
 
@@ -39,12 +40,11 @@ export const useMatterStore = defineStore('matter', () => {
         }
         matterLink.value.expiresInMs = matterLink.value.availableUntil.getTime() - Date.now();
 
-        const svgElement = encodeQR(response.qr_code!, 'svg');
-        matterLink.value.qrCode = svgElement;
+        matterLink.value.qrCodeMatrix = encodeQR(response.qr_code!, 'raw');
 
         matterLink.value.timeout = setTimeout(() => {
           matterLink.value.showModal = false;
-          matterLink.value.qrCode = '';
+          matterLink.value.qrCodeMatrix = null;
           matterLink.value.manualCode = '';
           matterLink.value.availableUntil = null;
           matterLink.value.timeout = null;

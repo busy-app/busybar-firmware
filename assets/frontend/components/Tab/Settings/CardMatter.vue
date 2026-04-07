@@ -37,10 +37,13 @@
         <template #body>
           <div class="flex flex-col items-center gap-4">
             <div>Scan the QR code</div>
-            <div
+            <canvas
+              ref="matterQrCanvasRef"
               data-id="matter-link-qr-code"
-              class="w-[184px] bg-white rounded-xl mb-6"
-              v-html="matterStore.matterLink.qrCode"
+              width="184"
+              height="184"
+              aria-label="Matter QR code"
+              class="size-[184px] bg-white rounded-xl mb-6"
             />
 
             <div>Or enter the code in your smart home app</div>
@@ -115,14 +118,25 @@
 </template>
 
 <script setup lang="ts">
+import { drawQrCodeOnCanvas } from '../../../util/qrCode';
+
 const matterStore = useMatterStore();
 const colorMode = useColorMode();
+const matterQrCanvasRef = ref<HTMLCanvasElement | null>(null);
+
+function renderMatterQrCode () {
+  if (!matterQrCanvasRef.value) {
+    return;
+  }
+
+  drawQrCodeOnCanvas(matterQrCanvasRef.value, matterStore.matterLink.qrCodeMatrix);
+}
 
 function onMatterLinkModalClose () {
   if (matterStore.matterLink.timeout) {
     clearTimeout(matterStore.matterLink.timeout);
   }
-  matterStore.matterLink.qrCode = '';
+  matterStore.matterLink.qrCodeMatrix = null;
   matterStore.matterLink.manualCode = '';
   matterStore.matterLink.availableUntil = null;
   matterStore.matterLink.timeout = null;
@@ -146,8 +160,23 @@ async function init () {
   await matterStore.fetchMatterCommissioning();
 }
 
+watch(
+  () => [matterStore.matterLink.showModal, matterStore.matterLink.qrCodeMatrix],
+  async ([showModal, qrCodeMatrix]) => {
+    if (!showModal || !qrCodeMatrix) {
+      renderMatterQrCode();
+      return;
+    }
+
+    await nextTick();
+    renderMatterQrCode();
+  },
+  { deep: false }
+);
+
 onMounted(async () => {
   await init();
+  renderMatterQrCode();
   window.addEventListener('device-reconnected', init);
 });
 onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
