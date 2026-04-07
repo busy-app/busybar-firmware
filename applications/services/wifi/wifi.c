@@ -6,6 +6,18 @@
 
 #include <device_name/device_name.h>
 
+static void wifi_intercom_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    Wifi* instance = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)item;
+
+    if(intercom_status == IntercomStatusOk) {
+        wifi_schedule_init_request(instance);
+    }
+}
+
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
     furi_assert(context);
@@ -58,7 +70,14 @@ static void wifi_process_request(Wifi* instance) {
     const WifiStatus status = wifi_state_check_request_type(instance, request_type);
 
     if(status == WifiStatusOk) {
-        if(request_type == WifiRequestTypeConnect) {
+        if(request_type == WifiRequestTypeInit) {
+            instance->intercom_ch_control = intercom_channel_open(
+                instance->intercom,
+                IntercomChannelIdWifiControl,
+                wifi_intercom_rx_callback,
+                instance);
+
+        } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
             const WifiCredentials* credentials = &connect_message->credentials;
 
@@ -269,6 +288,7 @@ static Wifi* wifi_alloc(void) {
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+
     wifi_generate_dhcp_hostname(instance);
 
     furi_record_open(RECORD_NETWORK);
@@ -283,10 +303,8 @@ static Wifi* wifi_alloc(void) {
         wifi_response_queue_callback,
         instance);
 
-    instance->intercom_ch_control = intercom_channel_open(
-        instance->intercom, IntercomChannelIdWifiControl, wifi_intercom_rx_callback, instance);
-
-    wifi_schedule_init_request(instance);
+    furi_state_subscribe(
+        intercom_get_state(instance->intercom), wifi_intercom_state_callback, instance);
 
     furi_record_create(RECORD_WIFI, instance);
 
