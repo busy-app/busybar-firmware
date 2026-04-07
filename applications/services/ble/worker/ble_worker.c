@@ -745,7 +745,11 @@ static int32_t ble_worker_thread_callback(void* context) {
             instance->device_found = 0;
             instance->conn_params_updated = 0;
             instance->connected = false;
-            furi_semaphore_release(ble_worker_instance->receive_sem);
+            if(instance->rx_pending_handle) {
+                BLE_LOG_W("Rx confirm not sent!");
+                furi_semaphore_release(ble_worker_instance->receive_sem);
+                instance->rx_pending_handle = 0;
+            }
 
             BleServiceEntryDict_it_t entry_iter;
             for(BleServiceEntryDict_it(entry_iter, instance->service_dict);
@@ -1344,6 +1348,7 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
     furi_assert(handle == ble_worker_instance->rx_pending_handle);
 
     furi_semaphore_release(ble_worker_instance->receive_sem);
+    ble_worker_instance->rx_pending_handle = 0;
     if(status != 0) BLE_LOG_W("Recv fail %08lX", status);
 }
 
