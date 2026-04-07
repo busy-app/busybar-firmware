@@ -3,7 +3,7 @@
     v-if="useStateStreamStore().showStateStreamFailBanner"
     class="w-full flex items-center justify-between p-4 pr-6 ring-1 ring-glass rounded-3xl
       bg-linear-to-r from-warning-50 to-warning-50
-      dark:bg-linear-to-r dark:from-30% dark:from-warning-950/80 dark:to-warning-800/80"
+      dark:from-30% dark:from-warning-950/80 dark:to-warning-800/80"
   >
     <div class="flex items-start gap-2.5">
       <UIcon
