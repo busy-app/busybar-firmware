@@ -77,6 +77,16 @@ static void font_registry_cache_evict(FontRegistry* instance) {
     }
 }
 
+static size_t font_registry_get_file_size(FontRegistry* instance, const char* font_path) {
+    furi_assert(instance);
+    furi_assert(font_path);
+
+    FileInfo file_info;
+    FS_Error fs_error = storage_common_stat(instance->storage, font_path, &file_info);
+
+    return (fs_error == FSE_OK) ? (size_t)file_info.size : 0;
+}
+
 static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const char* font_path) {
     furi_assert(instance);
     furi_assert(font_path);
@@ -91,6 +101,7 @@ static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const
                 .loaded_data = font_data,
                 .references = 1,
                 .last_access = ++instance->access_counter,
+                .estimated_memory_size = font_registry_get_file_size(instance, font_path),
             },
     };
 
@@ -168,6 +179,8 @@ int font_registry_startup(void* arg) {
     UNUSED(arg);
 
     FontRegistry* registry = malloc(sizeof(FontRegistry));
+
+    registry->storage = furi_record_open(RECORD_STORAGE);
     registry->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     stbds_sh_new_strdup(registry->loaded_fonts);
 
