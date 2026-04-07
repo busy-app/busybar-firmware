@@ -39,6 +39,8 @@ typedef struct {
     Updater* updater;
     FetchFileSave* file_save;
 
+    FuriThreadPriority original_thread_priority;
+
     size_t total_file_size; // Expected total size from Content-Length
     size_t received_file_size; // Bytes received so far
 
@@ -116,6 +118,8 @@ static HttpUpdateHandlerCtx* alloc_raw_update_context() {
     ctx->updater = furi_record_open(RECORD_UPDATER);
     ctx->file_save = NULL; // Will be allocated in header callback after validation
 
+    ctx->original_thread_priority = furi_thread_get_current_priority();
+
     ctx->total_file_size = 0;
     ctx->received_file_size = 0;
     ctx->file_fully_received = false;
@@ -124,6 +128,8 @@ static HttpUpdateHandlerCtx* alloc_raw_update_context() {
 
 static void free_raw_update_context(HttpUpdateHandlerCtx* ctx) {
     if(!ctx) return;
+
+    furi_thread_set_current_priority(ctx->original_thread_priority);
 
     if(ctx->file_save) {
         fetch_file_save_remove(ctx->file_save);
@@ -340,6 +346,8 @@ static bool api_update_raw_hdr_callback(
     FuriString* temp_path = furi_string_alloc_set(UPDATER_DEFAULT_DOWNLOAD_PATH);
     update_ctx->file_save = fetch_file_save_alloc(temp_path);
     furi_string_free(temp_path);
+
+    furi_thread_set_current_priority(FuriThreadPriorityLow);
 
     if(!update_ctx->file_save) {
         FURI_LOG_E(
