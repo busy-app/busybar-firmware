@@ -60,45 +60,46 @@
     />
   </div>
 
-  <UModal
+  <ModalIllustrated
     v-model:open="forgotPasswordModal"
     data-id="modal-forgot-password"
     title="Forgot your password?"
-    description="A forgotten password cannot be recovered but only reset using a wired connection. Connect your BUSY Bar with a USB cable to reset the password. "
-    :ui="{
-      description: 'hidden',
-      header: 'hidden',
-      body: 'p-0 sm:p-0 overflow-visible',
-      close: 'hidden'
+    description="A forgotten password cannot be recovered but only reset using a wired connection. Connect your BUSY Bar with a USB cable to reset the password."
+    :images="{
+      light: insertCableImage,
+      dark: insertCableImageDark
+    }"
+    :primary-action-props="{
+      label: 'Got it',
+      onClick: () => { forgotPasswordModal = false }
     }"
   >
-    <template #body>
-      <div
-        class="flex flex-col gap-6 p-6 bg-no-repeat"
-        :style="`background-image: url(${connectCableImage}); background-size: 150%; background-position: center`"
-      >
-        <div class="text-xl font-medium">Forgot your password?</div>
-
-        <div class="h-50" />
-        <div class="text-center">A forgotten password cannot be recovered but only reset using a wired connection. Connect your BUSY Bar with a USB cable to reset the password.</div>
-
-        <div class="flex justify-end">
-          <UButton
-            color="neutral"
-            label="Got it"
-            size="lg"
-            class="min-w-20 justify-center"
-            @click="forgotPasswordModal = false"
-          />
-        </div>
+    <div class="flex items-center gap-1.5">
+      Press
+      <div class="inline-flex p-2 rounded-full bg-elevated ring ring-inset ring-accented">
+        <UIcon
+          name="i-bi-user-fill"
+          class="size-4"
+        />
       </div>
-    </template>
-  </UModal>
+      <UIcon
+        name="i-bi-arrow-right"
+        class="size-5"
+      />
+      <div class="inline-flex px-2 py-1 rounded-lg bg-elevated ring ring-inset ring-accented font-meduim">Manage password</div>
+      <UIcon
+        name="i-bi-arrow-right"
+        class="size-5"
+      />
+      <div class="inline-flex px-2 py-1 rounded-lg bg-elevated ring ring-inset ring-accented font-meduim">Change</div>
+    </div>
+  </ModalIllustrated>
 </template>
 
 <script lang="ts" setup>
 import { vMaska } from 'maska/vue';
-import connectCableImage from '@/assets/images/connect-cable.png';
+import insertCableImage from '@/assets/images/insert-cable-image.png';
+import insertCableImageDark from '@/assets/images/insert-cable-image-dark.png';
 
 const pms = usePasswordModalStore();
 const deviceStore = useDeviceStore();

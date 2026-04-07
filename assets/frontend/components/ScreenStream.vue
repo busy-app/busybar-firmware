@@ -185,7 +185,7 @@ async function init () {
         title: 'Error starting screen stream',
         description: error.message || 'An error occurred while starting the screen stream.',
         color: 'error',
-        duration: 5000
+        duration: 10000
       });
     });
 }

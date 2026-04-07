@@ -121,6 +121,9 @@ watch(() => firmwareStore.fileUpdate.stage, newStage => {
     if (newStage === UpdateStage.SUCCESS) {
       if (updatePollingInterval.value) {
         clearInterval(updatePollingInterval.value);
+
+        localStorage.setItem('successfulUpdate', 'true');
+        window.location.reload();
       }
       return;
     }
