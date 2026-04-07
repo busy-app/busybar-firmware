@@ -74,6 +74,61 @@
   >
     <template #body>
       <div
+        class="flex flex-col p-5 gap-6"
+      >
+        <img :src="colorMode.value === 'dark' ? insertCableImageDark : insertCableImage" alt="Insert cable">
+
+        <div class="flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <div class="text-xl font-medium">Connect via USB to reset your password</div>
+            <div>
+              Connect your BUSY Bar to your computer using a USB cable and open Virtual LAN at
+              <a
+                href="http://10.0.4.20"
+                target="_blank"
+                class="inline-flex items-center gap-1 text-primary font-medium"
+              >
+                10.0.4.20
+                <UIcon
+                  name="i-bi-open-in-new"
+                  class="size-4"
+                />
+              </a>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            Press
+            <div class="inline-flex p-2 rounded-full bg-elevated ring ring-inset ring-accented">
+              <UIcon
+                name="i-bi-user-fill"
+                class="size-4"
+              />
+            </div>
+            <UIcon
+              name="i-bi-arrow-right"
+              class="size-5"
+            />
+            <div class="inline-flex px-2 py-1 rounded-lg bg-elevated ring ring-inset ring-accented font-meduim">Manage password</div>
+            <UIcon
+              name="i-bi-arrow-right"
+              class="size-5"
+            />
+            <div class="inline-flex px-2 py-1 rounded-lg bg-elevated ring ring-inset ring-accented font-meduim">Change</div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <UButton
+            color="neutral"
+            label="Got it"
+            size="lg"
+            class="min-w-20 justify-center"
+            @click="forgotPasswordModal = false"
+          />
+        </div>
+      </div>
+      <!-- <div
         class="flex flex-col gap-6 p-6 bg-no-repeat"
         :style="`background-image: url(${connectCableImage}); background-size: 150%; background-position: center`"
       >
@@ -91,15 +146,17 @@
             @click="forgotPasswordModal = false"
           />
         </div>
-      </div>
+      </div> -->
     </template>
   </UModal>
 </template>
 
 <script lang="ts" setup>
 import { vMaska } from 'maska/vue';
-import connectCableImage from '@/assets/images/connect-cable.png';
+import insertCableImage from '@/assets/images/insert-cable-image.png';
+import insertCableImageDark from '@/assets/images/insert-cable-image-dark.png';
 
+const colorMode = useColorMode();
 const pms = usePasswordModalStore();
 const deviceStore = useDeviceStore();
 const apiStore = useApiStore();
