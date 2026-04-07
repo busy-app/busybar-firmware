@@ -21,8 +21,8 @@
 #define MQTT_POLL_PERIOD_MS      (1000UL)
 #define MQTT_API_VERSION         "v1"
 
-#define MQTT_DEVICE_ROOT_TOPIC  "devices"
-#define MQTT_SESSION_ROOT_TOPIC "sessions"
+#define MQTT_ROOT_TOPIC_DEVICE  "devices"
+#define MQTT_ROOT_TOPIC_SESSION "sessions"
 
 #define MQTT_TOPIC_PRESENCE           "presence"
 #define MQTT_TOPIC_UNLINK_FROM_DEVICE "unlink"

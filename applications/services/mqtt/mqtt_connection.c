@@ -10,6 +10,9 @@
 
 #define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/ca/cacert.pem")
 
+#define STATUS_ONLINE  "\"status\":\"online\""
+#define STATUS_OFFLINE "\"status\":\"offline\""
+
 typedef struct {
     const char* url;
     bool use_tls;
@@ -177,21 +180,26 @@ static void mqtt_tls_handshake_mg_event_handler(
     instance->ca_bundle = NULL;
 }
 
-static void mqtt_send_online_message(Mqtt* instance) {
-    FuriString* payload = furi_string_alloc_set("{");
-
+static void mqtt_online_message_prepare(FuriString* message) {
+    furi_string_set(message, "{");
     const Version* firmware_version = version_get();
     furi_string_cat_printf(
-        payload, "\"firmware_version\":\"%s\",", version_get_version(firmware_version));
+        message, "\"firmware_version\":\"%s\",", version_get_version(firmware_version));
 
     FuriString* version_string = furi_string_alloc();
     web_server_get_api_version(version_string);
     furi_string_cat_printf(
-        payload, "\"api_version\":\"%s\",", furi_string_get_cstr(version_string));
+        message, "\"api_version\":\"%s\",", furi_string_get_cstr(version_string));
     furi_string_free(version_string);
 
-    furi_string_cat_printf(payload, "\"status\":\"online\"");
-    furi_string_cat(payload, "}");
+    furi_string_cat_printf(message, STATUS_ONLINE);
+    furi_string_cat(message, "}");
+}
+
+static void mqtt_online_message_send(Mqtt* instance) {
+    FuriString* payload = furi_string_alloc();
+
+    mqtt_online_message_prepare(payload);
 
     mqtt_publish_internal(
         instance,
@@ -232,7 +240,7 @@ static void mqtt_open_mg_event_handler(
         }
 
         mqtt_start_ping_timer(instance);
-        mqtt_send_online_message(instance);
+        mqtt_online_message_send(instance);
 
     } else {
         FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", status_code);
@@ -377,9 +385,8 @@ void mqtt_connection_open(Mqtt* instance) {
     mqtt_make_topic_path(
         instance, MqttScopeDevice, MQTT_DIRECTION_UP, MQTT_TOPIC_PRESENCE, last_will_topic);
 
-    struct mg_mqtt_prop will_props[] = {{.id = MQTT_PROP_WILL_DELAY_INTERVAL, .iv = 0}};
-
-    struct mg_mqtt_opts opts = {
+    const struct mg_mqtt_prop will_props[] = {{.id = MQTT_PROP_WILL_DELAY_INTERVAL, .iv = 0}};
+    const struct mg_mqtt_opts opts = {
         .client_id = mg_str(saved_state->client_id),
         .user = mg_str(furi_string_get_cstr(username)),
         .pass = mg_str(saved_state->token),
@@ -388,9 +395,9 @@ void mqtt_connection_open(Mqtt* instance) {
         .version = MQTT_VERSION,
 
         .topic = mg_str(furi_string_get_cstr(last_will_topic)),
-        .message = mg_str("{\"status\":\"offline\"}"),
+        .message = mg_str("{" STATUS_OFFLINE "}"),
         .qos = MqttQosAtLeastOnce,
-        .will_props = will_props,
+        .will_props = (struct mg_mqtt_prop*)will_props,
         .num_will_props = COUNT_OF(will_props),
     };
 
