@@ -114,6 +114,10 @@ WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request
             if(current_state != WifiStateConnected && current_state != WifiStateReconnecting) {
                 status = WifiStatusError;
             }
+        } else if(request_type == WifiRequestTypeForget) {
+            if(current_state != WifiStateDisconnected) {
+                status = WifiStatusError;
+            }
         } else {
             furi_crash("Invalid WifiRequestType");
         }

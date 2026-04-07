@@ -141,6 +141,16 @@ WifiStatus wifi_disconnect(Wifi* instance) {
     return wifi_api_blocking_request(instance, &msg);
 }
 
+WifiStatus wifi_forget(Wifi* instance) {
+    furi_check(instance);
+
+    WifiMessage msg = {
+        .request_type = WifiRequestTypeForget,
+    };
+
+    return wifi_api_blocking_request(instance, &msg);
+}
+
 WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
     furi_check(instance);
     furi_check(info);

@@ -1,10 +1,11 @@
 #include "wifi_i.h"
 
 #include <network/network.h>
+#include <device_name/device_name.h>
 
 #include "wifi_state.h"
 
-#include <device_name/device_name.h>
+#define WIFI_REQUEST_TIMEOUT_MS (5000)
 
 static void wifi_intercom_state_callback(const void* item, void* context) {
     furi_assert(item);
@@ -62,14 +63,32 @@ static void wifi_apply_settings_pending_callback(void* context) {
     } while(false);
 }
 
-static void wifi_process_request(Wifi* instance) {
-    const WifiMessage* message = &instance->api_message;
+static WifiStatus wifi_send_request(Wifi* instance, WifiRequestType request_type) {
     WifiRequest* request = &instance->request;
 
-    const WifiRequestType request_type = message->request_type;
-    const WifiStatus status = wifi_state_check_request_type(instance, request_type);
+    request->type = request_type;
 
-    if(status == WifiStatusOk) {
+    const size_t tx_size = intercom_tx(
+        instance->intercom_ch_control, request, sizeof(WifiRequest), WIFI_REQUEST_TIMEOUT_MS);
+    return (tx_size == sizeof(WifiRequest)) ? WifiStatusOk : WifiStatusTimeout;
+}
+
+static void wifi_process_request(Wifi* instance) {
+    const WifiMessage* message = &instance->api_message;
+
+    WifiRequest* request = &instance->request;
+    const WifiRequestType request_type = message->request_type;
+
+    WifiStatus status;
+    bool unlock_api = true;
+
+    do {
+        status = wifi_state_check_request_type(instance, request_type);
+
+        if(status != WifiStatusOk) {
+            break;
+        }
+
         if(request_type == WifiRequestTypeInit) {
             instance->intercom_ch_control = intercom_channel_open(
                 instance->intercom,
@@ -89,15 +108,31 @@ static void wifi_process_request(Wifi* instance) {
             FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
+            FURI_LOG_I(TAG, "Disconnecting");
             wifi_state_transition(instance, WifiStateDisconnecting);
+
+        } else if(request_type == WifiRequestTypeForget) {
+            FURI_LOG_I(TAG, "Forgetting saved network");
+            wifi_settings_reset(NULL);
+            // NOTE: No backend request necessary
+            break;
         }
 
-        request->type = request_type;
+        status = wifi_send_request(instance, request_type);
 
-        intercom_tx(instance->intercom_ch_control, request, sizeof(WifiRequest), FuriWaitForever);
+        if(status != WifiStatusOk) {
+            break;
+        }
 
-    } else {
+        unlock_api = false;
+
+    } while(false);
+
+    if(status != WifiStatusOk) {
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
+    }
+
+    if(unlock_api) {
         wifi_api_unlock(instance, status);
     }
 }
@@ -151,7 +186,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 wifi_net_get_ip_config(instance, &new_ip_config);
 
                 wifi_state_transition(instance, WifiStateConnected, &new_ip_config);
-                wifi_settings_save(&(WifiSettings){
+                wifi_settings_save(&(const WifiSettings){
                     .credentials = *credentials,
                     .ip_config = *ip_config,
                 });
@@ -167,10 +202,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_net_down(instance);
-
             wifi_state_transition(instance, WifiStateDisconnected);
-
-            wifi_settings_reset(NULL);
         }
 
     } else {
@@ -178,8 +210,6 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
         if(request_type == WifiRequestTypeConnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
-            wifi_settings_reset(NULL);
-
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
         }
