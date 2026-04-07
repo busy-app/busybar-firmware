@@ -101,7 +101,6 @@ static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const
                 .loaded_data = font_data,
                 .references = 1,
                 .last_access = ++instance->access_counter,
-                .estimated_memory_size = font_registry_get_file_size(instance, font_path),
             },
     };
 
@@ -117,12 +116,14 @@ const lv_font_t* font_registry_load_font(FontRegistry* instance, const char* fon
     furi_check(font_path);
 
     const lv_font_t* lv_loaded_font = NULL;
+    FontRegistryLoadedFont* loaded_font = NULL;
     furi_check(furi_mutex_acquire(instance->mutex, FuriWaitForever) == FuriStatusOk);
 
     do {
         if((lv_loaded_font = font_registry_get_baked_font(instance, font_path))) break;
         if((lv_loaded_font = font_registry_get_loaded_font(instance, font_path))) break;
         lv_loaded_font = font_registry_do_load_font(instance, font_path);
+        loaded_font = stbds_shgetp_null(instance->loaded_fonts, font_path);
     } while(0);
 
     if(!lv_loaded_font) {
@@ -131,6 +132,11 @@ const lv_font_t* font_registry_load_font(FontRegistry* instance, const char* fon
     }
 
     furi_check(furi_mutex_release(instance->mutex) == FuriStatusOk);
+
+    if(loaded_font) {
+        loaded_font->value.estimated_memory_size =
+            font_registry_get_file_size(instance, font_path);
+    }
 
     return lv_loaded_font;
 }
