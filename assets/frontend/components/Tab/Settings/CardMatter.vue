@@ -59,47 +59,31 @@
         </template>
       </ModalGeneric>
 
-      <UModal
+      <ModalGeneric
         v-model:open="showMatterDeleteModal"
         data-id="modal-matter-delete"
         title="Forget all pairings?"
         description="Your BUSY Bar will be removed from your smart home automations. The device will restart after removal."
-        :ui="{
-          description: 'hidden',
-          header: 'hidden',
-          body: 'p-0 sm:p-0 overflow-visible',
-          close: 'hidden'
+        :primary-action-props="{
+          label: 'Forget all pairings',
+          variant: 'soft',
+          color: 'error',
+          onClick: deleteMatterPairings
+        }"
+        :secondary-action-props="{
+          label: 'Cancel',
+          variant: 'ghost',
+          color: 'neutral',
+          onClick: () => { showMatterDeleteModal = false }
         }"
       >
-        <template #body>
-          <div
-            class="flex flex-col gap-6 p-6 bg-no-repeat"
-            :style="`background-image: url(${matterDeleteImage}); background-size: 100%; background-position: center calc(50% - 25px)`"
-          >
-            <div class="text-left text-xl font-medium">Forget all pairings?</div>
-
-            <div class="h-36" />
-            <div class="text-center">Your BUSY Bar will be removed from your smart home automations. The device will restart after removal.</div>
-
-            <div class="flex justify-end gap-4">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                label="Cancel"
-                class="min-w-20 justify-center"
-                @click="showMatterDeleteModal = false"
-              />
-              <UButton
-                label="Forget all pairings"
-                variant="soft"
-                color="error"
-                class="min-w-20 justify-center"
-                @click="deleteMatterPairings()"
-              />
-            </div>
-          </div>
+        <template #icon>
+          <UIcon
+            name="i-bi-trash"
+            class="size-8"
+          />
         </template>
-      </UModal>
+      </ModalGeneric>
 
       <UModal
         v-model:open="showRebootingModal"
@@ -131,8 +115,6 @@
 </template>
 
 <script setup lang="ts">
-import matterDeleteImage from '@/assets/images/matter-delete.png';
-
 const matterStore = useMatterStore();
 const colorMode = useColorMode();
 

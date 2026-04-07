@@ -8,12 +8,6 @@
       light: batteryLowImage,
       dark: batteryLowImageDark
     }"
-    :ui="{
-      description: 'hidden',
-      header: 'hidden',
-      body: 'p-0 sm:p-0 overflow-visible',
-      close: 'hidden'
-    }"
     :primary-action-props="{
       label: 'Got it',
       onClick: () => { firmwareStore.autoUpdate.modals.batteryLow = false }

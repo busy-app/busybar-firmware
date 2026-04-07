@@ -24,7 +24,7 @@
       <div
         class="flex flex-col p-5 gap-6"
       >
-        <img :src="colorMode.value === 'dark' ? props.images?.dark : props.images?.light" alt="Insert cable">
+        <img :src="colorMode.value === 'dark' ? props.images?.dark : props.images?.light">
 
         <div class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
@@ -42,7 +42,7 @@
             </div>
           </div>
 
-          <slot name="body" />
+          <slot />
         </div>
 
         <template v-if="$slots.actions">
@@ -50,7 +50,7 @@
         </template>
         <div
           v-else-if="!props.noActions"
-          class="flex justify-end gap-2 mt-8"
+          class="flex justify-end gap-2"
         >
           <UButton
             v-if="props.secondaryActionProps"

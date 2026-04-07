@@ -15,6 +15,7 @@
         <AutoUpdateChangelogModal />
         <AutoUpdateBatteryLowModal />
         <AutoUpdateFirmwareModal />
+        <AutoUpdateSuccessModal />
         <FileUpdateUploadModal />
 
         <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
@@ -50,6 +51,11 @@ const shouldLoadDefaultPage = ref(false);
 async function init () {
   try {
     await deviceStore.fetchDeviceName(true);
+
+    if (localStorage.getItem('successfulUpdate') === 'true') {
+      localStorage.removeItem('successfulUpdate');
+      firmwareStore.autoUpdate.modals.success = true;
+    }
 
     // initialize device and wifi state
     await deviceStore.fetchDeviceStatus();

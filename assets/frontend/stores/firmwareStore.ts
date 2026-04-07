@@ -33,7 +33,8 @@ export const useFirmwareStore = defineStore('firmware', () => {
     modals: {
       changelog: false,
       batteryLow: false,
-      updating: false
+      updating: false,
+      success: false
     },
     changelog: null as string | null,
     isChangelogLoading: false,
