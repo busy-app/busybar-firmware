@@ -62,6 +62,8 @@ async function init () {
     if (wifiStore.wifi?.state === 'connected') {
       await firmwareStore.fetchAutoUpdateStatus();
     }
+
+    await initStateStream();
   } catch (error) {
     if ((error as { status: number })?.status === 403) {
       return await navigateTo('/login');
@@ -107,7 +109,6 @@ async function initStateStream () {
 
 async function handleDeviceReconnected () {
   await init();
-  await initStateStream();
 }
 
 async function handleStateStreamRestart () {
@@ -116,7 +117,6 @@ async function handleStateStreamRestart () {
 
 onMounted(async () => {
   await init();
-  await initStateStream();
   window.addEventListener('device-reconnected', handleDeviceReconnected);
   window.addEventListener('protobuf-websocket-restart', handleStateStreamRestart);
   window.addEventListener('wifi-reconnected', firmwareStore.requestAutoUpdateCheck);
