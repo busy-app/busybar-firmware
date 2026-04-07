@@ -201,14 +201,11 @@ static void client_send_frame(struct mg_connection* conn, void* data, size_t len
 
     if(client->state == ClientStateActive) {
         DataMessage msg;
-        if(furi_message_queue_get(client->active.queue, &msg, FRAME_QUEUE_TIMEOUT) ==
-           FuriStatusOk) {
+        while(furi_message_queue_get(client->active.queue, &msg, 0) == FuriStatusOk) {
             const ByteArray_t* array = SharedByteArray_cref(msg.data);
             mg_ws_send(
                 conn, ByteArray_cget(*array, 0), ByteArray_size(*array), WEBSOCKET_OP_BINARY);
             SharedByteArray_clear(msg.data);
-        } else {
-            FURI_LOG_W(TAG, "Woke up for no message");
         }
     } else if(client->state == ClientStateRequestingPing) {
         STREAM_LOG_D("Requesting ping");
