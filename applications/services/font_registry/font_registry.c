@@ -105,23 +105,23 @@ const lv_font_t* font_registry_load_font(FontRegistry* instance, const char* fon
     furi_check(instance);
     furi_check(font_path);
 
-    const lv_font_t* ret_val = NULL;
+    const lv_font_t* lv_loaded_font = NULL;
     furi_check(furi_mutex_acquire(instance->mutex, FuriWaitForever) == FuriStatusOk);
 
     do {
-        if((ret_val = font_registry_get_baked_font(instance, font_path))) break;
-        if((ret_val = font_registry_get_loaded_font(instance, font_path))) break;
-        ret_val = font_registry_do_load_font(instance, font_path);
+        if((lv_loaded_font = font_registry_get_baked_font(instance, font_path))) break;
+        if((lv_loaded_font = font_registry_get_loaded_font(instance, font_path))) break;
+        lv_loaded_font = font_registry_do_load_font(instance, font_path);
     } while(0);
 
-    if(!ret_val) {
+    if(!lv_loaded_font) {
         FURI_LOG_W(TAG, "Font \"%s\" failed to load, using default", font_path);
-        ret_val = LV_FONT_DEFAULT;
+        lv_loaded_font = LV_FONT_DEFAULT;
     }
 
     furi_check(furi_mutex_release(instance->mutex) == FuriStatusOk);
 
-    return ret_val;
+    return lv_loaded_font;
 }
 
 static bool font_registry_unload_baked_font(FontRegistry* instance, const lv_font_t* const_font) {
