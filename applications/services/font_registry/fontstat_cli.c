@@ -50,7 +50,7 @@ void fontstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* c
     FontRegistry* registry = furi_record_open(RECORD_FONT_REGISTRY);
     FuriString* output_buffer = furi_string_alloc();
 
-    furi_mutex_acquire(registry->mutex, FuriWaitForever);
+    furi_check(furi_mutex_acquire(registry->mutex, FuriWaitForever) == FuriStatusOk);
 
     size_t fonts_count = stbds_shlenu(registry->loaded_fonts);
     size_t total_estimated_memory_size = 0;
@@ -67,7 +67,7 @@ void fontstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* c
             font->value.estimated_memory_size);
     }
 
-    furi_mutex_release(registry->mutex);
+    furi_check(furi_mutex_release(registry->mutex) == FuriStatusOk);
 
     printf("Loaded: %zu fonts, %zu bytes\r\n", fonts_count, total_estimated_memory_size);
     printf("%-50s %4s %8s\r\n", "Font", "Refs", "Size");
