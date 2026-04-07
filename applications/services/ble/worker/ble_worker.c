@@ -134,7 +134,7 @@ typedef struct {
     FuriThread* thread;
     FuriSemaphore* receive_sem;
     FuriSemaphore* indication_sem;
-    FuriTimer* retry_phy_trimer;
+    FuriTimer* retry_phy_timer;
     uint8_t pairing_info_available;
     uint16_t rx_pending_handle;
     ///TODO: this can be removed
@@ -1127,7 +1127,7 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
 
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
-    ble_worker_instance->retry_phy_trimer =
+    ble_worker_instance->retry_phy_timer =
         furi_timer_alloc(retry_phy_timer_callback, FuriTimerTypeOnce, ble_worker_instance);
 
     ble_hw_config();
