@@ -1,25 +1,36 @@
 #include "wifi_i.h"
 
+#define WIFI_API_TIMEOUT_MS (5000)
+
+static void wifi_api_send_message(Wifi* instance, const WifiMessage* message) {
+    instance->api_message = *message;
+    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+}
+
 static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
-    WifiStatus status = WifiStatusMax;
+    WifiStatus status;
 
     message->status = &status;
     message->lock = api_lock_alloc_locked();
 
-    furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
+    const FuriStatus sem_status =
+        furi_semaphore_acquire(instance->api_semaphore, furi_ms_to_ticks(WIFI_API_TIMEOUT_MS));
 
-    instance->api_message = *message;
-    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+    if(sem_status == FuriStatusOk) {
+        wifi_api_send_message(instance, message);
+        api_lock_wait_unlock_and_free(message->lock);
 
-    api_lock_wait_unlock_and_free(message->lock);
+    } else {
+        status = WifiStatusTimeout;
+        api_lock_free(message->lock);
+    }
 
     return status;
 }
 
 static void wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message) {
     if(furi_semaphore_acquire(instance->api_semaphore, 0) == FuriStatusOk) {
-        instance->api_message = *message;
-        furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+        wifi_api_send_message(instance, message);
     }
 }
 
