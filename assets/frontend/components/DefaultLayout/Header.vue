@@ -298,9 +298,9 @@ const userDropdownItems = computed(() => {
       ...baseItems
     ];
   } else if (deviceStore.httpAPIAccess.mode === 'key') {
-    return [passwordSetItems, ...baseItems];
+    return [[...passwordSetItems], ...baseItems];
   } else {
-    return [passwordUnsetItems, ...baseItems];
+    return [[...passwordUnsetItems], ...baseItems];
   }
 });
 
@@ -367,6 +367,8 @@ async function init () {
   }
 
   nameModel.value = await deviceStore.fetchDeviceName();
+
+  console.log(userDropdownItems.value);
 }
 
 const urlHost = computed(() => window.location.host);
