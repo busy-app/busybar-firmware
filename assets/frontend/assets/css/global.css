@@ -38,6 +38,8 @@
   --color-info-800: var(--color-gray-800);
   --color-info-900: var(--color-gray-900);
   --color-info-950: var(--color-gray-950);
+
+  --ui-surface-container: #FFFFFF;
 }
 
 :root {
@@ -65,6 +67,7 @@
   --ui-error: var(--color-error-400);
   --ui-modal-bg: --alpha(var(--color-neutral-800) / 75%);
   --ui-modal-overlay-bg: --alpha(var(--color-neutral-900) / 80%);
+  --ui-surface-container: #181818;
   --glass-ring-inner: --alpha(var(--color-white) / 10%);
   --glass-ring-outer: --alpha(var(--color-white) / 4%);
 }
@@ -116,6 +119,10 @@
 }
 @utility bg-modal-overlay {
   background-color: var(--ui-modal-overlay-bg);
+}
+
+@utility bg-surface-container {
+  background-color: var(--ui-surface-container);
 }
 
 @layer utilities {
