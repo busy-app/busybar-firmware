@@ -8,7 +8,8 @@ static void wifi_api_send_message(Wifi* instance, const WifiMessage* message) {
 }
 
 static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
-    WifiStatus status;
+    // ATTENTION: This initial value is REQUIRED for correct functioning of wifi_api_unlock().
+    WifiStatus status = WifiStatusMax;
 
     message->status = &status;
     message->lock = api_lock_alloc_locked();
