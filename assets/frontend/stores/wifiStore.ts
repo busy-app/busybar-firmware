@@ -4,7 +4,7 @@ import type {
   WifiNetwork,
   WifiConnectParams
 } from '@busy-app/busy-lib';
-import { stateStreamWebSocketClient } from '@/utils/state-stream/stateStreamWebSocketClient';
+import { stateStreamWebSocketClient } from '@/util/state-stream/stateStreamWebSocketClient';
 
 export const useWifiStore = defineStore('wifi', () => {
   const deviceStore = useDeviceStore();

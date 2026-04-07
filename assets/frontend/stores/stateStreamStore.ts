@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
+import { useApiStore } from '@/stores/apiStore';
 import { decodeStateMessage, type StateMessage } from '@/util/stateStreamMessage';
 import { UpdateStage } from '@/stores/firmwareStore';
 import {
   stateStreamWebSocketClient,
   type StateStreamSubscription
-} from '@/utils/state-stream/stateStreamWebSocketClient';
+} from '@/util/state-stream/stateStreamWebSocketClient';
 
 function isProtoMessage (value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Uint8Array);
@@ -110,6 +111,7 @@ function mapMatterStatus (value: string | undefined) {
 }
 
 export const useStateStreamStore = defineStore('stateStream', () => {
+  const apiStore = useApiStore();
   const deviceStore = useDeviceStore();
   const audioStore = useAudioStore();
   const brightnessStore = useBrightnessStore();
@@ -393,7 +395,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     const generation = ++connectionGeneration;
     releaseSubscription(activeSubscription);
 
-    const subscription = await stateStreamWebSocketClient.connect(barUrl, {
+    const subscription = await stateStreamWebSocketClient.connect(barUrl, apiStore.apiKey, {
       onStatus: (connected, reconnected) => {
         if (generation !== connectionGeneration) {
           return;

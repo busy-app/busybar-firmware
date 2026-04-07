@@ -139,6 +139,7 @@ class StateStreamWebSocketClient {
 
   public async connect (
     wsEndpoint: string,
+    apiToken?: string | null,
     cbs: StateStreamSubscription = {}
   ): Promise<StateStreamSubscription> {
     if (!this.port) {
@@ -171,7 +172,8 @@ class StateStreamWebSocketClient {
 
       this.port.postMessage({
         type: 'SUBSCRIBE',
-        wsEndpoint
+        wsEndpoint,
+        apiToken
       } satisfies WorkerMessage);
     }
 

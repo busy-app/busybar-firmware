@@ -12,7 +12,10 @@ type Connection = {
     isConnected: boolean;
     isReconnected: boolean;
   };
-  wsEndpoint: string | null;
+  config: {
+    wsEndpoint: string | null;
+    apiToken: string | null;
+  };
   opening: Promise<void> | null;
   closing: Promise<void> | null;
   reconnectAttempts: number;
@@ -32,7 +35,7 @@ const NORMAL_CLOSE_CODE = 1000;
 
 let globalConnection: Connection | null = null;
 
-function getOrInitConnection (wsEndpoint?: string): Connection {
+function getOrInitConnection (wsEndpoint?: string, apiToken?: string | null): Connection {
   if (!globalConnection) {
     globalConnection = {
       socket: null,
@@ -40,7 +43,10 @@ function getOrInitConnection (wsEndpoint?: string): Connection {
         isConnected: false,
         isReconnected: false
       },
-      wsEndpoint: wsEndpoint ?? null,
+      config: {
+        wsEndpoint: wsEndpoint ?? null,
+        apiToken: apiToken ?? null
+      },
       opening: null,
       closing: null,
       reconnectAttempts: 0,
@@ -54,8 +60,12 @@ function getOrInitConnection (wsEndpoint?: string): Connection {
     };
   }
 
-  if (wsEndpoint && !globalConnection.wsEndpoint) {
-    globalConnection.wsEndpoint = wsEndpoint;
+  if (wsEndpoint && !globalConnection.config.wsEndpoint) {
+    globalConnection.config.wsEndpoint = wsEndpoint;
+  }
+
+  if (apiToken !== undefined) {
+    globalConnection.config.apiToken = apiToken;
   }
 
   return globalConnection;
@@ -211,8 +221,17 @@ function disconnectForDeviceLoss (connection: Connection) {
   }
 }
 
-function toStateStreamWebSocketUrl (wsEndpoint: string): string {
-  return `${wsEndpoint.replace(/^http/i, 'ws')}/api/status/ws`;
+function toStateStreamWebSocketUrl (wsEndpoint: string, apiToken?: string | null): string {
+  const stateStreamUrl = new URL(wsEndpoint);
+
+  stateStreamUrl.protocol = stateStreamUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+  stateStreamUrl.pathname = `${stateStreamUrl.pathname.replace(/\/$/, '')}/api/status/ws`;
+
+  if (apiToken) {
+    stateStreamUrl.searchParams.set('x-api-token', apiToken);
+  }
+
+  return stateStreamUrl.toString();
 }
 
 function closeConnection (connection: Connection): Promise<void> {
@@ -296,7 +315,7 @@ async function openConnection (connection: Connection): Promise<void> {
     await connection.closing;
   }
 
-  if (!connection.wsEndpoint) {
+  if (!connection.config.wsEndpoint) {
     throw new Error('State stream WebSocket endpoint is missing.');
   }
 
@@ -320,7 +339,7 @@ async function openConnection (connection: Connection): Promise<void> {
   clearReconnectTimer(connection);
 
   const opening = new Promise<void>((resolve, reject) => {
-    const socket = new WebSocket(toStateStreamWebSocketUrl(connection.wsEndpoint!));
+    const socket = new WebSocket(toStateStreamWebSocketUrl(connection.config.wsEndpoint!, connection.config.apiToken));
     let hasOpened = false;
 
     socket.binaryType = 'arraybuffer';
@@ -407,10 +426,10 @@ async function openConnection (connection: Connection): Promise<void> {
   await opening;
 }
 
-function handleSubscribe (port: WorkerPort, wsEndpoint: string) {
-  const connection = getOrInitConnection(wsEndpoint);
+function handleSubscribe (port: WorkerPort, wsEndpoint: string, apiToken?: string | null) {
+  const connection = getOrInitConnection(wsEndpoint, apiToken);
 
-  if (connection.wsEndpoint && connection.wsEndpoint !== wsEndpoint) {
+  if (connection.config.wsEndpoint && connection.config.wsEndpoint !== wsEndpoint) {
     console.warn(`Ignoring mismatched state stream endpoint: ${wsEndpoint}`);
   }
 
@@ -465,7 +484,7 @@ function handleWorkerMessage (port: WorkerPort, msg: WorkerMessage) {
   const connection = globalConnection;
 
   if (msg.type === 'SUBSCRIBE') {
-    handleSubscribe(port, msg.wsEndpoint);
+    handleSubscribe(port, msg.wsEndpoint, msg.apiToken);
     return;
   }
 
