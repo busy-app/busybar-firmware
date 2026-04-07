@@ -367,8 +367,6 @@ async function init () {
   }
 
   nameModel.value = await deviceStore.fetchDeviceName();
-
-  console.log(userDropdownItems.value);
 }
 
 const urlHost = computed(() => window.location.host);
