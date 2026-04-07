@@ -58,7 +58,7 @@ async function init () {
     // clear auto-update state (stale after fw update)
     firmwareStore.resetAutoUpdateState();
 
-    // request fresh auto-update status, non-blocking
+    // request fresh auto-update status
     if (wifiStore.wifi?.state === 'connected') {
       await firmwareStore.fetchAutoUpdateStatus();
     }

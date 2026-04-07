@@ -78,6 +78,22 @@ function mapWifiProtocol (value: string | undefined) {
   }
 }
 
+function inferWifiProtocol (value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+
+  if (value.includes(':')) {
+    return 'ipv6';
+  }
+
+  if (value.includes('.')) {
+    return 'ipv4';
+  }
+
+  return undefined;
+}
+
 function mapMatterStatus (value: string | undefined) {
   switch (value) {
     case 'NEVER_STARTED':
@@ -181,7 +197,9 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     const nextStateKey = getString(payload.wifiState);
     const connected = isProtoMessage(payload.connected) ? payload.connected : undefined;
     const ipAddresses = Array.isArray(payload.ipAddresses) ? payload.ipAddresses : [];
-    const primaryIp = ipAddresses.find(ip => isProtoMessage(ip) && getString(ip.protocol) === 'IPV4');
+    const primaryIp = ipAddresses.find(isProtoMessage);
+    const previousIpConfig = wifiStore.wifi?.ip_config;
+    const address = isProtoMessage(primaryIp) ? getString(primaryIp.address) : undefined;
 
     const nextWifiState = {
       state: lowerCaseEnum(nextStateKey) as 'unknown' | 'disconnected' | 'connected' | 'connecting' | 'disconnecting' | 'reconnecting' | undefined,
@@ -192,9 +210,9 @@ export const useStateStreamStore = defineStore('stateStream', () => {
       security: mapWifiSecurity(getString(connected?.security)),
       ip_config: isProtoMessage(primaryIp)
         ? {
-          ip_method: mapWifiMethod(getString(primaryIp.method)),
-          ip_type: mapWifiProtocol(getString(primaryIp.protocol)),
-          address: getString(primaryIp.address),
+          ip_method: mapWifiMethod(getString(primaryIp.method)) ?? previousIpConfig?.ip_method,
+          ip_type: mapWifiProtocol(getString(primaryIp.protocol)) ?? inferWifiProtocol(address) ?? previousIpConfig?.ip_type,
+          address,
           gateway: getString(primaryIp.gateway),
           mask: getString(primaryIp.netmask)
         }

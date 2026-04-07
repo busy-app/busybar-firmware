@@ -22,10 +22,11 @@ type Connection = {
   isDeviceAvailable: boolean | null;
   ports: Set<WorkerPort>;
   hasConnected: boolean;
+  activityPauseCount: number;
 };
 
 const MAX_RECONNECT_ATTEMPTS = 5;
-const ACTIVITY_TIMEOUT_MS = 3000;
+const ACTIVITY_TIMEOUT_MS = 5000;
 const CONNECTION_CHECK_SETTLE_MS = 5000;
 const NORMAL_CLOSE_CODE = 1000;
 
@@ -48,7 +49,8 @@ function getOrInitConnection (wsEndpoint?: string): Connection {
       pendingConnectionCheck: null,
       isDeviceAvailable: null,
       ports: new Set(),
-      hasConnected: false
+      hasConnected: false,
+      activityPauseCount: 0
     };
   }
 
@@ -146,7 +148,12 @@ function requestConnectionCheck (connection: Connection) {
 function resetActivityTimer (connection: Connection) {
   clearActivityTimer(connection);
 
-  if (!connection.socket || connection.socket.readyState !== WebSocket.OPEN || connection.ports.size === 0) {
+  if (
+    connection.activityPauseCount > 0
+    || !connection.socket
+    || connection.socket.readyState !== WebSocket.OPEN
+    || connection.ports.size === 0
+  ) {
     return;
   }
 
@@ -154,6 +161,26 @@ function resetActivityTimer (connection: Connection) {
     connection.activityTimer = null;
     requestConnectionCheck(connection);
   }, ACTIVITY_TIMEOUT_MS);
+}
+
+function pauseActivityChecks (connection: Connection) {
+  connection.activityPauseCount++;
+  clearActivityTimer(connection);
+  clearPendingConnectionCheck(connection);
+}
+
+function resumeActivityChecks (connection: Connection) {
+  if (connection.activityPauseCount === 0) {
+    return;
+  }
+
+  connection.activityPauseCount--;
+
+  if (connection.activityPauseCount > 0) {
+    return;
+  }
+
+  resetActivityTimer(connection);
 }
 
 function disconnectForDeviceLoss (connection: Connection) {
@@ -433,6 +460,8 @@ function handleUnsubscribe (port: WorkerPort) {
 }
 
 function handleWorkerMessage (port: WorkerPort, msg: WorkerMessage) {
+  console.debug('[message]', msg);
+
   const connection = globalConnection;
 
   if (msg.type === 'SUBSCRIBE') {
@@ -456,6 +485,16 @@ function handleWorkerMessage (port: WorkerPort, msg: WorkerMessage) {
 
   if (msg.type === 'DEVICE_RECONNECTED') {
     handleDeviceReconnected(connection);
+    return;
+  }
+
+  if (msg.type === 'PAUSE_ACTIVITY_CHECKS') {
+    pauseActivityChecks(connection);
+    return;
+  }
+
+  if (msg.type === 'RESUME_ACTIVITY_CHECKS') {
+    resumeActivityChecks(connection);
   }
 }
 

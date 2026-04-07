@@ -23,6 +23,7 @@ class StateStreamWebSocketClient {
   private worker: SharedWorker | Worker | null = null;
   private port: MessagePort | Worker | null = null;
   private subscriptions = new Set<InternalSubscription>();
+  private activityCheckPauseCount = 0;
   private lastStatus = {
     isConnected: false,
     isReconnected: false
@@ -114,6 +115,11 @@ class StateStreamWebSocketClient {
   }
 
   private handleConnectionCheck () {
+    if (this.activityCheckPauseCount > 0) {
+      console.debug('Ignoring queued state stream connection check while paused');
+      return;
+    }
+
     let checker: ConnectionCheckCallback | undefined;
     for (const subscription of this.subscriptions) {
       if (subscription.onCheckConnection) {
@@ -199,6 +205,22 @@ class StateStreamWebSocketClient {
     };
 
     this.port?.postMessage({ type: 'UNSUBSCRIBE' } satisfies WorkerMessage);
+  }
+
+  public pauseActivityChecks () {
+    this.activityCheckPauseCount++;
+    console.debug('Pausing state stream activity checks');
+    this.port?.postMessage({ type: 'PAUSE_ACTIVITY_CHECKS' } satisfies WorkerMessage);
+  }
+
+  public resumeActivityChecks () {
+    if (this.activityCheckPauseCount === 0) {
+      return;
+    }
+
+    this.activityCheckPauseCount--;
+    console.debug('Resuming state stream activity checks');
+    this.port?.postMessage({ type: 'RESUME_ACTIVITY_CHECKS' } satisfies WorkerMessage);
   }
 }
 

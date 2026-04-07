@@ -247,6 +247,7 @@ export const useDeviceStore = defineStore('device', () => {
     checkConnection,
     connectionType,
     detectConnectionType,
+    refreshInterval,
     setRefreshInterval,
     clearRefreshInterval,
 
