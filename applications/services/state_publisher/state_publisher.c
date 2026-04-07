@@ -249,6 +249,7 @@ static bool send_out_for_transport(void* context, bool heartbeat) {
             .timestamp = time_get_timestamp_ms(),
             .updates_count = count,
             .updates = raw_updates,
+            .has_error = false,
         };
 
         SharedByteArray_t data;
@@ -271,6 +272,28 @@ static bool send_out_for_transport(void* context, bool heartbeat) {
     }
     StateUpdateArray_clear(updates);
     return sent;
+}
+
+bool state_publisher_serialize_error_message(
+    ByteArray_t* buf,
+    BSB_Error_Severity severity,
+    BSB_Error_Cause cause) {
+    BSB_State_State state = {
+        .timestamp = time_get_timestamp_ms(),
+        .updates_count = 0,
+        .updates = NULL,
+        .has_error = true,
+        .error = {
+            .cause = cause,
+            .severity = severity,
+        }};
+    pb_ostream_t stream = ostream_with_buffer(buf);
+    bool result = pb_encode(&stream, BSB_State_State_fields, &state);
+    if(!result) {
+        FURI_LOG_E(TAG, "cannot encode");
+        ByteArray_reset(*buf);
+    }
+    return result;
 }
 
 static uint32_t send_out(StatePublisher* instance, StreamFlag flags, bool heartbeat) {
