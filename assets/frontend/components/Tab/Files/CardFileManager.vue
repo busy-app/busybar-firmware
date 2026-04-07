@@ -753,7 +753,7 @@ async function remove () {
       title: 'Couldn\'t delete: resource not provided',
       icon: 'i-bi-alert',
       color: 'error',
-      duration: 5000
+      duration: 10000
     });
     return;
   }
@@ -806,7 +806,7 @@ async function uploadFiles () {
       title: 'Couldn\'t upload: files not provided',
       icon: 'i-bi-alert',
       color: 'error',
-      duration: 5000
+      duration: 10000
     });
     return;
   }
@@ -875,7 +875,7 @@ async function mkdir () {
       title: 'Couldn\'t create directory: name not provided',
       icon: 'i-bi-alert',
       color: 'error',
-      duration: 5000
+      duration: 10000
     });
     return;
   }
