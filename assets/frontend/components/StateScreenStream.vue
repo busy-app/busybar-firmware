@@ -27,6 +27,7 @@ import { decodeFramePayload } from '@/util/stateFrameData';
 import type { StateFrameMessage } from '@/util/stateStreamMessage';
 
 const screenStreamStore = useScreenStreamStore();
+const deviceStore = useDeviceStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const canvasCtx = ref<CanvasRenderingContext2D | null>(null);
 
@@ -185,7 +186,68 @@ watch([canvasWidth, canvasHeight], () => {
   }
 });
 
-onMounted(() => {
+function isBase64FramePayload (value: string): boolean {
+  const normalized = value.trim();
+
+  return normalized.length > 0
+    && normalized.length % 4 === 0
+    && /^[A-Za-z0-9+/]+={0,2}$/.test(normalized);
+}
+
+function decodeBase64FramePayload (value: string): Uint8Array {
+  const decoded = atob(value.trim());
+  const data = new Uint8Array(decoded.length);
+
+  for (let index = 0; index < decoded.length; index++) {
+    data[index] = decoded.charCodeAt(index);
+  }
+
+  return data;
+}
+
+async function normalizeInitialFramePayload (source: Blob | ArrayBuffer | Uint8Array | string): Promise<Uint8Array> {
+  if (typeof source === 'string') {
+    return isBase64FramePayload(source) ? decodeBase64FramePayload(source) : new TextEncoder().encode(source);
+  }
+
+  if (source instanceof Blob) {
+    const text = await source.text();
+
+    if (isBase64FramePayload(text)) {
+      return decodeBase64FramePayload(text);
+    }
+
+    return new Uint8Array(await source.arrayBuffer());
+  }
+
+  const data = source instanceof Uint8Array ? source : new Uint8Array(source);
+  const text = new TextDecoder().decode(data);
+
+  return isBase64FramePayload(text) ? decodeBase64FramePayload(text) : data;
+}
+
+async function convertInitialFrameToStateFrame (source: Blob | ArrayBuffer | Uint8Array | string): Promise<StateFrameMessage> {
+  const data = await normalizeInitialFramePayload(source);
+
+  return {
+    screen: 'FRONT',
+    width: 72,
+    height: 16,
+    encoding: 'PLAIN',
+    pixelFormat: 'RGB888',
+    data
+  };
+}
+
+async function getInitialFrame () {
+  const busyBar = deviceStore.busyBar;
+  const screen = await busyBar.DisplayScreenFrameGet({ display: DeviceScreen.FRONT });
+  const initialFrame = await convertInitialFrameToStateFrame(screen as Blob | ArrayBuffer | Uint8Array | string);
+
+  await renderFrame(initialFrame);
+}
+
+onMounted(async () => {
   window.addEventListener('resize', handleResize);
 
   if (canvasRef.value) {
@@ -196,7 +258,9 @@ onMounted(() => {
   }
 
   if (currentFrame.value) {
-    void renderFrame(currentFrame.value);
+    await renderFrame(currentFrame.value);
+  } else {
+    await getInitialFrame();
   }
 });
 
