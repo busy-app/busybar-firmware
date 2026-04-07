@@ -175,7 +175,7 @@ static bool netstat_cli_print_pcb_table(void) {
 
     UNLOCK_TCPIP_CORE();
 
-    printf(furi_string_get_cstr(output_buffer));
+    printf("%s", furi_string_get_cstr(output_buffer));
 
     furi_string_free(output_buffer);
     return true;
@@ -217,7 +217,7 @@ static bool netstat_cli_print_memp_stats(void) {
 
     UNLOCK_TCPIP_CORE();
 
-    printf(furi_string_get_cstr(output_buffer));
+    printf("%s", furi_string_get_cstr(output_buffer));
 
     furi_string_free(output_buffer);
     return true;

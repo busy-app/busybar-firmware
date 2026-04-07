@@ -13,8 +13,9 @@
     }"
   >
     <template #body>
+      <div v-if="firmwareStore.autoUpdate.isChangelogLoading">Loading changelog...</div>
       <MDC
-        v-if="firmwareStore.autoUpdate.changelog"
+        v-else-if="firmwareStore.autoUpdate.changelog"
         :value="firmwareStore.autoUpdate.changelog"
         tag="article"
       />
