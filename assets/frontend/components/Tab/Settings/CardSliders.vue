@@ -129,6 +129,11 @@ async function refreshAudioVolume () {
   loading.value.audio = false;
 }
 
+const mute = ref({
+  isMuted: false,
+  volumeBeforeMute: 50
+});
+
 const nextVolumeNumber = ref<number | undefined>(undefined);
 const volumeNumber = computed(() => {
   if (mute.value.isMuted) {
@@ -142,11 +147,6 @@ watch(volumeNumber, newValue => {
   if (!mute.value.isMuted) {
     nextVolumeNumber.value = newValue;
   }
-});
-
-const mute = ref({
-  isMuted: false,
-  volumeBeforeMute: 50
 });
 
 function unmute () {
