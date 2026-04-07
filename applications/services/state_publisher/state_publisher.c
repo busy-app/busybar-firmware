@@ -274,7 +274,7 @@ static bool send_out_for_transport(void* context, bool heartbeat) {
     return sent;
 }
 
-void state_publisher_serialize_error_message(
+bool state_publisher_serialize_error_message(
     ByteArray_t* buf,
     BSB_Error_Severity severity,
     BSB_Error_Cause cause) {
@@ -293,6 +293,7 @@ void state_publisher_serialize_error_message(
         FURI_LOG_E(TAG, "cannot encode");
         ByteArray_reset(*buf);
     }
+    return result;
 }
 
 static uint32_t send_out(StatePublisher* instance, StreamFlag flags, bool heartbeat) {

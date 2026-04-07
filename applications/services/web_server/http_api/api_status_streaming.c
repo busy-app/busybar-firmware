@@ -265,14 +265,15 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
     }
 }
 
-static void client_connection_on_born_dead(struct mg_connection* conn) {
+static void client_connection_on_open_rejected(struct mg_connection* conn) {
     ByteArray_t buf;
     ByteArray_init(buf);
-    state_publisher_serialize_error_message(
-        &buf, BSB_Error_Severity_FATAL, BSB_Error_Cause_RESOURCE_LIMIT);
-    const void* data = ByteArray_cget(buf, 0);
-    size_t len = ByteArray_size(buf);
-    mg_ws_send(conn, data, len, WEBSOCKET_OP_BINARY);
+    if(state_publisher_serialize_error_message(
+           &buf, BSB_Error_Severity_FATAL, BSB_Error_Cause_RESOURCE_LIMIT)) {
+        const void* data = ByteArray_cget(buf, 0);
+        size_t len = ByteArray_size(buf);
+        mg_ws_send(conn, data, len, WEBSOCKET_OP_BINARY);
+    }
     ByteArray_clear(buf);
     conn->is_draining = 1;
 }
@@ -295,7 +296,7 @@ bool http_api_status_ws_callback(
     if(!client) {
         FURI_LOG_W(TAG, "No available websockets");
         ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->ws.on_open = client_connection_on_born_dead;
+        conn_ctx->ws.on_open = client_connection_on_open_rejected;
     } else {
         ConnectionContext* conn_ctx = (void*)conn->data;
         conn_ctx->ws.on_open = client_connection_open;
