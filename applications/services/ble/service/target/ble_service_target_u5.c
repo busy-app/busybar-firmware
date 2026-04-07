@@ -19,7 +19,6 @@ static bool ble_service_init_request(BleServiceObject* instance) {
 static bool
     ble_service_init_response(BleServiceObject* instance, size_t data_size, const void* data) {
     UNUSED(data_size);
-    UNUSED(data);
 
     if(!ble_service_parse_intercom_service_data(instance, data)) {
         BLE_LOG_W("Update command error");

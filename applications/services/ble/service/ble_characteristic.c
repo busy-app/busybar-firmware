@@ -4,7 +4,7 @@
 
 #define TAG "BleChar"
 
-#define BLE_CHAR_RESPONSE_WAIT_TIMEOUT_MS (250)
+#define BLE_CHAR_LOCK_TIMEOUT_MS (250)
 
 typedef enum {
     BleCharacteristicStateInit,
@@ -81,7 +81,7 @@ static void ble_characteristic_set_data_common(
     furi_assert(data);
     furi_assert(data_size > 0);
 
-    if(furi_semaphore_acquire(instance->lock, 250) != FuriStatusOk) {
+    if(furi_semaphore_acquire(instance->lock, BLE_CHAR_LOCK_TIMEOUT_MS) != FuriStatusOk) {
         BLE_LOG_W("%s - Unable to set, char is locked!", instance->descriptor->name);
         return;
     }
