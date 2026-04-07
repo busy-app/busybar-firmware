@@ -62,7 +62,7 @@ void fontstat_cli_command_entry(PipeSide* pipe, FuriString* args_string, void* c
 
     printf("Loaded: %zu fonts\r\n", fonts_count);
     printf("%-50s %4s\r\n", "Font", "Refs");
-    printf(furi_string_get_cstr(output_buffer));
+    printf("%s", furi_string_get_cstr(output_buffer));
 
     furi_string_free(output_buffer);
     furi_record_close(RECORD_FONT_REGISTRY);
