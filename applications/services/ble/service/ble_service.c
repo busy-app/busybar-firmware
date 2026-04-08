@@ -325,18 +325,20 @@ bool ble_service_parse_intercom_service_data(
     const BleIntercomServiceData* service_config = data;
     size_t offset = 0;
 
+    bool result = true;
     for(size_t i = 0; i < service_config->char_count; i++) {
         const BleCharacteristicData* char_init =
             (BleCharacteristicData*)((uint8_t*)service_config->chars_config + offset);
         size_t data_size = char_init->header.data_size;
 
         BleCharacteristicObject* ch = instance->chars[char_init->header.index];
-        ble_characteristic_decode(ch, char_init);
+        result = ble_characteristic_decode(ch, char_init);
+        if(!result) break;
 
         offset += (data_size + sizeof(BleCharacteristicDataHeader));
     }
 
-    return true;
+    return result;
 }
 
 bool ble_service_send_data(
