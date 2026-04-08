@@ -21,6 +21,7 @@ App(
         "service/battery/ble_service_battery.c",
         "service/battery/ble_service_battery_917.c",
         "service/uart/*.c",
+        "util/ble_canary.c",
     ],
 )
 
@@ -50,5 +51,6 @@ App(
         "service/battery/ble_service_battery.c",
         "service/battery/ble_service_battery_u5.c",
         "service/uart/*.c",
+        "util/ble_canary.c",
     ],
 )

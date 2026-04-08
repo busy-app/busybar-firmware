@@ -1,9 +1,7 @@
-#include "busy_timer_snapshot.h"
+#include "busy_timer_snapshot_i.h"
 #include "busy_timer_common_i.h"
 
 #include <furi.h>
-
-#include <cjson/cJSON.h>
 
 #define KEY_SNAPSHOT  "snapshot"
 #define KEY_TIMESTAMP "snapshot_timestamp_ms"
@@ -248,11 +246,9 @@ static bool
     return success;
 }
 
-// Public functions
+// Internal functions
 
-char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
-    cJSON* json = cJSON_CreateObject();
-
+bool busy_timer_snapshot_serialize_raw(const BusyTimerSnapshot* snapshot, cJSON* json) {
     cJSON* snapshot_json = cJSON_AddObjectToObject(json, KEY_SNAPSHOT);
 
     const BusyTimerSnapshotType snapshot_type = snapshot->type;
@@ -272,19 +268,11 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
 
     cJSON_AddNumberToObject(json, KEY_TIMESTAMP, snapshot->timestamp_ms);
 
-    char* json_text = cJSON_PrintUnformatted(json);
-
-    cJSON_Delete(json);
-    return json_text;
+    return true;
 }
 
-bool busy_timer_snapshot_deserialize(
-    BusyTimerSnapshot* snapshot,
-    const char* json_text,
-    size_t json_text_len) {
+bool busy_timer_snapshot_deserialize_raw(BusyTimerSnapshot* snapshot, const cJSON* json) {
     bool success = false;
-
-    cJSON* json = cJSON_ParseWithLength(json_text, json_text_len);
 
     do {
         if(!cJSON_IsObject(json)) {
@@ -308,8 +296,32 @@ bool busy_timer_snapshot_deserialize(
         success = true;
     } while(false);
 
-    cJSON_Delete(json);
+    return success;
+}
 
+// Public functions
+
+char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
+    cJSON* json = cJSON_CreateObject();
+    char* json_text = NULL;
+
+    if(busy_timer_snapshot_serialize_raw(snapshot, json)) {
+        json_text = cJSON_PrintUnformatted(json);
+    }
+
+    cJSON_Delete(json);
+    return json_text;
+}
+
+bool busy_timer_snapshot_deserialize(
+    BusyTimerSnapshot* snapshot,
+    const char* json_text,
+    size_t json_text_len) {
+    cJSON* json = cJSON_ParseWithLength(json_text, json_text_len);
+
+    const bool success = busy_timer_snapshot_deserialize_raw(snapshot, json);
+
+    cJSON_Delete(json);
     return success;
 }
 
