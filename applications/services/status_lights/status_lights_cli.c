@@ -1,17 +1,15 @@
-#include "cli_command_status_lights.h"
-
-#include <furi/furi.h>
 #include <cli/args.h>
+
 #include <containers/pipe.h>
+
 #include <status_lights/status_lights.h>
 
-static void cli_command_status_lights_print_usage(void) {
+static void status_lights_cli_print_usage(void) {
     printf("Usage:\r\n");
     printf("status_lights <0-255> <0-255> <0-255>\r\n");
 }
 
-#ifdef SRV_STATUS_LIGHTS
-static bool cli_command_status_lights_parse_color(FuriString* args, Color* color) {
+static bool status_lights_cli_parse_color(FuriString* args, Color* color) {
     bool success = true;
 
     int value[3];
@@ -34,17 +32,15 @@ static bool cli_command_status_lights_parse_color(FuriString* args, Color* color
 
     return success;
 }
-#endif // SRV_STATUS_LIGHTS
 
-void cli_command_status_lights(PipeSide* pipe, FuriString* args, void* context) {
+void status_lights_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(context);
 
-#ifdef SRV_STATUS_LIGHTS
     Color color;
 
-    if(!cli_command_status_lights_parse_color(args, &color)) {
-        cli_command_status_lights_print_usage();
+    if(!status_lights_cli_parse_color(args, &color)) {
+        status_lights_cli_print_usage();
         return;
     }
 
@@ -56,8 +52,4 @@ void cli_command_status_lights(PipeSide* pipe, FuriString* args, void* context) 
     if(status != StatusLightsStatusOk) {
         printf("Failed to set status lights color\r\n");
     }
-#else // SRV_STATUS_LIGHTS
-    UNUSED(args);
-    UNUSED(cli_command_status_lights_print_usage);
-#endif // SRV_STATUS_LIGHTS
 }
