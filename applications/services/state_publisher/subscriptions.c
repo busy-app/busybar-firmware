@@ -8,6 +8,8 @@
 #include <matter/matter.h>
 #include <input/input.h>
 #include <gui/gui.h>
+#include <furi_hal_rtc.h>
+#include <tzutil.h>
 
 static void brightness_state_callback(const void* item, void* context);
 static void time_settings_state_callback(const void* item, void* context);
@@ -373,6 +375,14 @@ static void time_settings_state_callback(const void* item, void* context) {
         update->state.timezone.name, settings->timezone.name, sizeof(update->state.timezone.name));
     update->state.timezone.offset =
         settings->timezone.offset.hours * 60 + settings->timezone.offset.minutes;
+
+    DateTime now = furi_hal_rtc_get_datetime().dt;
+    TzutilTzInfo info;
+    if(tzutil_get_info_by_name(settings->timezone.name, &now, &info)) {
+        snprintf(update->state.timezone.abbr, sizeof(update->state.timezone.abbr), info.abbr_formatter, info.abbr_param);
+    } else {
+        update->state.timezone.abbr[0] = 0;
+    }
 
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
