@@ -1,5 +1,5 @@
 #include "status_lights_backend.h"
-#include "status_lights_common_private.h"
+#include "status_lights_common_i.h"
 #include "status_lights_preset_defs.h"
 
 #include <furi/furi.h>

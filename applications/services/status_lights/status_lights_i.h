@@ -1,7 +1,7 @@
 #pragma once
 
 #include "status_lights.h"
-#include "status_lights_common_private.h"
+#include "status_lights_common_i.h"
 
 #include <intercom/intercom.h>
 

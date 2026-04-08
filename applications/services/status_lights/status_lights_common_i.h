@@ -1,10 +1,10 @@
 /**
- * @file status_lights_private.h
+ * @file status_lights_i.h
  * @brief Common private definitions for Status Lights.
  */
 #pragma once
 
-#include "status_lights_common_public.h"
+#include "status_lights_common.h"
 
 #ifdef __cplusplus
 extern "C" {
