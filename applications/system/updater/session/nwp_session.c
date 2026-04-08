@@ -1,83 +1,32 @@
 #include "nwp_session.h"
 #include "../helpers/rps.h"
 
-#include <storage/storage.h>
-#include <cli_u5/cli_command_sl_cli.h>
+#include <sl_info/sl_info.h>
 
-#include <containers/pipe_util.h>
 #include <formatters/sl_rps/sl_rps.h>
 
-#define NWP_VERSION_CLI_THREAD_NAME       "updater_nwp_version_cli"
-#define NWP_VERSION_CLI_THREAD_STACK_SIZE 512
+static bool nwp_get_active_version(const char** active_version) {
+#ifdef SRV_SL_INFO
+    SlInfo* sl_info = furi_record_open(RECORD_SL_INFO);
 
-#define NWP_VERSION_CLI_PIPE_CAPACITY   128
-#define NWP_VERSION_RECEIVE_BUFFER_SIZE 64
-#define NWP_VERSION_DRAIN_BUFFER_SIZE   64
+    SlInfoStatus version_get_status =
+        sl_info_get_value(sl_info, "sl_nwp_firmware", active_version);
 
-static int32_t nwp_get_active_version_thread_entry(void* context) {
-    PipeSide* tx_pipe = context;
+    furi_record_close(RECORD_SL_INFO);
+    return version_get_status == SlInfoStatusOk;
+#else /* SRV_SL_INFO */
+    UNUSED(active_version);
 
-#ifdef SRV_INTERCOM
-    bool success = cli_command_sl_cli_send_command_get_response(tx_pipe, "device_info");
-#else // SRV_INTERCOM
-    bool success = false;
-#endif // SRV_INTERCOM
-
-    pipe_free(tx_pipe);
-    return success ? 0 : -1;
-}
-
-static bool nwp_get_active_version(FuriString* nwp_version) {
-    PipeSideBundle pipe_bundle = pipe_alloc(NWP_VERSION_CLI_PIPE_CAPACITY, 1);
-    PipeSide* rx_pipe = pipe_bundle.alices_side;
-    PipeSide* tx_pipe = pipe_bundle.bobs_side;
-
-    FuriThread* get_version_thread = furi_thread_alloc_ex(
-        NWP_VERSION_CLI_THREAD_NAME,
-        NWP_VERSION_CLI_THREAD_STACK_SIZE,
-        nwp_get_active_version_thread_entry,
-        tx_pipe);
-
-    furi_thread_start(get_version_thread);
-
-    if(pipe_copy_until(rx_pipe, NULL, "sl_nwp_firmware") && pipe_copy_until(rx_pipe, NULL, ": ")) {
-        char receive_buffer[NWP_VERSION_RECEIVE_BUFFER_SIZE];
-
-        size_t bytes_read;
-        while((bytes_read = pipe_receive(rx_pipe, receive_buffer, sizeof(receive_buffer))) > 0) {
-            size_t idx;
-            for(idx = 0; idx < bytes_read; idx++) {
-                if(receive_buffer[idx] == '\r' || receive_buffer[idx] == '\n') {
-                    receive_buffer[idx] = '\0';
-                    break;
-                }
-            }
-
-            furi_string_cat_str(nwp_version, receive_buffer);
-
-            if(idx < bytes_read) {
-                break;
-            }
-        }
-    }
-
-    char drain_buffer[NWP_VERSION_DRAIN_BUFFER_SIZE];
-    while(pipe_state(rx_pipe) != PipeStateBroken) {
-        pipe_receive(rx_pipe, drain_buffer, sizeof(drain_buffer));
-    }
-
-    pipe_free(rx_pipe);
-    furi_thread_join(get_version_thread);
-    furi_thread_free(get_version_thread);
-
-    return furi_string_size(nwp_version) > 0;
+    return false;
+#endif /* SRV_SL_INFO */
 }
 
 bool updater_nwp_session_is_current_version(const char* nwp_rps_path) {
     bool should_update = true;
 
-    FuriString* active_version_string = furi_string_alloc();
-    if(nwp_get_active_version(active_version_string)) {
+#ifdef SRV_SL_INFO
+    const char* active_version_string;
+    if(nwp_get_active_version(&active_version_string)) {
         Storage* storage = furi_record_open(RECORD_STORAGE);
         File* nwp_rps_file = storage_file_alloc(storage);
 
@@ -106,15 +55,17 @@ bool updater_nwp_session_is_current_version(const char* nwp_rps_path) {
                     .customer_id = update_ext_version.customer_id,
                 });
 
-            should_update = !furi_string_equal(active_version_string, update_version_string);
+            should_update = !furi_string_equal(update_version_string, active_version_string);
             furi_string_free(update_version_string);
         } while(false);
 
         storage_file_free(nwp_rps_file);
         furi_record_close(RECORD_STORAGE);
     }
-
-    furi_string_free(active_version_string);
+#else /* SRV_SL_INFO */
+    UNUSED(nwp_rps_path);
+    UNUSED(nwp_get_active_version);
+#endif /* SRV_SL_INFO */
 
     return should_update;
 }
