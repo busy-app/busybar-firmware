@@ -9,8 +9,6 @@
 
 #include <intercom/intercom.h>
 
-#define DEFAULT_BRIGHTNESS 1.f
-
 typedef enum {
     StatusLightsEventSyncDone = 1UL << 0,
 } StatusLightsEvent;
@@ -31,6 +29,10 @@ struct StatusLights {
 };
 
 static const CommandHandler command_handlers[];
+
+static float status_lights_normalize_brightness(uint8_t brightness) {
+    return ((1.f / 100.f) * (float)(brightness));
+}
 
 static uint8_t status_lights_scale_component(uint8_t component, float brightness) {
     if(component == 0) {
@@ -128,7 +130,7 @@ static StatusLights* status_lights_alloc() {
     instance->preset_instance = NULL;
     instance->preset_api = NULL;
     instance->active_color = (const Color){0};
-    instance->brightness = DEFAULT_BRIGHTNESS;
+    instance->brightness = status_lights_normalize_brightness(STATUS_LIGHTS_BRIGHTNESS_DEFAULT);
     instance->event_loop = furi_event_loop_alloc();
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, status_lights_event_callback, instance);
@@ -191,14 +193,12 @@ static void
     }
 }
 
-static float status_lights_normalize_brightness(uint8_t brightness) {
-    return ((1.f / 100.f) * (float)(brightness));
-}
-
 static void
     status_lights_do_set_brightness(StatusLights* instance, const StatusLightsCommand* command) {
     const StatusLightsCommandSetBrightness* set_brightness = &command->set_brightness;
+
     const uint8_t brightness = set_brightness->brightness;
+    furi_check(brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX);
 
     instance->brightness = status_lights_normalize_brightness(brightness);
 

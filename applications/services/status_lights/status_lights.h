@@ -11,16 +11,19 @@ extern "C" {
 #endif
 
 /**
- * @brief The string key for Status Lights instance access
+ * @brief The string key for Status Lights instance access.
  *
  * Get the instance pointer by calling `furi_record_open(RECORD_STATUS_LIGHTS)`
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
 
+/**
+ * @brief Enumeration of possible StatusLights statuses.
+ */
 typedef enum {
-    StatusLightsStatusOk,
-    StatusLightsStatusNotReady,
-    StatusLightsStatusTimeout,
+    StatusLightsStatusOk, /**< Request executed successfully */
+    StatusLightsStatusNotReady, /**< Service is not ready (e.g. no Intercom sync) */
+    StatusLightsStatusTimeout, /**< Request timed out */
 } StatusLightsStatus;
 
 typedef struct StatusLightsBrightness {

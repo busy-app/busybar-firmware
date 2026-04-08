@@ -10,6 +10,10 @@
 extern "C" {
 #endif
 
+#define STATUS_LIGHTS_BRIGHTNESS_MIN     (0)
+#define STATUS_LIGHTS_BRIGHTNESS_MAX     (100)
+#define STATUS_LIGHTS_BRIGHTNESS_DEFAULT (STATUS_LIGHTS_BRIGHTNESS_MAX)
+
 typedef enum {
     StatusLightsCommandIdRunPreset,
     StatusLightsCommandIdSetBrightness,

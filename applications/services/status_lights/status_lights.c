@@ -40,13 +40,18 @@ static StatusLightsStatus
     status_lights_do_set_brightness(StatusLights* instance, StatusLightsApiMessage* message) {
     const StatusLightsApiMessageSetBrightness* set_brightness = &message->set_brightness;
 
-    instance->brightness = set_brightness->brightness;
+    const uint8_t brightness_val = CLAMP(
+        set_brightness->brightness.val,
+        STATUS_LIGHTS_BRIGHTNESS_MAX,
+        STATUS_LIGHTS_BRIGHTNESS_MIN);
+
+    instance->brightness.val = brightness_val;
 
     const StatusLightsCommand command = {
         .id = StatusLightsCommandIdSetBrightness,
         .set_brightness =
             {
-                .brightness = set_brightness->brightness.val,
+                .brightness = brightness_val,
             },
     };
 
