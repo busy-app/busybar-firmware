@@ -7,6 +7,11 @@ typedef void (*StatusLightsApiMessageHandler)(StatusLights* instance, StatusLigh
 static const StatusLightsApiMessageHandler api_message_handlers[];
 
 static void status_lights_send_command(StatusLights* instance, StatusLightsCommand* command) {
+    // TODO: Better state check & return codes
+    if(!instance->intercom_ch) {
+        return;
+    }
+
     size_t tx_size =
         intercom_tx(instance->intercom_ch, command, sizeof(*command), FuriWaitForever);
 
@@ -15,6 +20,12 @@ static void status_lights_send_command(StatusLights* instance, StatusLightsComma
 
 static float status_lights_brightness_to_float(StatusLightsBrightness brightness) {
     return 0.01f * brightness.val;
+}
+
+static void status_lights_do_init(StatusLights* instance, StatusLightsMessage* message) {
+    UNUSED(message);
+    instance->intercom_ch =
+        intercom_channel_open(instance->intercom, IntercomChannelIdStatusLights, NULL, NULL);
 }
 
 static void status_lights_do_set_brightness(StatusLights* instance, StatusLightsMessage* message) {
@@ -48,6 +59,18 @@ static void status_lights_do_run_preset(StatusLights* instance, StatusLightsMess
     status_lights_send_command(instance, &command);
 }
 
+static void status_lights_intercom_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    StatusLights* instance = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)item;
+
+    if(intercom_status == IntercomStatusOk) {
+        status_lights_init(instance);
+    }
+}
+
 static void status_lights_message_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -74,6 +97,8 @@ static StatusLights* status_lights_alloc() {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(8, sizeof(StatusLightsMessage));
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->message_queue,
@@ -81,9 +106,8 @@ static StatusLights* status_lights_alloc() {
         status_lights_message_callback,
         instance);
 
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom_ch =
-        intercom_channel_open(intercom, IntercomChannelIdStatusLights, NULL, NULL);
+    furi_state_subscribe(
+        intercom_get_state(instance->intercom), status_lights_intercom_state_callback, instance);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 
@@ -100,9 +124,10 @@ int32_t status_lights_srv(void* p) {
 }
 
 static const StatusLightsApiMessageHandler api_message_handlers[] = {
+    [StatusLightsMessageTypeInit] = status_lights_do_init,
     [StatusLightsMessageTypeSetBrightness] = status_lights_do_set_brightness,
     [StatusLightsMessageTypeGetBrightness] = status_lights_do_get_brightness,
-    [StatusLightsMessageTypeSetRunPreset] = status_lights_do_run_preset,
+    [StatusLightsMessageTypeRunPreset] = status_lights_do_run_preset,
 };
 
-static_assert(COUNT_OF(api_message_handlers) == StatusLightsMessageTypesCount);
+static_assert(COUNT_OF(api_message_handlers) == StatusLightsMessageTypeMax);

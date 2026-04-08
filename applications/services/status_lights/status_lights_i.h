@@ -14,22 +14,22 @@
 struct StatusLights {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    Intercom* intercom;
     IntercomChannel* intercom_ch;
-
     StatusLightsBrightness brightness;
 };
 
 typedef enum {
+    StatusLightsMessageTypeInit,
     StatusLightsMessageTypeSetBrightness,
     StatusLightsMessageTypeGetBrightness,
-    StatusLightsMessageTypeSetRunPreset,
-
-    StatusLightsMessageTypesCount,
+    StatusLightsMessageTypeRunPreset,
+    StatusLightsMessageTypeMax,
 } StatusLightsMessageType;
 
 typedef struct {
-    FuriApiLock api_lock;
     StatusLightsMessageType type;
+    FuriApiLock api_lock;
     union {
         struct {
             StatusLightsBrightness brightness;
@@ -45,3 +45,5 @@ typedef struct {
         } as_run_preset;
     };
 } StatusLightsMessage;
+
+void status_lights_init(StatusLights* instance);

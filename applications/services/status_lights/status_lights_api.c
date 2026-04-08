@@ -1,12 +1,24 @@
 #include "status_lights_i.h"
 
+void status_lights_init(StatusLights* instance) {
+    furi_check(instance);
+
+    StatusLightsMessage message = {
+        .type = StatusLightsMessageTypeInit,
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
+        FuriStatusOk);
+}
+
 void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color) {
     furi_check(instance);
     furi_check(preset < StatusLightsPresetsCount);
 
     StatusLightsMessage message = {
         .api_lock = NULL,
-        .type = StatusLightsMessageTypeSetRunPreset,
+        .type = StatusLightsMessageTypeRunPreset,
         .as_run_preset =
             {
                 .preset = preset,
