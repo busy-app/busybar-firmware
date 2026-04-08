@@ -15,6 +15,7 @@
 
 #include "ble_advertise.h"
 #include "ble_worker_util.h"
+#include "../util/ble_canary.h"
 #include "../service/ble_service_i.h"
 
 #include <m-dict.h>
@@ -25,7 +26,24 @@
 // Uncomment macro below in order to force ble advertising with public address only
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
+#define BLE_WORKER_LOG_TX
+
+#ifdef BLE_WORKER_LOG_TX
+#define BLE_LOG_PAYLOAD(handle, index, data, send_size) \
+    (ble_worker_util_log_payload(handle, index, data, send_size))
+#else
+#define BLE_LOG_PAYLOAD(handle, index, data, send_size)
+#endif
+
+#define BLE_NORDIC_UART_TX_HANDLE  (0x001D)
+#define BLE_NORDIC_UART_CNT_HANDLE (0x001F)
+
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
+
+#define BLE_WORKER_RX_TIMEOUT_MS           (10000)
+#define BLE_WORKER_TX_TIMEOUT_MS           (1000)
+#define BLE_WORKER_INDICATE_RETRY_DELAY_MS (100)
+#define BLE_WORKER_RETRY_PHY_TIMEOUT_MS    (500)
 
 #define BLE_WORKER_LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
 #define BLE_WORKER_MAX_MTU_SIZE       240
@@ -49,12 +67,12 @@
 #define VARIABLE_ATT_CHAR_VAL    BIT(7) ///< Variable characteristic value length
 
 #ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
-#define BLE_SCURITY_MODE SEC_MODE_1_LEVEL_1
+#define BLE_SECURITY_MODE SEC_MODE_1_LEVEL_1
 #else
-#define BLE_SCURITY_MODE SEC_MODE_1_LEVEL_4
+#define BLE_SECURITY_MODE SEC_MODE_1_LEVEL_4
 #endif
 
-#define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SCURITY_MODE)
+#define RSI_BLE_ATT_CONFIG_BITMAP (BLE_SECURITY_MODE)
 
 #ifdef RSI_BLE_SMP_IO_CAPABILITY
 #undef RSI_BLE_SMP_IO_CAPABILITY
@@ -73,7 +91,7 @@ typedef enum {
     BLEWorkerEvtConnUpdate = (1 << 5),
     BLEWorkerEvtDataLengthChange = (1 << 6),
 
-    BLEWorkerEvtReceveRemoteFeatures = (1 << 7),
+    BLEWorkerEvtReceiveRemoteFeatures = (1 << 7),
     BLEWorkerEvtMoreDataReq = (1 << 8),
 
     BLEWorkerEvtWrite = (1 << 9),
@@ -85,15 +103,16 @@ typedef enum {
     BLEWorkerSmpEncryptStarted = (1 << 14),
     BLEWorkerSmpLtkRequest = (1 << 15),
     BLEWorkerSmpSecurityKeys = (1 << 16),
+    BLEWorkerAdjustConnectionRequest = (1 << 17),
 } BLEWorkerEvt;
 
-#define BLE_USART_ECHO_ALL_EVENTS                                                                \
-    (BLEWorkerEvtExit | BLEWorkerEvtAdvReport | BLEWorkerEvtConnected |                          \
-     BLEWorkerEvtDisconnected | BLEWorkerEvtPhyUpdateComplete | BLEWorkerEvtConnUpdate |         \
-     BLEWorkerEvtDataLengthChange | BLEWorkerEvtReceveRemoteFeatures | BLEWorkerEvtMoreDataReq | \
-     BLEWorkerEvtWrite | BLEWorkerEvtDataTransmit | BLEWorkerEvtMtu |                            \
-     BLEWorkerEvtIndicateConfirm | BLEWorkerSmpResponse | BLEWorkerSmpLtkRequest |               \
-     BLEWorkerSmpEncryptStarted | BLEWorkerSmpSecurityKeys)
+#define BLE_WORKER_ALL_EVENTS                                                                     \
+    (BLEWorkerEvtExit | BLEWorkerEvtAdvReport | BLEWorkerEvtConnected |                           \
+     BLEWorkerEvtDisconnected | BLEWorkerEvtPhyUpdateComplete | BLEWorkerEvtConnUpdate |          \
+     BLEWorkerEvtDataLengthChange | BLEWorkerEvtReceiveRemoteFeatures | BLEWorkerEvtMoreDataReq | \
+     BLEWorkerEvtWrite | BLEWorkerEvtDataTransmit | BLEWorkerEvtMtu |                             \
+     BLEWorkerEvtIndicateConfirm | BLEWorkerSmpResponse | BLEWorkerSmpLtkRequest |                \
+     BLEWorkerSmpEncryptStarted | BLEWorkerSmpSecurityKeys | BLEWorkerAdjustConnectionRequest)
 
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
@@ -115,9 +134,15 @@ typedef struct {
     FuriThread* thread;
     FuriSemaphore* receive_sem;
     FuriSemaphore* indication_sem;
+    FuriTimer* retry_phy_timer;
     uint8_t pairing_info_available;
+    uint16_t rx_pending_handle;
     ///TODO: this can be removed
     bool connected;
+    BleDebugCanary* first_tx_pack_canary;
+    BleDebugCanary* first_tx_method_canary;
+    BleDebugCanary* indicate_error_canary;
+
     BleWorkerState state;
     uint16_t max_payload_size;
     uint8_t device_found;
@@ -153,7 +178,7 @@ typedef struct {
 static BleWorker* ble_worker_instance;
 /*==============================================*/
 /**
- * @fn         ble_usart_echo_app_on_adv_report_event
+ * @fn         ble_worker_echo_app_on_adv_report_event
  * @brief      invoked when advertise report event is received
  * @param[in]  adv_report, pointer to the received advertising report
  * @return     none.
@@ -229,7 +254,7 @@ static void
  */
 static void ble_worker_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
-    BLE_LOG_W("ble_worker_phy_update_complete_event");
+    BLE_LOG_D("ble_worker_phy_update_complete_event");
     memcpy(
         &ble_worker_instance->app_phy_update_complete,
         rsi_ble_event_phy_update_complete,
@@ -313,7 +338,7 @@ void ble_worker_simple_peripheral_on_remote_features_event(
         rsi_ble_event_remote_features,
         sizeof(rsi_ble_event_remote_features_t));
     furi_thread_flags_set(
-        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtReceveRemoteFeatures);
+        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtReceiveRemoteFeatures);
 }
 
 static void ble_worker_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
@@ -462,6 +487,11 @@ static void ble_on_cli_smp_response_event(rsi_bt_event_smp_resp_t* remote_dev_ad
 static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
     UNUSED(scmethod);
     BLE_LOG_W("rsi_ble_on_sc_method");
+}
+//===========================================================================================
+static void retry_phy_timer_callback(void* ctx) {
+    BleWorker* instance = ctx;
+    furi_thread_flags_set(furi_thread_get_id(instance->thread), BLEWorkerEvtDataLengthChange);
 }
 //===========================================================================================
 static bool ble_worker_start_advertising(
@@ -613,8 +643,6 @@ static void ble_hw_config() {
 
     ble_advertise_print_data(ble_worker_instance->advertise);
 
-    // ble_adjust_gap_service_data();
-
     status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to set address: %08lX", status);
@@ -629,7 +657,7 @@ static int32_t ble_worker_thread_callback(void* context) {
     FURI_LOG_D(TAG, "Worker Thread Start");
     while(true) {
         uint32_t events =
-            furi_thread_flags_wait(BLE_USART_ECHO_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
+            furi_thread_flags_wait(BLE_WORKER_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
 
         if(events & BLEWorkerEvtIndicateConfirm) {
             BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
@@ -646,30 +674,36 @@ static int32_t ble_worker_thread_callback(void* context) {
                     BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
 
                 if(entry) {
-                    furi_semaphore_acquire(ble_worker_instance->receive_sem, FuriWaitForever);
+                    if(furi_semaphore_acquire(
+                           ble_worker_instance->receive_sem, BLE_WORKER_RX_TIMEOUT_MS) ==
+                       FuriStatusOk) {
+                        BLE_LOG_D("Entry present");
+                        BleServiceObject* service = entry->service;
+                        if(ble_service_lock(service)) {
+                            BleCharacteristicObject* ch = service->chars[entry->char_index];
 
-                    BLE_LOG_D("Entry present");
-                    BleServiceObject* service = entry->service;
-                    if(ble_service_lock(service)) {
-                        BleCharacteristicObject* ch = service->chars[entry->char_index];
+                            if(ble_characteristic_is_cccd_handle(ch, handle)) {
+                                uint8_t ccd_val = *((uint8_t*)data);
+                                ble_characteristic_set_cccd_value(ch, ccd_val);
+                                status = rsi_ble_gatt_write_response(
+                                    ble_worker_instance->remote_dev_address, 0);
+                                if(handle == BLE_NORDIC_UART_TX_HANDLE) BLE_LOG_W("Subscribed!");
 
-                        if(ble_characteristic_is_cccd_handle(ch, handle)) {
-                            uint8_t ccd_val = *((uint8_t*)data);
-                            ble_characteristic_set_cccd_value(ch, ccd_val);
-                            status = rsi_ble_gatt_write_response(
-                                ble_worker_instance->remote_dev_address, 0);
-                            if(handle == 0x001D) BLE_LOG_W("Subscribed!");
+                                furi_semaphore_release(ble_worker_instance->receive_sem);
+                            } else {
+                                furi_check(data_size > 0);
+                                instance->rx_pending_handle = handle;
+                                ble_characteristic_set_data(ch, data, data_size);
+                                ble_service_enqueue_run(service);
+                                if(handle == BLE_NORDIC_UART_CNT_HANDLE)
+                                    BLE_LOG_W("Session modified!");
+                            }
 
-                            furi_semaphore_release(ble_worker_instance->receive_sem);
-                        } else {
-                            furi_check(data_size > 0);
-                            ble_characteristic_set_data(ch, data, data_size);
-                            ble_service_enqueue_run(service);
+                            ble_service_unlock(service);
                         }
-
-                        ble_service_unlock(service);
-                    } else
-                        furi_crash("FAIL!");
+                    } else {
+                        BLE_LOG_W("receive_sem timeout!");
+                    }
                 } else {
                     BLE_LOG_W("Not found: %04X", handle);
                     status =
@@ -699,6 +733,9 @@ static int32_t ble_worker_thread_callback(void* context) {
             //     BLE_LOG_I("MTU sent");
             // }
             ble_worker_instance->connected = true;
+            ble_debug_canary_reset(instance->first_tx_pack_canary);
+            ble_debug_canary_reset(instance->first_tx_method_canary);
+            ble_debug_canary_reset(instance->indicate_error_canary);
         }
 
         if(events & BLEWorkerEvtDisconnected) {
@@ -708,6 +745,11 @@ static int32_t ble_worker_thread_callback(void* context) {
             instance->device_found = 0;
             instance->conn_params_updated = 0;
             instance->connected = false;
+            if(instance->rx_pending_handle) {
+                BLE_LOG_W("Rx confirm not sent!");
+                furi_semaphore_release(ble_worker_instance->receive_sem);
+                instance->rx_pending_handle = 0;
+            }
 
             BleServiceEntryDict_it_t entry_iter;
             for(BleServiceEntryDict_it(entry_iter, instance->service_dict);
@@ -741,51 +783,55 @@ static int32_t ble_worker_thread_callback(void* context) {
                 ble_worker_instance->str_remote_address);
         }
 
-        if(events & BLEWorkerEvtReceveRemoteFeatures) {
-            //! event invokes when remote features were received
+        if(events & BLEWorkerEvtReceiveRemoteFeatures) {
             BLE_LOG_I(
                 "Feature received is 0x%04X",
                 *(uint16_t*)instance->remote_dev_feature.remote_features);
-
-            ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
-            ///This particularly causes problems with iphone 17
-            // if(instance->remote_dev_feature.remote_features[0] & 0x20) {
-            //     status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
-            //     if(status != RSI_SUCCESS) {
-            //         BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
-            //     } else
-            //         BLE_LOG_I("LEN set done");
-            // }
         }
 
         if(events & BLEWorkerEvtDataLengthChange) {
-            ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
-            // if(instance->remote_dev_feature.remote_features[1] & 0x01) {
-            //     status = rsi_ble_setphy(
-            //         (int8_t*)instance->remote_dev_address,
-            //         TX_PHY_RATE,
-            //         RX_PHY_RATE,
-            //         CODDED_PHY_RATE);
-            //     if(status != RSI_SUCCESS) {
-            //         if(status != BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
-            //             //retry the same command
-            //             BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
-            //         } else {
-            //             osDelay(500);
-            //             BLE_LOG_W("Retry setphy");
-            //             furi_thread_flags_set(
-            //                 furi_thread_get_id(ble_worker_instance->thread),
-            //                 BLEWorkerEvtDataLengthChange);
-            //         }
-            //     } else {
-            //         BLE_LOG_I(
-            //             "PHY set done max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
-            //             instance->data_length_update.MaxTxOctets,
-            //             instance->data_length_update.MaxTxTime,
-            //             instance->data_length_update.MaxRxOctets,
-            //             instance->data_length_update.MaxRxTime);
-            //     }
-            // }
+            if(instance->remote_dev_feature.remote_features[1] & 0x01) {
+                BLE_LOG_I("[BLEWorkerEvtDataLengthChange] rsi_ble_setphy");
+                status = rsi_ble_setphy(
+                    (int8_t*)instance->remote_dev_address,
+                    TX_PHY_RATE,
+                    RX_PHY_RATE,
+                    CODDED_PHY_RATE);
+                if(status != RSI_SUCCESS) {
+                    if(status == BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
+                        //retry the same command
+                        BLE_LOG_W("Retry setphy");
+                        furi_timer_start(
+                            instance->retry_phy_timer,
+                            furi_ms_to_ticks(BLE_WORKER_RETRY_PHY_TIMEOUT_MS));
+                    } else {
+                        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+                    }
+                } else {
+                    BLE_LOG_I(
+                        "PHY set done max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
+                        instance->data_length_update.MaxTxOctets,
+                        instance->data_length_update.MaxTxTime,
+                        instance->data_length_update.MaxRxOctets,
+                        instance->data_length_update.MaxRxTime);
+                }
+            } else {
+                BLE_LOG_W("[BLEWorkerEvtDataLengthChange] 2M Phy not supported");
+            }
+        }
+
+        if(events & BLEWorkerAdjustConnectionRequest) {
+            if(instance->remote_dev_feature.remote_features[0] & 0x20) {
+                BLE_LOG_I("[BLEWorkerReconfigure] rsi_ble_set_data_len");
+                status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
+                if(status != RSI_SUCCESS) {
+                    BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
+                } else
+                    BLE_LOG_I("LEN set done");
+            } else {
+                furi_thread_flags_set(
+                    furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtDataLengthChange);
+            }
         }
 
         if(events & BLEWorkerEvtPhyUpdateComplete) {
@@ -878,6 +924,9 @@ static int32_t ble_worker_thread_callback(void* context) {
                     ble_worker_instance->on_connection_changed_ctx,
                     ble_worker_instance->connected,
                     ble_worker_instance->str_remote_address);
+                furi_thread_flags_set(
+                    furi_thread_get_id(ble_worker_instance->thread),
+                    BLEWorkerAdjustConnectionRequest);
             } else {
                 BLE_LOG_I("Not paired device");
                 rsi_ble_ltk_req_reply(ble_worker_instance->remote_dev_address, 0, NULL);
@@ -910,7 +959,7 @@ static int32_t ble_worker_thread_callback(void* context) {
 }
 
 /**
- * @fn         ble_usart_echo_app_prepare_128bit_uuid
+ * @fn         ble_worker_echo_app_prepare_128bit_uuid
  * @brief      this function is used to prepare the 128bit UUID
  * @param[in]  temp_service,received 128-bit service.
  * @param[out] temp_uuid,formed 128-bit service structure.
@@ -936,7 +985,7 @@ static void
 }
 
 /**
- * @fn         ble_usart_echo_app_add_char_serv_att
+ * @fn         ble_worker_echo_app_add_char_serv_att
  * @brief      this function is used to add characteristic service attribute..
  * @param[in]  serv_handler, service handler.
  * @param[in]  handle, characteristic service attribute handle.
@@ -1043,6 +1092,19 @@ static void ble_prepare_uuid(const Char_UUID_t* temp, const uint8_t size, uuid_t
         ble_worker_prepare_128bit_uuid(temp->Char_UUID_128, uuid);
 }
 
+typedef struct {
+    uint8_t chunk_num;
+    const uint8_t* data;
+    uint16_t handle;
+    uint16_t data_size;
+    uint16_t cccd_value;
+} BleCanaryFirstPackCtx;
+
+static void ble_canary_first_pack_callback(void* ctx) {
+    const BleCanaryFirstPackCtx* c = ctx;
+    BLE_LOG_PAYLOAD(c->handle, c->chunk_num, c->data, c->data_size);
+}
+
 void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     furi_assert(connect_callback);
     furi_assert(ctx);
@@ -1051,6 +1113,12 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     ble_worker_instance->state = BleWorkerStateIdle;
     ble_worker_instance->thread =
         furi_thread_alloc_ex("BleWorker", 3072U, ble_worker_thread_callback, ble_worker_instance);
+
+    ble_worker_instance->first_tx_pack_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
+    ble_debug_canary_set_hit_callback(
+        ble_worker_instance->first_tx_pack_canary, ble_canary_first_pack_callback);
+    ble_worker_instance->first_tx_method_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
+    ble_worker_instance->indicate_error_canary = ble_debug_canary_alloc(BleCanaryTypeHitOnce);
 
     ble_worker_instance->on_connection_changed_cb = connect_callback;
     ble_worker_instance->on_connection_changed_ctx = ctx;
@@ -1063,6 +1131,9 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
 
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
+    ble_worker_instance->retry_phy_timer =
+        furi_timer_alloc(retry_phy_timer_callback, FuriTimerTypeOnce, ble_worker_instance);
+
     ble_hw_config();
 
     //Appearance adjustment
@@ -1070,7 +1141,7 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
     uuid.size = 2;
     uuid.val.val16 = 0x2A01;
     uint16_t value_handle = 0;
-    if(ble_find_characteristic_value_handle_by_uiid(&uuid, 0x001E, &value_handle)) {
+    if(ble_find_characteristic_value_handle_by_uuid(&uuid, 0x001E, &value_handle)) {
         uint16_t data = 0x00C0;
         BLE_LOG_D("Handle found: %04X", value_handle);
         sl_status_t status = rsi_ble_set_local_att_value(value_handle, 2, (uint8_t*)&data);
@@ -1081,11 +1152,11 @@ void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
 }
 
 bool ble_worker_register_service(BleServiceObject* service) {
-    uuid_t rsi_uiid = {0};
+    uuid_t rsi_uuid = {0};
     rsi_ble_resp_add_serv_t new_serv_resp = {0};
 
-    ble_prepare_uuid(&service->config->uuid, service->config->uuid_size, &rsi_uiid);
-    sl_status_t status = rsi_ble_add_service(rsi_uiid, &new_serv_resp);
+    ble_prepare_uuid(&service->config->uuid, service->config->uuid_size, &rsi_uuid);
+    sl_status_t status = rsi_ble_add_service(rsi_uuid, &new_serv_resp);
 
     bool result = false;
     if(status == RSI_SUCCESS) {
@@ -1100,8 +1171,8 @@ bool ble_worker_register_service(BleServiceObject* service) {
             BleCharacteristicObject* ch = service->chars[i];
             const BleCharacteristicDescriptor* ch_config = ble_characteristic_get_config(ch);
 
-            memset(&rsi_uiid, 0, sizeof(uuid_t));
-            ble_prepare_uuid(&ch_config->uuid, ch_config->uuid_size, &rsi_uiid);
+            memset(&rsi_uuid, 0, sizeof(uuid_t));
+            ble_prepare_uuid(&ch_config->uuid, ch_config->uuid_size, &rsi_uuid);
 
             BLE_LOG_D("Add char %s att handle: %04X", ch_config->name, handle + 1);
             ble_worker_add_char_serv_att(
@@ -1109,7 +1180,7 @@ bool ble_worker_register_service(BleServiceObject* service) {
                 handle + 1,
                 ch_config->char_properties,
                 handle + 2,
-                rsi_uiid);
+                rsi_uuid);
 
             uint16_t value_handle = handle + 2;
             BLE_LOG_D("Add char %s val att handle: %04X", ch_config->name, value_handle);
@@ -1117,7 +1188,7 @@ bool ble_worker_register_service(BleServiceObject* service) {
             handle = ble_worker_add_char_val_att(
                 service->service_handler,
                 value_handle,
-                rsi_uiid,
+                rsi_uuid,
                 ch_config->char_properties,
                 ble_characteristic_get_data(ch),
                 ble_characteristic_get_data_size(ch),
@@ -1163,40 +1234,105 @@ void ble_worker_stop() {
     BLE_LOG_I("BLE Stopped");
 }
 
-static void ble_worker_send_chunk(
+static inline bool ble_worker_indicate_retry(
+    const uint8_t* dev_addr,
+    uint16_t handle,
+    uint16_t data_size,
+    const uint8_t* data,
+    const uint8_t max_retries) {
+    uint8_t retry_count = 0;
+    int32_t status;
+    do {
+        status = rsi_ble_indicate_value(dev_addr, handle, data_size, data);
+        if(status == RSI_SUCCESS) break;
+
+        if(status == RSI_ERROR_BLE_ATT_CMD_IN_PROGRESS) {
+            furi_delay_ms(BLE_WORKER_INDICATE_RETRY_DELAY_MS);
+            ble_debug_canary_test_log(
+                ble_worker_instance->indicate_error_canary, TAG, "Indicate retry: %04X", handle);
+        }
+        retry_count += 1;
+    } while((status == RSI_ERROR_BLE_ATT_CMD_IN_PROGRESS) && (retry_count < max_retries));
+
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Indication failed: %08lX", status);
+    }
+
+    return status == RSI_SUCCESS;
+}
+
+static inline bool ble_worker_indicate_chunk(
+    const uint8_t* dev_addr,
+    uint16_t handle,
+    uint16_t data_size,
+    const uint8_t* data) {
+    bool result = false;
+
+    do {
+        const uint8_t indication_retry_count = 4;
+        if(!ble_worker_indicate_retry(dev_addr, handle, data_size, data, indication_retry_count))
+            break;
+
+        if(furi_semaphore_acquire(ble_worker_instance->indication_sem, BLE_WORKER_TX_TIMEOUT_MS) !=
+           FuriStatusOk) {
+            BLE_LOG_W("Indicate timeout expired");
+            break;
+        }
+        result = true;
+    } while(false);
+    return result;
+}
+
+static inline bool ble_worker_set_chunk(uint16_t handle, uint16_t data_size, const uint8_t* data) {
+    sl_status_t status = rsi_ble_set_local_att_value(handle, data_size, data);
+    if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
+    return status == RSI_SUCCESS;
+}
+
+static bool ble_worker_send_chunk(
     uint16_t handle,
     uint16_t data_size,
     const uint8_t* data,
     uint16_t cccd_value) {
-    sl_status_t status;
     BLE_LOG_D("Data_size: %d", data_size);
 
+    bool result = false;
     if(ble_worker_instance->connected && BLE_CCCD_INDICATION_ENABLED(cccd_value)) {
-        status = rsi_ble_indicate_value(
+        ble_debug_canary_test_log(
+            ble_worker_instance->first_tx_method_canary, TAG, "INDICATE: %04X", handle);
+
+        result = ble_worker_indicate_chunk(
             ble_worker_instance->remote_dev_address, handle, data_size, data);
-        if(status == RSI_SUCCESS)
-            furi_semaphore_acquire(ble_worker_instance->indication_sem, FuriWaitForever);
-        else {
-            BLE_LOG_W("Indicate fail %08lX", status);
-            rsi_ble_disconnect((int8_t*)ble_worker_instance->remote_dev_address);
-        }
     } else {
-        status = rsi_ble_set_local_att_value(handle, data_size, data);
-        if(status != RSI_SUCCESS) BLE_LOG_W("Send fail %08lX", status);
+        ble_debug_canary_test_log(
+            ble_worker_instance->first_tx_method_canary, TAG, "SET_VALUE: %04X", handle);
+
+        result = ble_worker_set_chunk(handle, data_size, data);
     }
+    return result;
 }
 
 void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
     size_t index = 0;
     size_t total_size = data_size;
-
+    uint8_t chunk = 0;
     while(total_size) {
         size_t send_size = total_size > ble_worker_instance->max_payload_size ?
                                ble_worker_instance->max_payload_size :
                                total_size;
-        ble_worker_send_chunk(handle, send_size, &data[index], cccd_value);
+
+        BleCanaryFirstPackCtx ctx = {
+            .data_size = data_size, .data = &data[index], .chunk_num = chunk, .handle = handle};
+        ble_debug_canary_test(ble_worker_instance->first_tx_pack_canary, &ctx);
+
+        if(!ble_worker_send_chunk(handle, send_size, &data[index], cccd_value)) {
+            BLE_LOG_W("Tx terminated!");
+            break;
+        }
+
         index += send_size;
         total_size -= send_size;
+        chunk += 1;
     }
 }
 
@@ -1209,7 +1345,10 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
         status = rsi_ble_gatt_write_response(ble_worker_instance->remote_dev_address, 0);
     }
 
+    furi_assert(handle == ble_worker_instance->rx_pending_handle);
+
     furi_semaphore_release(ble_worker_instance->receive_sem);
+    ble_worker_instance->rx_pending_handle = 0;
     if(status != 0) BLE_LOG_W("Recv fail %08lX", status);
 }
 

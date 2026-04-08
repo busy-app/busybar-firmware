@@ -58,6 +58,7 @@ struct Matter {
     FuriMessageQueue* rx_queue;
     FuriPubSub* pubsub;
     FuriState* switch_state;
+    Intercom* intercom;
     IntercomChannel* intercom_ch;
     MatterApiMessage api_message;
     MatterCommissionedFabrics fabrics;

@@ -11,6 +11,7 @@
 #include <audio/audio.h>
 #include <busy_timer/busy_timer.h>
 #include <updater/updater.h>
+#include <ble/ble.h>
 
 #include <mlib/m-array.h>
 #include <mlib/m-shared.h>
@@ -67,6 +68,7 @@ struct StatePublisher {
     Updater* updater;
     BusyTimer* busy_timer;
     Gui* gui;
+    Ble* ble;
 
     FuriMutex* transports_mutex;
     Transport transports[MAX_TRANSPORTS];
@@ -80,6 +82,7 @@ typedef enum {
     MessageTypeUpdaterCheckEvent,
     MessageTypeBusyTimer,
     MessageTypeAutoupdateEvent,
+    MessageTypeBle,
 
     MessageTypesCount,
 } MessageType;
@@ -105,6 +108,7 @@ void state_publisher_publish_update_check(
     const UpdaterCheckState* check_state);
 void state_publisher_publish_busy_timer(StatePublisher* instance);
 void state_publisher_publish_autoupdate(StatePublisher* instance);
+void state_publisher_publish_ble(StatePublisher* instance);
 
 void state_publisher_schedule_state_update(
     StatePublisher* instance,
