@@ -88,7 +88,6 @@ static void status_lights_process_request(StatusLights* instance) {
 
 static void status_lights_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
-
     StatusLights* instance = context;
 
     if(events & StatusLightsCustomEventRequest) {
