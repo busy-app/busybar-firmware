@@ -47,8 +47,8 @@
         </template>
       </UFileUpload>
 
-      <div class="w-full flex items-end justify-between gap-6">
-        <div class="flex gap-4">
+      <div class="w-full flex flex-wrap sm:flex-nowrap items-end justify-between gap-6">
+        <div class="flex flex-wrap md:flex-nowrap gap-4">
           <UFormField label="FPS">
             <UInput
               v-model="fpsModel"
@@ -67,7 +67,7 @@
           </UFormField>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex flex-wrap sm:flex-nowrap gap-2">
           <UButton
             icon="i-bi-download"
             label="Save animation file"
@@ -176,10 +176,10 @@ async function composeAndUpload () {
 
 async function deleteAssets () {
   return deviceStore.busyBar.AssetsDelete({
-    appId: 'virtual-lan-animation-test'
+    application_name: 'virtual-lan-animation-test'
   })
     .catch(async error => {
-      if (String(error).startsWith('Error: Assets missing')) {
+      if (String(error).includes('Assets missing')) {
         // if there are no existing assets, we can ignore the error and proceed with upload
         return;
       }
@@ -191,9 +191,9 @@ async function deleteAssets () {
 
 async function uploadAnimation (animation: Blob) {
   return deviceStore.busyBar.AssetsUpload({
-    appId: 'virtual-lan-animation-test',
-    file: animation,
-    fileName: 'test.anim'
+    application_name: 'virtual-lan-animation-test',
+    data: animation,
+    file: 'test.anim'
   })
     .catch(async error => {
       await handleHTTPError(error, 'Couldn\'t upload animation file', true);
@@ -203,7 +203,7 @@ async function uploadAnimation (animation: Blob) {
 
 async function drawAnimation () {
   return deviceStore.busyBar.DisplayDraw({
-    appId: 'virtual-lan-animation-test',
+    application_name: 'virtual-lan-animation-test',
     elements: [
       {
         id: '0',
@@ -212,13 +212,13 @@ async function drawAnimation () {
         display: 'front',
         x: 0,
         y: 0,
-        type: 'anim',
+        type: 'animation',
         path: 'test.anim',
-        section_name: 'loop',
         loop: true
       }
-    ]
-  } as unknown as DisplayDrawParams)
+    ],
+    priority: 50
+  } as DisplayDrawParams)
     .catch(async error => {
       await handleHTTPError(error, 'Display draw command failed', true);
       throw error;

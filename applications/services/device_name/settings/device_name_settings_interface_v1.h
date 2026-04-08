@@ -1,10 +1,7 @@
 #pragma once
 
 #include <setting_provider.h>
-
-#define DEVICE_NAME_DEFAULT    "BUSY Bar"
-#define DEVICE_NAME_MAX_LENGTH (20U)
-#define DEVICE_NAME_MAX_SIZE   (DEVICE_NAME_MAX_LENGTH + 1U)
+#include "../device_name_common.h"
 
 typedef enum {
     DeviceNameSettingsV1IdxName,
