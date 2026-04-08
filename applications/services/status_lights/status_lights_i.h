@@ -20,30 +20,34 @@ struct StatusLights {
 };
 
 typedef enum {
-    StatusLightsMessageTypeInit,
-    StatusLightsMessageTypeSetBrightness,
-    StatusLightsMessageTypeGetBrightness,
-    StatusLightsMessageTypeRunPreset,
-    StatusLightsMessageTypeMax,
-} StatusLightsMessageType;
+    StatusLightsApiMessageTypeInit,
+    StatusLightsApiMessageTypeSetBrightness,
+    StatusLightsApiMessageTypeGetBrightness,
+    StatusLightsApiMessageTypeRunPreset,
+    StatusLightsApiMessageTypeMax,
+} StatusLightsApiMessageType;
 
 typedef struct {
-    StatusLightsMessageType type;
+    StatusLightsBrightness brightness;
+} StatusLightsApiMessageSetBrightness;
+
+typedef struct {
+    StatusLightsBrightness* brightness;
+} StatusLightsApiMessageGetBrightness;
+
+typedef struct {
+    StatusLightsPreset preset;
+    Color color;
+} StatusLightsApiMessageRunPreset;
+
+typedef struct {
+    StatusLightsApiMessageType type;
     FuriApiLock api_lock;
     union {
-        struct {
-            StatusLightsBrightness brightness;
-        } as_set_brightness;
-
-        struct {
-            StatusLightsBrightness* brightness;
-        } as_get_brightness;
-
-        struct {
-            StatusLightsPreset preset;
-            Color color;
-        } as_run_preset;
+        StatusLightsApiMessageSetBrightness set_brightness;
+        StatusLightsApiMessageGetBrightness get_brightness;
+        StatusLightsApiMessageRunPreset run_preset;
     };
-} StatusLightsMessage;
+} StatusLightsApiMessage;
 
 void status_lights_init(StatusLights* instance);

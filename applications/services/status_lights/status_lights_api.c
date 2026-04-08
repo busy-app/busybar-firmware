@@ -3,8 +3,8 @@
 void status_lights_init(StatusLights* instance) {
     furi_check(instance);
 
-    StatusLightsMessage message = {
-        .type = StatusLightsMessageTypeInit,
+    StatusLightsApiMessage message = {
+        .type = StatusLightsApiMessageTypeInit,
     };
 
     furi_check(
@@ -16,10 +16,10 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
     furi_check(instance);
     furi_check(preset < StatusLightsPresetsCount);
 
-    StatusLightsMessage message = {
+    StatusLightsApiMessage message = {
         .api_lock = NULL,
-        .type = StatusLightsMessageTypeRunPreset,
-        .as_run_preset =
+        .type = StatusLightsApiMessageTypeRunPreset,
+        .run_preset =
             {
                 .preset = preset,
                 .color = color,
@@ -34,10 +34,10 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
 void status_lights_set_brightness(StatusLights* instance, StatusLightsBrightness brightness) {
     furi_check(instance);
 
-    StatusLightsMessage message = {
+    StatusLightsApiMessage message = {
         .api_lock = NULL,
-        .type = StatusLightsMessageTypeSetBrightness,
-        .as_set_brightness =
+        .type = StatusLightsApiMessageTypeSetBrightness,
+        .set_brightness =
             {
                 .brightness = brightness,
             },
@@ -52,10 +52,10 @@ StatusLightsBrightness status_lights_get_brightness(StatusLights* instance) {
     furi_check(instance);
 
     StatusLightsBrightness brightness;
-    StatusLightsMessage message = {
+    StatusLightsApiMessage message = {
         .api_lock = api_lock_alloc_locked(),
-        .type = StatusLightsMessageTypeGetBrightness,
-        .as_get_brightness =
+        .type = StatusLightsApiMessageTypeGetBrightness,
+        .get_brightness =
             {
                 .brightness = &brightness,
             },
