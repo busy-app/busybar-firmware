@@ -19,6 +19,18 @@ static StatusLightsStatus
 }
 
 static StatusLightsStatus
+    status_lights_do_init(StatusLights* instance, StatusLightsApiMessage* message) {
+    UNUSED(message);
+
+    furi_assert(instance->intercom_ch == NULL);
+    // NOTE: Not expecting any messages from Intercom
+    instance->intercom_ch =
+        intercom_channel_open(instance->intercom, IntercomChannelIdStatusLights, NULL, NULL);
+
+    return StatusLightsStatusOk;
+}
+
+static StatusLightsStatus
     status_lights_do_set_brightness(StatusLights* instance, StatusLightsApiMessage* message) {
     const StatusLightsApiMessageSetBrightness* set_brightness = &message->set_brightness;
 
@@ -65,17 +77,8 @@ static StatusLightsStatus
     return status_lights_send_command(instance, &command);
 }
 
-static void status_lights_init(StatusLights* instance) {
-    furi_assert(instance->intercom_ch == NULL);
-    instance->intercom_ch =
-        intercom_channel_open(instance->intercom, IntercomChannelIdStatusLights, NULL, NULL);
-    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
-}
-
 static void status_lights_process_request(StatusLights* instance) {
-    StatusLightsApiMessage* message = instance->api_message;
-    furi_assert(message);
-
+    StatusLightsApiMessage* message = &instance->api_message;
     const StatusLightsApiMessageType message_type = message->type;
     furi_assert(message_type < StatusLightsApiMessageTypeMax);
 
@@ -88,9 +91,7 @@ static void status_lights_custom_event_callback(uint32_t events, void* context) 
 
     StatusLights* instance = context;
 
-    if(events & StatusLightsCustomEventInit) {
-        status_lights_init(instance);
-    } else if(events & StatusLightsCustomEventRequest) {
+    if(events & StatusLightsCustomEventRequest) {
         status_lights_process_request(instance);
     }
 }
@@ -103,7 +104,7 @@ static void status_lights_intercom_state_callback(const void* item, void* contex
     const IntercomStatus intercom_status = *(IntercomStatus*)item;
 
     if(intercom_status == IntercomStatusOk) {
-        furi_event_loop_set_custom_event(instance->event_loop, StatusLightsCustomEventInit);
+        status_lights_init(instance);
     }
 }
 
@@ -138,6 +139,7 @@ int32_t status_lights_srv(void* p) {
 }
 
 static const StatusLightsApiMessageHandler api_message_handlers[] = {
+    [StatusLightsApiMessageTypeInit] = status_lights_do_init,
     [StatusLightsApiMessageTypeSetBrightness] = status_lights_do_set_brightness,
     [StatusLightsApiMessageTypeGetBrightness] = status_lights_do_get_brightness,
     [StatusLightsApiMessageTypeRunPreset] = status_lights_do_run_preset,

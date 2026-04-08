@@ -10,11 +10,11 @@
 #define TAG "StatusLights"
 
 typedef enum {
-    StatusLightsCustomEventInit = 1UL << 0,
-    StatusLightsCustomEventRequest = 1UL << 1,
+    StatusLightsCustomEventRequest = 1UL << 0,
 } StatusLightsCustomEvent;
 
 typedef enum {
+    StatusLightsApiMessageTypeInit,
     StatusLightsApiMessageTypeSetBrightness,
     StatusLightsApiMessageTypeGetBrightness,
     StatusLightsApiMessageTypeRunPreset,
@@ -50,8 +50,10 @@ struct StatusLights {
     FuriSemaphore* api_semaphore;
     Intercom* intercom;
     IntercomChannel* intercom_ch;
-    StatusLightsApiMessage* api_message;
+    StatusLightsApiMessage api_message;
     StatusLightsBrightness brightness;
 };
+
+void status_lights_init(StatusLights* instance);
 
 void status_lights_api_unlock(StatusLights* instance, StatusLightsStatus status);

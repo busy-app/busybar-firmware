@@ -2,15 +2,17 @@
 
 #define STATUS_LIGHTS_API_TIMEOUT_MS (5000)
 
-static void status_lights_send_api_message_internal(
+static void status_lights_api_send_message_internal(
     StatusLights* instance,
-    StatusLightsApiMessage* api_message) {
-    instance->api_message = api_message;
+    const StatusLightsApiMessage* api_message) {
+    furi_assert(furi_semaphore_get_count(instance->api_semaphore) == 0);
+
+    instance->api_message = *api_message;
     furi_event_loop_set_custom_event(instance->event_loop, StatusLightsCustomEventRequest);
 }
 
 static StatusLightsStatus
-    status_lights_send_api_message(StatusLights* instance, StatusLightsApiMessage* api_message) {
+    status_lights_api_send_message(StatusLights* instance, StatusLightsApiMessage* api_message) {
     StatusLightsStatus status;
 
     api_message->status = &status;
@@ -20,7 +22,7 @@ static StatusLightsStatus
         instance->api_semaphore, furi_ms_to_ticks(STATUS_LIGHTS_API_TIMEOUT_MS));
 
     if(sem_status == FuriStatusOk) {
-        status_lights_send_api_message_internal(instance, api_message);
+        status_lights_api_send_message_internal(instance, api_message);
         api_lock_wait_unlock_and_free(api_message->lock);
 
     } else {
@@ -32,16 +34,24 @@ static StatusLightsStatus
 }
 
 void status_lights_api_unlock(StatusLights* instance, StatusLightsStatus status) {
-    StatusLightsApiMessage* api_message = instance->api_message;
+    StatusLightsApiMessage* api_message = &instance->api_message;
 
-    furi_assert(api_message->status);
-    *api_message->status = status;
+    if(api_message->lock) {
+        furi_assert(api_message->status);
+        *api_message->status = status;
 
-    api_lock_unlock(api_message->lock);
-
-    instance->api_message = NULL;
+        api_lock_unlock(api_message->lock);
+    }
 
     furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
+}
+
+void status_lights_init(StatusLights* instance) {
+    const StatusLightsApiMessage message = {
+        .type = StatusLightsApiMessageTypeInit,
+    };
+
+    status_lights_api_send_message_internal(instance, &message);
 }
 
 StatusLightsStatus
@@ -58,7 +68,7 @@ StatusLightsStatus
             },
     };
 
-    return status_lights_send_api_message(instance, &message);
+    return status_lights_api_send_message(instance, &message);
 }
 
 StatusLightsStatus
@@ -74,7 +84,7 @@ StatusLightsStatus
             },
     };
 
-    return status_lights_send_api_message(instance, &message);
+    return status_lights_api_send_message(instance, &message);
 }
 
 StatusLightsStatus
@@ -90,5 +100,5 @@ StatusLightsStatus
             },
     };
 
-    return status_lights_send_api_message(instance, &message);
+    return status_lights_api_send_message(instance, &message);
 }
