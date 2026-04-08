@@ -36,10 +36,6 @@ static StatusLightsStatus
     return status;
 }
 
-static float status_lights_brightness_to_float(StatusLightsBrightness brightness) {
-    return 0.01f * brightness.val;
-}
-
 static StatusLightsStatus
     status_lights_do_set_brightness(StatusLights* instance, StatusLightsApiMessage* message) {
     const StatusLightsApiMessageSetBrightness* set_brightness = &message->set_brightness;
@@ -48,9 +44,9 @@ static StatusLightsStatus
 
     const StatusLightsCommand command = {
         .id = StatusLightsCommandIdSetBrightness,
-        .as_set_brightness =
+        .set_brightness =
             {
-                .brightness = status_lights_brightness_to_float(instance->brightness),
+                .brightness = set_brightness->brightness.val,
             },
     };
 
@@ -72,7 +68,7 @@ static StatusLightsStatus
 
     const StatusLightsCommand command = {
         .id = StatusLightsCommandIdRunPreset,
-        .as_run_preset =
+        .run_preset =
             {
                 .preset = run_preset->preset,
                 .color = run_preset->color,

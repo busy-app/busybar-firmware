@@ -13,24 +13,25 @@ extern "C" {
 typedef enum {
     StatusLightsCommandIdRunPreset,
     StatusLightsCommandIdSetBrightness,
-
-    StatusLightsCommandIdsCount
+    StatusLightsCommandIdMax,
 } StatusLightsCommandId;
+
+typedef struct {
+    StatusLightsPreset preset; /**< Preset pattern */
+    Color color; /**< Color value */
+} StatusLightsCommandRunPreset;
+
+typedef struct {
+    uint8_t brightness; /**< Brightness value */
+} StatusLightsCommandSetBrightness;
 
 /** Status lights command */
 typedef struct {
-    union {
-        struct {
-            StatusLightsPreset preset; /**< Preset pattern */
-            Color color; /**< Color value */
-        } as_run_preset;
-
-        struct {
-            float brightness; /**< Brightness value */
-        } as_set_brightness;
-    };
-
     StatusLightsCommandId id;
+    union {
+        StatusLightsCommandRunPreset run_preset;
+        StatusLightsCommandSetBrightness set_brightness;
+    };
 } StatusLightsCommand;
 
 #ifdef __cplusplus

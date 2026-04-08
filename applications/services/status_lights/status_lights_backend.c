@@ -37,13 +37,13 @@ static uint8_t status_lights_scale_component(uint8_t component, float brightness
         return 0;
     }
 
-    float constrained = CLAMP(brightness, 1.0f, 0.0f);
+    const float constrained = CLAMP(brightness, 1.0f, 0.0f);
 
     /* gamma tuned so 5% brightness becomes the first visible step */
     const float gamma = 2.08f;
-    float pwm_scale = powf(constrained, gamma);
+    const float pwm_scale = powf(constrained, gamma);
 
-    float scaled = (float)component * pwm_scale;
+    const float scaled = (float)component * pwm_scale;
 
     return (uint8_t)CLAMP(scaled + 0.5f, 255.0f, 0.0f);
 }
@@ -127,7 +127,7 @@ static StatusLights* status_lights_alloc() {
     StatusLights* instance = malloc(sizeof(StatusLights));
     instance->preset_instance = NULL;
     instance->preset_api = NULL;
-    instance->active_color = (Color){0};
+    instance->active_color = (const Color){0};
     instance->brightness = DEFAULT_BRIGHTNESS;
     instance->event_loop = furi_event_loop_alloc();
     furi_event_loop_set_custom_event_callback(
@@ -163,7 +163,7 @@ int32_t status_lights_srv(void* p) {
 
 static void
     status_lights_do_run_preset(StatusLights* instance, const StatusLightsCommand* command) {
-    furi_check(command->as_run_preset.preset < StatusLightsPresetsCount);
+    furi_check(command->run_preset.preset < StatusLightsPresetsCount);
 
     if(instance->preset_instance) {
         furi_assert(instance->preset_api);
@@ -174,14 +174,14 @@ static void
         furi_event_loop_timer_stop(instance->timer);
     }
 
-    instance->preset_api = status_lights_preset_list[command->as_run_preset.preset];
+    instance->preset_api = status_lights_preset_list[command->run_preset.preset];
 
     if(instance->preset_api) {
         furi_check(instance->preset_api->period_ms > 0);
 
         furi_hal_pwm_start();
 
-        instance->preset_instance = instance->preset_api->alloc(&command->as_run_preset.color);
+        instance->preset_instance = instance->preset_api->alloc(&command->run_preset.color);
 
         furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
         status_lights_run_pattern(instance);
@@ -191,12 +191,16 @@ static void
     }
 }
 
+static float status_lights_normalize_brightness(uint8_t brightness) {
+    return ((1.f / 100.f) * (float)(brightness));
+}
+
 static void
     status_lights_do_set_brightness(StatusLights* instance, const StatusLightsCommand* command) {
-    furi_check(command->as_set_brightness.brightness >= 0.f);
-    furi_check(command->as_set_brightness.brightness <= 1.f);
+    const StatusLightsCommandSetBrightness* set_brightness = &command->set_brightness;
+    const uint8_t brightness = set_brightness->brightness;
 
-    instance->brightness = command->as_set_brightness.brightness;
+    instance->brightness = status_lights_normalize_brightness(brightness);
 
     if(instance->preset_api) {
         Color scaled_color = instance->active_color;
@@ -212,7 +216,7 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
 
     StatusLightsCommand command = {
         .id = StatusLightsCommandIdRunPreset,
-        .as_run_preset =
+        .run_preset =
             {
                 .preset = preset,
                 .color = color,
@@ -229,4 +233,4 @@ static const CommandHandler command_handlers[] = {
     [StatusLightsCommandIdSetBrightness] = status_lights_do_set_brightness,
 };
 
-static_assert(COUNT_OF(command_handlers) == StatusLightsCommandIdsCount);
+static_assert(COUNT_OF(command_handlers) == StatusLightsCommandIdMax);
