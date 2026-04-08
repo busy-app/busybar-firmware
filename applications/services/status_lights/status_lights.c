@@ -2,6 +2,10 @@
 
 #define STATUS_LIGHTS_REQUEST_TIMEOUT_MS (5000)
 
+typedef enum {
+    StatusLightsCustomEventInit = 1UL << 1,
+} StatusLightsCustomEvent;
+
 typedef StatusLightsStatus (
     *StatusLightsApiMessageHandler)(StatusLights* instance, StatusLightsApiMessage* message);
 
@@ -34,16 +38,6 @@ static StatusLightsStatus
 
 static float status_lights_brightness_to_float(StatusLightsBrightness brightness) {
     return 0.01f * brightness.val;
-}
-
-static StatusLightsStatus
-    status_lights_do_init(StatusLights* instance, StatusLightsApiMessage* message) {
-    UNUSED(message);
-
-    instance->intercom_ch =
-        intercom_channel_open(instance->intercom, IntercomChannelIdStatusLights, NULL, NULL);
-
-    return StatusLightsStatusOk;
 }
 
 static StatusLightsStatus
@@ -88,6 +82,22 @@ static StatusLightsStatus
     return status_lights_send_command(instance, &command);
 }
 
+static void status_lights_init(StatusLights* instance) {
+    furi_assert(instance->intercom_ch == NULL);
+    instance->intercom_ch =
+        intercom_channel_open(instance->intercom, IntercomChannelIdStatusLights, NULL, NULL);
+}
+
+static void status_lights_custom_event_callback(uint32_t events, void* context) {
+    furi_assert(context);
+
+    StatusLights* instance = context;
+
+    if(events & StatusLightsCustomEventInit) {
+        status_lights_init(instance);
+    }
+}
+
 static void status_lights_intercom_state_callback(const void* item, void* context) {
     furi_assert(item);
     furi_assert(context);
@@ -96,7 +106,7 @@ static void status_lights_intercom_state_callback(const void* item, void* contex
     const IntercomStatus intercom_status = *(IntercomStatus*)item;
 
     if(intercom_status == IntercomStatusOk) {
-        status_lights_init(instance);
+        furi_event_loop_set_custom_event(instance->event_loop, StatusLightsCustomEventInit);
     }
 }
 
@@ -133,6 +143,9 @@ static StatusLights* status_lights_alloc() {
         status_lights_message_callback,
         instance);
 
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, status_lights_custom_event_callback, instance);
+
     furi_state_subscribe(
         intercom_get_state(instance->intercom), status_lights_intercom_state_callback, instance);
 
@@ -151,7 +164,6 @@ int32_t status_lights_srv(void* p) {
 }
 
 static const StatusLightsApiMessageHandler api_message_handlers[] = {
-    [StatusLightsApiMessageTypeInit] = status_lights_do_init,
     [StatusLightsApiMessageTypeSetBrightness] = status_lights_do_set_brightness,
     [StatusLightsApiMessageTypeGetBrightness] = status_lights_do_get_brightness,
     [StatusLightsApiMessageTypeRunPreset] = status_lights_do_run_preset,

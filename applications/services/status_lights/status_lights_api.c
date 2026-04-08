@@ -31,18 +31,6 @@ void status_lights_api_unlock(StatusLightsApiMessage* api_message, StatusLightsS
     }
 }
 
-void status_lights_init(StatusLights* instance) {
-    furi_check(instance);
-
-    StatusLightsApiMessage message = {
-        .type = StatusLightsApiMessageTypeInit,
-    };
-
-    furi_check(
-        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
-        FuriStatusOk);
-}
-
 StatusLightsStatus
     status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color) {
     furi_check(instance);

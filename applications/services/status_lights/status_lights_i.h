@@ -22,7 +22,6 @@ struct StatusLights {
 };
 
 typedef enum {
-    StatusLightsApiMessageTypeInit,
     StatusLightsApiMessageTypeSetBrightness,
     StatusLightsApiMessageTypeGetBrightness,
     StatusLightsApiMessageTypeRunPreset,
@@ -52,7 +51,5 @@ typedef struct {
         StatusLightsApiMessageRunPreset run_preset;
     };
 } StatusLightsApiMessage;
-
-void status_lights_init(StatusLights* instance);
 
 void status_lights_api_unlock(StatusLightsApiMessage* api_message, StatusLightsStatus status);
