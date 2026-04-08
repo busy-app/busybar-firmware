@@ -11,6 +11,8 @@
 #define STATUS_LIGHTS_BRIGHTNESS_MAX     (100)
 #define STATUS_LIGHTS_BRIGHTNESS_DEFAULT (50)
 
+#define TAG "StatusLights"
+
 struct StatusLights {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
@@ -42,7 +44,8 @@ typedef struct {
 
 typedef struct {
     StatusLightsApiMessageType type;
-    FuriApiLock api_lock;
+    StatusLightsStatus* status;
+    FuriApiLock lock;
     union {
         StatusLightsApiMessageSetBrightness set_brightness;
         StatusLightsApiMessageGetBrightness get_brightness;
@@ -51,3 +54,5 @@ typedef struct {
 } StatusLightsApiMessage;
 
 void status_lights_init(StatusLights* instance);
+
+void status_lights_api_unlock(StatusLightsApiMessage* api_message, StatusLightsStatus status);

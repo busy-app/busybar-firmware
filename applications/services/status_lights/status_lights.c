@@ -1,36 +1,52 @@
 #include "status_lights_i.h"
 
-#define TAG "StatusLights"
+#define STATUS_LIGHTS_REQUEST_TIMEOUT_MS (5000)
 
-typedef void (
+typedef StatusLightsStatus (
     *StatusLightsApiMessageHandler)(StatusLights* instance, StatusLightsApiMessage* message);
 
 static const StatusLightsApiMessageHandler api_message_handlers[];
 
-static void
+static StatusLightsStatus
     status_lights_send_command(StatusLights* instance, const StatusLightsCommand* command) {
-    // TODO: Better state check & return codes
-    if(!instance->intercom_ch) {
-        return;
-    }
+    StatusLightsStatus status;
 
-    size_t tx_size =
-        intercom_tx(instance->intercom_ch, command, sizeof(*command), FuriWaitForever);
+    do {
+        if(!instance->intercom_ch) {
+            status = StatusLightsStatusNotReady;
+            break;
+        }
 
-    furi_check(tx_size == sizeof(*command), "Failed to send data");
+        const size_t tx_size = intercom_tx(
+            instance->intercom_ch, command, sizeof(*command), STATUS_LIGHTS_REQUEST_TIMEOUT_MS);
+
+        if(tx_size != sizeof(*command)) {
+            status = StatusLightsStatusTimeout;
+            break;
+        }
+
+        status = StatusLightsStatusOk;
+
+    } while(false);
+
+    return status;
 }
 
 static float status_lights_brightness_to_float(StatusLightsBrightness brightness) {
     return 0.01f * brightness.val;
 }
 
-static void status_lights_do_init(StatusLights* instance, StatusLightsApiMessage* message) {
+static StatusLightsStatus
+    status_lights_do_init(StatusLights* instance, StatusLightsApiMessage* message) {
     UNUSED(message);
+
     instance->intercom_ch =
         intercom_channel_open(instance->intercom, IntercomChannelIdStatusLights, NULL, NULL);
+
+    return StatusLightsStatusOk;
 }
 
-static void
+static StatusLightsStatus
     status_lights_do_set_brightness(StatusLights* instance, StatusLightsApiMessage* message) {
     const StatusLightsApiMessageSetBrightness* set_brightness = &message->set_brightness;
 
@@ -44,17 +60,20 @@ static void
             },
     };
 
-    status_lights_send_command(instance, &command);
+    return status_lights_send_command(instance, &command);
 }
 
-static void
+static StatusLightsStatus
     status_lights_do_get_brightness(StatusLights* instance, StatusLightsApiMessage* message) {
     StatusLightsApiMessageGetBrightness* get_brightness = &message->get_brightness;
 
     *get_brightness->brightness = instance->brightness;
+
+    return StatusLightsStatusOk;
 }
 
-static void status_lights_do_run_preset(StatusLights* instance, StatusLightsApiMessage* message) {
+static StatusLightsStatus
+    status_lights_do_run_preset(StatusLights* instance, StatusLightsApiMessage* message) {
     const StatusLightsApiMessageRunPreset* run_preset = &message->run_preset;
 
     const StatusLightsCommand command = {
@@ -66,7 +85,7 @@ static void status_lights_do_run_preset(StatusLights* instance, StatusLightsApiM
             },
     };
 
-    status_lights_send_command(instance, &command);
+    return status_lights_send_command(instance, &command);
 }
 
 static void status_lights_intercom_state_callback(const void* item, void* context) {
@@ -85,16 +104,16 @@ static void status_lights_message_callback(FuriEventLoopObject* object, void* co
     furi_assert(context);
 
     StatusLights* instance = context;
-
     furi_assert(object == instance->message_queue);
 
     StatusLightsApiMessage message;
-    furi_check(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk);
 
-    api_message_handlers[message.type](instance, &message);
+    while(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk) {
+        const StatusLightsApiMessageType message_type = message.type;
+        furi_assert(message_type < StatusLightsApiMessageTypeMax);
 
-    if(message.api_lock) {
-        api_lock_unlock(message.api_lock);
+        const StatusLightsStatus status = api_message_handlers[message_type](instance, &message);
+        status_lights_api_unlock(&message, status);
     }
 }
 

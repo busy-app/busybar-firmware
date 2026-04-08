@@ -17,6 +17,12 @@ extern "C" {
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
 
+typedef enum {
+    StatusLightsStatusOk,
+    StatusLightsStatusNotReady,
+    StatusLightsStatusTimeout,
+} StatusLightsStatus;
+
 typedef struct StatusLightsBrightness {
     uint8_t val;
 } StatusLightsBrightness;
@@ -27,24 +33,30 @@ typedef struct StatusLightsBrightness {
  * @param instance status lights service instance
  * @param preset the preset animation to execute
  * @param color the color to use for the animation
+ * @return StatusLightsStatusOk on success, any other enum value on error
  */
-void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color);
+StatusLightsStatus
+    status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color);
 
 /**
  * @brief Set the status lights brightness
  *
  * @param instance Pointer to the StatusLights instance
  * @param brightness Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX)
+ * @return StatusLightsStatusOk on success, any other enum value on error
  */
-void status_lights_set_brightness(StatusLights* instance, StatusLightsBrightness brightness);
+StatusLightsStatus
+    status_lights_set_brightness(StatusLights* instance, StatusLightsBrightness brightness);
 
 /**
  * @brief Get the status lights brightness
  *
  * @param instance Pointer to the StatusLights instance
- * @return Brightness value (STATUS_LIGHTS_BRIGHTNESS_MIN to STATUS_LIGHTS_BRIGHTNESS_MAX)
+ * @param brightness Pointer to the variable to contain the brightness value (must be allocated)
+ * @return StatusLightsStatusOk on success, any other enum value on error
  */
-StatusLightsBrightness status_lights_get_brightness(StatusLights* instance);
+StatusLightsStatus
+    status_lights_get_brightness(StatusLights* instance, StatusLightsBrightness* brightness);
 
 #ifdef __cplusplus
 }
