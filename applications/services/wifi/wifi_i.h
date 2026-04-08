@@ -52,6 +52,7 @@ struct Wifi {
     Intercom* intercom;
     IntercomChannel* intercom_ch_control;
     IntercomChannel* intercom_ch_data;
+    FuriString* dhcp_hostname;
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;

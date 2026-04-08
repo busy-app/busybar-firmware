@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ScreenStream, DeviceScreen } from '@busy-app/busy-lib';
+import type { StateFrameMessage } from '@/util/stateStreamMessage';
 
 export const useScreenStreamStore = defineStore('screenStream', () => {
   const deviceStore = useDeviceStore();
@@ -8,6 +9,9 @@ export const useScreenStreamStore = defineStore('screenStream', () => {
 
   const screenStream = ref<ScreenStream | null>(null);
   const isWebSocketConnected = ref(false);
+  const frontFrame = ref<StateFrameMessage | null>(null);
+  const backFrame = ref<StateFrameMessage | null>(null);
+  const currentFrame = shallowRef<StateFrameMessage | null>(null);
 
   type DataCallback = (data: Uint8Array) => void;
   type StopCallback = () => void;
@@ -85,6 +89,27 @@ export const useScreenStreamStore = defineStore('screenStream', () => {
     return closeWebsocket();
   }
 
+  function applyFrameUpdate (frame: StateFrameMessage) {
+    if (frame.screen === 'BACK') {
+      backFrame.value = frame;
+      if (currentScreen.value === DeviceScreen.BACK) {
+        currentFrame.value = frame;
+      }
+      return;
+    }
+
+    frontFrame.value = frame;
+    if (currentScreen.value === DeviceScreen.FRONT) {
+      currentFrame.value = frame;
+    }
+  }
+
+  function clearFrames () {
+    frontFrame.value = null;
+    backFrame.value = null;
+    currentFrame.value = null;
+  }
+
   // function setCurrentScreen (screen: DeviceScreen) {
   //   if (currentScreen.value === screen) {
   //     return;
@@ -98,9 +123,14 @@ export const useScreenStreamStore = defineStore('screenStream', () => {
   return {
     isWebSocketConnected,
     currentScreen,
+    currentFrame,
+    frontFrame,
+    backFrame,
 
     startScreenStream,
-    stopScreenStream
+    stopScreenStream,
+    applyFrameUpdate,
+    clearFrames
     // setCurrentScreen
   };
 }, {

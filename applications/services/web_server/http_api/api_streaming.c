@@ -292,7 +292,7 @@ static void api_streaming_client_send_frame(struct mg_connection* conn, void* da
         api_streaming_client_set_state(client, StreamClientStateWaitingPong);
         mg_ws_send(conn, data, len, WEBSOCKET_OP_PING);
     } else if(client->state == StreamClientStateInvalid) {
-        mg_close_conn(conn);
+        conn->is_draining = 1;
     }
 }
 
