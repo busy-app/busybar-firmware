@@ -38,13 +38,25 @@ static MatterStatus matter_get_error_status_or_wait_for_response(MatterStatus st
     return new_status;
 }
 
+static void matter_intercom_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    Matter* instance = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)item;
+
+    if(intercom_status == IntercomStatusOk) {
+        matter_init_backend(instance);
+    }
+}
+
 static void matter_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_check(data);
     furi_check(data_size == sizeof(MatterIntercomFrame));
     furi_check(context);
-    Matter* matter = context;
+    Matter* instance = context;
 
-    const FuriStatus status = furi_message_queue_put(matter->rx_queue, data, 0);
+    const FuriStatus status = furi_message_queue_put(instance->rx_queue, data, 0);
 
     if(status != FuriStatusOk) {
         furi_check(status == FuriStatusErrorResource);
@@ -86,9 +98,9 @@ static void matter_timeout_timer_callback(void* context) {
     FURI_LOG_E(TAG, "Response timeout");
 }
 
-static MatterStatus matter_send_frame(Matter* matter, const MatterIntercomFrame* frame) {
+static MatterStatus matter_send_frame(Matter* instance, const MatterIntercomFrame* frame) {
     const size_t tx_size =
-        intercom_tx(matter->intercom_ch, frame, sizeof(MatterIntercomFrame), REQUEST_TIMEOUT_MS);
+        intercom_tx(instance->intercom_ch, frame, sizeof(MatterIntercomFrame), REQUEST_TIMEOUT_MS);
     return (tx_size == sizeof(MatterIntercomFrame)) ? MatterStatusOk : MatterStatusTimeout;
 }
 
@@ -133,18 +145,18 @@ static Matter* matter_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->timeout_timer = furi_event_loop_timer_alloc(
         instance->event_loop, matter_timeout_timer_callback, FuriEventLoopTimerTypeOnce, instance);
-
     instance->api_semaphore = furi_semaphore_alloc(1, 0);
     instance->rx_queue = furi_message_queue_alloc(RX_QUEUE_SIZE, sizeof(MatterIntercomFrame));
+    instance->pubsub = furi_pubsub_alloc();
+    instance->switch_state = furi_state_alloc(sizeof(MatterSwitchState));
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->rx_queue,
         FuriEventLoopEventIn,
         matter_rx_queue_callback,
         instance);
-
-    instance->pubsub = furi_pubsub_alloc();
-    instance->switch_state = furi_state_alloc(sizeof(MatterSwitchState));
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, matter_custom_event_callback, instance);
@@ -156,11 +168,8 @@ static Matter* matter_alloc(void) {
         FURI_LOG_E(TAG, "Failed to load certification config");
     }
 
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom_ch = intercom_channel_open(
-        intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
-
-    matter_init_backend(instance);
+    furi_state_subscribe(
+        intercom_get_state(instance->intercom), matter_intercom_state_callback, instance);
 
     furi_record_create(RECORD_MATTER, instance);
 
@@ -257,6 +266,9 @@ static MatterStatus
     matter_init_backend_api_message_handler(Matter* instance, MatterApiMessageData* data) {
     UNUSED(data);
     MatterStatus status;
+
+    instance->intercom_ch = intercom_channel_open(
+        instance->intercom, IntercomChannelIdMatter, matter_intercom_rx_callback, instance);
 
     do {
         MatterIntercomFrame frame = {};

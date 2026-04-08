@@ -139,11 +139,14 @@ static void busy_timer_notify_interval_ended(const BusyTimer* instance, bool for
 }
 
 static void busy_timer_notify_paused(const BusyTimer* instance) {
-    FURI_LOG_D(TAG, "Paused: %s", busy_timer_get_state_name(instance->state));
+    const bool is_paused = !busy_timer_is_running(instance);
+
+    const char* message = is_paused ? "Paused" : "Resumed";
+    FURI_LOG_D(TAG, "%s: %s", message, busy_timer_get_state_name(instance->state));
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypePaused,
-        .paused.is_paused = !instance->is_timer_running,
+        .paused.is_paused = is_paused,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -194,8 +197,8 @@ static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
 
 static void busy_timer_notify_initial_state(const BusyTimer* instance) {
     busy_timer_notify_mode_changed(instance);
-    busy_timer_notify_state_changed(instance);
     busy_timer_notify_tick(instance);
+    busy_timer_notify_state_changed(instance);
     busy_timer_notify_paused(instance);
 }
 
@@ -472,6 +475,16 @@ static void busy_timer_capture_snapshot(BusyTimer* instance) {
     snapshot->app_config = instance->app_config;
 }
 
+static void busy_timer_store_saved_state(BusyTimer* instance) {
+    BusyTimerSavedState* saved_state = &instance->saved_state;
+    const BusyTimerSnapshot* last_known_snapshot = &instance->last_known_snapshot;
+
+    if(last_known_snapshot->timestamp_ms > saved_state->snapshot.timestamp_ms) {
+        saved_state->snapshot = *last_known_snapshot;
+        busy_timer_saved_state_save(saved_state);
+    }
+}
+
 static void busy_timer_publish_last_known_snapshot(const BusyTimer* instance) {
     busy_timer_notify_snapshot_created(instance);
 
@@ -509,6 +522,7 @@ static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId p
 static void busy_timer_schedule_publish_last_known_snapshot(BusyTimer* instance) {
     if(instance->snapshot_update_count == 0) {
         busy_timer_publish_last_known_snapshot(instance);
+        busy_timer_store_saved_state(instance);
     }
 
     ++instance->snapshot_update_count;
@@ -660,6 +674,7 @@ static void busy_timer_snapshot_timer_callback(void* context) {
 
     if(instance->snapshot_update_count > 1) {
         busy_timer_publish_last_known_snapshot(instance);
+        busy_timer_store_saved_state(instance);
     }
 
     instance->snapshot_update_count = 0;
@@ -696,7 +711,7 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
     }
 }
 
-static void busy_timer_mqtt_shapshot_callback(const MqttMessage* message, void* context) {
+static void busy_timer_mqtt_snapshot_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
     BusyTimer* instance = context;
@@ -758,8 +773,8 @@ void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProfileId p
 
 void busy_timer_start_internal(BusyTimer* instance) {
     if(instance->state == BusyTimerStateIdle) {
-        busy_timer_next_state(instance, true);
         busy_timer_notify_mode_changed(instance);
+        busy_timer_next_state(instance, true);
 
         FURI_LOG_I(TAG, "Started");
 
@@ -1026,6 +1041,17 @@ static void busy_timer_handle_matter_api_message_handler(
 
 // Service
 
+static void busy_timer_load_settings(BusyTimer* instance) {
+    for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
+        busy_timer_settings_load(&instance->settings[id], id);
+    }
+}
+
+static void busy_timer_load_saved_state(BusyTimer* instance) {
+    busy_timer_saved_state_load(&instance->saved_state);
+    busy_timer_set_snapshot(instance, &instance->saved_state.snapshot);
+}
+
 static BusyTimer* busy_timer_alloc(void) {
     BusyTimer* instance = malloc(sizeof(BusyTimer));
 
@@ -1049,10 +1075,6 @@ static BusyTimer* busy_timer_alloc(void) {
     instance->event_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
-    for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
-        busy_timer_settings_load(&instance->settings[id], id);
-    }
-
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->api_queue,
@@ -1064,7 +1086,7 @@ static BusyTimer* busy_timer_alloc(void) {
         instance->mqtt,
         TIMER_SNAPSHOT_MQTT_QOS,
         TIMER_SNAPSHOT_MQTT_TOPIC,
-        busy_timer_mqtt_shapshot_callback,
+        busy_timer_mqtt_snapshot_callback,
         instance);
 
     mqtt_subscribe(
@@ -1083,6 +1105,9 @@ static BusyTimer* busy_timer_alloc(void) {
 
     busy_timer_smart_home_init(instance);
     busy_timer_status_lights_init(instance);
+
+    busy_timer_load_settings(instance);
+    busy_timer_load_saved_state(instance);
 
     furi_record_create(RECORD_BUSY_TIMER, instance);
 
