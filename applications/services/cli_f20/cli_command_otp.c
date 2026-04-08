@@ -2,6 +2,23 @@
 #include <cli/args.h>
 #include <furi_hal_flash_otp.h>
 
+static bool cli_otp_hex_to_nibble(char c, uint8_t* nibble) {
+    if((c >= '0') && (c <= '9')) {
+        *nibble = c - '0';
+        return true;
+    }
+    if((c >= 'A') && (c <= 'F')) {
+        *nibble = c - 'A' + 0xA;
+        return true;
+    }
+    if((c >= 'a') && (c <= 'f')) {
+        *nibble = c - 'a' + 0xA;
+        return true;
+    }
+
+    return false;
+}
+
 static uint32_t cli_otp_parse_addr(FuriString* args) {
     uint32_t addr = 0;
     FuriString* region_arg = furi_string_alloc();
@@ -38,8 +55,8 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
 
         const char* str_buf = furi_string_get_cstr(data_str);
         for(size_t i = 0; i < furi_string_size(data_str); i++) {
-            char c = str_buf[i];
-            if(((c >= '0') && (c <= '9')) || ((c >= 'A') && (c <= 'F'))) {
+            uint8_t nibble = 0;
+            if(cli_otp_hex_to_nibble(str_buf[i], &nibble)) {
                 hex_char_count++;
             } else {
                 hex_char_count = 0;
@@ -55,16 +72,18 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
     *len = hex_char_count / 2;
 
     uint8_t* buf = malloc(*len);
+    if(!buf) {
+        furi_string_free(data_str);
+        return NULL;
+    }
+
     const char* str_buf = furi_string_get_cstr(data_str);
     for(size_t i = 0; i < furi_string_size(data_str); i += 2) {
-        uint8_t byte_temp = 0;
-        char c = str_buf[i];
-        if((c >= '0') && (c <= '9')) byte_temp |= (c - '0') << 4;
-        if((c >= 'A') && (c <= 'F')) byte_temp |= (c - 'A' + 0xA) << 4;
-
-        c = str_buf[i + 1];
-        if((c >= '0') && (c <= '9')) byte_temp |= (c - '0');
-        if((c >= 'A') && (c <= 'F')) byte_temp |= (c - 'A' + 0xA);
+        uint8_t hi = 0;
+        uint8_t lo = 0;
+        cli_otp_hex_to_nibble(str_buf[i], &hi);
+        cli_otp_hex_to_nibble(str_buf[i + 1], &lo);
+        uint8_t byte_temp = (hi << 4) | lo;
         buf[i / 2] = byte_temp;
     }
 
@@ -73,7 +92,6 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
 }
 
 static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* context) {
-    UNUSED(args);
     UNUSED(context);
 
     uint32_t addr = cli_otp_parse_addr(args);
@@ -85,7 +103,7 @@ static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* cont
             free(data);
         }
         printf("Usage:\r\n");
-        printf("otp dump <OTP1/OTP2/OTP3/OTP4>  <data>\r\n");
+        printf("otp program <OTP1/OTP2/OTP3/OTP4> <data>\r\n");
         return;
     }
 

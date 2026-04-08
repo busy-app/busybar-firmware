@@ -83,16 +83,21 @@ UpdateConfigValidation update_config_load(UpdateConfig* state, const char* updat
             break;
         }
 
-        uint8_t device_target = furi_hal_version_get_hw_target();
-        if(updater_manifest_get_target(state->config) != device_target) {
-            FURI_LOG_E(
-                TAG,
-                "Target mismatch: manifest for '%u', device is '%u'",
-                updater_manifest_get_target(state->config),
-                device_target);
-            result = UpdateConfigValidationTargetMismatch;
-            break;
-        }
+        // uint8_t device_target = furi_hal_version_get_hw_target();
+        // if(updater_manifest_get_target(state->config) != device_target) {
+        //     FURI_LOG_E(
+        //         TAG,
+        //         "Target mismatch: manifest for '%u', device is '%u'",
+        //         updater_manifest_get_target(state->config),
+        //         device_target);
+        //     result = UpdateConfigValidationTargetMismatch;
+        //     break;
+        // }
+        FURI_LOG_W(
+            TAG,
+            "Target check is DISABLED. Manifest target: %u, Device target: %u",
+            updater_manifest_get_target(state->config),
+            furi_hal_version_get_hw_target());
 
         const FuriString* updater_stage_path =
             updater_manifest_get_path(state->config, UpdateManifestPathStage);

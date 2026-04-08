@@ -30,6 +30,7 @@ CLEAN_DIRS_TO_CLEAN_BUILD = [
     RUN_ASSETS_DIR,
     "fbt_layers/fbtng/build",
     "fbt_layers/fbtng/.sconsign.dblite"
+    "dist"
 ]
 
 # End of script settings

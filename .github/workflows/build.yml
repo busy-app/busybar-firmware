@@ -6,7 +6,7 @@ on:
       - factory
     tags:
       - '*'
-  # pull_request:
+  pull_request:
 
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0

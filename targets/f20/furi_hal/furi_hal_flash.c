@@ -10,6 +10,7 @@
 #include <furi_hal_bits.h>
 
 #include "stm32u5xx.h"
+#include "stm32u5xx_ll_icache.h"
 
 #define FURI_HAL_FLASH_TOTAL_PAGES (2 * FLASH_PAGE_NB)
 #define FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US \
@@ -264,7 +265,7 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
 
 bool furi_hal_flash_program_otp(const uint32_t base, const uint8_t* data, uint16_t length) {
     furi_assert(base >= FLASH_OTP_BASE);
-    furi_assert((base + length) < (FLASH_OTP_BASE + FLASH_OTP_SIZE));
+    furi_assert((base + length) <= (FLASH_OTP_BASE + FLASH_OTP_SIZE));
     furi_assert((base & 0xF) == 0);
     furi_assert(data);
 
@@ -294,6 +295,8 @@ bool furi_hal_flash_program_otp(const uint32_t base, const uint8_t* data, uint16
     FLASH->NSCR &= ~(FLASH_NSCR_BWR | FLASH_NSCR_PG);
 
     furi_hal_flash_lock();
+
+    LL_ICACHE_Invalidate();
     FURI_CRITICAL_EXIT();
 
     return true;
