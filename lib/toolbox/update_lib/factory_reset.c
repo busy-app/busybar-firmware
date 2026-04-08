@@ -26,6 +26,7 @@ static void format_emmc_ext(void) {
 }
 
 static void reset_ble_pairing(void) {
+#ifndef FW_CFG_recovery
     printf("Resetting BLE pairing...\r\n");
 
     if(furi_record_exists(RECORD_BLE)) {
@@ -37,9 +38,11 @@ static void reset_ble_pairing(void) {
     } else {
         printf("BLE not ready, skipping\r\n");
     }
+#endif
 }
 
 static void reset_wifi_settings(void) {
+#ifndef FW_CFG_recovery
     printf("Resetting Wifi settings...\r\n");
 
     if(furi_record_exists(RECORD_WIFI)) {
@@ -50,9 +53,11 @@ static void reset_wifi_settings(void) {
     } else {
         printf("Wifi not ready, skipping\r\n");
     }
+#endif
 }
 
 static void reset_matter_pairing(void) {
+#ifndef FW_CFG_recovery
     printf("Resetting Matter pairing...\r\n");
 
     if(furi_record_exists(RECORD_MATTER)) {
@@ -63,6 +68,7 @@ static void reset_matter_pairing(void) {
     } else {
         printf("Matter not ready, skipping\r\n");
     }
+#endif
 }
 
 static void reset_firmware_to_backup(Updater* updater) {
