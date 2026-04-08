@@ -8,6 +8,8 @@
 #include <matter/matter.h>
 #include <input/input.h>
 #include <gui/gui.h>
+#include <furi_hal_rtc.h>
+#include <tzutil.h>
 
 static void brightness_state_callback(const void* item, void* context);
 static void time_settings_state_callback(const void* item, void* context);
@@ -21,6 +23,7 @@ static void device_name_pubsub_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
 static void input_event_pubsub_callback(const void* message, void* context);
 static void busy_timer_pubsub_callback(const void* message, void* context);
+static void ble_pubsub_callback(const void* message, void* context);
 
 void state_publisher_subscribe(StatePublisher* instance) {
     {
@@ -73,6 +76,11 @@ void state_publisher_subscribe(StatePublisher* instance) {
         instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
         FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
+    }
+    {
+        instance->ble = furi_record_open(RECORD_BLE);
+        FuriPubSub* pubsub = ble_get_pubsub(instance->ble);
+        furi_pubsub_subscribe(pubsub, ble_pubsub_callback, instance);
     }
 }
 
@@ -224,6 +232,42 @@ void state_publisher_publish_busy_timer(StatePublisher* instance) {
 
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
+
+void state_publisher_publish_ble(StatePublisher* instance) {
+    BleState ble_state;
+    bool ok = ble_get_state(instance->ble, &ble_state);
+
+    if(ok) {
+        BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+
+        static BSB_State_Ble_ServiceStatus lookup[] = {
+            [BleServiceStatusReset] = BSB_State_Ble_ServiceStatus_RESET,
+            [BleServiceStatusInitialization] = BSB_State_Ble_ServiceStatus_INITIALIZATION,
+            [BleServiceStatusReady] = BSB_State_Ble_ServiceStatus_READY,
+            [BleServiceStatusAdvertising] = BSB_State_Ble_ServiceStatus_ADVERTISING,
+            [BleServiceStatusConnectable] = BSB_State_Ble_ServiceStatus_CONNECTABLE,
+            [BleServiceStatusConnected] = BSB_State_Ble_ServiceStatus_CONNECTED,
+            [BleServiceStatusError] = BSB_State_Ble_ServiceStatus_ERROR,
+        };
+        static_assert(COUNT_OF(lookup) == BleServiceStatusCount);
+
+        update->which_state = BSB_State_StateUpdate_ble_tag;
+        update->state.ble.status = lookup[ble_state.status];
+
+        if(ble_state.status == BleServiceStatusConnected) {
+            update->state.ble.has_remote_address = true;
+            strlcpy(
+                update->state.ble.remote_address,
+                (const char*)ble_state.remote_device_address,
+                sizeof(update->state.ble.remote_address));
+        } else {
+            update->state.ble.has_remote_address = false;
+        }
+
+        state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    }
+}
+
 static void power_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
@@ -361,6 +405,16 @@ static void busy_timer_pubsub_callback(const void* message, void* context) {
     state_publisher_send_message(instance, &msg);
 }
 
+static void ble_pubsub_callback(const void* message, void* context) {
+    UNUSED(message);
+    StatePublisher* instance = context;
+
+    Message msg = {
+        .type = MessageTypeBle,
+    };
+    state_publisher_send_message(instance, &msg);
+}
+
 static void time_settings_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const TimeSettings* settings = item;
@@ -373,6 +427,14 @@ static void time_settings_state_callback(const void* item, void* context) {
         update->state.timezone.name, settings->timezone.name, sizeof(update->state.timezone.name));
     update->state.timezone.offset =
         settings->timezone.offset.hours * 60 + settings->timezone.offset.minutes;
+
+    DateTime now = furi_hal_rtc_get_datetime().dt;
+    TzutilTzInfo info;
+    if(tzutil_get_info_by_name(settings->timezone.name, &now, &info)) {
+        tzutil_get_abbr(&info, update->state.timezone.abbr, sizeof(update->state.timezone.abbr));
+    } else {
+        update->state.timezone.abbr[0] = 0;
+    }
 
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }

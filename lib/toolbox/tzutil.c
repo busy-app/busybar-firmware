@@ -53,3 +53,7 @@ void tzutil_info_list_free(const TzutilTzInfoList* list) {
     furi_check(list);
     free(list->entries);
 }
+
+void tzutil_get_abbr(const TzutilTzInfo* info, char* buf, size_t buf_size) {
+    snprintf(buf, buf_size, info->abbr_formatter, info->abbr_param);
+}
