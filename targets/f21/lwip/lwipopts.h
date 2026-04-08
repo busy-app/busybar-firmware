@@ -154,7 +154,7 @@
     LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN)
 #define LWIP_PBUF_REF_T                    u8_t
 #define LWIP_SINGLE_NETIF                  0
-#define LWIP_NETIF_HOSTNAME                0
+#define LWIP_NETIF_HOSTNAME                1
 #define LWIP_NETIF_API                     0 // TODO: enable?
 #define LWIP_NETIF_STATUS_CALLBACK         1
 #define LWIP_NETIF_EXT_STATUS_CALLBACK     0

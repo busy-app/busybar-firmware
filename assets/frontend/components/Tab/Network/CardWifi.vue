@@ -41,6 +41,12 @@
         Connecting...
       </div>
       <div
+        v-else-if="wifiStore.wifi?.state === 'reconnecting'"
+        data-id="network-section-wifi-status-reconnecting"
+      >
+        Reconnecting...
+      </div>
+      <div
         v-else
         data-id="network-section-wifi-status-disconnected"
       >
@@ -61,7 +67,7 @@
         @click="listWifiNetworks"
       />
       <UButton
-        v-if="connected && !showNetworksList"
+        v-if="(connected || wifiStore.wifi?.state === 'reconnecting') && !showNetworksList"
         data-id="network-section-wifi-forget-button"
         label="Forget network"
         variant="outline"
@@ -336,7 +342,7 @@
           <div class="flex flex-col gap-6">
             <UFormField label="IP Settings">
               <USelect
-                v-model="connectModel.ipConfig.ipMethod"
+                v-model="connectModel.ip_config.ip_method"
                 name="ip-method"
                 :items="['dhcp', 'static']"
                 size="xl"
@@ -345,10 +351,10 @@
                 class="w-full"
               />
             </UFormField>
-            <template v-if="connectModel.ipConfig.ipMethod === 'static'">
+            <template v-if="connectModel.ip_config.ip_method === 'static'">
               <UFormField label="Address">
                 <UInput
-                  v-model="connectModel.ipConfig.address"
+                  v-model="connectModel.ip_config.address"
                   v-maska="'###.###.###.###'"
                   name="ip-address"
                   placeholder="___ ___ ___ ___"
@@ -360,7 +366,7 @@
               </UFormField>
               <UFormField label="Subnet Mask">
                 <UInput
-                  v-model="connectModel.ipConfig.mask"
+                  v-model="connectModel.ip_config.mask"
                   v-maska="'###.###.###.###'"
                   name="subnet-mask"
                   placeholder="___ ___ ___ ___"
@@ -372,7 +378,7 @@
               </UFormField>
               <UFormField label="Gateway">
                 <UInput
-                  v-model="connectModel.ipConfig.gateway"
+                  v-model="connectModel.ip_config.gateway"
                   v-maska="'###.###.###.###'"
                   name="gateway"
                   placeholder="___ ___ ___ ___"
@@ -470,8 +476,8 @@ const connectModel = ref<WifiConnectParams>({
   ssid: '',
   security: 'Open',
   password: '',
-  ipConfig: {
-    ipMethod: 'dhcp' as 'dhcp' | 'static',
+  ip_config: {
+    ip_method: 'dhcp' as 'dhcp' | 'static',
     address: '',
     mask: '',
     gateway: ''
@@ -482,8 +488,8 @@ const initConnectModel = () => {
     ssid: '',
     security: 'Open',
     password: '',
-    ipConfig: {
-      ipMethod: 'dhcp',
+    ip_config: {
+      ip_method: 'dhcp',
       address: '',
       mask: '',
       gateway: ''
@@ -524,7 +530,7 @@ async function forgetNetwork () {
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
 
 const title = computed(() => {
-  if (wifiStore.wifi?.state === 'connected' || wifiStore.wifi?.state === 'connecting') {
+  if (wifiStore.wifi?.state === 'connected' || wifiStore.wifi?.state === 'connecting' || wifiStore.wifi?.state === 'reconnecting') {
     return wifiStore.wifi?.ssid || 'Wi-Fi';
   } else if (networks.value.length > 0) {
     return 'Select network';
@@ -552,7 +558,7 @@ const sectionIcon = computed(() => {
   if (showNetworksList.value) {
     return undefined;
   }
-  if (wifiStore.wifi?.state === 'connecting') {
+  if (wifiStore.wifi?.state === 'connecting' || wifiStore.wifi?.state === 'reconnecting') {
     return 'i-bi-wifi-4';
   }
   if (connected.value) {

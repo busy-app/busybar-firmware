@@ -11,6 +11,7 @@
 #include <matter/matter.h>
 #include <mlib/m-array.h>
 #include <mlib/m-shared.h>
+#include <error.pb.h>
 
 #include "rate_limiter.h"
 
@@ -69,6 +70,16 @@ void state_publisher_set_rate_limit(
     StatePublisher* instance,
     StatePublisherTransportHandle transport,
     RateLimiterLimit rate_limit);
+
+/**
+ * Produce serialized BSB_State.State message with set error field
+ *
+ * @return true on success
+ */
+bool state_publisher_serialize_error_message(
+    ByteArray_t* buf,
+    BSB_Error_Severity severity,
+    BSB_Error_Cause cause);
 
 #ifdef __cplusplus
 }
