@@ -711,7 +711,7 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
     }
 }
 
-static void busy_timer_mqtt_shapshot_callback(const MqttMessage* message, void* context) {
+static void busy_timer_mqtt_snapshot_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
     BusyTimer* instance = context;
@@ -1086,7 +1086,7 @@ static BusyTimer* busy_timer_alloc(void) {
         instance->mqtt,
         TIMER_SNAPSHOT_MQTT_QOS,
         TIMER_SNAPSHOT_MQTT_TOPIC,
-        busy_timer_mqtt_shapshot_callback,
+        busy_timer_mqtt_snapshot_callback,
         instance);
 
     mqtt_subscribe(
