@@ -431,11 +431,7 @@ static void time_settings_state_callback(const void* item, void* context) {
     DateTime now = furi_hal_rtc_get_datetime().dt;
     TzutilTzInfo info;
     if(tzutil_get_info_by_name(settings->timezone.name, &now, &info)) {
-        snprintf(
-            update->state.timezone.abbr,
-            sizeof(update->state.timezone.abbr),
-            info.abbr_formatter,
-            info.abbr_param);
+        tzutil_get_abbr(&info, update->state.timezone.abbr, sizeof(update->state.timezone.abbr));
     } else {
         update->state.timezone.abbr[0] = 0;
     }
