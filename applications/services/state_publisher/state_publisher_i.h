@@ -79,6 +79,7 @@ typedef enum {
     MessageTypeMatterEvent,
     MessageTypeUpdaterCheckEvent,
     MessageTypeBusyTimer,
+    MessageTypeAutoupdateEvent,
 
     MessageTypesCount,
 } MessageType;
@@ -103,6 +104,7 @@ void state_publisher_publish_update_check(
     StatePublisher* instance,
     const UpdaterCheckState* check_state);
 void state_publisher_publish_busy_timer(StatePublisher* instance);
+void state_publisher_publish_autoupdate(StatePublisher* instance);
 
 void state_publisher_schedule_state_update(
     StatePublisher* instance,
