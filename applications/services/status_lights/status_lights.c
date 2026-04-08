@@ -2,9 +2,8 @@
 
 #define STATUS_LIGHTS_REQUEST_TIMEOUT_MS (5000)
 
-typedef enum {
-    StatusLightsCustomEventInit = 1UL << 1,
-} StatusLightsCustomEvent;
+#define STATUS_LIGHTS_API_SEM_COUNT      (1)
+#define STATUS_LIGHTS_API_SEM_COUNT_INIT (0)
 
 typedef StatusLightsStatus (
     *StatusLightsApiMessageHandler)(StatusLights* instance, StatusLightsApiMessage* message);
@@ -13,27 +12,10 @@ static const StatusLightsApiMessageHandler api_message_handlers[];
 
 static StatusLightsStatus
     status_lights_send_command(StatusLights* instance, const StatusLightsCommand* command) {
-    StatusLightsStatus status;
+    const size_t tx_size = intercom_tx(
+        instance->intercom_ch, command, sizeof(*command), STATUS_LIGHTS_REQUEST_TIMEOUT_MS);
 
-    do {
-        if(!instance->intercom_ch) {
-            status = StatusLightsStatusNotReady;
-            break;
-        }
-
-        const size_t tx_size = intercom_tx(
-            instance->intercom_ch, command, sizeof(*command), STATUS_LIGHTS_REQUEST_TIMEOUT_MS);
-
-        if(tx_size != sizeof(*command)) {
-            status = StatusLightsStatusTimeout;
-            break;
-        }
-
-        status = StatusLightsStatusOk;
-
-    } while(false);
-
-    return status;
+    return (tx_size == sizeof(*command)) ? StatusLightsStatusOk : StatusLightsStatusTimeout;
 }
 
 static StatusLightsStatus
@@ -87,6 +69,18 @@ static void status_lights_init(StatusLights* instance) {
     furi_assert(instance->intercom_ch == NULL);
     instance->intercom_ch =
         intercom_channel_open(instance->intercom, IntercomChannelIdStatusLights, NULL, NULL);
+    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
+}
+
+static void status_lights_process_request(StatusLights* instance) {
+    StatusLightsApiMessage* message = instance->api_message;
+    furi_assert(message);
+
+    const StatusLightsApiMessageType message_type = message->type;
+    furi_assert(message_type < StatusLightsApiMessageTypeMax);
+
+    const StatusLightsStatus status = api_message_handlers[message_type](instance, message);
+    status_lights_api_unlock(instance, status);
 }
 
 static void status_lights_custom_event_callback(uint32_t events, void* context) {
@@ -96,6 +90,8 @@ static void status_lights_custom_event_callback(uint32_t events, void* context) 
 
     if(events & StatusLightsCustomEventInit) {
         status_lights_init(instance);
+    } else if(events & StatusLightsCustomEventRequest) {
+        status_lights_process_request(instance);
     }
 }
 
@@ -111,38 +107,15 @@ static void status_lights_intercom_state_callback(const void* item, void* contex
     }
 }
 
-static void status_lights_message_callback(FuriEventLoopObject* object, void* context) {
-    furi_assert(context);
-
-    StatusLights* instance = context;
-    furi_assert(object == instance->message_queue);
-
-    StatusLightsApiMessage message;
-
-    while(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk) {
-        const StatusLightsApiMessageType message_type = message.type;
-        furi_assert(message_type < StatusLightsApiMessageTypeMax);
-
-        const StatusLightsStatus status = api_message_handlers[message_type](instance, &message);
-        status_lights_api_unlock(&message, status);
-    }
-}
-
 static StatusLights* status_lights_alloc() {
     StatusLights* instance = malloc(sizeof(*instance));
 
     instance->brightness = (StatusLightsBrightness){STATUS_LIGHTS_BRIGHTNESS_DEFAULT};
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->message_queue = furi_message_queue_alloc(8, sizeof(StatusLightsApiMessage));
+    instance->api_semaphore =
+        furi_semaphore_alloc(STATUS_LIGHTS_API_SEM_COUNT, STATUS_LIGHTS_API_SEM_COUNT_INIT);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-
-    furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->message_queue,
-        FuriEventLoopEventIn,
-        status_lights_message_callback,
-        instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, status_lights_custom_event_callback, instance);

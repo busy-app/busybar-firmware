@@ -2,6 +2,13 @@
 
 #define STATUS_LIGHTS_API_TIMEOUT_MS (5000)
 
+static void status_lights_send_api_message_internal(
+    StatusLights* instance,
+    StatusLightsApiMessage* api_message) {
+    instance->api_message = api_message;
+    furi_event_loop_set_custom_event(instance->event_loop, StatusLightsCustomEventRequest);
+}
+
 static StatusLightsStatus
     status_lights_send_api_message(StatusLights* instance, StatusLightsApiMessage* api_message) {
     StatusLightsStatus status;
@@ -9,11 +16,13 @@ static StatusLightsStatus
     api_message->status = &status;
     api_message->lock = api_lock_alloc_locked();
 
-    const FuriStatus queue_status = furi_message_queue_put(
-        instance->message_queue, api_message, furi_ms_to_ticks(STATUS_LIGHTS_API_TIMEOUT_MS));
+    const FuriStatus sem_status = furi_semaphore_acquire(
+        instance->api_semaphore, furi_ms_to_ticks(STATUS_LIGHTS_API_TIMEOUT_MS));
 
-    if(queue_status == FuriStatusOk) {
+    if(sem_status == FuriStatusOk) {
+        status_lights_send_api_message_internal(instance, api_message);
         api_lock_wait_unlock_and_free(api_message->lock);
+
     } else {
         status = StatusLightsStatusTimeout;
         api_lock_free(api_message->lock);
@@ -22,13 +31,17 @@ static StatusLightsStatus
     return status;
 }
 
-void status_lights_api_unlock(StatusLightsApiMessage* api_message, StatusLightsStatus status) {
-    if(api_message->lock) {
-        furi_assert(api_message->status);
-        *api_message->status = status;
+void status_lights_api_unlock(StatusLights* instance, StatusLightsStatus status) {
+    StatusLightsApiMessage* api_message = instance->api_message;
 
-        api_lock_unlock(api_message->lock);
-    }
+    furi_assert(api_message->status);
+    *api_message->status = status;
+
+    api_lock_unlock(api_message->lock);
+
+    instance->api_message = NULL;
+
+    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
 }
 
 StatusLightsStatus
