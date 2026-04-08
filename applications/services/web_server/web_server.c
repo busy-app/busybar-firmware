@@ -64,11 +64,11 @@ void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod al
         allowed_methods = (allowed_methods & ~(HttpMethodWebSocket)) | HttpMethodGet;
     }
     FuriString* headers = furi_string_alloc_set(DEFAULT_JSON_HEADERS);
-    furi_string_cat(headers, "Allow:");
+    furi_string_cat(headers, "Allow: ");
     bool is_first = true;
     for(size_t i = 0; i < COUNT_OF(http_methods); i++) {
         if(allowed_methods & http_methods[i].method) {
-            furi_string_cat_printf(headers, "%s %s", is_first ? "" : ",", http_methods[i].name);
+            furi_string_cat_printf(headers, "%s%s", is_first ? "" : ", ", http_methods[i].name);
             is_first = false;
         }
     }

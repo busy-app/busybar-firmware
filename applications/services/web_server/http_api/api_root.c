@@ -29,7 +29,7 @@ typedef struct {
     FuriString* access_key;
 } ApiRootCtx;
 
-bool http_api_version_callback(
+static bool http_api_version_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -51,6 +51,7 @@ bool http_api_version_callback(
 
     return true;
 }
+
 static bool is_usb_connection(struct mg_connection* conn) {
     uint8_t* ip = conn->rem.ip;
     UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
@@ -59,7 +60,7 @@ static bool is_usb_connection(struct mg_connection* conn) {
     return is_usb_addr;
 }
 
-bool http_api_conn_type_callback(
+static bool http_api_transport_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -263,10 +264,10 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_version_callback,
     },
     {
-        .uri = "conn_type",
+        .uri = "transport",
         .method = HttpMethodGet,
         .type = HttpHandlerCustom,
-        .on_request = http_api_conn_type_callback,
+        .on_request = http_api_transport_callback,
     },
     {
         .uri = "assets",

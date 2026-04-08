@@ -32,20 +32,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/conn_type:
+  /api/transport:
     get:
       tags:
         - System
-      summary: Get device connection type
-      description: Retrieves device connection type (usb/wifi)
-      operationId: getConnType
+      summary: Get device network connection info
+      description: Retrieves device transport type (usb/wifi)
+      operationId: getTransport
       responses:
         "200":
           description: Information retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConnTypeInfo"
+                $ref: "#/components/schemas/NetworkInterfaceInfo"
         "500":
           description: Internal server error
           content:
@@ -1772,10 +1772,10 @@ components:
       example:
         api_semver: "0.0.0"
 
-    ConnTypeInfo:
+    NetworkInterfaceInfo:
       type: object
       properties:
-        api_semver:
+        type:
           type: string
           description: Connection type
           enum: ["usb", "wifi"]
