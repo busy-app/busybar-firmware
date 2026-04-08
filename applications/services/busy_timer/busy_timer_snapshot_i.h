@@ -1,3 +1,5 @@
+#pragma once
+
 #include "busy_timer_snapshot.h"
 
 #include <cjson/cJSON.h>
