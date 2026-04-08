@@ -1,21 +1,19 @@
 #pragma once
 
+#include "ble_service.h"
 #include "ble_service_config_types.h"
 
 typedef struct BleCharacteristicObject BleCharacteristicObject;
 
-BleCharacteristicObject* ble_characteristic_alloc(const BleCharacteristicDescriptor* config);
+BleCharacteristicObject* ble_characteristic_alloc(
+    const BleCharacteristicDescriptor* config,
+    BleServiceObject* parent_service);
 void ble_characteristic_free(BleCharacteristicObject* instance);
 
 const void* ble_characteristic_get_data(BleCharacteristicObject* instance);
 size_t ble_characteristic_get_data_size(BleCharacteristicObject* instance);
 
 void ble_characteristic_set_data(
-    BleCharacteristicObject* instance,
-    const void* data,
-    const size_t data_size);
-
-void ble_characteristic_set_data_from_remote(
     BleCharacteristicObject* instance,
     const void* data,
     const size_t data_size);
@@ -34,9 +32,10 @@ bool ble_characteristic_is_cccd_handle(BleCharacteristicObject* instance, uint16
 void ble_characteristic_set_cccd_value(BleCharacteristicObject* instance, uint8_t value);
 uint8_t ble_characteristic_get_cccd_value(BleCharacteristicObject* instance);
 
-uint8_t ble_characteristic_fill_update_struct(
+size_t ble_characteristic_encode(BleCharacteristicObject* instance, BleCharacteristicData* output);
+bool ble_characteristic_decode(
     BleCharacteristicObject* instance,
-    BleCharacteristicData* output);
+    const BleCharacteristicData* input);
 
 void ble_characteristic_register_update_callback(
     BleCharacteristicObject* instance,
