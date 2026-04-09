@@ -75,6 +75,16 @@ WifiStatus
 WifiStatus wifi_disconnect(Wifi* instance);
 
 /**
+ * @brief Forget the currently saved network credentials.
+ *
+ * @note It is only possible to forget a network when disconnected.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @returns WifiStatusOk on success, error code otherwise
+ */
+WifiStatus wifi_forget(Wifi* instance);
+
+/**
  * @brief Get the information about current state of the Wifi system.
  *
  * This function never blocks.

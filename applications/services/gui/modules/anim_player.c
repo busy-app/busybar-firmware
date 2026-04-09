@@ -21,6 +21,8 @@ static void anim_player_timer_cb(lv_timer_t* timer) {
     AnimFileFrameInfo info = anim_file_frame(instance->file);
     lv_obj_invalidate(instance->canvas);
 
+    if(info.flags & AnimFileFrameFlagFinished) lv_timer_pause(instance->timer);
+
     if(instance->frame_cb) instance->frame_cb(instance, &info, instance->frame_cb_context);
 }
 

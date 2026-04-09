@@ -19,6 +19,31 @@ extern FS_Error storage_process_common_fs_info(
     uint64_t* free_space,
     bool* is_read_only);
 
+#ifdef SRV_POWER
+#include <power/power_service/power.h>
+
+static void storage_power_pubsub_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    const PowerEvent* event = message;
+    Storage* instance = context;
+
+    if(event->type == PowerEventShutdown) {
+        storage_common_shutdown(instance);
+    }
+}
+
+static void storage_power_init(Storage* instance) {
+    Power* power = furi_record_open(RECORD_POWER);
+    furi_pubsub_subscribe(power_get_pubsub(power), storage_power_pubsub_callback, instance);
+    furi_record_close(RECORD_POWER);
+}
+
+#else // SRV_POWER
+#define storage_power_init(storage)
+#endif // SRV_POWER
+
 Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
@@ -27,6 +52,9 @@ Storage* storage_app_alloc(void) {
     app->pubsub = furi_pubsub_alloc();
     app->path_aliased = furi_string_alloc();
     app->path_storage = furi_string_alloc();
+
+    storage_power_init(app);
+
     furi_string_reserve(app->path_aliased, 256);
     furi_string_reserve(app->path_storage, 256);
 

@@ -17,6 +17,8 @@ int32_t init_task(void* context) {
     // Init flipper
     flipper_init();
 
+    furi_thread_set_current_priority(FuriThreadPriorityHighest);
+
     furi_background();
 
     return 0;

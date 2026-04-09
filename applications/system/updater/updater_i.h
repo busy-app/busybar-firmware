@@ -78,6 +78,8 @@ struct Updater {
     FuriMessageQueue* message_queue;
     UpdaterSettings settings;
 
+    FuriPubSub* pubsub;
+
     FuriSemaphore* update_lock;
     FuriState* update_state;
 
