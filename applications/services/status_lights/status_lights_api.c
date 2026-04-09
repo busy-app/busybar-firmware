@@ -5,8 +5,6 @@
 static void status_lights_api_send_message_internal(
     StatusLights* instance,
     const StatusLightsApiMessage* api_message) {
-    furi_assert(furi_semaphore_get_count(instance->api_semaphore) == 0);
-
     instance->api_message = *api_message;
     furi_event_loop_set_custom_event(instance->event_loop, StatusLightsCustomEventRequest);
 }
@@ -26,11 +24,17 @@ static StatusLightsStatus
         api_lock_wait_unlock_and_free(api_message->lock);
 
     } else {
+        FURI_LOG_E(TAG, "Request timed out");
+
         status = StatusLightsStatusTimeout;
         api_lock_free(api_message->lock);
     }
 
     return status;
+}
+
+bool status_lights_api_is_locked(StatusLights* instance) {
+    return furi_semaphore_get_count(instance->api_semaphore) == 0;
 }
 
 void status_lights_api_unlock(StatusLights* instance, StatusLightsStatus status) {
@@ -44,14 +48,6 @@ void status_lights_api_unlock(StatusLights* instance, StatusLightsStatus status)
     }
 
     furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
-}
-
-void status_lights_init(StatusLights* instance) {
-    const StatusLightsApiMessage message = {
-        .type = StatusLightsApiMessageTypeInit,
-    };
-
-    status_lights_api_send_message_internal(instance, &message);
 }
 
 StatusLightsStatus

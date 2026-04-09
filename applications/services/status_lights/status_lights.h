@@ -23,6 +23,7 @@ extern "C" {
 typedef enum {
     StatusLightsStatusOk, /**< Request executed successfully */
     StatusLightsStatusTimeout, /**< Request timed out (e.g. backend not responding) */
+    StatusLightsStatusError, /**< Request failed due to internal error */
 } StatusLightsStatus;
 
 typedef struct StatusLightsBrightness {
