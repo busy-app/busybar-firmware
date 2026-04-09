@@ -53,7 +53,9 @@
 #define LWIP_SO_RCVTIMEO                   0
 #define SO_REUSE                           (1)
 #define LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS (1)
-#define LWIP_STATS                         (0)
+#define LWIP_STATS                         (1)
+#define MEMP_STATS                         (1)
+#define LWIP_STATS_DISPLAY                 (1)
 #define LWIP_TCPIP_CORE_LOCKING            1
 #define TCP_QUEUE_OOSEQ                    0
 #define ARP_QUEUEING                       (0)

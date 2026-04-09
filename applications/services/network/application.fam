@@ -24,5 +24,6 @@ App(
     stack_size=512,
     order=30,
     sources=["network.c"],
+    provides=["netstat_cli"],
     targets=["f64", "f65"],
 )

@@ -43,8 +43,12 @@ static inline const char* netstat_cli_get_connection_state_string(enum tcp_state
 }
 
 static void netstat_cli_format_ip_port(const ip_addr_t* ip, u16_t port, FuriString* buffer) {
-    const char* ip_string =
-        ip_addr_isany(ip) ? "*" : ipaddr_ntoa_r(ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX);
+    const char* ip_string;
+    if(ip == NULL || ip_addr_isany(ip)) {
+        ip_string = "*";
+    } else {
+        ip_string = ipaddr_ntoa_r(ip, alloca(IPADDR_STRLEN_MAX), IPADDR_STRLEN_MAX);
+    }
 
     if(port == 0) {
         furi_string_printf(buffer, "%s:*", ip_string);
@@ -70,7 +74,7 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb, FuriString* buf
     u32_t receive_queue_size, send_queue_size;
     switch(pcb->state) {
     case CLOSED: {
-        netstat_cli_format_ip_port(&ip_addr_any, 0, remote_ip_string);
+        netstat_cli_format_ip_port(NULL, 0, remote_ip_string);
 
         receive_queue_size = 0;
         send_queue_size = 0;
@@ -78,7 +82,7 @@ static void netstat_cli_print_tcp_pcb_entry(struct tcp_pcb* pcb, FuriString* buf
     }
 
     case LISTEN: {
-        netstat_cli_format_ip_port(&ip_addr_any, 0, remote_ip_string);
+        netstat_cli_format_ip_port(NULL, 0, remote_ip_string);
 
 #if TCP_LISTEN_BACKLOG
         struct tcp_pcb_listen* lpcb = (struct tcp_pcb_listen*)pcb;
