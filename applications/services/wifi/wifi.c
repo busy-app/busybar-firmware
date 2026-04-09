@@ -283,6 +283,8 @@ static void wifi_override_queue_callback(FuriEventLoopObject* object, void* cont
         wifi_api_unlock_pending_request(instance, WifiStatusError);
     }
 
+    furi_check(furi_message_queue_reset(instance->response_queue) == FuriStatusOk);
+
     furi_check(
         furi_message_queue_get(instance->override_queue, &instance->api_message, 0) ==
         FuriStatusOk);
