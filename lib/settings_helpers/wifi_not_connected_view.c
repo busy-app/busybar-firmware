@@ -26,7 +26,7 @@ static void
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_set_style_pad_all(obj, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_gap(obj, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(obj, 3, LV_PART_MAIN);
 
     lv_obj_t* image_cont = lv_obj_create(obj);
     lv_obj_set_size(image_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
@@ -41,6 +41,7 @@ static void
     lv_obj_t* label = lv_label_create(obj);
     lv_label_set_text(label, "Connect Wi-Fi via\nPC or BUSY App");
     lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_line_space(label, -2, LV_PART_MAIN);
     lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
 }
 
@@ -56,25 +57,28 @@ static void
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
         obj, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_pad_all(obj, 4, LV_PART_MAIN);
+    lv_obj_set_style_pad_ver(obj, 4, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(obj, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(obj, 4, LV_PART_MAIN);
 
     lv_obj_t* text_column = lv_obj_create(obj);
     lv_obj_set_flex_flow(text_column, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(
         text_column, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
     lv_obj_set_size(text_column, LV_PCT(50), LV_PCT(100));
-    lv_obj_set_style_pad_ver(text_column, 6, LV_PART_MAIN);
-    lv_obj_set_style_pad_gap(text_column, 9, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(text_column, 4, LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(text_column, LV_SCROLLBAR_MODE_OFF);
 
     lv_obj_t* logo = lv_image_create(text_column);
     lv_image_set_src(logo, SETTINGS_IMG_PATH("wifi_back_12x12.image"));
+    lv_obj_set_style_pad_all(logo, 2, LV_PART_MAIN);
     lv_obj_set_style_image_recolor_opa(logo, LV_OPA_COVER, 0);
     lv_obj_set_style_image_recolor(logo, lv_color_white(), LV_PART_MAIN);
 
     lv_obj_t* message = lv_label_create(text_column);
-    lv_label_set_text(message, "Connect to  Wi-Fi via PC or BUSY App");
+    lv_label_set_text(message, "Connect to\nWi-Fi via PC\nor BUSY App");
     lv_obj_set_style_text_color(message, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_line_space(message, -1, LV_PART_MAIN);
     lv_obj_set_width(message, LV_PCT(100));
     lv_label_set_long_mode(message, LV_LABEL_LONG_WRAP);
 
