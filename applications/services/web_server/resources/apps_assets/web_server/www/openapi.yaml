@@ -866,6 +866,14 @@ paths:
             type: number
           description: Audio volume (0-100)
           example: "50"
+        - name: silent
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: Set volume silently (0 - play volume change sound(default), 1 - do not play sound)
+          example: "1"
       responses:
         "200":
           description: Volume set successfully
