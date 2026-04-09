@@ -274,10 +274,8 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "input",
-        .method = HttpMethodWebSocket | HttpMethodPost,
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
-        .ctx_alloc = http_api_input_alloc,
-        .ctx_free = http_api_input_free,
         .on_request = http_api_input_callback,
     },
     {
@@ -318,14 +316,6 @@ static const HttpHandler handlers_api_root[] = {
         .method = HttpMethodAny,
         .type = HttpHandlerCustom,
         .on_request = http_api_streaming_single_frame_callback,
-    },
-    {
-        .uri = "screen/ws",
-        .method = HttpMethodWebSocket,
-        .type = HttpHandlerCustom,
-        .ctx_alloc = http_api_streaming_ws_alloc,
-        .ctx_free = http_api_streaming_ws_free,
-        .on_request = http_api_streaming_ws_callback,
     },
     {
         .uri = "ble",

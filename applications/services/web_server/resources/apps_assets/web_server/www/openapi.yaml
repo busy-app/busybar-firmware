@@ -881,28 +881,6 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/input:
-    get:
-      tags:
-        - Input
-
-      summary: Input events streaming
-      description: Start WebSocket session for input events streaming
-      operationId: connectInputWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: WebSocket upgrade failed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "426":
-          description: Upgrade required
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     post:
       tags:
         - Input
@@ -1173,27 +1151,6 @@ paths:
                 $ref: "#/components/schemas/ScreenResponse"
         "400":
           description: Wrong display
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/screen/ws:
-    get:
-      tags:
-        - Streaming
-      summary: Screen streaming WebSocket endpoint
-      description: |
-        WebSocket connection for real-time screen streaming.
-        Upgrade from HTTP to WebSocket protocol is required.
-        After connection, client must send desired display ID
-        as JSON {"display": 0}
-      operationId: connectScreenWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: Exceed max clients count
           content:
             application/json:
               schema:
