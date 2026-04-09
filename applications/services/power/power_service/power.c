@@ -424,8 +424,7 @@ static void power_update_info(Power* power) {
         furi_pubsub_publish(power->event_pubsub, &pub_event);
     }
 
-    uint8_t charge =
-        power_get_battery_charge(power->bat_cal, (int16_t)adc_val.bat_v, adc_val.bat_i);
+    uint8_t charge = power_get_battery_charge(power->bat_cal, adc_val.bat_v, adc_val.bat_i);
     uint8_t previous_charge = power->info.charge;
 
     power->info.charge = charge;
