@@ -29,8 +29,11 @@ bool http_api_streaming_single_frame_callback(
     if(var_len == 1 && (display_str[0] == '0' || display_str[0] == '1')) {
         GuiDisplayId display_id = display_str[0] == '0' ? GuiDisplayIdFront : GuiDisplayIdBack;
 
-        const size_t frame_size = display_id == GuiDisplayIdFront ? FRONT_DISPLAY_BUF_SIZE :
-                                                                    BACK_DISPLAY_BUF_SIZE;
+        const size_t frame_size =
+            display_id == GuiDisplayIdFront ?
+                FRONT_DISPLAY_BUF_SIZE :
+                (BACK_DISPLAY_BUF_SIZE /
+                 2); // We do 8bpp to 4bpp conversion for the back display, so the size is halved
 
         Gui* gui = furi_record_open(RECORD_GUI);
         uint8_t* frame = malloc(frame_size);
