@@ -12,6 +12,8 @@
 #define POWER_IRQ_GPIO (&gpio_bq25798_irq)
 #define POWER_I2C      (&furi_hal_i2c_handle_1)
 
+#define POWER_FACTORY_BAT_CAL EXT_PATH("factory.bat_cal")
+
 static void power_print_interrupt_flags(uint32_t flags) {
     FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", flags);
     if(flags & Bq25798ChargerFlagVbusPresent) FURI_LOG_D(TAG, "\tVbus present");
@@ -313,26 +315,26 @@ static void power_battery_state_transition(Power* power, PowerBatteryState state
     }
 }
 
-static void power_process_battery_state(Power* power, uint32_t voltage_mv, bool charging) {
+static void power_process_battery_state(Power* power, uint8_t charge_level, bool charging) {
     if(charging) {
         power_battery_state_transition(power, PowerBatteryStateNormal);
     } else {
         if(power->battery_state == PowerBatteryStateNormal) {
-            if(voltage_mv < (POWER_VOLTAGE_CRITICAL - POWER_VOLTAGE_HYSTERESIS)) {
+            if(charge_level < (POWER_PERCENT_CRITICAL - POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateCritical);
-            } else if(voltage_mv < (POWER_VOLTAGE_LOW - POWER_VOLTAGE_HYSTERESIS)) {
+            } else if(charge_level < (POWER_PERCENT_LOW - POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateLow);
             }
         } else if(power->battery_state == PowerBatteryStateLow) {
-            if(voltage_mv > (POWER_VOLTAGE_LOW + POWER_VOLTAGE_HYSTERESIS)) {
+            if(charge_level > (POWER_PERCENT_LOW + POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateNormal);
-            } else if(voltage_mv < (POWER_VOLTAGE_CRITICAL - POWER_VOLTAGE_HYSTERESIS)) {
+            } else if(charge_level < (POWER_PERCENT_CRITICAL - POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateCritical);
             }
         } else if(power->battery_state == PowerBatteryStateCritical) {
-            if(voltage_mv > (POWER_VOLTAGE_LOW + POWER_VOLTAGE_HYSTERESIS)) {
+            if(charge_level > (POWER_PERCENT_LOW + POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateNormal);
-            } else if(voltage_mv > (POWER_VOLTAGE_CRITICAL + POWER_VOLTAGE_HYSTERESIS)) {
+            } else if(charge_level > (POWER_PERCENT_CRITICAL + POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateLow);
             }
         }
@@ -433,7 +435,8 @@ static void power_update_info(Power* power) {
         furi_pubsub_publish(power->event_pubsub, &pub_event);
     }
 
-    uint8_t charge = power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, is_charging);
+    uint8_t charge =
+        power_get_battery_charge(power->bat_cal, (int16_t)adc_val.bat_v, adc_val.bat_i);
     uint8_t previous_charge = power->info.charge;
 
     power->info.charge = charge;
@@ -453,8 +456,7 @@ static void power_update_info(Power* power) {
 
     power->info.is_charging = power_charger_is_charging(status.chg_stat);
     power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
-    power->info.charge = power_get_battery_charge(
-        power->info.voltage_battery, power->info.current_battery, power->info.is_charging);
+    power->info.charge = charge;
 
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
@@ -472,7 +474,7 @@ static void power_update_info(Power* power) {
         }
     }
 
-    power_process_battery_state(power, power->info.voltage_battery, power->info.is_charging);
+    power_process_battery_state(power, power->info.charge, power->info.is_charging);
 }
 
 static void power_tick_callback(void* context) {
@@ -492,6 +494,9 @@ static Power* power_alloc(void) {
     power->state.battery_ready = false;
     power->info.is_charging = false;
     power->info.charge = 0;
+
+    power->bat_cal = power_load_bat_calibration(POWER_FACTORY_BAT_CAL);
+    if(!power->bat_cal) power->bat_cal = power_get_crude_calibration();
 
     furi_event_loop_subscribe_message_queue(
         power->event_loop,
