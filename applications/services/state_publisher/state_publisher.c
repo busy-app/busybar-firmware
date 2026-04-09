@@ -394,6 +394,12 @@ static bool handle_busy_timer(StatePublisher* instance, const Message* message) 
     return true;
 }
 
+static bool handle_autoupdate_event(StatePublisher* instance, const Message* message) {
+    furi_assert(message->type == MessageTypeAutoupdateEvent);
+    state_publisher_publish_autoupdate(instance);
+    return true;
+}
+
 static bool handle_ble(StatePublisher* instance, const Message* message) {
     furi_assert(message->type == MessageTypeBle);
     state_publisher_publish_ble(instance);
@@ -407,6 +413,7 @@ static const MessageHandler message_handlers[] = {
     [MessageTypeMatterEvent] = handle_matter_event,
     [MessageTypeUpdaterCheckEvent] = handle_updater_check_event,
     [MessageTypeBusyTimer] = handle_busy_timer,
+    [MessageTypeAutoupdateEvent] = handle_autoupdate_event,
     [MessageTypeBle] = handle_ble,
 };
 

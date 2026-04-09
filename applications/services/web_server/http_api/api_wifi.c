@@ -125,6 +125,24 @@ static bool api_wifi_check_record_exists(struct mg_connection* conn) {
     return true;
 }
 
+static WifiStatus api_wifi_disconnect_and_forget(void) {
+    WifiStatus status;
+
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+
+    do {
+        status = wifi_disconnect(wifi);
+        if(status != WifiStatusOk) {
+            break;
+        }
+        status = wifi_forget(wifi);
+    } while(false);
+
+    furi_record_close(RECORD_WIFI);
+
+    return status;
+}
+
 static bool api_wifi_get_networks_callback(
     FuriString* path,
     HttpMethod method,
@@ -390,11 +408,9 @@ static bool api_wifi_disconnect_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
     if(!api_wifi_check_record_exists(conn)) return true;
 
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    WifiStatus status = wifi_disconnect(wifi);
-    furi_record_close(RECORD_WIFI);
-
+    const WifiStatus status = api_wifi_disconnect_and_forget();
     const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+
     if(data->code == 200)
         MG_REPLY_OK(conn);
     else

@@ -16,6 +16,7 @@ static const struct {
 } api_access_whitelist[] = {
     {"version", HttpMethodGet},
     {"access", HttpMethodGet},
+    {"transport", HttpMethodGet},
 };
 
 typedef struct {
@@ -28,7 +29,7 @@ typedef struct {
     FuriString* access_key;
 } ApiRootCtx;
 
-bool http_api_version_callback(
+static bool http_api_version_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -47,6 +48,32 @@ bool http_api_version_callback(
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(ver_str));
     furi_string_free(ver_str);
+
+    return true;
+}
+
+static bool is_usb_connection(struct mg_connection* conn) {
+    uint8_t* ip = conn->rem.ip;
+    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
+    bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, ip);
+    furi_record_close(RECORD_USB_NETWORK);
+    return is_usb_addr;
+}
+
+static bool http_api_transport_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool is_usb = is_usb_connection(conn);
+    MG_REPLY_OK_BODY(conn, "{\"type\":\"%s\"}\n", is_usb ? "usb" : "wifi");
 
     return true;
 }
@@ -146,14 +173,12 @@ static bool http_api_is_access_allowed(
         }
     }
 
-    uint8_t* ip = conn->rem.ip;
-    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
-    bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, ip);
-    furi_record_close(RECORD_USB_NETWORK);
+    bool is_usb = is_usb_connection(conn);
 
+    uint8_t* ip = conn->rem.ip;
     bool is_localhost = (ip[0] == 127) && (ip[1] == 0) && (ip[2] == 0) && (ip[3] == 1);
 
-    if(!is_usb_addr && !is_localhost) {
+    if(!is_usb && !is_localhost) {
         if(context->access_mode == ApiAccessEnabled) {
             return true;
         } else if(context->access_mode == ApiAccessKeyRequired) {
@@ -239,6 +264,12 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_version_callback,
     },
     {
+        .uri = "transport",
+        .method = HttpMethodGet,
+        .type = HttpHandlerCustom,
+        .on_request = http_api_transport_callback,
+    },
+    {
         .uri = "assets",
         .method = HttpMethodAny,
         .type = HttpHandlerCustom,
@@ -274,10 +305,8 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "input",
-        .method = HttpMethodWebSocket | HttpMethodPost,
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
-        .ctx_alloc = http_api_input_alloc,
-        .ctx_free = http_api_input_free,
         .on_request = http_api_input_callback,
     },
     {
@@ -318,14 +347,6 @@ static const HttpHandler handlers_api_root[] = {
         .method = HttpMethodAny,
         .type = HttpHandlerCustom,
         .on_request = http_api_streaming_single_frame_callback,
-    },
-    {
-        .uri = "screen/ws",
-        .method = HttpMethodWebSocket,
-        .type = HttpHandlerCustom,
-        .ctx_alloc = http_api_streaming_ws_alloc,
-        .ctx_free = http_api_streaming_ws_free,
-        .on_request = http_api_streaming_ws_callback,
     },
     {
         .uri = "ble",
@@ -427,7 +448,7 @@ bool http_api_root_callback(
         } else if(method == HttpMethodPost) {
             http_api_access_set_callback(context, conn, msg);
         } else {
-            MG_REPLY_METHOD_NOT_ALLOWED(conn);
+            http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet);
         }
         return true;
     }

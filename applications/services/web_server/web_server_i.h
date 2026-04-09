@@ -44,8 +44,6 @@
 #define MG_REPLY_FORBIDDEN(conn)       MG_REPLY_ERROR(conn, 403, "Forbidden")
 #define MG_REPLY_INVALID_VERSION(conn) MG_REPLY_ERROR(conn, 405, "Incompatible API version")
 
-#define MG_REPLY_METHOD_NOT_ALLOWED(conn, ...) \
-    MG_REPLY_ERROR(conn, 405, M_IF_EMPTY(__VA_ARGS__)("Method Not Allowed", (__VA_ARGS__)))
 #define MG_REPLY_PAYLOAD_TOO_LARGE(conn, ...) \
     MG_REPLY_ERROR(conn, 413, M_IF_EMPTY(__VA_ARGS__)("Payload Too Large", (__VA_ARGS__)))
 
@@ -159,5 +157,7 @@ void http_handler_add(HttpHandlersList_t list, const HttpHandler* handler);
 void http_handler_remove(HttpHandlersList_t list, const HttpHandler* handler);
 
 void http_handler_remove_all(HttpHandlersList_t list);
+
+void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods);
 
 struct mg_mgr* web_srv_get_mgr(void);

@@ -14,6 +14,8 @@ typedef enum {
     WifiRequestTypeConnect,
     WifiRequestTypeDisconnect,
     WifiRequestTypeBackendInfo,
+    WifiRequestTypeForget,
+    WifiRequestTypeDeinit,
     WifiRequestTypeMax,
 } WifiRequestType;
 
