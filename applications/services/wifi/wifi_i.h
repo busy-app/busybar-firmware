@@ -46,6 +46,7 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriMessageQueue* response_queue;
+    FuriMessageQueue* override_queue;
     FuriSemaphore* api_semaphore;
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
@@ -61,7 +62,11 @@ struct Wifi {
 // API management
 bool wifi_api_is_locked(Wifi* instance);
 
+bool wifi_api_try_lock(Wifi* instance);
+
 void wifi_api_unlock(Wifi* instance, WifiStatus status);
+
+void wifi_api_unlock_pending_request(Wifi* instance, WifiStatus status);
 
 // Internal nonblocking API calls
 void wifi_schedule_init_request(Wifi* instance);
@@ -69,6 +74,8 @@ void wifi_schedule_init_request(Wifi* instance);
 void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings);
 
 void wifi_schedule_disconnect_request(Wifi* instance);
+
+void wifi_schedule_deinit_request(Wifi* instance);
 
 // Network management
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);
@@ -78,3 +85,6 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);
 void wifi_net_down(Wifi* instance);
 
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config);
+
+// Power management
+void wifi_power_init(Wifi* instance);

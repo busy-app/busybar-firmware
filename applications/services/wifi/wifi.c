@@ -1,10 +1,25 @@
 #include "wifi_i.h"
 
 #include <network/network.h>
+#include <device_name/device_name.h>
 
 #include "wifi_state.h"
 
-#include <device_name/device_name.h>
+#define WIFI_REQUEST_TIMEOUT_MS (5000)
+
+static void wifi_intercom_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    Wifi* instance = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)item;
+
+    if(intercom_status == IntercomStatusOk) {
+        wifi_schedule_init_request(instance);
+    } else if(intercom_status != IntercomStatusUnknown) {
+        wifi_schedule_deinit_request(instance);
+    }
+}
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
@@ -50,15 +65,41 @@ static void wifi_apply_settings_pending_callback(void* context) {
     } while(false);
 }
 
-static void wifi_process_request(Wifi* instance) {
-    const WifiMessage* message = &instance->api_message;
+static WifiStatus wifi_send_request(Wifi* instance, WifiRequestType request_type) {
     WifiRequest* request = &instance->request;
 
-    const WifiRequestType request_type = message->request_type;
-    const WifiStatus status = wifi_state_check_request_type(instance, request_type);
+    request->type = request_type;
 
-    if(status == WifiStatusOk) {
-        if(request_type == WifiRequestTypeConnect) {
+    const size_t tx_size = intercom_tx(
+        instance->intercom_ch_control, request, sizeof(WifiRequest), WIFI_REQUEST_TIMEOUT_MS);
+    return (tx_size == sizeof(WifiRequest)) ? WifiStatusOk : WifiStatusTimeout;
+}
+
+static void wifi_process_request(Wifi* instance) {
+    const WifiMessage* message = &instance->api_message;
+
+    WifiRequest* request = &instance->request;
+    const WifiRequestType request_type = message->request_type;
+
+    WifiStatus status;
+    bool unlock_api = true;
+
+    do {
+        status = wifi_state_check_request_type(instance, request_type);
+
+        if(status != WifiStatusOk) {
+            break;
+        }
+
+        if(request_type == WifiRequestTypeInit) {
+            FURI_LOG_I(TAG, "Initializing");
+            instance->intercom_ch_control = intercom_channel_open(
+                instance->intercom,
+                IntercomChannelIdWifiControl,
+                wifi_intercom_rx_callback,
+                instance);
+
+        } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
             const WifiCredentials* credentials = &connect_message->credentials;
 
@@ -66,19 +107,39 @@ static void wifi_process_request(Wifi* instance) {
             connect_request->credentials = *credentials;
 
             wifi_state_transition(instance, WifiStateConnecting, credentials);
-
             FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
+            FURI_LOG_I(TAG, "Disconnecting");
             wifi_state_transition(instance, WifiStateDisconnecting);
+
+        } else if(request_type == WifiRequestTypeForget) {
+            FURI_LOG_I(TAG, "Forgetting saved network");
+            wifi_settings_reset(NULL);
+            break; // No backend request necessary
+
+        } else if(request_type == WifiRequestTypeDeinit) {
+            FURI_LOG_W(TAG, "Deinitializing due to error");
+            wifi_net_down(instance);
+            wifi_state_transition(instance, WifiStateUnknown);
+            break; // No backend request necessary
         }
 
-        request->type = request_type;
+        status = wifi_send_request(instance, request_type);
 
-        intercom_tx(instance->intercom_ch_control, request, sizeof(WifiRequest), FuriWaitForever);
+        if(status != WifiStatusOk) {
+            break;
+        }
 
-    } else {
+        unlock_api = false;
+
+    } while(false);
+
+    if(status != WifiStatusOk) {
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
+    }
+
+    if(unlock_api) {
         wifi_api_unlock(instance, status);
     }
 }
@@ -132,7 +193,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 wifi_net_get_ip_config(instance, &new_ip_config);
 
                 wifi_state_transition(instance, WifiStateConnected, &new_ip_config);
-                wifi_settings_save(&(WifiSettings){
+                wifi_settings_save(&(const WifiSettings){
                     .credentials = *credentials,
                     .ip_config = *ip_config,
                 });
@@ -148,10 +209,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_net_down(instance);
-
             wifi_state_transition(instance, WifiStateDisconnected);
-
-            wifi_settings_reset(NULL);
         }
 
     } else {
@@ -159,8 +217,6 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
         if(request_type == WifiRequestTypeConnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
-            wifi_settings_reset(NULL);
-
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
         }
@@ -217,6 +273,24 @@ static void wifi_process_async_response(Wifi* instance, const WifiResponse* resp
     }
 }
 
+static void wifi_override_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Wifi* instance = context;
+    furi_assert(object == instance->override_queue);
+
+    if(!wifi_api_try_lock(instance)) {
+        wifi_api_unlock_pending_request(instance, WifiStatusError);
+    }
+
+    furi_check(furi_message_queue_reset(instance->response_queue) == FuriStatusOk);
+
+    furi_check(
+        furi_message_queue_get(instance->override_queue, &instance->api_message, 0) ==
+        FuriStatusOk);
+    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+}
+
 static void wifi_response_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -264,11 +338,14 @@ static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->override_queue = furi_message_queue_alloc(1, sizeof(WifiMessage));
     instance->response_queue = furi_message_queue_alloc(3, sizeof(WifiResponse));
     instance->api_semaphore = furi_semaphore_alloc(1, 1);
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+
+    wifi_power_init(instance);
     wifi_generate_dhcp_hostname(instance);
 
     furi_record_open(RECORD_NETWORK);
@@ -278,15 +355,20 @@ static Wifi* wifi_alloc(void) {
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
+        instance->override_queue,
+        FuriEventLoopEventIn,
+        wifi_override_queue_callback,
+        instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
         instance->response_queue,
         FuriEventLoopEventIn,
         wifi_response_queue_callback,
         instance);
 
-    instance->intercom_ch_control = intercom_channel_open(
-        instance->intercom, IntercomChannelIdWifiControl, wifi_intercom_rx_callback, instance);
-
-    wifi_schedule_init_request(instance);
+    furi_state_subscribe(
+        intercom_get_state(instance->intercom), wifi_intercom_state_callback, instance);
 
     furi_record_create(RECORD_WIFI, instance);
 

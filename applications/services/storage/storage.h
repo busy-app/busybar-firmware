@@ -26,6 +26,7 @@ extern "C" {
 #define SHARED_ASSETS_PATH(path) EXT_PATH("shared/" path)
 #define SHARED_ANIM_PATH(path)   SHARED_ASSETS_PATH("animations/" path)
 #define SHARED_IMG_PATH(path)    SHARED_ASSETS_PATH("images/" path)
+#define SHARED_SOUND_PATH(path)  SHARED_ASSETS_PATH("sounds/" path)
 
 #define RECORD_STORAGE "storage"
 
