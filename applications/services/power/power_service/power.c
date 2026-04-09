@@ -11,7 +11,7 @@
 
 #if defined(SRV_STORAGE)
 #include <storage/storage.h>
-#define POWER_FACTORY_BAT_CAL BACKUP_PATH("power/factory.bat_cal")
+#define POWER_FACTORY_BAT_CAL BACKUP_PATH("recovery/resources/power/factory.bat_cal")
 #endif
 
 static void power_print_interrupt_flags(uint32_t flags) {
@@ -471,6 +471,16 @@ static void power_update_info(Power* power) {
 static void power_tick_callback(void* context) {
     furi_assert(context);
     Power* power = context;
+
+    // Storage & power deadlock prevention
+    if(!power->tried_to_load_storage_cal) {
+        power->tried_to_load_storage_cal = true;
+#if defined(SRV_STORAGE)
+        PowerBatCalibration* cal = power_load_bat_calibration(POWER_FACTORY_BAT_CAL);
+        if(cal) power->bat_cal = cal;
+#endif
+    }
+
     power_update_info(power);
 }
 
@@ -486,10 +496,7 @@ static Power* power_alloc(void) {
     power->info.is_charging = false;
     power->info.charge = 0;
 
-#if defined(SRV_STORAGE)
-    power->bat_cal = power_load_bat_calibration(POWER_FACTORY_BAT_CAL);
-#endif
-    if(!power->bat_cal) power->bat_cal = power_get_crude_calibration();
+    power->bat_cal = power_get_crude_calibration();
 
     furi_event_loop_subscribe_message_queue(
         power->event_loop,

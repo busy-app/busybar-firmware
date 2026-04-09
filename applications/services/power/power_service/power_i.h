@@ -124,6 +124,7 @@ struct Power {
     bool charger_enabled;
     PowerBatteryState battery_state;
     PowerBatCalibration* bat_cal;
+    bool tried_to_load_storage_cal;
 
 #ifndef FURI_RAM_EXEC
     bool shipping_mode_wait;
