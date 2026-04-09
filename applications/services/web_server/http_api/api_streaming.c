@@ -19,7 +19,7 @@ bool http_api_streaming_single_frame_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
     if(method != HttpMethodGet) {
-        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        http_reply_405_method_not_allowed(conn, HttpMethodGet);
         return true;
     }
 
