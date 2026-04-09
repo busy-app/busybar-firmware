@@ -12,9 +12,6 @@
 
 #define SCROLLBAR_WIDTH (0)
 
-#define MENU_ITEM_PAD_HOR (0)
-#define MENU_ITEM_PAD_VER (0)
-
 #define MENU_SUBLABEL_MAX_WIDTH (26)
 
 typedef struct {
@@ -94,8 +91,7 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
     lv_style_init(&theme->styles.menu_item);
-    lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
-    lv_style_set_pad_ver(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
+    lv_style_set_margin_top(&theme->styles.menu_item, -1);
 
     lv_style_init(&theme->styles.menu_icon);
     lv_style_set_image_opa(&theme->styles.menu_icon, LV_OPA_COVER);
