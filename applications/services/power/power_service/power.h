@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <drivers/bq25798/bq25798.h>
+#include "battery_soc.h"
 
 typedef struct Power Power;
 
@@ -64,6 +65,8 @@ typedef struct {
         Bq25798ChargerStatus charger_status;
         Bq25798ChargerFault charger_fault;
     } debug;
+
+    BatterySocLevel battery_details;
 } PowerInfo;
 
 typedef struct {
@@ -92,6 +95,7 @@ void power_charge_enable(Power* power, bool enable);
 void power_set_charge_current(Power* power, uint32_t current_ma);
 void power_get_pd_info(Power* power, PowerPdInfo* info);
 void power_set_pd_mode(Power* power, uint32_t voltage_mv);
+void power_switch_alerts(Power* power, bool enable);
 
 // TODO: internal API
 void power_on_usb_pd_update(Power* power, uint32_t voltage, uint32_t current);

@@ -163,6 +163,7 @@ bool bq25798_adc_enable(FuriHalI2cBusHandle* handle, bool enabled) {
 
     Bq25798Reg2EADCControl reg_temp = {0};
     reg_temp.ADC_EN = enabled;
+    reg_temp.ADC_SAMPLE = 0b00; // 15 bits effective
     return bq25798_write_reg_8(handle, BQ25798_REG2E_ADC_CONTROL, *(uint8_t*)&reg_temp);
 }
 

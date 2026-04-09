@@ -12,6 +12,18 @@
 #define POWER_IRQ_GPIO (&gpio_bq25798_irq)
 #define POWER_I2C      (&furi_hal_i2c_handle_1)
 
+static const BatterySocSettings battery_parameters = {
+    .storage_path = "/ext/apps_data/battery",
+    .nominal_capacity_mah = 2600,
+    .current_max_ma = 3000,
+    .voltage_empty_mv = 3200,
+    .voltage_full_mv = 4100,
+    .hysteresis_mv = 100,
+};
+
+#define BATTERY_MEASURE_PERIOD furi_ms_to_ticks(25)
+#define BATTERY_SYNC_PERIOD    furi_ms_to_ticks(10 * 60 * 1000)
+
 static void power_print_interrupt_flags(uint32_t flags) {
     FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", flags);
     if(flags & Bq25798ChargerFlagVbusPresent) FURI_LOG_D(TAG, "\tVbus present");
@@ -239,7 +251,7 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         furi_hal_i2c_release(POWER_I2C);
         break;
     case PowerMessageTypePdGetInfo:
-        furi_assert(msg.power_info);
+        furi_assert(msg.pd_info);
         memcpy(msg.pd_info, &(power->pd_info), sizeof(PowerPdInfo));
         break;
     case PowerMessageTypePdRequest:
@@ -249,6 +261,9 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         break;
     case PowerMessageTypeUsbPdUpdate:
         power_handle_pd_update(power, msg.pd_mode.voltage, msg.pd_mode.current);
+        break;
+    case PowerMessageTypeSwitchAlerts:
+        power->alerts_enabled = *msg.param_bool;
         break;
     default:
         furi_crash();
@@ -278,38 +293,39 @@ static const char* power_battery_state_to_string(PowerBatteryState state) {
 }
 
 static void power_battery_state_transition(Power* power, PowerBatteryState state) {
-    if(power->battery_state != state) {
-        FURI_LOG_D(
-            TAG,
-            "Battery state transition: %s -> %s",
-            power_battery_state_to_string(power->battery_state),
-            power_battery_state_to_string(state));
+    if(!power->alerts_enabled) return;
+    if(power->battery_state == state) return;
 
-        switch(power->battery_state) {
-        case PowerBatteryStateNormal:
-            power_pubsub_publish(power, PowerEventBatteryNormalStop);
-            break;
-        case PowerBatteryStateLow:
-            power_pubsub_publish(power, PowerEventBatteryLowStop);
-            break;
-        case PowerBatteryStateCritical:
-            power_pubsub_publish(power, PowerEventBatteryCriticalStop);
-            break;
-        }
+    FURI_LOG_D(
+        TAG,
+        "Battery state transition: %s -> %s",
+        power_battery_state_to_string(power->battery_state),
+        power_battery_state_to_string(state));
 
-        power->battery_state = state;
+    switch(power->battery_state) {
+    case PowerBatteryStateNormal:
+        power_pubsub_publish(power, PowerEventBatteryNormalStop);
+        break;
+    case PowerBatteryStateLow:
+        power_pubsub_publish(power, PowerEventBatteryLowStop);
+        break;
+    case PowerBatteryStateCritical:
+        power_pubsub_publish(power, PowerEventBatteryCriticalStop);
+        break;
+    }
 
-        switch(power->battery_state) {
-        case PowerBatteryStateNormal:
-            power_pubsub_publish(power, PowerEventBatteryNormalStart);
-            break;
-        case PowerBatteryStateLow:
-            power_pubsub_publish(power, PowerEventBatteryLowStart);
-            break;
-        case PowerBatteryStateCritical:
-            power_pubsub_publish(power, PowerEventBatteryCriticalStart);
-            break;
-        }
+    power->battery_state = state;
+
+    switch(power->battery_state) {
+    case PowerBatteryStateNormal:
+        power_pubsub_publish(power, PowerEventBatteryNormalStart);
+        break;
+    case PowerBatteryStateLow:
+        power_pubsub_publish(power, PowerEventBatteryLowStart);
+        break;
+    case PowerBatteryStateCritical:
+        power_pubsub_publish(power, PowerEventBatteryCriticalStart);
+        break;
     }
 }
 
@@ -366,6 +382,8 @@ static void power_update_info(Power* power) {
 
     power->charger_enabled = bq25798_is_charge_enabled(POWER_I2C);
 
+    bq25798_adc_enable(POWER_I2C, true);
+
     furi_hal_i2c_release(POWER_I2C);
 
 #if 0
@@ -415,14 +433,6 @@ static void power_update_info(Power* power) {
 
     power->state.usb_connected = status.vbus_present;
 
-    if(power->info.voltage_battery < 2500.0f) {
-        power->info.voltage_battery = adc_val.bat_v;
-    } else {
-        // TODO: tune low pass filter
-        power->info.voltage_battery =
-            dsp_low_pass(adc_val.bat_v, power->info.voltage_battery, 0.90f);
-    }
-
     bool is_charging = power_charger_is_charging(status.chg_stat);
     bool was_charging = power->info.is_charging;
 
@@ -433,9 +443,8 @@ static void power_update_info(Power* power) {
         furi_pubsub_publish(power->event_pubsub, &pub_event);
     }
 
-    uint8_t charge = power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, is_charging);
+    uint8_t charge = power->info.battery_details.charge_percent;
     uint8_t previous_charge = power->info.charge;
-
     power->info.charge = charge;
 
     if(charge != previous_charge) {
@@ -445,7 +454,6 @@ static void power_update_info(Power* power) {
 
     power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
 
-    power->info.current_battery = adc_val.bat_i;
     power->info.current_usb = adc_val.usb_i;
     power->info.voltage_usb = adc_val.usb_v;
     power->info.temperature_charger = adc_val.temp_charger;
@@ -453,8 +461,6 @@ static void power_update_info(Power* power) {
 
     power->info.is_charging = power_charger_is_charging(status.chg_stat);
     power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
-    power->info.charge = power_get_battery_charge(
-        power->info.voltage_battery, power->info.current_battery, power->info.is_charging);
 
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
@@ -481,6 +487,34 @@ static void power_tick_callback(void* context) {
     power_update_info(power);
 }
 
+static void power_measure_timer_callback(void* context) {
+    furi_assert(context);
+    Power* power = context;
+    Bq25798AdcValues adc_values;
+    BatterySocMeasurements measurements;
+
+    furi_hal_i2c_acquire(POWER_I2C);
+
+    if(bq25798_get_adc_values(POWER_I2C, &adc_values)) {
+        measurements.timestamp = furi_get_tick();
+        measurements.voltage_uv = adc_values.bat_v * 1000;
+        measurements.charge_current_ua = adc_values.bat_i * 1000;
+        power->info.battery_details = battery_soc_feed_measurements(power->battery_soc, &measurements);
+        power->info.current_battery = measurements.charge_current_ua / 1000;
+        power->info.voltage_battery = measurements.voltage_uv / 1000;
+    } else {
+        FURI_LOG_E(TAG, "failed to read ADC");
+    }
+
+    furi_hal_i2c_release(POWER_I2C);
+}
+
+static void power_sync_timer_callback(void* context) {
+    furi_assert(context);
+    Power* power = context;
+    battery_soc_sync(power->battery_soc);
+}
+
 static Power* power_alloc(void) {
     Power* power = malloc(sizeof(Power));
     power->event_loop = furi_event_loop_alloc();
@@ -491,6 +525,7 @@ static Power* power_alloc(void) {
     power->charger_enabled = true;
     power->state.battery_ready = false;
     power->info.is_charging = false;
+    power->alerts_enabled = true;
     power->info.charge = 0;
 
     furi_event_loop_subscribe_message_queue(
@@ -504,6 +539,12 @@ static Power* power_alloc(void) {
     power->usb_pd = power_usb_pd_alloc(&pd_queue);
     furi_event_loop_subscribe_message_queue(
         power->event_loop, pd_queue, FuriEventLoopEventIn, power_usb_pd_msg_handler, power->usb_pd);
+
+    power->battery_soc = battery_soc_alloc(&battery_parameters);
+    power->battery_measure = furi_event_loop_timer_alloc(power->event_loop, power_measure_timer_callback, FuriEventLoopTimerTypePeriodic, power);
+    furi_event_loop_timer_start(power->battery_measure, BATTERY_MEASURE_PERIOD);
+    power->battery_sync = furi_event_loop_timer_alloc(power->event_loop, power_sync_timer_callback, FuriEventLoopTimerTypePeriodic, power);
+    furi_event_loop_timer_start(power->battery_sync, BATTERY_SYNC_PERIOD);
 
     furi_event_loop_tick_set(power->event_loop, 1000, power_tick_callback, power);
 

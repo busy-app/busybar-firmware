@@ -1,6 +1,7 @@
 #pragma once
 
 #include "power.h"
+#include "battery_soc.h"
 #include <furi_hal.h>
 #include <toolbox/api_lock.h>
 
@@ -14,6 +15,7 @@ typedef enum {
     PowerMessageTypeSetChargeCurrent,
     PowerMessageTypePdGetInfo,
     PowerMessageTypePdRequest,
+    PowerMessageTypeSwitchAlerts,
 
     // TODO: separate queue for internal messages?
     PowerMessageTypeUsbPdUpdate,
@@ -46,6 +48,7 @@ typedef struct {
             uint32_t voltage;
             uint32_t current;
         } pd_mode;
+        BatterySocLevel* battery_level;
         PowerInfo* power_info;
         PowerPdInfo* pd_info;
         bool* param_bool;
@@ -76,7 +79,12 @@ struct Power {
     uint32_t input_current_limit;
     uint32_t charger_current_limit;
     bool charger_enabled;
+    bool alerts_enabled;
     PowerBatteryState battery_state;
+    BatterySoc* battery_soc;
+    BatterySocLevel battery_level;
+    FuriEventLoopTimer* battery_measure;
+    FuriEventLoopTimer* battery_sync;
 
 #ifndef FURI_RAM_EXEC
     bool shipping_mode_wait;
@@ -92,5 +100,3 @@ void power_usb_pd_start(PowerUsbPd* pd);
 void power_usb_pd_get_capabilities(PowerUsbPd* pd, PowerUsbPdCapability* caps);
 
 void power_usb_pd_request_power(PowerUsbPd* pd, uint32_t voltage_mv, uint32_t current_ma);
-
-uint8_t power_get_battery_charge(uint32_t voltage_mv, int32_t current_ma, bool is_charging);
