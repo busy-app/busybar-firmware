@@ -140,7 +140,7 @@ static void wifi_process_request(Wifi* instance) {
     }
 
     if(unlock_api) {
-        wifi_api_unlock_all(instance, status);
+        wifi_api_unlock(instance, status);
     }
 }
 
@@ -223,7 +223,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
     }
 
     if(unlock_api) {
-        wifi_api_unlock_all(instance, status);
+        wifi_api_unlock(instance, status);
     }
 }
 
@@ -280,7 +280,7 @@ static void wifi_override_queue_callback(FuriEventLoopObject* object, void* cont
     furi_assert(object == instance->override_queue);
 
     if(!wifi_api_try_lock(instance)) {
-        wifi_api_unlock_request(instance, WifiStatusError);
+        wifi_api_unlock_pending_request(instance, WifiStatusError);
     }
 
     furi_check(

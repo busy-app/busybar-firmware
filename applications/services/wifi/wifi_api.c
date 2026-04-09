@@ -55,12 +55,12 @@ bool wifi_api_try_lock(Wifi* instance) {
     return furi_semaphore_acquire(instance->api_semaphore, 0) == FuriStatusOk;
 }
 
-void wifi_api_unlock_all(Wifi* instance, WifiStatus status) {
-    wifi_api_unlock_request(instance, status);
+void wifi_api_unlock(Wifi* instance, WifiStatus status) {
+    wifi_api_unlock_pending_request(instance, status);
     furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
 }
 
-void wifi_api_unlock_request(Wifi* instance, WifiStatus status) {
+void wifi_api_unlock_pending_request(Wifi* instance, WifiStatus status) {
     WifiMessage* message = &instance->api_message;
 
     if(message->lock) {
