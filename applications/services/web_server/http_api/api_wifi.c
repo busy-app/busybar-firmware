@@ -1,5 +1,6 @@
 #include "http_api.h"
 #include <wifi/wifi.h>
+#include <wifi/wifi_util.h>
 #include <cjson/cJSON.h>
 
 #define TAG "HttpWiFi"
@@ -126,9 +127,11 @@ static bool api_wifi_check_record_exists(struct mg_connection* conn) {
 
 static bool api_wifi_get_networks_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -201,19 +204,15 @@ bool api_wifi_parse_ip_address(
 
 static void api_wifi_print_ip_address(FuriString* str, WifiIpConfig* ip_config) {
     furi_string_reset(str);
+    char buf[40];
     const WifiIpType type = ip_config->type;
 
     if(type == WifiIpTypeV4) {
-        const uint8_t* bytes = ip_config->ip4.address.bytes;
-        furi_string_cat_printf(str, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
+        wifi_format_ipv4(&ip_config->ip4.address, buf, sizeof(buf));
     } else {
-        uint8_t n = COUNT_OF(ip_config->ip6.global.value);
-        for(size_t i = 0; i < n; i++) {
-            uint16_t w1 = (ip_config->ip6.global.value[i] >> 16);
-            uint16_t w2 = (ip_config->ip6.global.value[i] & 0xFFFF);
-            furi_string_cat_printf(str, "%X:%X%c", w1, w2, (i + 1 == n) ? 0 : ':');
-        }
+        wifi_format_ipv6(&ip_config->ip6.global, buf, sizeof(buf));
     }
+    furi_string_set_str(str, buf);
 }
 
 static bool api_wifi_mg_json_get_str_key(
@@ -305,6 +304,10 @@ static bool api_wifi_connect_parse_config(
     FuriString* buf = furi_string_alloc();
     do {
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SSID, buf, error_msg)) break;
+        if(furi_string_empty(buf)) {
+            furi_string_printf(error_msg, "%s must not be empty", WIFI_JSON_KEY_SSID);
+            break;
+        }
         strncpy(credentials->ssid, furi_string_get_cstr(buf), SSID_MAX_LEN);
 
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_PASSWORD, buf, error_msg)) break;
@@ -333,9 +336,11 @@ static bool api_wifi_connect_parse_config(
 
 static bool api_wifi_connect_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
@@ -374,9 +379,11 @@ static bool api_wifi_connect_callback(
 
 static bool api_wifi_disconnect_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -396,25 +403,13 @@ static bool api_wifi_disconnect_callback(
     return true;
 }
 
-static void api_wifi_format_bssid(const uint8_t* bssid, char* str_out, size_t str_out_size) {
-    memset(str_out, 0, str_out_size);
-
-    for(size_t i = 0; i < HW_ADDRESS_LEN; i++) {
-        char part[4];
-        snprintf(part, sizeof(part), "%02X", bssid[i]);
-        strcat(str_out, part);
-
-        if(i != HW_ADDRESS_LEN - 1) {
-            strcat(str_out, ":");
-        }
-    }
-}
-
 static bool api_wifi_get_status_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -438,7 +433,7 @@ static bool api_wifi_get_status_callback(
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SECURITY, security_mode);
 
             char bssid_str[32];
-            api_wifi_format_bssid(info.bssid, bssid_str, sizeof(bssid_str));
+            wifi_format_bssid(info.bssid, bssid_str, sizeof(bssid_str));
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_BSSID, bssid_str);
 
             cJSON_AddNumberToObject(response, WIFI_JSON_KEY_CHANNEL, info.channel);
@@ -481,25 +476,25 @@ static bool api_wifi_get_status_callback(
 static const HttpHandler handlers_wifi[] = {
     {
         .uri = "networks",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_get_networks_callback,
     },
     {
         .uri = "connect",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_connect_callback,
     },
     {
         .uri = "disconnect",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_disconnect_callback,
     },
     {
         .uri = "status",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = api_wifi_get_status_callback,
     },
@@ -524,9 +519,10 @@ void http_api_wifi_free(void* ctx) {
 
 bool http_api_wifi_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiWifiCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

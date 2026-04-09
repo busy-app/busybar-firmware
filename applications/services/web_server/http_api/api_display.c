@@ -13,17 +13,15 @@
 
 #define TAG "HttpDisplay"
 
-#define DISPLAY_ASSETS_DIR               EXT_PATH("assets")
-#define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
-#define DISPLAY_BUILTIN_ANIM_FORMATTER   EXT_PATH("apps_assets/%s/animations/%s.anim")
+#define DISPLAY_ASSETS_DIR EXT_PATH("user_assets")
 
 #define DEFAULT_ELEMENT_PRIORITY 50
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
-    const char* app_id,
+    const char* app_name,
     struct mg_str json_element) {
-    UNUSED(app_id);
+    UNUSED(app_name);
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeText;
@@ -48,6 +46,11 @@ static bool api_display_draw_parse_text_element(
         };
         const char* font_path =
             value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
+        if(strcmp(font_path, font_paths[0]) == 0 && strcmp(font_name, font_names[0]) != 0) {
+            // Unknown font name mapped to default — reject
+            free(font_name);
+            break;
+        }
         canvas_element->text.font_path = strdup(font_path);
         free(font_name);
 
@@ -76,9 +79,9 @@ static bool api_display_draw_parse_text_element(
 
 static bool api_display_draw_parse_countdown_element(
     CanvasElement* canvas_element,
-    const char* app_id,
+    const char* app_name,
     struct mg_str json_element) {
-    UNUSED(app_id);
+    UNUSED(app_name);
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeCountdown;
@@ -126,7 +129,7 @@ static bool api_display_draw_parse_countdown_element(
 
 static bool api_display_draw_parse_image_path(
     FuriString** file_path,
-    const char* app_id,
+    const char* app_name,
     struct mg_str json_element,
     CanvasElementType type) {
     furi_check((type == CanvasElementTypeImage) || (type == CanvasElementTypeAnimPlayer));
@@ -135,25 +138,23 @@ static bool api_display_draw_parse_image_path(
     bool result = false;
 
     char* uploaded = mg_json_get_str(json_element, "$.path");
-    char* builtin =
-        mg_json_get_str(json_element, is_animated ? "$.builtin_anim" : "$.builtin_image");
+    char* stock = mg_json_get_str(json_element, "$.stock_path");
 
     do {
-        if(uploaded && builtin) break;
+        if(uploaded && stock) break;
 
         if(uploaded) {
             *file_path =
-                furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, uploaded);
+                furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_name, uploaded);
 
             result = true;
             break;
         }
 
-        if(builtin) {
-            char* app_name = builtin;
+        if(stock) {
             char* image_name = NULL;
 
-            for(char* c = builtin; *c != 0; c++) {
+            for(char* c = stock; *c != 0; c++) {
                 if(*c == '/') {
                     *c = '\0';
                     image_name = c + 1;
@@ -163,29 +164,27 @@ static bool api_display_draw_parse_image_path(
             if(!image_name) break;
 
             *file_path = furi_string_alloc_printf(
-                is_animated ? DISPLAY_BUILTIN_ANIM_FORMATTER : DISPLAY_BUILTIN_IMAGES_FORMATTER,
-                app_name,
-                image_name);
+                is_animated ? SHARED_ANIM_PATH("%s") : SHARED_IMG_PATH("%s"), image_name);
             result = true;
             break;
         }
     } while(0);
 
-    free(uploaded);
-    free(builtin);
+    if(uploaded) free(uploaded);
+    if(stock) free(stock);
     return result;
 }
 
 static bool api_display_draw_parse_image_element(
     CanvasElement* canvas_element,
-    const char* app_id,
+    const char* app_name,
     struct mg_str json_element) {
     bool result = false;
 
     do {
         canvas_element->type = CanvasElementTypeImage;
         if(!api_display_draw_parse_image_path(
-               &canvas_element->image.file_path, app_id, json_element, canvas_element->type))
+               &canvas_element->image.file_path, app_name, json_element, canvas_element->type))
             break;
 
         result = true;
@@ -196,14 +195,14 @@ static bool api_display_draw_parse_image_element(
 
 static bool api_display_draw_parse_anim_player_element(
     CanvasElement* canvas_element,
-    const char* app_id,
+    const char* app_name,
     struct mg_str json_element) {
     bool result = false;
 
     do {
         if(!api_display_draw_parse_image_path(
                &canvas_element->anim_player.file_path,
-               app_id,
+               app_name,
                json_element,
                CanvasElementTypeAnimPlayer))
             break;
@@ -235,7 +234,7 @@ static bool api_display_draw_parse_anim_player_element(
 }
 
 typedef bool (
-    *ApiDisplayElementTypeParser)(CanvasElement*, const char* app_id, struct mg_str element);
+    *ApiDisplayElementTypeParser)(CanvasElement*, const char* app_name, struct mg_str element);
 
 typedef struct {
     const char* type;
@@ -244,7 +243,7 @@ typedef struct {
 
 static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,
-    char* app_id,
+    char* app_name,
     struct mg_str element) {
     bool success = false;
     char* element_type = NULL;
@@ -309,13 +308,13 @@ static bool api_display_draw_parse_element(
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
             {"text", api_display_draw_parse_text_element},
             {"image", api_display_draw_parse_image_element},
-            {"anim", api_display_draw_parse_anim_player_element},
+            {"animation", api_display_draw_parse_anim_player_element},
             {"countdown", api_display_draw_parse_countdown_element},
         };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
             const ApiDisplayElementTypeAssoc* association = &element_parsers[i];
             if(strcmp(element_type, association->type) == 0) {
-                success = association->parser(canvas_element, app_id, element);
+                success = association->parser(canvas_element, app_name, element);
                 break;
             }
         }
@@ -350,27 +349,19 @@ static size_t api_display_active_priority(void) {
     return priority;
 }
 
-static bool api_display_draw_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_message* msg) {
     CanvasElementsArray_t elements_array;
     CanvasElementsArray_init(elements_array);
 
-    char* app_id = NULL;
+    char* app_name = NULL;
     bool success = false;
     double json_num = 0;
     int priority = DEFAULT_ELEMENT_PRIORITY;
 
     do {
-        app_id = mg_json_get_str(msg->body, "$.app_id");
-        if(!app_id) {
-            MG_REPLY_ERROR(conn, 400, "Missing app_id");
+        app_name = mg_json_get_str(msg->body, "$.application_name");
+        if(!app_name) {
+            MG_REPLY_ERROR(conn, 400, "Missing application_name");
             break;
         }
 
@@ -396,7 +387,7 @@ static bool api_display_draw_callback(
         struct mg_str element;
         success = true;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
-            success = api_display_draw_parse_element(elements_array, app_id, element);
+            success = api_display_draw_parse_element(elements_array, app_name, element);
             if(!success) break;
         }
 
@@ -433,7 +424,7 @@ static bool api_display_draw_callback(
         }
 
         CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-        bool shown = canvas_show_elements(canvas, app_id, priority, elements_array);
+        bool shown = canvas_show_elements(canvas, app_name, priority, elements_array);
         furi_record_close(RECORD_CANVAS);
 
         if(!shown) {
@@ -445,51 +436,52 @@ static bool api_display_draw_callback(
     } while(0);
 
     CanvasElementsArray_clear(elements_array);
-    if(app_id) free(app_id);
-    return true;
+    if(app_name) free(app_name);
 }
 
-static bool api_display_delete_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(msg);
-    UNUSED(ctx);
+static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_message* msg) {
+    char app_name_buf[64];
+    int app_name_len =
+        mg_http_get_var(&msg->query, "application_name", app_name_buf, sizeof(app_name_buf));
+    const char* app_name = (app_name_len >= 1) ? app_name_buf : NULL;
 
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
-    char app_id_buf[64];
-    int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id_buf, sizeof(app_id_buf));
-    const char* app_id = (app_id_len >= 1) ? app_id_buf : NULL;
-
-    FuriString* app_name = furi_string_alloc();
+    FuriString* loader_app_name = furi_string_alloc();
     Loader* loader = furi_record_open(RECORD_LOADER);
 
-    if(loader_get_application_name(loader, app_name)) {
-        if(furi_string_cmp(app_name, "Canvas") == 0) {
+    if(loader_get_application_name(loader, loader_app_name)) {
+        if(furi_string_cmp(loader_app_name, "Canvas") == 0) {
             CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
-            canvas_delete_elements(canvas, app_id);
+            canvas_delete_elements(canvas, app_name);
             furi_record_close(RECORD_CANVAS);
         }
     }
 
     furi_record_close(RECORD_LOADER);
     MG_REPLY_OK(conn);
-    furi_string_free(app_name);
+    furi_string_free(loader_app_name);
+}
+
+static bool api_display_draw_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodPost) {
+        api_display_canvas_draw(conn, msg);
+    } else if(method == HttpMethodDelete) {
+        api_display_canvas_clear(conn, msg);
+    }
 
     return true;
 }
 
-static bool api_display_get_brightness_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
+static void api_display_get_brightness(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* json_str = furi_string_alloc();
 
@@ -506,19 +498,9 @@ static bool api_display_get_brightness_callback(
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
     furi_string_free(json_str);
-    return true;
 }
 
-static bool api_display_set_brightness_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(msg);
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_display_set_brightness(struct mg_connection* conn, struct mg_http_message* msg) {
     bool success = false;
     do {
         if(msg->query.len == 0) break;
@@ -557,6 +539,23 @@ static bool api_display_set_brightness_callback(
     } else {
         MG_REPLY_BAD_REQUEST(conn);
     }
+}
+
+static bool api_display_brightness_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodGet) {
+        api_display_get_brightness(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_display_set_brightness(conn, msg);
+    }
 
     return true;
 }
@@ -564,27 +563,15 @@ static bool api_display_set_brightness_callback(
 static const HttpHandler handlers_display[] = {
     {
         .uri = "draw",
-        .method = "POST",
+        .method = HttpMethodPost | HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_request = api_display_draw_callback,
     },
     {
-        .uri = "draw",
-        .method = "DELETE",
-        .type = HttpHandlerCustom,
-        .on_request = api_display_delete_callback,
-    },
-    {
         .uri = "brightness",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
-        .on_request = api_display_get_brightness_callback,
-    },
-    {
-        .uri = "brightness",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_display_set_brightness_callback,
+        .on_request = api_display_brightness_callback,
     },
 };
 
@@ -611,9 +598,10 @@ void http_api_display_free(void* ctx) {
 
 bool http_api_display_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiDisplayCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

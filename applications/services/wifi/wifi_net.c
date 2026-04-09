@@ -119,6 +119,8 @@ void wifi_net_init(Wifi* instance, const uint8_t* hw_addr) {
     netif->hwaddr_len = ETH_HWADDR_LEN;
     memcpy(netif->hwaddr, hw_addr, ETH_HWADDR_LEN);
 
+    netif->hostname = furi_string_get_cstr(instance->dhcp_hostname);
+
     UNLOCK_TCPIP_CORE();
 
     instance->intercom_ch_data = intercom_channel_open(

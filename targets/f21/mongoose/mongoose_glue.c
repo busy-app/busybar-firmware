@@ -213,3 +213,7 @@ static const struct mg_fs mg_fs_flipper = {
 struct mg_fs* http_fs_get(void) {
     return (struct mg_fs*)&mg_fs_flipper;
 }
+
+void mg_init_early(void) {
+    mg_log_set(MG_LOG_LEVEL);
+}

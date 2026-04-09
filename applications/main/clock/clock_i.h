@@ -4,7 +4,7 @@
 #include "settings/settings.h"
 
 #include <gui/gui.h>
-#include <sntp/sntp.h>
+#include <time/time.h>
 #include <desktop/desktop.h>
 #include <updater/updater.h>
 #include <storage/storage.h>
@@ -12,6 +12,7 @@
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
+#include <gui/modules/transition_overlay.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,17 +25,17 @@ extern "C" {
 #define THIS_ANIM_PATH(path)   THIS_ASSETS_PATH("animations") "/" path
 
 typedef enum {
-    ThisEventTimerUpdate,
+    ClockEventTimerUpdate,
 
-    ThisEventSceneEventsStart,
-} ThisEvent;
+    ClockEventSceneEventsStart,
+} ClockEvent;
 
 typedef struct {
     bool do_skip_menu;
-} ThisArguments;
+} ClockArguments;
 
 typedef struct {
-    ThisArguments arguments;
+    ClockArguments arguments;
 
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
@@ -43,22 +44,23 @@ typedef struct {
     SceneManager* scene_manager;
 
     Gui* gui;
-    Sntp* sntp;
+    Time* time;
     Desktop* desktop;
     Updater* updater;
 
     ClockSettings settings;
 
     /* Front layout */
+    TransitionOverlay* front_transition_overlay;
     Widget* front_scene_window;
 
     /* Back layout */
     FlexLayout* back_container;
     NavBar* back_nav_bar;
     Widget* back_scene_window;
-} ThisInstance;
+} Clock;
 
-void clock_app_fire_event(ThisInstance* instance, uint32_t event);
+void clock_internal_fire_event(Clock* instance, uint32_t event);
 
 #ifdef __cplusplus
 }

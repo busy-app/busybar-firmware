@@ -84,7 +84,7 @@ async function copyToClipboard () {
       description: 'Check console for more details',
       icon: 'i-bi-alert',
       color: 'error',
-      duration: 5000
+      duration: 10000
     });
     setTimeout(() => {
       copyState.value = 'idle';

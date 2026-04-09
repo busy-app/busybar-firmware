@@ -3,7 +3,7 @@
     data-id="layout-default-preview"
     class="w-full flex flex-col items-center"
   >
-    <ScreenStream class="py-6" />
+    <StateScreenStream class="py-6" />
   </div>
 </template>
 

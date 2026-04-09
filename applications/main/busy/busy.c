@@ -114,11 +114,9 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->api_queue = furi_message_queue_alloc(1, sizeof(BusyApiMessage));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
     instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
-    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->updater = furi_record_open(RECORD_UPDATER);
-    instance->matter = furi_record_open(RECORD_MATTER);
     instance->loader = furi_record_open(RECORD_LOADER);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->theme = busy_theme_alloc();
@@ -155,7 +153,8 @@ static BusyApp* busy_alloc(const char* arg) {
         instance->timer_card = mirror_card_alloc(back_root);
         mirror_card_set_header_text(instance->timer_card, "ACTIVE");
         mirror_card_set_footer_secondary_text(instance->timer_card, "LEFT");
-        widget_set_pos_y(mirror_card_get_base(instance->timer_card), 2);
+        widget_set_align(mirror_card_get_base(instance->timer_card), AlignCenter);
+        widget_set_margin(mirror_card_get_base(instance->timer_card), 0, 0, 2, 2);
         widget_set_visible(mirror_card_get_base(instance->timer_card), false);
 
         // Create application window on Back display
@@ -204,8 +203,6 @@ static void busy_free(BusyApp* instance) {
 
     busy_timer_stop(instance->busy_timer);
 
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    busy_set_matter(instance, false);
     busy_set_front_display_blanking(instance, false);
 
     scene_manager_free(instance->scene_manager);
@@ -223,9 +220,7 @@ static void busy_free(BusyApp* instance) {
 
     furi_record_close(RECORD_BUSY_TIMER);
     furi_record_close(RECORD_LOADER);
-    furi_record_close(RECORD_MATTER);
     furi_record_close(RECORD_UPDATER);
-    furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
@@ -271,21 +266,6 @@ void busy_start_transition(BusyApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { transition_overlay_start(instance->transition_overlay); });
-}
-
-void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
-    furi_assert(instance);
-    furi_assert(type < BusyStatusLightsTypeMax);
-
-    const BusyStatusLightsPreset* preset = &busy_status_lights[type];
-    status_lights_run_preset(instance->status_lights, preset->preset, preset->color);
-}
-
-void busy_set_matter(BusyApp* instance, bool switch_state) {
-    furi_assert(instance);
-    if(instance->config.is_smart_home_enabled) {
-        matter_set_switch_state(instance->matter, switch_state);
-    }
 }
 
 void busy_set_priority(BusyApp* instance, bool is_active) {

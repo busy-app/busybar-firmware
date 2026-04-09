@@ -3,8 +3,8 @@ App(
     name="Clock",
     apptype=FlipperAppType.APP,
     order=20,
-    entry_point="clock_app_entry",
-    requires=["gui", "desktop", "storage", "sntp", "updater"],
+    entry_point="clock_entry",
+    requires=["gui", "desktop", "storage", "time", "updater"],
     stack_size=4 * 1024,
     targets=["f20", "f21", "f22"],
 )

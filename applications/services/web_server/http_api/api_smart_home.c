@@ -11,19 +11,19 @@ typedef struct {
     HttpHandlersList_t handlers;
 } ApiMatterCtx;
 
-static bool api_smart_home_pairing_status(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
+static void
+    api_smart_home_pairing_status(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(untyped_ctx);
 
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
-    MatterCommissionedFabrics fabrics = matter_commissioned_fabrics(matter);
+    Matter* matter = furi_record_open(RECORD_MATTER);
+    MatterCommissionedFabrics fabrics;
+    const MatterStatus status = matter_get_commissioned_fabrics(matter, &fabrics);
     furi_record_close(RECORD_MATTER);
+
+    if(status != MatterStatusOk) {
+        MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
+        return;
+    }
 
     cJSON* object = cJSON_CreateObject();
 
@@ -38,50 +38,42 @@ static bool api_smart_home_pairing_status(
     };
     cJSON_AddStringToObject(status_upd, "value", status_string[fabrics.last_status]);
 
-    // representing a millisecond timestamp as a number will have precision issues
     if(fabrics.last_status_at) {
-        char timestamp[32];
-        snprintf(timestamp, sizeof(timestamp), "%" PRIu64, fabrics.last_status_at);
-        cJSON_AddStringToObject(status_upd, "timestamp", timestamp);
+        cJSON_AddNumberToObject(status_upd, "timestamp", fabrics.last_status_at / 1000);
     }
 
     char* serialized = cJSON_PrintUnformatted(object);
     cJSON_Delete(object);
     MG_REPLY_OK_BODY(conn, serialized);
     free(serialized);
-
-    return true;
 }
 
-static bool api_smart_home_enable_pairing(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
+static void
+    api_smart_home_enable_pairing(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(untyped_ctx);
 
     bool success = false;
-    if(!IS_HTTP_ENDPOINT(path)) return success;
-
-    FuriString* qr_code = furi_string_alloc();
-    FuriString* manual_code = furi_string_alloc();
 
     do {
-        MatterSrv* matter = furi_record_open(RECORD_MATTER);
-        size_t seconds_left = matter_enable_commissioning(matter, qr_code, manual_code);
+        Matter* matter = furi_record_open(RECORD_MATTER);
+
+        MatterCommissioningInfo info;
+        const MatterStatus status = matter_enable_commissioning(matter, &info);
+
         furi_record_close(RECORD_MATTER);
 
-        if(!seconds_left) break;
+        if(status != MatterStatusOk) {
+            break;
+        }
 
         cJSON* object = cJSON_CreateObject();
 
-        time_t available_until = furi_hal_rtc_get_timestamp_ms() + (seconds_left * 1000);
+        time_t available_until = furi_hal_rtc_get_timestamp_ms() + (info.window_duration_s * 1000);
         char timestamp[32];
         snprintf(timestamp, sizeof(timestamp), "%" PRIu64, available_until);
         cJSON_AddStringToObject(object, "available_until", timestamp);
-        cJSON_AddStringToObject(object, "qr_code", furi_string_get_cstr(qr_code));
-        cJSON_AddStringToObject(object, "manual_code", furi_string_get_cstr(manual_code));
+        cJSON_AddStringToObject(object, "qr_code", info.qr_code);
+        cJSON_AddStringToObject(object, "manual_code", info.manual_code);
 
         char* serialized = cJSON_PrintUnformatted(object);
         cJSON_Delete(object);
@@ -91,26 +83,13 @@ static bool api_smart_home_enable_pairing(
     } while(0);
 
     if(!success) MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
-
-    furi_string_free(qr_code);
-    furi_string_free(manual_code);
-
-    return true;
 }
 
-static bool api_smart_home_factory_reset(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
+static void api_smart_home_factory_reset(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    UNUSED(untyped_ctx);
 
-    bool success = false;
-    if(!IS_HTTP_ENDPOINT(path)) return success;
-
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
-    success = matter_factory_reset(matter);
+    Matter* matter = furi_record_open(RECORD_MATTER);
+    bool success = matter_factory_reset(matter);
     furi_record_close(RECORD_MATTER);
 
     if(success) {
@@ -118,57 +97,60 @@ static bool api_smart_home_factory_reset(
     } else {
         MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
     }
-
-    return true;
 }
 
-static bool api_smart_home_switch_get(
+static bool api_smart_home_pairing_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* untyped_ctx) {
     UNUSED(msg);
     UNUSED(untyped_ctx);
 
-    bool handled = true;
-
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    bool state;
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
-    bool result = matter_get_switch_state(matter, &state);
+    if(method == HttpMethodGet) {
+        api_smart_home_pairing_status(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_smart_home_enable_pairing(conn, msg);
+    } else if(method == HttpMethodDelete) {
+        api_smart_home_factory_reset(conn, msg);
+    }
+
+    return true;
+}
+
+static void api_smart_home_switch_get(struct mg_connection* conn, struct mg_http_message* msg) {
+    UNUSED(msg);
+
+    Matter* matter = furi_record_open(RECORD_MATTER);
+
+    MatterSwitchState switch_state;
+    furi_state_get(matter_get_switch_state(matter), &switch_state);
     furi_record_close(RECORD_MATTER);
 
-    if(!result) {
+    if(switch_state == MatterSwitchStateUnknown) {
         MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
-        return handled;
+        return;
     }
 
     cJSON* object = cJSON_CreateObject();
 
-    cJSON_AddBoolToObject(object, "state", state);
+    cJSON_AddBoolToObject(object, "state", switch_state == MatterSwitchStateOn);
 
     char* serialized = cJSON_PrintUnformatted(object);
     cJSON_Delete(object);
     MG_REPLY_OK_BODY(conn, serialized);
     free(serialized);
-    return handled;
 }
 
-static bool api_smart_home_switch_set(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* untyped_ctx) {
-    UNUSED(untyped_ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
+static void api_smart_home_switch_set(struct mg_connection* conn, struct mg_http_message* msg) {
     bool success = false;
     bool matter_request_error = false;
     char* switch_startup = NULL;
 
-    MatterSrv* matter = furi_record_open(RECORD_MATTER);
+    Matter* matter = furi_record_open(RECORD_MATTER);
     do {
         bool has_switch_state = false;
         bool switch_state;
@@ -218,6 +200,23 @@ static bool api_smart_home_switch_set(
             MG_REPLY_BAD_REQUEST(conn);
         }
     }
+}
+
+static bool api_smart_home_switch_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* untyped_ctx) {
+    UNUSED(untyped_ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodGet) {
+        api_smart_home_switch_get(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_smart_home_switch_set(conn, msg);
+    }
 
     return true;
 }
@@ -225,33 +224,15 @@ static bool api_smart_home_switch_set(
 static const HttpHandler handlers_matter[] = {
     {
         .uri = "pairing",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPost | HttpMethodDelete,
         .type = HttpHandlerCustom,
-        .on_request = api_smart_home_pairing_status,
-    },
-    {
-        .uri = "pairing",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_smart_home_enable_pairing,
-    },
-    {
-        .uri = "pairing",
-        .method = "DELETE",
-        .type = HttpHandlerCustom,
-        .on_request = api_smart_home_factory_reset,
+        .on_request = api_smart_home_pairing_callback,
     },
     {
         .uri = "switch",
-        .method = "GET",
+        .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
-        .on_request = api_smart_home_switch_get,
-    },
-    {
-        .uri = "switch",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_smart_home_switch_set,
+        .on_request = api_smart_home_switch_callback,
     },
 };
 
@@ -277,9 +258,10 @@ void http_api_smart_home_free(void* ctx) {
 
 bool http_api_smart_home_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiMatterCtx* context = ctx;
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

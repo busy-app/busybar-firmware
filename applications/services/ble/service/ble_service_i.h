@@ -3,6 +3,7 @@
 #include "ble_service.h"
 #include "ble_characteristic.h"
 #include "ble_service_command.h"
+#include "ble_service_frame.h"
 
 #include <furi.h>
 
@@ -20,34 +21,20 @@ struct BleServiceObject {
     FuriMutex* service_lock;
     IntercomChannel* intercom_ch;
 
-    FuriSemaphore* frame_lock;
-    bool frame_pending;
-    size_t buffer_size;
-    uint8_t* frame_buf;
+    BleServiceFrame* input_frame;
+    BleServiceFrame* output_frame;
 
     FuriString* error;
 
     void* context;
+    uint32_t sequence_num;
 #if defined(BSB_MCU_SI917)
     void* service_handler;
     uint16_t handle;
 #endif
 };
 
-///TODO: make this function to return result value
-typedef void (*BleParseIntercomServiceDataCharacteristicExtraAction)(
-    BleCharacteristicObject* characteristic);
-
 void ble_service_enqueue_message(BleServiceObject* instance);
-void ble_service_enqueue_run(BleServiceObject* instance);
-
-void ble_service_prepare_send_intercom_frame(
-    BleServiceObject* instance,
-    BleIntercomFrameType frame_type,
-    BleServiceCommandEnum command,
-    bool result,
-    size_t data_size,
-    const void* data);
 
 void ble_service_set_error(BleServiceObject* instance, const char* foramt, ...);
 
@@ -67,5 +54,10 @@ BleIntercomServiceData* ble_service_create_intercom_service_data_pack(
 
 bool ble_service_parse_intercom_service_data(
     BleServiceObject* instance,
-    const BleIntercomServiceData* data,
-    BleParseIntercomServiceDataCharacteristicExtraAction action);
+    const BleIntercomServiceData* data);
+
+bool ble_service_send_data(
+    BleServiceObject* instance,
+    BleServiceCommandEnum command,
+    BleIntercomFrameType frame_type,
+    bool modified_only);

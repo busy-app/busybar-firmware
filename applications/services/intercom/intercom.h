@@ -51,7 +51,6 @@ typedef enum {
     IntercomChannelIdSlInfo, /**< Wireless co-processor info channel */
     /* Add more channels here as needed */
     IntercomChannelIdDebug, /**< Testing, debugging, etc */
-    IntercomChannelIdMeta, /**< Special channel for internal Intercom use. Do not use. */
     IntercomChannelIdMax, /**< Special value for internal use */
 } IntercomChannelId;
 

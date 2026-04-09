@@ -4,6 +4,8 @@
 
 #include "wifi_state.h"
 
+#include <device_name/device_name.h>
+
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
     furi_assert(context);
@@ -242,6 +244,22 @@ static void wifi_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
+static void wifi_generate_dhcp_hostname(Wifi* instance) {
+    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
+    FuriString* device_name_str = furi_string_alloc();
+
+    device_name_get(device_name, device_name_str);
+    instance->dhcp_hostname = furi_string_alloc_set_str(DEVICE_NAME_DEFAULT);
+
+    if(!furi_string_equal_str(device_name_str, DEVICE_NAME_DEFAULT)) {
+        furi_string_cat_printf(
+            instance->dhcp_hostname, " %s", furi_string_get_cstr(device_name_str));
+    }
+
+    furi_string_free(device_name_str);
+    furi_record_close(RECORD_DEVICE_NAME);
+}
+
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
@@ -251,6 +269,7 @@ static Wifi* wifi_alloc(void) {
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+    wifi_generate_dhcp_hostname(instance);
 
     furi_record_open(RECORD_NETWORK);
 

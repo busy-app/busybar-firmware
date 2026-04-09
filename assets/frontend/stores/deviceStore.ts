@@ -25,6 +25,7 @@ export const useDeviceStore = defineStore('device', () => {
       return;
     }
     checkingConnection.value = true;
+    const wasConnected = isConnected.value;
     try {
       await apiRequest('/api/name', { timeout: 3000 });
       if (!isConnected.value) {
@@ -34,7 +35,7 @@ export const useDeviceStore = defineStore('device', () => {
         }
       }
       isConnected.value = true;
-
+      console.debug('Device is connected');
       toast.remove('device-disconnected');
     } catch (error) {
       // if the request was aborted/cancelled, don't treat it as disconnection
@@ -48,7 +49,11 @@ export const useDeviceStore = defineStore('device', () => {
         }
       }
 
+      if (wasConnected) {
+        window.dispatchEvent(new Event('device-disconnected'));
+      }
       isConnected.value = false;
+      console.debug('Device is disconnected');
       if (
         firmwareStore.autoUpdate.stage !== UpdateStage.UPDATING
         && !(firmwareStore.autoUpdate.stage === UpdateStage.SUCCESS && wifiStore.wifi?.state !== 'connected')
@@ -110,10 +115,17 @@ export const useDeviceStore = defineStore('device', () => {
   const connectionType = ref<'usb' | 'wifi'>('wifi');
   async function detectConnectionType () {
     try {
+      const now = Date.now();
       await $fetch('/api/name', {
         baseURL: useRuntimeConfig().public.barUrl
       });
-      connectionType.value = 'usb';
+      const elapsed = Date.now() - now;
+      if (elapsed <= 75) {
+        connectionType.value = 'usb';
+      } else {
+        console.debug(`Connection check took ${elapsed}ms, treating as wifi connection`);
+        connectionType.value = 'wifi';
+      }
     } catch {
       connectionType.value = 'wifi';
     }
@@ -235,6 +247,7 @@ export const useDeviceStore = defineStore('device', () => {
     checkConnection,
     connectionType,
     detectConnectionType,
+    refreshInterval,
     setRefreshInterval,
     clearRefreshInterval,
 

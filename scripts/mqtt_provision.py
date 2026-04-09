@@ -216,7 +216,7 @@ class Main(App):
     ):
         subject = f"CN=BusyBar device {device_uid},O=Flipper FZCO,C=AE"
         print(f"  Generating wrapped key pair + CSR on device...")
-        ret = crypto_storage.gen_csr(0, KEY_ID_TLS_DEVICE, 1, subject, echo=False)
+        ret = crypto_storage.gen_csr(0, KEY_ID_TLS_DEVICE, 0, subject, echo=False)
         if ret != 0:
             raise Exception(f"Device CSR generation failed with error {ret}")
 
@@ -304,7 +304,7 @@ class Main(App):
         if not device_uid:
             raise RuntimeError("Could not read u5_hardware_uid from device_info")
 
-        if not insecure and info.get("sl_m4_secureboot") != "1":
+        if not insecure and info.get("sl_m4_secureboot") != "true":
             raise RuntimeError(
                 "Key wrapping requested but device does not support secure boot"
                 " (sl_m4_secureboot is not enabled). Pass --insecure-crypto to"

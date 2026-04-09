@@ -3,7 +3,7 @@
 
 #include <cli/args.h>
 #include <furi_hal_rtc.h>
-#include <sntp/sntp.h>
+#include <time/time.h>
 
 void cli_command_rtc_date(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
@@ -21,17 +21,17 @@ void cli_command_rtc_date(PipeSide* pipe, FuriString* args, void* context) {
         furi_hal_rtc_set_datetime(&(DateTimeMs){.dt = dt, .millis = 0});
         // Verification
 
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        LocalTime local_time = sntp_get_local_time(sntp);
-        furi_record_close(RECORD_SNTP);
+        Time* time = furi_record_open(RECORD_TIME);
+        LocalTime local_time = time_get_local_time(time);
+        furi_record_close(RECORD_TIME);
 
         char ts_buf[DATETIME_TIMESTAMP_STR_LEN + 1];
         datetime_format_timestamp(&local_time, ts_buf);
         printf("New datetime is: %s", ts_buf);
     } else {
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        LocalTime local_time = sntp_get_local_time(sntp);
-        furi_record_close(RECORD_SNTP);
+        Time* time = furi_record_open(RECORD_TIME);
+        LocalTime local_time = time_get_local_time(time);
+        furi_record_close(RECORD_TIME);
 
         char ts_buf[DATETIME_TIMESTAMP_STR_LEN + 1];
         datetime_format_timestamp(&local_time, ts_buf);
@@ -54,12 +54,12 @@ void cli_command_rtc_timezone(PipeSide* pipe, FuriString* args, void* context) {
             return;
         }
 
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        SntpSettings settings;
-        sntp_get_settings(sntp, &settings);
+        Time* time = furi_record_open(RECORD_TIME);
+        TimeSettings settings;
+        time_get_settings(time, &settings);
         settings.timezone = zone;
-        bool ok = sntp_set_settings(sntp, &settings);
-        furi_record_close(RECORD_SNTP);
+        bool ok = time_set_settings(time, &settings);
+        furi_record_close(RECORD_TIME);
 
         if(ok) {
             printf("Timezone set OK, new timezone: %s", zone.name);
@@ -68,10 +68,10 @@ void cli_command_rtc_timezone(PipeSide* pipe, FuriString* args, void* context) {
             printf("Error saving timezone");
         }
     } else {
-        Sntp* sntp = furi_record_open(RECORD_SNTP);
-        SntpSettings settings;
-        sntp_get_settings(sntp, &settings);
-        furi_record_close(RECORD_SNTP);
+        Time* time = furi_record_open(RECORD_TIME);
+        TimeSettings settings;
+        time_get_settings(time, &settings);
+        furi_record_close(RECORD_TIME);
 
         printf("%s", settings.timezone.name);
     }

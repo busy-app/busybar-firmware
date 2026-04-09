@@ -16,7 +16,9 @@ python-dotenv = "^1.0.0"
 structlog = "^23.1.0"
 colorlog = "^6.7.0"
 pytest-asyncio = ">=0.20,<0.24"
+pytest-timeout = "^2.2"
 beautifulsoup4 = "^4.13.5"
+Pillow = ">=10.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"
@@ -30,6 +32,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --strict-markers --alluredir=allure-results --clean-alluredir"
+timeout = 120
+timeout_method = "thread"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [

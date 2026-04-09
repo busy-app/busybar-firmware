@@ -50,7 +50,7 @@ typedef struct {
     SceneManager* scene_manager;
     WifiPoller* wifi_poller;
 
-    MatterSrv* matter;
+    Matter* matter;
     FuriPubSubSubscription* matter_subscription;
     Desktop* desktop;
     Gui* gui;

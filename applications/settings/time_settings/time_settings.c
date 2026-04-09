@@ -8,7 +8,7 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
 
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
@@ -25,7 +25,7 @@ static void event_queue_callback(FuriEventLoopObject* object, void* context) {
 
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
 
     uint32_t event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
@@ -37,7 +37,7 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
-    TimeSettings* instance = context;
+    TimeSettingsApp* instance = context;
 
     bool consumed = false;
     if(event->type == InputTypeShort) {
@@ -54,8 +54,8 @@ static bool gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static TimeSettings* time_settings_alloc(void) {
-    TimeSettings* instance = malloc(sizeof(TimeSettings));
+static TimeSettingsApp* time_settings_alloc(void) {
+    TimeSettingsApp* instance = malloc(sizeof(TimeSettingsApp));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
@@ -63,7 +63,7 @@ static TimeSettings* time_settings_alloc(void) {
     instance->scene_manager =
         scene_manager_alloc(time_settings_scenes, COUNT_OF(time_settings_scenes), instance);
 
-    instance->sntp = furi_record_open(RECORD_SNTP);
+    instance->time = furi_record_open(RECORD_TIME);
     instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
@@ -110,7 +110,7 @@ static TimeSettings* time_settings_alloc(void) {
     return instance;
 }
 
-static void time_settings_free(TimeSettings* instance) {
+static void time_settings_free(TimeSettingsApp* instance) {
     scene_manager_free(instance->scene_manager);
 
     with_gui(instance->gui, {
@@ -125,7 +125,7 @@ static void time_settings_free(TimeSettings* instance) {
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
-    furi_record_close(RECORD_SNTP);
+    furi_record_close(RECORD_TIME);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
@@ -142,13 +142,13 @@ int32_t time_settings_entry(void* arg) {
 
         furi_string_set_str(descriptor->front_title, "Time");
         furi_string_set_str(descriptor->back_title, "Time");
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("clock_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("clock_back_11x11.bin"));
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("clock_front_8x8.image"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("clock_back_11x11.image"));
 
         return 0;
     }
 
-    TimeSettings* instance = time_settings_alloc();
+    TimeSettingsApp* instance = time_settings_alloc();
     FuriThread* thread = furi_thread_get_current();
     furi_event_loop_run(instance->event_loop);
     furi_thread_set_signal_callback(thread, NULL, NULL);
@@ -157,7 +157,7 @@ int32_t time_settings_entry(void* arg) {
     return 0;
 }
 
-void time_settings_send_custom_event(TimeSettings* instance, uint32_t event) {
+void time_settings_send_custom_event(TimeSettingsApp* instance, uint32_t event) {
     furi_assert(instance);
 
     furi_check(

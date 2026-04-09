@@ -2,9 +2,6 @@
 
 #include <furi_hal_rtc.h>
 
-#include <busy/busy.h>
-#include <desktop/desktop.h>
-
 #ifdef BUSY_TIMER_TICK_DEBUG
 #define TIME_MAX_LEN (14)
 #endif
@@ -90,31 +87,6 @@ static void busy_timer_log_time(BusyTimer* instance) {
 }
 #endif
 
-static void busy_timer_start_app(const BusyAppConfig* app_config) {
-    if(!furi_record_exists(RECORD_BUSY_APP)) {
-        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-        while(!desktop_replace_current_app(desktop, "busy", BUSY_APP_TIMER_MODE)) {
-            furi_thread_yield();
-        }
-        furi_record_close(RECORD_DESKTOP);
-    }
-
-    BusyApp* busy_app = furi_record_open(RECORD_BUSY_APP);
-
-    busy_set_config(busy_app, app_config);
-    busy_show_timer(busy_app);
-
-    furi_record_close(RECORD_BUSY_APP);
-}
-
-static void busy_timer_exit_app(void) {
-    if(furi_record_exists(RECORD_BUSY_APP)) {
-        BusyApp* busy_app = furi_record_open(RECORD_BUSY_APP);
-        busy_request_exit(busy_app);
-        furi_record_close(RECORD_BUSY_APP);
-    }
-}
-
 static void busy_timer_notify_tick(const BusyTimer* instance) {
 #ifdef BUSY_TIMER_TICK_DEBUG
     busy_timer_log_time(instance);
@@ -134,7 +106,7 @@ static void busy_timer_notify_tick(const BusyTimer* instance) {
 
 static void busy_timer_notify_mode_changed(const BusyTimer* instance) {
     const BusyTimerMode timer_mode = instance->timer_config.mode;
-    FURI_LOG_D(TAG, "Mode changed: %s", busy_timer_get_mode_name(timer_mode));
+    FURI_LOG_D(TAG, "New mode: %s", busy_timer_get_mode_name(timer_mode));
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeModeChanged,
@@ -145,7 +117,7 @@ static void busy_timer_notify_mode_changed(const BusyTimer* instance) {
 }
 
 static void busy_timer_notify_state_changed(const BusyTimer* instance) {
-    FURI_LOG_D(TAG, "State changed: %s", busy_timer_get_state_name(instance->state));
+    FURI_LOG_D(TAG, "New state: %s", busy_timer_get_state_name(instance->state));
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypeStateChanged,
@@ -167,11 +139,14 @@ static void busy_timer_notify_interval_ended(const BusyTimer* instance, bool for
 }
 
 static void busy_timer_notify_paused(const BusyTimer* instance) {
-    FURI_LOG_D(TAG, "Paused: %s", busy_timer_get_state_name(instance->state));
+    const bool is_paused = !busy_timer_is_running(instance);
+
+    const char* message = is_paused ? "Paused" : "Resumed";
+    FURI_LOG_D(TAG, "%s: %s", message, busy_timer_get_state_name(instance->state));
 
     BusyTimerEvent event = {
         .type = BusyTimerEventTypePaused,
-        .paused.is_paused = !instance->is_timer_running,
+        .paused.is_paused = is_paused,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -218,6 +193,13 @@ static void busy_timer_notify_snapshot_created(const BusyTimer* instance) {
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
+}
+
+static void busy_timer_notify_initial_state(const BusyTimer* instance) {
+    busy_timer_notify_mode_changed(instance);
+    busy_timer_notify_tick(instance);
+    busy_timer_notify_state_changed(instance);
+    busy_timer_notify_paused(instance);
 }
 
 static BusyTimerState busy_timer_calc_next_state(const BusyTimer* instance) {
@@ -326,7 +308,7 @@ static uint32_t busy_timer_calc_increment(const BusyTimer* instance) {
     return 1;
 }
 
-static bool busy_timer_is_running(const BusyTimer* instance) {
+bool busy_timer_is_running(const BusyTimer* instance) {
     return instance->is_timer_running;
 }
 
@@ -350,16 +332,17 @@ static void busy_timer_infinite_to_simple(BusyTimer* instance) {
     instance->time_elapsed_s = 0;
 
     busy_timer_start_timer(instance);
-    busy_timer_notify_mode_changed(instance);
-    busy_timer_notify_state_changed(instance);
-    busy_timer_notify_tick(instance);
+    busy_timer_notify_initial_state(instance);
 }
 
 static void busy_timer_next_state(BusyTimer* instance, bool is_forced) {
-    FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(instance->state));
+    const char* old_state_name = busy_timer_get_state_name(instance->state);
 
     instance->current_interval_index = busy_timer_calc_interval_index(instance);
     instance->state = busy_timer_calc_next_state(instance);
+
+    FURI_LOG_I(
+        TAG, "State change: %s -> %s", old_state_name, busy_timer_get_state_name(instance->state));
 
     if(instance->state != BusyTimerStateIdle) {
         instance->time_elapsed_s = 0;
@@ -492,6 +475,16 @@ static void busy_timer_capture_snapshot(BusyTimer* instance) {
     snapshot->app_config = instance->app_config;
 }
 
+static void busy_timer_store_saved_state(BusyTimer* instance) {
+    BusyTimerSavedState* saved_state = &instance->saved_state;
+    const BusyTimerSnapshot* last_known_snapshot = &instance->last_known_snapshot;
+
+    if(last_known_snapshot->timestamp_ms > saved_state->snapshot.timestamp_ms) {
+        saved_state->snapshot = *last_known_snapshot;
+        busy_timer_saved_state_save(saved_state);
+    }
+}
+
 static void busy_timer_publish_last_known_snapshot(const BusyTimer* instance) {
     busy_timer_notify_snapshot_created(instance);
 
@@ -529,6 +522,7 @@ static void busy_timer_publish_profile(BusyTimer* instance, BusyTimerProfileId p
 static void busy_timer_schedule_publish_last_known_snapshot(BusyTimer* instance) {
     if(instance->snapshot_update_count == 0) {
         busy_timer_publish_last_known_snapshot(instance);
+        busy_timer_store_saved_state(instance);
     }
 
     ++instance->snapshot_update_count;
@@ -618,10 +612,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     busy_timer_start_app(&snapshot->app_config);
 
-    busy_timer_notify_mode_changed(instance);
-    busy_timer_notify_state_changed(instance);
-    busy_timer_notify_tick(instance);
-    busy_timer_notify_paused(instance);
+    busy_timer_notify_initial_state(instance);
 
     busy_timer_schedule_publish_last_known_snapshot(instance);
 }
@@ -683,6 +674,7 @@ static void busy_timer_snapshot_timer_callback(void* context) {
 
     if(instance->snapshot_update_count > 1) {
         busy_timer_publish_last_known_snapshot(instance);
+        busy_timer_store_saved_state(instance);
     }
 
     instance->snapshot_update_count = 0;
@@ -719,7 +711,7 @@ static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void*
     }
 }
 
-static void busy_timer_mqtt_shapshot_callback(const MqttMessage* message, void* context) {
+static void busy_timer_mqtt_snapshot_callback(const MqttMessage* message, void* context) {
     furi_assert(message);
     furi_assert(context);
     BusyTimer* instance = context;
@@ -767,6 +759,76 @@ static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, 
     }
 }
 
+// Private API
+
+void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProfileId profile_id) {
+    const BusyTimerSettings* settings = &instance->settings[profile_id];
+    const BusyTimerProfile* profile = &settings->profile;
+
+    instance->app_config = profile->app_config;
+    instance->timer_config = profile->timer_config;
+    strcpy(instance->card_id, profile->metadata.card_id);
+    instance->is_demo_mode_enabled = settings->is_demo_mode_enabled;
+}
+
+void busy_timer_start_internal(BusyTimer* instance) {
+    if(instance->state == BusyTimerStateIdle) {
+        busy_timer_notify_mode_changed(instance);
+        busy_timer_next_state(instance, true);
+
+        FURI_LOG_I(TAG, "Started");
+
+    } else {
+        busy_timer_start_timer(instance);
+        busy_timer_notify_initial_state(instance);
+
+        FURI_LOG_I(TAG, "Resumed");
+    }
+
+    busy_timer_capture_snapshot(instance);
+    busy_timer_schedule_publish_last_known_snapshot(instance);
+}
+
+void busy_timer_stop_internal(BusyTimer* instance) {
+    if(instance->state != BusyTimerStateIdle) {
+        instance->state = BusyTimerStateIdle;
+        busy_timer_stop_timer(instance);
+        busy_timer_notify_state_changed(instance);
+
+        FURI_LOG_I(TAG, "Stopped");
+
+        busy_timer_capture_snapshot(instance);
+        busy_timer_schedule_publish_last_known_snapshot(instance);
+    }
+}
+
+void busy_timer_toggle_internal(BusyTimer* instance) {
+    if(busy_timer_is_running(instance)) {
+        busy_timer_stop_timer(instance);
+        FURI_LOG_I(TAG, "Paused");
+
+    } else {
+        busy_timer_start_timer(instance);
+        FURI_LOG_I(TAG, "Resumed");
+    }
+
+    busy_timer_notify_paused(instance);
+
+    busy_timer_capture_snapshot(instance);
+    busy_timer_schedule_publish_last_known_snapshot(instance);
+}
+
+void busy_timer_skip_internal(BusyTimer* instance) {
+    if(busy_timer_is_running(instance)) {
+        busy_timer_next_state(instance, true);
+
+        busy_timer_capture_snapshot(instance);
+        busy_timer_schedule_publish_last_known_snapshot(instance);
+
+        FURI_LOG_I(TAG, "Skipped");
+    }
+}
+
 // Public API
 
 const char** busy_timer_get_mode_names(void) {
@@ -782,42 +844,18 @@ FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance) {
 
 static void
     busy_timer_start_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
-    UNUSED(data);
-
-    FURI_LOG_I(TAG, "Starting");
-
-    busy_timer_notify_mode_changed(instance);
-
     if(instance->state == BusyTimerStateIdle) {
-        busy_timer_next_state(instance, true);
-
-        FURI_LOG_I(TAG, "Started");
-
-    } else {
-        busy_timer_start_timer(instance);
-        busy_timer_notify_state_changed(instance);
-        busy_timer_notify_tick(instance);
-
-        FURI_LOG_I(TAG, "Resumed");
+        const BusyTimerProfileId profile_id = data->start.profile_id;
+        busy_timer_apply_profile_settings(instance, profile_id);
     }
 
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_start_internal(instance);
 }
 
 static void
     busy_timer_stop_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     UNUSED(data);
-
-    if(instance->state != BusyTimerStateIdle) {
-        instance->state = BusyTimerStateIdle;
-        busy_timer_stop_timer(instance);
-
-        FURI_LOG_I(TAG, "Stopped");
-
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
-    }
+    busy_timer_stop_internal(instance);
 }
 
 static void
@@ -882,34 +920,13 @@ static void
 static void
     busy_timer_toggle_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     UNUSED(data);
-
-    if(busy_timer_is_running(instance)) {
-        busy_timer_stop_timer(instance);
-        FURI_LOG_I(TAG, "Paused");
-
-    } else {
-        busy_timer_start_timer(instance);
-        FURI_LOG_I(TAG, "Resumed");
-    }
-
-    busy_timer_notify_paused(instance);
-
-    busy_timer_capture_snapshot(instance);
-    busy_timer_schedule_publish_last_known_snapshot(instance);
+    busy_timer_toggle_internal(instance);
 }
 
 static void
     busy_timer_skip_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     UNUSED(data);
-
-    if(busy_timer_is_running(instance)) {
-        busy_timer_next_state(instance, true);
-
-        busy_timer_capture_snapshot(instance);
-        busy_timer_schedule_publish_last_known_snapshot(instance);
-
-        FURI_LOG_I(TAG, "Skipped");
-    }
+    busy_timer_skip_internal(instance);
 }
 
 static void
@@ -978,21 +995,6 @@ static void
     }
 }
 
-static void busy_timer_load_profile_api_message_handler(
-    BusyTimer* instance,
-    BusyTimerApiMessageData* data) {
-    const BusyTimerProfileId profile_id = data->load_profile.profile_id;
-    furi_assert(profile_id < BusyTimerProfileIdMax);
-
-    const BusyTimerSettings* settings = &instance->settings[profile_id];
-    const BusyTimerProfile* profile = &settings->profile;
-
-    instance->app_config = profile->app_config;
-    instance->timer_config = profile->timer_config;
-    strcpy(instance->card_id, profile->metadata.card_id);
-    instance->is_demo_mode_enabled = settings->is_demo_mode_enabled;
-}
-
 static void
     busy_timer_get_preset_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     const BusyTimerApiMessageGetPreset* get_preset = &data->get_preset;
@@ -1030,7 +1032,25 @@ static void
     busy_timer_schedule_publish_profile(instance, profile_id);
 }
 
+static void busy_timer_handle_matter_api_message_handler(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data) {
+    MatterSwitchState switch_state = data->handle_matter.switch_state;
+    busy_timer_smart_home_handle_switch_state(instance, switch_state);
+}
+
 // Service
+
+static void busy_timer_load_settings(BusyTimer* instance) {
+    for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
+        busy_timer_settings_load(&instance->settings[id], id);
+    }
+}
+
+static void busy_timer_load_saved_state(BusyTimer* instance) {
+    busy_timer_saved_state_load(&instance->saved_state);
+    busy_timer_set_snapshot(instance, &instance->saved_state.snapshot);
+}
 
 static BusyTimer* busy_timer_alloc(void) {
     BusyTimer* instance = malloc(sizeof(BusyTimer));
@@ -1055,10 +1075,6 @@ static BusyTimer* busy_timer_alloc(void) {
     instance->event_pubsub = furi_pubsub_alloc();
     instance->mqtt = furi_record_open(RECORD_MQTT);
 
-    for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
-        busy_timer_settings_load(&instance->settings[id], id);
-    }
-
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->api_queue,
@@ -1070,7 +1086,7 @@ static BusyTimer* busy_timer_alloc(void) {
         instance->mqtt,
         TIMER_SNAPSHOT_MQTT_QOS,
         TIMER_SNAPSHOT_MQTT_TOPIC,
-        busy_timer_mqtt_shapshot_callback,
+        busy_timer_mqtt_snapshot_callback,
         instance);
 
     mqtt_subscribe(
@@ -1086,6 +1102,12 @@ static BusyTimer* busy_timer_alloc(void) {
         busy_timer_mqtt_topics[BusyTimerProfileIdCustom],
         busy_timer_mqtt_profile_custom_callback,
         instance);
+
+    busy_timer_smart_home_init(instance);
+    busy_timer_status_lights_init(instance);
+
+    busy_timer_load_settings(instance);
+    busy_timer_load_saved_state(instance);
 
     furi_record_create(RECORD_BUSY_TIMER, instance);
 
@@ -1114,7 +1136,7 @@ static const BusyTimerApiMessageHandler
         [BusyTimerApiMessageTypeSetSnapshot] = busy_timer_set_snapshot_api_message_handler,
         [BusyTimerApiMessageTypeGetProfile] = busy_timer_get_profile_api_message_handler,
         [BusyTimerApiMessageTypeSetProfile] = busy_timer_set_profile_api_message_handler,
-        [BusyTimerApiMessageTypeLoadProfile] = busy_timer_load_profile_api_message_handler,
         [BusyTimerApiMessageTypeGetPreset] = busy_timer_get_preset_api_message_handler,
         [BusyTimerApiMessageTypeSetPreset] = busy_timer_set_preset_api_message_handler,
+        [BusyTimerApiMessageTypeHandleMatter] = busy_timer_handle_matter_api_message_handler,
 };

@@ -145,8 +145,6 @@ bool mqtt_publish_ex(
     furi_check(topic);
     furi_check(data);
     furi_check(data_size);
-    furi_check(props);
-    furi_check(props_count);
     furi_check(qos < MqttQosMax);
 
     bool is_success = false;

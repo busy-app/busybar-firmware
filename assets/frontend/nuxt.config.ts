@@ -39,8 +39,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      barUrl: '',
-      disablePolling: false
+      barUrl: ''
     }
   },
   experimental: {

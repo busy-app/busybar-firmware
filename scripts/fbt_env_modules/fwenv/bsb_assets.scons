@@ -8,65 +8,78 @@ fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
 
 fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
 
-def convert_sounds():
-    src_files = fwenv.GlobRecursive("*.wav", Dir("#/assets/sounds/"))
+
+def convert_sounds(src_dir, dst_dir):
+    src_files = fwenv.GlobRecursive("*.wav", Dir(src_dir + "sounds/"))
     converted = []
 
     for f in src_files:
-        file_node = assets_dir.File(
-            f.Dir(".").name + "/sounds/" + splitext(f.name)[0] + ".snd"
-        )
+        app_name = "" if (f.Dir(".").name == "sounds") else (f.Dir(".").name + "/")
+        file_node = dst_dir.File(app_name + "sounds/" + splitext(f.name)[0] + ".snd")
         converted.append(fw_assets_env.AudioConverter(file_node, f))
 
     return converted
 
-def convert_animations():
-    src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets/animations/"))
+
+def convert_animations(src_dir, dst_dir):
+    src_files = fwenv.GlobRecursive("*.zip", Dir(src_dir + "animations/"))
     converted = []
 
     for f in src_files:
-        file_node = assets_dir.File(
-            f.Dir(".").name + "/animations/" + splitext(f.name)[0] + ".anim"
+        app_name = "" if (f.Dir(".").name == "animations") else (f.Dir(".").name + "/")
+        file_node = dst_dir.File(
+            app_name + "animations/" + splitext(f.name)[0] + ".anim"
         )
         converted.append(fw_assets_env.AnimationConverter(file_node, f))
 
     return converted
 
-def convert_themes():
-    src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets/themes/"))
+
+def convert_themes(src_dir, dst_dir):
+    src_files = fwenv.GlobRecursive("*.zip", Dir(src_dir + "themes/"))
     converted = []
 
     for f in src_files:
-        file_node = assets_dir.File(
-            f.Dir(".").name + "/themes/" + splitext(f.name)[0] + "/bg.anim"
+        app_name = "" if (f.Dir(".").name == "themes") else (f.Dir(".").name + "/")
+        file_node = dst_dir.File(
+            app_name + "themes/" + splitext(f.name)[0] + "/bg.anim"
         )
 
         converted.append(fw_assets_env.AnimationConverter(file_node, f))
 
     return converted
 
-def convert_images():
-    src_files = fwenv.GlobRecursive("*.png", Dir("#/assets/images/external"))
+
+def convert_images(src_dir, dst_dir):
+    src_files = fwenv.GlobRecursive("*.png", Dir(src_dir + "images/external/"))
     converted = []
 
     for f in src_files:
-        internal_name = splitext(f.name)[0]
-        file_node = assets_dir.File(
-            f.Dir(".").name + "/images/" + internal_name + ".bin"
-        )
-        converted.append(
-            fw_assets_env.ImageConverter(
-                file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name
-            )
-        )
+        app_name = "" if (f.Dir(".").name == "external") else (f.Dir(".").name + "/")
+        file_node = dst_dir.File(app_name + "images/" + splitext(f.name)[0] + ".image")
+        converted.append(fw_assets_env.ImageConverter(file_node, f, FORMAT="BIN"))
 
     return converted
 
-def convert_web_api():
+
+def convert_fonts(src_dir, dst_dir):
+    # TODO: perform conversion from ttf once `lv_font_conv` arrives to the toolchain
+    src_files = fwenv.GlobRecursive("*.font", Dir(src_dir + "fonts/"))
+    converted = []
+
+    for f in src_files:
+        app_name = "" if (f.Dir(".").name == "fonts") else (f.Dir(".").name + "/")
+        file_node = dst_dir.File(app_name + "fonts/" + splitext(f.name)[0] + ".font")
+        converted.append(fw_assets_env.FontConverter(file_node, f))
+
+    return converted
+
+
+def convert_web_api(dst_dir):
     swagger_files = fw_assets_env.SwaggerGenerator(
-        assets_dir.File("web_server/www/docs/index.html"),
+        dst_dir.File("web_server/www/docs/index.html"),
         fw_assets_env.Real(
-            assets_dir.File(
+            dst_dir.File(
                 "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
             )
         ),
@@ -76,40 +89,39 @@ def convert_web_api():
 
     return fw_assets_env.Dir("#assets/frontend-build/public/").rdir()
 
-def convert_fonts():
-    # TODO: perform conversion from ttf once `lv_font_conv` arrives to the toolchain
-    src_files = fwenv.GlobRecursive("*.font", Dir("#/assets/fonts"))
-    converted = []
-
-    for f in src_files:
-        file_node = assets_dir.File(
-            f.Dir(".").name + "/fonts/" + splitext(f.name)[0] + ".font"
-        )
-        converted.append(fw_assets_env.FontConverter(file_node, f))
-
-    return converted
-
 
 if fwenv.get("IS_BASE_FIRMWARE", False):
-    assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
+    app_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
+    shared_assets_dir = fwenv.Dir("${BUILD_DIR}/shared")
 
     resources_dist = []
-    converters = [
+    converters_app = [
         convert_sounds,
         convert_animations,
         convert_themes,
         convert_images,
         convert_fonts,
     ]
-    for converter in converters:
-        resources_dist += converter()
+    converters_shared = [
+        convert_sounds,
+        convert_animations,
+        convert_images,
+        convert_fonts,
+    ]
+
+    for converter in converters_app:
+        resources_dist += converter("#/assets/", app_assets_dir)
+
+    for converter in converters_shared:
+        resources_dist += converter("#/assets/shared/", shared_assets_dir)
 
     # Resources & manifest for SD card
     resources_env = fwenv.Clone(tools=["fbt_resources"])
     resources_dist_nodes = resources_env.ResourcesDistBuilder(
         _EXTRA_DIST=[
-            assets_dir,
-            (convert_web_api(), "apps_assets/web_server/www"),
+            app_assets_dir,
+            (convert_web_api(app_assets_dir), "apps_assets/web_server/www"),
+            shared_assets_dir,
         ],
     )
     manifest = resources_env.ManifestBuilder(

@@ -7,8 +7,8 @@ export const useTimezoneStore = defineStore('timezone', () => {
   async function fetchTimezone (): Promise<string | undefined> {
     const tz = await deviceStore.busyBar.TimeTimezoneGet()
       .then(response => {
-        timezone.value = response.timezone;
-        return response.timezone;
+        timezone.value = response.name;
+        return response.name;
       })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t get timezone', true);

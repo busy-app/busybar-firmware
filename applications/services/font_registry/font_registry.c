@@ -1,20 +1,8 @@
-#include "font_registry.h"
-#include <stb/stb.h>
+#include "font_registry_i.h"
 
 #define TAG "FontRegistry"
 
-typedef struct {
-    const char* key;
-    struct {
-        lv_font_t* loaded_data;
-        size_t references;
-    } value;
-} LoadedFont;
-
-struct FontRegistry {
-    FuriMutex* mutex;
-    LoadedFont* loaded_fonts;
-};
+#define FONT_CACHE_CAPACITY 7
 
 typedef struct {
     const char* simulated_path;
@@ -54,15 +42,49 @@ static const lv_font_t*
     furi_assert(instance);
     furi_assert(font_path);
 
-    LoadedFont* already_loaded = stbds_shgetp_null(instance->loaded_fonts, font_path);
+    FontRegistryLoadedFont* already_loaded = stbds_shgetp_null(instance->loaded_fonts, font_path);
     if(already_loaded) {
         already_loaded->value.references++;
+        already_loaded->value.last_access = ++instance->access_counter;
         FURI_LOG_T(
             TAG, "Font \"%s\": references=%zu (+1)", font_path, already_loaded->value.references);
         return already_loaded->value.loaded_data;
     }
 
     return NULL;
+}
+
+static void font_registry_cache_evict(FontRegistry* instance) {
+    furi_assert(instance);
+
+    if(stbds_shlenu(instance->loaded_fonts) <= FONT_CACHE_CAPACITY) return;
+
+    size_t oldest_access = SIZE_MAX;
+    FontRegistryLoadedFont* font_to_evict = NULL;
+    for(size_t i = 0; i < stbds_shlenu(instance->loaded_fonts); i++) {
+        FontRegistryLoadedFont* item = &instance->loaded_fonts[i];
+        if(item->value.references == 0 && item->value.last_access < oldest_access) {
+            oldest_access = item->value.last_access;
+            font_to_evict = item;
+        }
+    }
+
+    if(font_to_evict) {
+        FURI_LOG_T(TAG, "Font \"%s\": evicting from cache", font_to_evict->key);
+        lv_binfont_destroy(font_to_evict->value.loaded_data);
+        bool was_deletion_successful = stbds_shdel(instance->loaded_fonts, font_to_evict->key);
+        furi_check(was_deletion_successful);
+    }
+}
+
+static size_t font_registry_get_file_size(FontRegistry* instance, const char* font_path) {
+    furi_assert(instance);
+    furi_assert(font_path);
+
+    FileInfo file_info;
+    FS_Error fs_error = storage_common_stat(instance->storage, font_path, &file_info);
+
+    return (fs_error == FSE_OK) ? (size_t)file_info.size : 0;
 }
 
 static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const char* font_path) {
@@ -72,18 +94,20 @@ static const lv_font_t* font_registry_do_load_font(FontRegistry* instance, const
     lv_font_t* font_data = lv_binfont_create(font_path);
     if(!font_data) return NULL;
 
-    LoadedFont now_loaded = {
+    FontRegistryLoadedFont now_loaded = {
         .key = font_path,
         .value =
             {
                 .loaded_data = font_data,
                 .references = 1,
+                .last_access = ++instance->access_counter,
             },
     };
 
     FURI_LOG_T(TAG, "Font \"%s\": references=1 (newly loaded)", font_path);
 
     stbds_shputs(instance->loaded_fonts, now_loaded);
+    font_registry_cache_evict(instance);
     return font_data;
 }
 
@@ -91,23 +115,30 @@ const lv_font_t* font_registry_load_font(FontRegistry* instance, const char* fon
     furi_check(instance);
     furi_check(font_path);
 
-    const lv_font_t* ret_val = NULL;
+    const lv_font_t* lv_loaded_font = NULL;
+    FontRegistryLoadedFont* loaded_font = NULL;
     furi_check(furi_mutex_acquire(instance->mutex, FuriWaitForever) == FuriStatusOk);
 
     do {
-        if((ret_val = font_registry_get_baked_font(instance, font_path))) break;
-        if((ret_val = font_registry_get_loaded_font(instance, font_path))) break;
-        ret_val = font_registry_do_load_font(instance, font_path);
+        if((lv_loaded_font = font_registry_get_baked_font(instance, font_path))) break;
+        if((lv_loaded_font = font_registry_get_loaded_font(instance, font_path))) break;
+        lv_loaded_font = font_registry_do_load_font(instance, font_path);
+        loaded_font = stbds_shgetp_null(instance->loaded_fonts, font_path);
     } while(0);
 
-    if(!ret_val) {
+    if(!lv_loaded_font) {
         FURI_LOG_W(TAG, "Font \"%s\" failed to load, using default", font_path);
-        ret_val = LV_FONT_DEFAULT;
+        lv_loaded_font = LV_FONT_DEFAULT;
     }
 
     furi_check(furi_mutex_release(instance->mutex) == FuriStatusOk);
 
-    return ret_val;
+    if(loaded_font) {
+        loaded_font->value.estimated_memory_size =
+            font_registry_get_file_size(instance, font_path);
+    }
+
+    return lv_loaded_font;
 }
 
 static bool font_registry_unload_baked_font(FontRegistry* instance, const lv_font_t* const_font) {
@@ -135,23 +166,18 @@ void font_registry_unload_font(FontRegistry* instance, const lv_font_t* const_fo
     bool found_font = false;
 
     for(size_t i = 0; i < stbds_shlenu(instance->loaded_fonts); i++) {
-        LoadedFont* item = &instance->loaded_fonts[i];
-        if(item->value.loaded_data != font) continue;
-
-        found_font = true;
-        item->value.references--;
-        FURI_LOG_T(TAG, "Font \"%s\": references=%zu (-1)", item->key, item->value.references);
-
-        if(!item->value.references) {
-            FURI_LOG_T(TAG, "Font \"%s\": unloading", item->key);
-            lv_binfont_destroy(item->value.loaded_data);
-            bool did_delete = stbds_shdel(instance->loaded_fonts, item->key);
-            furi_check(did_delete);
+        FontRegistryLoadedFont* item = &instance->loaded_fonts[i];
+        if(item->value.loaded_data == font) {
+            found_font = true;
+            item->value.references--;
+            FURI_LOG_T(TAG, "Font \"%s\": references=%zu (-1)", item->key, item->value.references);
+            break;
         }
     }
 
     if(!found_font) furi_crash("Font provided to `unload` is not loaded in this FontRegistry");
 
+    font_registry_cache_evict(instance);
     furi_check(furi_mutex_release(instance->mutex) == FuriStatusOk);
 }
 
@@ -159,6 +185,8 @@ int font_registry_startup(void* arg) {
     UNUSED(arg);
 
     FontRegistry* registry = malloc(sizeof(FontRegistry));
+
+    registry->storage = furi_record_open(RECORD_STORAGE);
     registry->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     stbds_sh_new_strdup(registry->loaded_fonts);
 

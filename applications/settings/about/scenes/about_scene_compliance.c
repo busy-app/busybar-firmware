@@ -12,11 +12,11 @@
 #define IMAGES_NUM      (5)
 
 static const char* image_path[IMAGES_NUM] = {
-    IMG_PATH("about_fcc_back_24x24.bin"),
-    IMG_PATH("about_ce_back_24x24.bin"),
-    IMG_PATH("about_uk_back_24x24.bin"),
-    IMG_PATH("about_dispose_back_24x24.bin"),
-    IMG_PATH("about_rohs_back_24x24.bin"),
+    IMG_PATH("about_fcc_back_24x24.image"),
+    IMG_PATH("about_ce_back_24x24.image"),
+    IMG_PATH("about_uk_back_24x24.image"),
+    IMG_PATH("about_dispose_back_24x24.image"),
+    IMG_PATH("about_rohs_back_24x24.image"),
 };
 
 typedef struct {
@@ -52,7 +52,7 @@ static void about_scene_compliance_on_enter(void* context) {
 
     with_gui(instance->gui, {
         scene->front_status_view = status_view_alloc(instance->front_scene_window);
-        status_view_set_icon(scene->front_status_view, SETTINGS_IMG_PATH("info_front_7x7.bin"));
+        status_view_set_icon(scene->front_status_view, SETTINGS_IMG_PATH("info_front_7x7.image"));
         status_view_set_header(scene->front_status_view, "Look at back\nscreen");
 
         scene->info_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);

@@ -56,7 +56,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->front_menu,
             ITEM_LABEL_TIMER,
             mode_name,
-            BUSY_ANIM_PATH("timer_icon_8x8.anim"),
+            BUSY_IMG_PATH("hourglass_8x8.image"),
             BusySceneSetupMenuIndexTimer,
             busy_scene_setup_menu_callback,
             instance);
@@ -64,7 +64,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->front_menu,
             ITEM_LABEL_THEME,
             ITEM_SUBLABEL_DUMMY,
-            BUSY_ANIM_PATH("theme_icon_8x8.anim"),
+            BUSY_IMG_PATH("palette_8x8.image"),
             BusySceneSetupMenuIndexTheme,
             busy_scene_setup_menu_callback,
             instance);
@@ -72,7 +72,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->front_menu,
             ITEM_LABEL_SMART_HOME,
             smart_home_sublabel,
-            BUSY_IMG_PATH("smart_home_8x8.bin"),
+            BUSY_IMG_PATH("smart_home_8x8.image"),
             BusySceneSetupMenuIndexSmartHome,
             busy_scene_setup_menu_callback,
             instance);
@@ -84,7 +84,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->back_menu,
             ITEM_LABEL_TIMER,
             mode_name,
-            BUSY_IMG_PATH("hourglass_11x11.bin"),
+            BUSY_IMG_PATH("hourglass_11x11.image"),
             BusySceneSetupMenuIndexTimer,
             NULL,
             NULL);
@@ -92,7 +92,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->back_menu,
             ITEM_LABEL_THEME,
             ITEM_SUBLABEL_DUMMY,
-            BUSY_IMG_PATH("palette_11x11.bin"),
+            BUSY_IMG_PATH("palette_11x11.image"),
             BusySceneSetupMenuIndexTheme,
             NULL,
             NULL);
@@ -100,7 +100,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->back_menu,
             ITEM_LABEL_SMART_HOME,
             smart_home_sublabel,
-            BUSY_IMG_PATH("smart_home_11x11.bin"),
+            BUSY_IMG_PATH("smart_home_11x11.image"),
             BusySceneSetupMenuIndexSmartHome,
             NULL,
             NULL);

@@ -17,8 +17,8 @@ static void matter_scene_commission_done_on_enter(void* context) {
     };
 
     static const char* const images[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("checkmark_front_8x6.bin"),
-        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("checkmark_back_12x10.bin"),
+        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("checkmark_front_8x6.image"),
+        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("checkmark_back_12x10.image"),
     };
 
     with_gui(app->gui, {

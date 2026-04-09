@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -89,6 +90,15 @@ Color color_hexa_to_rgb(uint32_t hexa);
  * @return Parsing status (`true` = success)
  */
 bool color_parse_hexa_string(const char* hexa, Color* color_out);
+
+/**
+ * @brief Convert an L8-encoded color data into L4
+ *
+ * @param dst destination buffer
+ * @param src source buffer
+ * @param size size of source buffer. Destination buffer must hold at least size/2 bytes.
+ */
+void color_buf_l8_to_l4(void* dst, const void* src, size_t size);
 
 #ifdef __cplusplus
 }

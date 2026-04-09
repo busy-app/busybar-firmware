@@ -8,9 +8,11 @@
 
 static bool http_api_account_get_info(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -51,9 +53,11 @@ static bool http_api_account_get_info(
 
 static bool http_api_account_get_status(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -147,9 +151,11 @@ static void mqtt_link_close_callback(struct mg_connection* conn) {
 
 static bool http_api_account_link(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -196,13 +202,19 @@ static bool http_api_account_link(
 
 static bool http_api_account_unlink(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(method);
     UNUSED(msg);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(method != HttpMethodDelete) {
+        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        return true;
+    }
 
     Mqtt* mqtt = furi_record_open(RECORD_MQTT);
     mqtt_unlink(mqtt);
@@ -215,6 +227,7 @@ static bool http_api_account_unlink(
 
 static bool http_api_account_mqtt_profile(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
@@ -223,7 +236,7 @@ static bool http_api_account_mqtt_profile(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    if(mg_match(msg->method, mg_str("GET"), NULL)) {
+    if(method == HttpMethodGet) {
         FuriString* url = furi_string_alloc();
         Mqtt* mqtt = furi_record_open(RECORD_MQTT);
         const MqttProfileId profile_id = mqtt_get_profile(mqtt, url);
@@ -245,7 +258,7 @@ static bool http_api_account_mqtt_profile(
 
         furi_string_free(url);
 
-    } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
+    } else if(method == HttpMethodPost) {
         bool success = false;
         do {
             if(msg->query.len == 0) break;
@@ -279,8 +292,7 @@ static bool http_api_account_mqtt_profile(
             MG_REPLY_OK(conn);
         else
             MG_REPLY_BAD_REQUEST(conn);
-    } else
-        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+    }
 
     return true;
 }
@@ -288,31 +300,31 @@ static bool http_api_account_mqtt_profile(
 static const HttpHandler api_account_handlers[] = {
     {
         .uri = "",
-        .method = "DELETE",
+        .method = HttpMethodAny,
         .type = HttpHandlerCustom,
         .on_request = http_api_account_unlink,
     },
     {
         .uri = "link",
-        .method = "POST",
+        .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = http_api_account_link,
     },
     {
         .uri = "info",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = http_api_account_get_info,
     },
     {
         .uri = "status",
-        .method = "GET",
+        .method = HttpMethodGet,
         .type = HttpHandlerCustom,
         .on_request = http_api_account_get_status,
     },
     {
         .uri = "profile",
-        .method = "*",
+        .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = http_api_account_mqtt_profile,
     },
@@ -343,10 +355,11 @@ void http_api_account_free(void* ctx) {
 
 bool http_api_account_callback(
     FuriString* path,
+    HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiAccountCtx* context = ctx;
 
-    return http_handle_request(path, context->handlers, conn, msg);
+    return http_handle_request(path, method, context->handlers, conn, msg);
 }

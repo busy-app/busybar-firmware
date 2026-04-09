@@ -1,24 +1,47 @@
 <template>
   <div class="flex flex-col gap-4">
-    <div class="w-full text-center text-2xl text-highlighted mb-2">Device control over Wi-Fi is disabled</div>
+    <UIcon
+      :name="colorMode.value === 'dark' ? 'i-bi-wifi-disabled-dark' : 'i-bi-wifi-disabled'"
+      class="size-10"
+    />
 
-    <div class="w-full text-center">To control your BUSY Bar via Wi-Fi, you must provide access to HTTP API.</div>
+    <div>
+      <div class="w-full text-2xl font-medium text-highlighted mb-2">Wi-Fi control disabled</div>
+      <div class="w-full text-toned">To control your BUSY Bar via Wi-Fi, you must provide access to HTTP API.</div>
+    </div>
 
-    <div class="flex flex-col lg:flex-row gap-4 pt-14">
+    <div class="flex flex-col lg:flex-row gap-4 pt-11">
       <div
         v-for="item in items"
         :key="item.id"
-        class="flex flex-col gap-2"
+        class="flex flex-col gap-4"
       >
-        <div class="w-84 flex items-center justify-center">
+        <div class="w-84 flex items-center justify-center bg-surface-container rounded-xl">
           <img
             :src="colorMode.value === 'dark' ? item.imageDark : item.image"
-            class="w-[320px]"
+            class="w-[336px]"
           >
         </div>
-        <div class="flex items-center gap-3">
-          <div class="flex items-center justify-center size-11 shrink-0 rounded-full bg-accented/50 text-xl">{{ item.id }}</div>
-          <div class="max-w-64">{{ item.description }}</div>
+        <div class="flex flex-col gap-3">
+          <div class="w-fit flex items-center justify-center shrink-0 rounded-lg bg-accented/50 px-3 py-1 text-sm font-medium">Step {{ item.id }}</div>
+          <div class="max-w-72 text-sm">
+            <template v-if="item.id === 1">Connect the device to your computer using a USB cable</template>
+            <template v-if="item.id === 2">
+              Open Virtual LAN at
+              <a
+                href="http://10.0.4.20"
+                target="_blank"
+                class="inline-flex items-center gap-1 text-primary font-medium"
+              >
+                10.0.4.20
+                <UIcon
+                  name="i-bi-open-in-new"
+                  class="size-4"
+                />
+              </a>
+            </template>
+            <template v-if="item.id === 3">Enable HTTP API access in the Virtual LAN</template>
+          </div>
         </div>
       </div>
     </div>
@@ -38,19 +61,16 @@ const colorMode = useColorMode();
 const items = [
   {
     id: 1,
-    description: 'Connect the device to your computer using a USB cable',
     image: apiDisabled1,
     imageDark: apiDisabled1Dark
   },
   {
     id: 2,
-    description: 'Enter 10.0.4.20 in the address bar of your browser',
     image: apiDisabled2,
     imageDark: apiDisabled2Dark
   },
   {
     id: 3,
-    description: 'In the Virtual LAN interface that opens, enable HTTP API access',
     image: apiDisabled3,
     imageDark: apiDisabled3Dark
   }
