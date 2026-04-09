@@ -1,5 +1,8 @@
 #include "power_i.h"
+
+#if defined(SRV_STORAGE)
 #include <storage/storage.h>
+#endif
 
 #define TAG "PowerSoc"
 
@@ -84,6 +87,7 @@ PowerBatCalibration* power_get_crude_calibration(void) {
 PowerBatCalibration* power_load_bat_calibration(const char* path) {
     furi_check(path);
 
+#if defined(SRV_STORAGE)
     bool success = false;
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -155,6 +159,9 @@ PowerBatCalibration* power_load_bat_calibration(const char* path) {
     furi_record_close(RECORD_STORAGE);
 
     return success ? cal : NULL;
+#else
+    return NULL;
+#endif
 }
 
 void power_unload_bat_calibration(PowerBatCalibration* cal) {
