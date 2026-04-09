@@ -47,7 +47,7 @@
 #define LWIP_SOCKET_SET_ERRNO              0
 #define IP_REASS_MAX_PBUFS                 0
 #define IP_REASSEMBLY                      1
-#define IP_FRAG                            1
+#define IP_FRAG                            0
 #define IP_OPTIONS_ALLOWED                 1
 #define MEMP_NUM_REASSDATA                 0
 #define LWIP_SO_RCVTIMEO                   0
@@ -77,11 +77,17 @@
 #define LWIP_FREERTOS_USE_STATIC_TCPIP_TASK 1
 
 #define LWIP_RAW         1
-#define MEMP_NUM_RAW_PCB (4)
+#define MEMP_NUM_RAW_PCB (2)
 
-#define MEMP_NUM_UDP_PCB (6)
+#define MEMP_NUM_UDP_PCB        (8)
+#define MEMP_NUM_TCP_PCB        (4)
+#define MEMP_NUM_TCP_PCB_LISTEN (4)
 
 #define LWIP_HAVE_LOOPIF (0)
+
+#define MEMP_NUM_FRAG_PBUF        (0)
+#define LWIP_NETIF_TX_SINGLE_PBUF (1)
+#define MEMP_NUM_TCPIP_MSG_INPKT  (12)
 
 // TODO: not sure why this is disabled
 #define LWIP_NETIF_LOOPBACK (0)
@@ -143,10 +149,12 @@
 #define MEMP_SEPARATE_POOLS         (1)
 #define LWIP_PBUF_FROM_CUSTOM_POOLS (0)
 #define MEMP_USE_CUSTOM_POOLS       (0)
-#define PBUF_POOL_SIZE              (64)
+#define PBUF_POOL_SIZE              (32)
 #define PBUF_POOL_BUFSIZE           (1500) // IPv6 path MTU
 #define PBUF_CUSTOM_POOL_IDX_START  (MEMP_PBUF_POOL_SMALL)
 #define PBUF_CUSTOM_POOL_IDX_END    (MEMP_PBUF_POOL_LARGE)
+
+#define MEMP_NUM_ND6_QUEUE (8)
 
 #define TCP_SND_BUF        (2 * TCP_MSS)
 #define TCP_LISTEN_BACKLOG (1)
