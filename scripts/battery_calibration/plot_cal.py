@@ -41,7 +41,7 @@ PRINT_RAW_DATA = False
 cal_file = open("factory.bat_cal", "wb")
 
 def write_cal_header(f, tolerance, percent_points, current_points):
-    signature = b"bsbbcal0"
+    signature = b"bsbbcal\x00"
     i_range = 3000
     f.write(struct.pack("<8sHHHH", signature, tolerance, i_range, percent_points, current_points))
 

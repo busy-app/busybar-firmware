@@ -55,10 +55,12 @@ static const PowerBatCalibration power_crude_cal = {
     .is_in_flash = true,
 };
 
-#define BAT_CAL_SIGNATURE "bsbbcal0"
+#define BAT_CAL_SIGNATURE "bsbbcal"
+#define BAT_CAL_VERSION   0
 
 typedef struct FURI_PACKED {
-    char signature[8];
+    char signature[7];
+    uint8_t version;
     uint16_t tolerance;
     uint16_t current_range;
     uint16_t percent_points;
@@ -103,7 +105,17 @@ PowerBatCalibration* power_load_bat_calibration(const char* path) {
         }
 
         if(strcmp(header.signature, BAT_CAL_SIGNATURE) != 0) {
-            FURI_LOG_E(TAG, "Signature mismatch");
+            FURI_LOG_E(TAG, "Signature mismatch: %s", path);
+            break;
+        }
+
+        if(header.version != BAT_CAL_VERSION) {
+            FURI_LOG_E(
+                TAG,
+                "Unsupported version: %s declares %hhu, we only support %d",
+                path,
+                header.version,
+                BAT_CAL_VERSION);
             break;
         }
 
