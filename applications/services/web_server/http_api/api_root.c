@@ -16,7 +16,7 @@ static const struct {
 } api_access_whitelist[] = {
     {"version", HttpMethodGet},
     {"access", HttpMethodGet},
-    {"conn_type", HttpMethodGet},
+    {"transport", HttpMethodGet},
 };
 
 typedef struct {
