@@ -118,6 +118,16 @@ typedef struct {
     FuriString* changelog; /**< Update changelog */
 } UpdateCheckInfo;
 
+/** Updater event types */
+typedef enum {
+    UpdaterEventTypeSettingsChanged, /**< Settings were changed */
+} UpdaterEventType;
+
+/** Updater event structure */
+typedef struct {
+    UpdaterEventType type;
+} UpdaterEvent;
+
 /** Get human-readable string for a status code
  *
  * @param[in]  status  The status code
@@ -350,6 +360,15 @@ void updater_get_settings(const Updater* instance, UpdaterSettings* settings);
  * @return     true if settings were successfully applied, false otherwise
  */
 bool updater_set_settings(Updater* instance, const UpdaterSettings* settings);
+
+/** Get PubSub instance for event notifications
+ *
+ * The delivered events will be of type @ref UpdaterEvent.
+ *
+ * @param[in] instance Updater instance
+ * @returns pubsub instance available for subscription
+ */
+FuriPubSub* updater_get_pubsub(Updater* instance);
 
 #ifdef __cplusplus
 }
