@@ -212,7 +212,7 @@ static bool http_api_account_unlink(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
     if(method != HttpMethodDelete) {
-        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        http_reply_405_method_not_allowed(conn, HttpMethodDelete);
         return true;
     }
 

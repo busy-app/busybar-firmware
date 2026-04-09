@@ -59,6 +59,25 @@ static HttpMethod http_method_from_str(struct mg_http_message* msg) {
     return HttpMethodUnknown;
 }
 
+void http_reply_405_method_not_allowed(struct mg_connection* conn, HttpMethod allowed_methods) {
+    if(allowed_methods & HttpMethodWebSocket) {
+        allowed_methods = (allowed_methods & ~(HttpMethodWebSocket)) | HttpMethodGet;
+    }
+    FuriString* headers = furi_string_alloc_set(DEFAULT_JSON_HEADERS);
+    furi_string_cat(headers, "Allow: ");
+    bool is_first = true;
+    for(size_t i = 0; i < COUNT_OF(http_methods); i++) {
+        if(allowed_methods & http_methods[i].method) {
+            furi_string_cat_printf(headers, "%s%s", is_first ? "" : ", ", http_methods[i].name);
+            is_first = false;
+        }
+    }
+    furi_string_cat(headers, "\r\n");
+    mg_http_reply(
+        conn, 405, furi_string_get_cstr(headers), "{\"error\":\"%s\"}\n", "Method Not Allowed");
+    furi_string_free(headers);
+}
+
 static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data) {
     if(ev == MG_EV_HTTP_MSG) {
         WebServer* context = conn->fn_data;
@@ -166,7 +185,7 @@ bool http_handle_request(
                 break;
             }
             if(method == HttpMethodUnknown || !(method & inst->handler->method)) {
-                MG_REPLY_METHOD_NOT_ALLOWED(conn);
+                http_reply_405_method_not_allowed(conn, inst->handler->method);
                 handled = true;
                 break;
             }
@@ -232,7 +251,7 @@ bool http_handle_headers(
                 break;
             }
             if(method == HttpMethodUnknown || !(method & inst->handler->method)) {
-                MG_REPLY_METHOD_NOT_ALLOWED(conn);
+                http_reply_405_method_not_allowed(conn, inst->handler->method);
                 MG_CLOSE_AFTER_HEADERS(conn, msg);
                 handled = true;
                 break;
@@ -288,4 +307,10 @@ int32_t web_srv_start(void* p) {
 
 struct mg_mgr* web_srv_get_mgr(void) {
     return (&srv.mgr);
+}
+
+void web_server_get_api_version(FuriString* version) {
+    furi_assert(version);
+    const uint8_t api_ver[] = API_VERSION;
+    furi_string_printf(version, "%u.%u.%u", api_ver[0], api_ver[1], api_ver[2]);
 }

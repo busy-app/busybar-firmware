@@ -183,7 +183,7 @@ bool http_api_status_callback(
 
     if(IS_HTTP_ENDPOINT(path)) {
         if(method != HttpMethodGet) {
-            MG_REPLY_METHOD_NOT_ALLOWED(conn);
+            http_reply_405_method_not_allowed(conn, HttpMethodGet);
             return true;
         }
         FuriString* json_response = furi_string_alloc();
@@ -216,7 +216,7 @@ bool http_api_status_callback(
     for(size_t i = 0; i < COUNT_OF(status_handlers); i++) {
         if(furi_string_equal(path, status_handlers[i].name)) {
             if(method != HttpMethodGet) {
-                MG_REPLY_METHOD_NOT_ALLOWED(conn);
+                http_reply_405_method_not_allowed(conn, HttpMethodGet);
                 return true;
             }
             FuriString* json_response = furi_string_alloc();

@@ -238,7 +238,14 @@ static void mqtt_unlink_api_message_handler(Mqtt* instance, const MqttApiMessage
         const char* empty = "{}";
 
         bool is_success = mqtt_publish_internal(
-            instance, MqttScopeSession, MqttQosAtMostOnce, "unlink", empty, strlen(empty), NULL, 0);
+            instance,
+            MqttScopeSession,
+            MqttQosAtMostOnce,
+            MQTT_TOPIC_UNLINK_FROM_DEVICE,
+            empty,
+            strlen(empty),
+            NULL,
+            0);
         if(!is_success) {
             FURI_LOG_W(TAG, "Failed to send unlink message to cloud");
         }
@@ -262,7 +269,7 @@ static void mqtt_request_pin_api_message_handler(Mqtt* instance, const MqttApiMe
             instance,
             MqttScopeDevice,
             MqttQosExactlyOnce,
-            "link/request",
+            MQTT_TOPIC_LINK_REQUEST,
             empty,
             strlen(empty),
             NULL,

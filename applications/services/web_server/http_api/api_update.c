@@ -312,7 +312,7 @@ static bool api_update_raw_hdr_callback(
         TAG, "on_headers: Received update request for URI: %.*s", (int)msg->uri.len, msg->uri.buf);
 
     if(method != HttpMethodPost) {
-        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+        http_reply_405_method_not_allowed(conn, HttpMethodPost);
         conn->is_draining = 1;
         return true;
     }

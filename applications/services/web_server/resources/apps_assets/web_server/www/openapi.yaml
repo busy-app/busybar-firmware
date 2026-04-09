@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 18.0.0
+  version: 18.1.0
   contact:
     name: tbd
 
@@ -25,6 +25,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VersionInfo"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/transport:
+    get:
+      tags:
+        - System
+      summary: Get device network connection info
+      description: Retrieves device transport type (usb/wifi)
+      operationId: getTransport
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkInterfaceInfo"
         "500":
           description: Internal server error
           content:
@@ -1715,6 +1736,19 @@ components:
         - api_semver
       example:
         api_semver: "0.0.0"
+
+    NetworkInterfaceInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Connection type
+          enum: ["usb", "wifi"]
+          example: "usb"
+      required:
+        - type
+      example:
+        type: "usb"
 
     UpdateStatus:
       type: object
