@@ -12,7 +12,14 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
 
         const WifiState current_state = info->state;
 
-        if(current_state == WifiStateUnknown) {
+        if(new_state == WifiStateUnknown) {
+            if(current_state == WifiStateUnknown) {
+                furi_crash("Invalid transition to WifiStateUnknown");
+            } else {
+                wifi_state_reset_info(info);
+            }
+
+        } else if(current_state == WifiStateUnknown) {
             if(new_state == WifiStateDisconnected) {
                 wifi_state_reset_info(info);
             } else {
@@ -112,6 +119,14 @@ WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request
             }
         } else if(request_type == WifiRequestTypeBackendInfo) {
             if(current_state != WifiStateConnected && current_state != WifiStateReconnecting) {
+                status = WifiStatusError;
+            }
+        } else if(request_type == WifiRequestTypeForget) {
+            if(current_state != WifiStateDisconnected) {
+                status = WifiStatusError;
+            }
+        } else if(request_type == WifiRequestTypeDeinit) {
+            if(current_state == WifiStateUnknown) {
                 status = WifiStatusError;
             }
         } else {

@@ -28,7 +28,7 @@ static bool mqtt_is_valid_scope_for_current_status(Mqtt* instance, MqttScope sco
     return is_valid;
 }
 
-static void mqtt_make_topic_path(
+void mqtt_make_topic_path(
     Mqtt* instance,
     MqttScope scope,
     const char* dir,
@@ -38,11 +38,11 @@ static void mqtt_make_topic_path(
     const char* id;
 
     if(scope == MqttScopeDevice) {
-        root = MQTT_DEVICE_ROOT_TOPIC;
+        root = MQTT_ROOT_TOPIC_DEVICE;
         id = furi_string_get_cstr(instance->device_serial);
 
     } else if(scope == MqttScopeSession) {
-        root = MQTT_SESSION_ROOT_TOPIC;
+        root = MQTT_ROOT_TOPIC_SESSION;
         id = instance->saved_state.session_id;
 
     } else {

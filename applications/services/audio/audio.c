@@ -429,6 +429,8 @@ void audio_set_volume(Audio* instance, float volume) {
     furi_check(instance);
     furi_check(volume >= AUDIO_VOLUME_MIN && volume <= AUDIO_VOLUME_MAX);
 
+    volume = roundf(volume * 100.f) / 100.f;
+
     const AudioMessage msg = {
         .type = AudioMessageTypeSetVolume,
         .set_volume = volume,
