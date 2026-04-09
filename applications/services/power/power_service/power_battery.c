@@ -66,6 +66,7 @@ typedef struct FURI_PACKED {
 } PowerBatCalHeader;
 
 static inline size_t power_curve_size(uint16_t percent_points) {
+    furi_check(percent_points >= TOTAL_FULL_POINTS);
     return (percent_points - TOTAL_FULL_POINTS) * sizeof(int8_t) +
            (sizeof(uint16_t) * TOTAL_FULL_POINTS);
 }
