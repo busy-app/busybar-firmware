@@ -4,7 +4,7 @@
 #define BLE_REMOTE_ADDRESS_STRING_SIZE (18)
 
 typedef void (
-    *BleConnectionStateChanged)(void* context, bool conntected, const uint8_t* remote_dev_address);
+    *BleConnectionStateChanged)(void* context, bool connected, const uint8_t* remote_dev_address);
 
 void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx);
 
@@ -21,7 +21,5 @@ void ble_worker_stop();
 bool ble_worker_forget_pairing();
 
 bool ble_worker_pairing_exists();
-
-void ble_worker_test_after_init();
 
 void ble_worker_set_name(const char* new_name);

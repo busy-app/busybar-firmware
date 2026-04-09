@@ -24,6 +24,7 @@ const char* ble_service_get_name(BleServiceObject* instance);
 void ble_service_get_error(BleServiceObject* instance, FuriString* error);
 
 void ble_service_enqueue_init(BleServiceObject* instance);
+void ble_service_enqueue_run(BleServiceObject* instance);
 
 void ble_service_write_data(
     BleServiceObject* instance,

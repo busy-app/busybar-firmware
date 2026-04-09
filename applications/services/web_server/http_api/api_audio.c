@@ -86,7 +86,7 @@ static bool api_audio_volume_callback(
         furi_record_close(RECORD_AUDIO);
 
         FuriString* json_str =
-            furi_string_alloc_printf("\"volume\":%lu", (uint32_t)(volume * 100.f));
+            furi_string_alloc_printf("\"volume\":%lu", (uint32_t)roundf(volume * 100.f));
 
         MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
         furi_string_free(json_str);
@@ -97,15 +97,26 @@ static bool api_audio_volume_callback(
 
             char value_str[5];
             int volume = 0;
+            bool silent = false;
 
             int value_len = mg_http_get_var(&msg->query, "volume", value_str, sizeof(value_str));
             if(value_len <= 0) break;
-
             int value_num = sscanf(value_str, "%u", &volume);
+
+            int silent_len = mg_http_get_var(&msg->query, "silent", value_str, sizeof(value_str));
+            if(silent_len == 1 && value_str[0] == '1') {
+                silent = true;
+            }
+
             if(value_num == 1) {
                 if((volume > 100) || (volume < 0)) break;
                 Audio* audio = furi_record_open(RECORD_AUDIO);
                 audio_set_volume(audio, (float)volume / 100.f);
+                if(!silent) {
+                    audio_enable(audio);
+                    audio_play_file(audio, SHARED_SOUND_PATH("volume_change.snd"));
+                    audio_disable(audio);
+                }
                 furi_record_close(RECORD_AUDIO);
                 success = true;
             }

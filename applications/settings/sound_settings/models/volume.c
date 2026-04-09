@@ -7,11 +7,11 @@ struct VolumeModel {
 };
 
 static uint8_t volume_to_model(float volume) {
-    return CEILING_MULTIPLE_OF((uint32_t)(volume * 100.f), SETTINGS_VOLUME_STEP);
+    return CEILING_MULTIPLE_OF((uint32_t)roundf(volume * 100.f), SETTINGS_VOLUME_STEP);
 }
 
 static float volume_from_model(uint8_t volume) {
-    return volume * 0.01f;
+    return (float)volume / 100.f;
 }
 
 VolumeModel* volume_model_alloc(void) {

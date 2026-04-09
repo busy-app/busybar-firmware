@@ -271,6 +271,13 @@ static StatusBar* status_bar_alloc(void) {
     UNUSED(wifi_state_callback);
 #endif // SRV_WIFI
 
+#ifdef SRV_BLE
+    Ble* ble = furi_record_open(RECORD_BLE);
+    furi_pubsub_subscribe(ble_get_pubsub(ble), ble_pubsub_callback, instance);
+#else
+    UNUSED(ble_pubsub_callback);
+#endif // SRV_BLE
+
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
         Widget* root = gui_layer_get_root_widget(system_layer, GuiDisplayIdBack);
@@ -279,13 +286,6 @@ static StatusBar* status_bar_alloc(void) {
         widget_set_width(flex_layout_get_base(status_bar), BACK_STATUS_BAR_WIDTH);
         widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 2, 1);
         flex_layout_set_spacing(status_bar, 3);
-
-#ifdef SRV_BLE
-        Ble* ble = furi_record_open(RECORD_BLE);
-        furi_pubsub_subscribe(ble_get_pubsub(ble), ble_pubsub_callback, instance);
-#else
-        UNUSED(ble_pubsub_callback);
-#endif // SRV_BLE
 
         instance->ble_status_indicator =
             ble_status_indicator_alloc(flex_layout_get_base(status_bar));

@@ -1,6 +1,7 @@
 #include "factory_reset.h"
 
-#include "ble/ble.h"
+#include <ble/ble.h>
+#include <matter/matter.h>
 
 #include <furi_hal_nvm.h>
 
@@ -23,23 +24,35 @@ static void format_emmc_ext(void) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void wifi_ble_reset_pairing(void) {
-#ifdef SRV_BLE
+static void reset_ble_pairing(void) {
+#ifndef FW_CFG_recovery
     printf("Resetting BLE pairing...\r\n");
 
-    Ble* ble = furi_record_open(RECORD_BLE);
-    ble_forget(ble);
-    furi_record_close(RECORD_BLE);
+    if(furi_record_exists(RECORD_BLE)) {
+        Ble* ble = furi_record_open(RECORD_BLE);
+        ble_forget(ble);
+        furi_record_close(RECORD_BLE);
 
-    printf("BLE pairing was successfully reset\r\n");
-#endif // SRV_BLE
+        printf("BLE pairing reset done\r\n");
+    } else {
+        printf("BLE not ready, skipping\r\n");
+    }
+#endif
 }
 
-static void wifi_ble_restore_default_config(void) {
-#ifdef SRV_BLE
-// printf("Restore default WiFi/BLE settings...\r\n");
-/// TODO: implement after wifi/ble configs will be implemented
-#endif // SRV_BLE
+static void reset_matter_pairing(void) {
+#ifndef FW_CFG_recovery
+    printf("Resetting Matter pairing...\r\n");
+
+    if(furi_record_exists(RECORD_MATTER)) {
+        Matter* matter = furi_record_open(RECORD_MATTER);
+        matter_factory_reset(matter);
+        furi_record_close(RECORD_MATTER);
+        printf("Matter pairing reset done\r\n");
+    } else {
+        printf("Matter not ready, skipping\r\n");
+    }
+#endif
 }
 
 static void reset_firmware_to_backup(Updater* updater) {
@@ -64,9 +77,11 @@ static void reset_firmware_to_backup(Updater* updater) {
 void factory_reset_perform(Updater* updater, bool shipping_mode) {
     printf("Performing factory reset...\r\n");
 
+    reset_ble_pairing();
+    reset_matter_pairing();
+
+    // Wifi settings will be reset here because they live on EMMC
     format_emmc_ext();
-    wifi_ble_reset_pairing();
-    wifi_ble_restore_default_config();
 
 #ifndef FURI_DEBUG
     furi_hal_nvm_reset();
