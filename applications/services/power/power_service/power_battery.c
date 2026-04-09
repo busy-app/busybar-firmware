@@ -101,6 +101,11 @@ PowerBatCalibration* power_load_bat_calibration(const char* path) {
             break;
         }
 
+        if(strcmp(header.signature, BAT_CAL_SIGNATURE) != 0) {
+            FURI_LOG_E(TAG, "Signature mismatch");
+            break;
+        }
+
         size_t curves_size = power_curve_size(header.percent_points) * header.current_points;
         curves = malloc(curves_size);
         if(storage_file_read(file, curves, curves_size) != curves_size) {
