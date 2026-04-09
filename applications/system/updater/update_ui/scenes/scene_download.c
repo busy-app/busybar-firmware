@@ -121,7 +121,7 @@ static void update_ui_download_scene_on_enter(void* context) {
         flex_box_set_spacing(back_status_container, 4);
 
         Image* back_status_image = image_alloc(flex_box_get_base(back_status_container));
-        image_set_source(back_status_image, THIS_IMG_PATH("download_back_12x12.bin"));
+        image_set_source(back_status_image, THIS_IMG_PATH("download_back_12x12.image"));
         widget_set_padding(image_get_base(back_status_image), 0, 0, 0, 1);
 
         Label* back_status_label = label_alloc(flex_box_get_base(back_status_container));
@@ -147,7 +147,7 @@ static void update_ui_download_scene_on_enter(void* context) {
         label_set_text(scene->back_detail_label, "To cancel update press");
 
         Image* back_detail_image = image_alloc(flex_box_get_base(back_detail_container));
-        image_set_source(back_detail_image, THIS_IMG_PATH("arrow_back_11x11.bin"));
+        image_set_source(back_detail_image, THIS_IMG_PATH("arrow_back_11x11.image"));
     });
 
     scene->update_state_subscription = furi_state_subscribe(

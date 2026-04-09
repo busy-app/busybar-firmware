@@ -40,7 +40,7 @@ static void update_ui_failure_scene_on_enter(void* context) {
         widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
 
         Image* front_image = image_alloc(flex_box_get_base(scene->front_box));
-        image_set_source(front_image, SHARED_IMG_PATH("error_front_8x8.bin"));
+        image_set_source(front_image, SHARED_IMG_PATH("error_front_8x8.image"));
 
         Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
         label_set_line_spacing(front_label, 0);
@@ -54,7 +54,7 @@ static void update_ui_failure_scene_on_enter(void* context) {
         widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
 
         Image* back_image = image_alloc(flex_box_get_base(scene->back_box));
-        image_set_source(back_image, SHARED_IMG_PATH("error_back_11x11.bin"));
+        image_set_source(back_image, SHARED_IMG_PATH("error_back_11x11.image"));
         widget_set_padding(image_get_base(back_image), 0, 0, 0, 7);
 
         Label* back_primary_label = label_alloc(flex_box_get_base(scene->back_box));
