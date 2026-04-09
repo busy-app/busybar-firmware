@@ -6,6 +6,10 @@ on:
       - dev
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET_SPEC: 21_64
