@@ -9,9 +9,9 @@ App(
     sources=[
         "power_service/power_api.c",
         "power_service/power_api_misc.c",
+        "power_service/power_battery.c",
         "power_service/power_usb_pd.c",
         "power_service/power.c",
-        "power_service/battery_soc.c"
     ],
     sdk_headers=["power_service/power.h"],
     order=40,

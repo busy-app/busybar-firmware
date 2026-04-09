@@ -6,11 +6,6 @@
 #include <toolbox/property.h>
 #include <power/power_service/power.h>
 
-#include <brightness_control/brightness_control.h>
-#include <front_display/front_display.h>
-#include <gui/gui.h>
-#include <gui/modules/canvas.h>
-
 #ifndef POWER_CLI_DEBUG
 #define POWER_CLI_DEBUG 1
 #endif
@@ -210,7 +205,7 @@ static void power_cli_pd_request(PipeSide* pipe, FuriString* args) {
 }
 
 #if POWER_CLI_DEBUG == 1
-static void power_cli_info_print_debug(PropertyValueContext* prop_ctx, const PowerInfo* info) {
+static void power_cli_info_print_debug(PropertyValueContext* prop_ctx, PowerInfo* info) {
     property_value_out(
         prop_ctx,
         "%02X, %02X, %02X, %02X, %02X",
@@ -231,7 +226,7 @@ static void power_cli_info_print_debug(PropertyValueContext* prop_ctx, const Pow
         info->debug.charger_fault.data[0],
         info->debug.charger_fault.data[1]);
 
-    const Bq25798ChargerFault* f = &(info->debug.charger_fault);
+    Bq25798ChargerFault* f = &(info->debug.charger_fault);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "IBAT_REG", f->ibat_reg);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VBUS_OVP", f->vbus_ovp);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VBAT_OVP", f->vbat_ovp);
@@ -246,37 +241,6 @@ static void power_cli_info_print_debug(PropertyValueContext* prop_ctx, const Pow
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "OTG_OVP", f->otg_ovp);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "OTG_UVP", f->otg_uvp);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "THERM_SHUT", f->therm_shut);
-}
-
-static void power_cli_info_print_battery_soc(PropertyValueContext* prop_ctx, const BatterySocLevel* level) {
-    if(level->flags & BatterySocLevelFlagNoData) {
-        property_value_out(prop_ctx, "%s", 1, "battery", "unknown");
-        return;
-    }
-
-    property_value_out(prop_ctx, "%.2f%%", 2, "battery", "state_of_charge", level->charge_percent);
-    property_value_out(prop_ctx, "%s", 2, "battery", "algorithm", (level->flags & BatterySocLevelFlagChargeAccurate) ? "coulombs" : "volts");
-
-    if(level->flags & BatterySocLevelFlagKnownHealth) {
-        property_value_out(prop_ctx, "%.2f%%", 2, "battery", "health", level->health_percent);
-    } else {
-        property_value_out(prop_ctx, "%s", 2, "battery", "health", "unknown");
-    }
-
-    if(level->flags & BatterySocLevelFlagKnownDetails) {
-        property_value_out(prop_ctx, "%.2f%%", 3, "battery", "soc", "v_based", level->detailed.voltage_based_percent);
-        property_value_out(prop_ctx, "%.2f%%", 3, "battery", "soc", "c_based", level->detailed.charge_based_percent);
-        property_value_out(prop_ctx, "%.2f%%", 3, "battery", "soc", "error", level->detailed.charge_error);
-        property_value_out(prop_ctx, "%.2f%%", 3, "battery", "soc", "real_low", level->charge_percent * (1.0f - (level->detailed.charge_error / 100.0f)));
-        property_value_out(prop_ctx, "%.2f%%", 3, "battery", "soc", "real_high", level->charge_percent * (1.0f + (level->detailed.charge_error / 100.0f)));
-        property_value_out(prop_ctx, "%ld mAh", 3, "battery", "params", "chg_capacity", level->detailed.charge_capacity_mah);
-        property_value_out(prop_ctx, "%ld mAh", 3, "battery", "params", "dischg_capacity", level->detailed.discharge_capacity_mah);
-        property_value_out(prop_ctx, "%.2f%%", 3, "battery", "params", "coulombic_efficiency", level->detailed.efficiency);
-        property_value_out(prop_ctx, "%.2f", 3, "battery", "params", "cycle_count", level->detailed.charge_cycles);
-    } else {
-        property_value_out(prop_ctx, "%s", 2, "battery", "soc", "unknown");
-        property_value_out(prop_ctx, "%s", 2, "battery", "params", "unknown");
-    }
 }
 #endif
 
@@ -322,70 +286,10 @@ static void power_cli_info(PipeSide* pipe, FuriString* args) {
 
 #if POWER_CLI_DEBUG == 1
     power_cli_info_print_debug(&prop_ctx, &info);
-    power_cli_info_print_battery_soc(&prop_ctx, &info.battery_details);
 #endif
 
     furi_string_free(value);
     furi_string_free(key);
-}
-
-static void power_cli_drain(PipeSide* pipe, int i_requested) {
-    Gui* gui = furi_record_open(RECORD_GUI);
-    BrightnessControl* brightness_ctl = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
-    Power* power = furi_record_open(RECORD_POWER);
-
-    power_switch_alerts(power, false);
-    brightness_control_set_brightness_override(brightness_ctl, BrightnessControlModuleFrontDisplay, 100);
-
-    Widget* root;
-    Canvas* canvas;
-    with_gui(gui, {
-        root = gui_layer_get_root_widget(gui_get_layer(gui, GuiLayerIdTop), GuiDisplayIdFront);
-        canvas = canvas_alloc(root, FRONT_DISPLAY_W, FRONT_DISPLAY_H);
-    });
-
-    int32_t brightness = 0;
-    FuriWait last_print = 0;
-
-    while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
-        PowerInfo power_info;
-        power_get_info(power, &power_info);
-
-        int i_battery = -power_info.current_battery;
-        int i_error = i_battery - i_requested;
-        if(abs(i_error) > 10) {
-            if(i_error > 0) brightness--;
-            if(i_error < 0) brightness++;
-        }
-
-        brightness = CLAMP(brightness, UINT8_MAX, 0);
-
-        if((furi_get_tick() - last_print) >= 500) {
-            printf("requested=%dmA, actual=%dmA, error=%dmA, brightness=%ld/255\r\n", i_requested, i_battery, i_error, brightness);
-            last_print = furi_get_tick();
-        }
-
-        with_gui(gui, {
-            canvas_draw_begin(canvas);
-            canvas_set_line_color(canvas, (Color)COLOR_MAKE_RGB(brightness, brightness, brightness));
-            canvas_set_fill_color(canvas, (Color)COLOR_MAKE_RGB(brightness, brightness, brightness));
-            canvas_draw_rect(canvas, 0, 0, FRONT_DISPLAY_W, FRONT_DISPLAY_H, true);
-            canvas_draw_end(canvas);
-        });
-
-        furi_delay_ms((abs(i_error) > 100) ? 25 : 200);
-    }
-
-    with_gui(gui, {
-        canvas_free(canvas);
-    });
-
-    brightness_control_reset_brightness_override(brightness_ctl, BrightnessControlModuleFrontDisplay);
-    power_switch_alerts(power, true);
-    
-    furi_record_close(RECORD_POWER);
-    furi_record_close(RECORD_BRIGHTNESS_CONTROL);
-    furi_record_close(RECORD_GUI);
 }
 
 static void power_cli_command_print_usage(void) {
@@ -401,7 +305,6 @@ static void power_cli_command_print_usage(void) {
     printf("\tch_current\t - charge current limit\r\n");
     printf("\tpd_info\t - USB PD info\r\n");
     printf("\tpd_set\t - Request USB PD profile\r\n");
-    printf("\tdrain <current in mA>\t - use front display to drain a specific current from the battery\r\n");
 }
 
 void power_cli_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -457,16 +360,6 @@ void power_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
         if(furi_string_cmp_str(cmd, "pd_set") == 0) {
             power_cli_pd_request(pipe, args);
-            break;
-        }
-
-        if(furi_string_cmp_str(cmd, "drain") == 0) {
-            int current_ma;
-            if(!args_read_int_and_trim(args, &current_ma)) {
-                power_cli_command_print_usage();
-                break;
-            }
-            power_cli_drain(pipe, current_ma);
             break;
         }
 

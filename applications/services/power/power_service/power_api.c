@@ -138,18 +138,3 @@ void power_set_pd_mode(Power* power, uint32_t voltage_mv) {
         furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(msg.lock);
 }
-
-void power_switch_alerts(Power* power, bool enable) {
-    furi_check(power);
-    bool param = enable;
-
-    PowerMessage msg = {
-        .type = PowerMessageTypeSwitchAlerts,
-        .param_bool = &param,
-        .lock = api_lock_alloc_locked(),
-    };
-
-    furi_check(
-        furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
-    api_lock_wait_unlock_and_free(msg.lock);
-}

@@ -21,15 +21,6 @@ extern "C" {
  */
 bool float_is_equal(float a, float b);
 
-/**
- * @brief Linear interpolation between `a` and `b`, selected by `slider`
- * @param a First value
- * @param b Second value
- * @param slider Selector: `0` means first value, `1` means second value,
- *               something in between means a mix of the two.
- */
-float float_lerp(float a, float b, float slider);
-
 #ifdef __cplusplus
 }
 #endif
