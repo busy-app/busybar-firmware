@@ -34,7 +34,7 @@ static StatusLightsStatus
     return status;
 }
 
-static void status_lights_init(StatusLights* instance)  {
+static void status_lights_init(StatusLights* instance) {
     furi_assert(instance->intercom_ch == NULL);
     // NOTE: Not expecting any messages from Intercom
     instance->intercom_ch =
