@@ -75,7 +75,7 @@ void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings)
 
 void wifi_schedule_disconnect_request(Wifi* instance);
 
-void wifi_schedule_deinit_request(Wifi* intance);
+void wifi_schedule_deinit_request(Wifi* instance);
 
 // Network management
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);
