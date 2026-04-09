@@ -76,7 +76,7 @@ void wifi_api_unlock_pending_request(Wifi* instance, WifiStatus status) {
 void wifi_schedule_init_request(Wifi* instance) {
     furi_assert(instance);
 
-    WifiMessage msg = {
+    const WifiMessage msg = {
         .request_type = WifiRequestTypeInit,
     };
 
@@ -86,7 +86,7 @@ void wifi_schedule_init_request(Wifi* instance) {
 void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings) {
     furi_assert(instance);
 
-    WifiMessage msg = {
+    const WifiMessage msg = {
         .request_type = WifiRequestTypeConnect,
         .connect_message =
             {
@@ -101,7 +101,7 @@ void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings)
 void wifi_schedule_disconnect_request(Wifi* instance) {
     furi_assert(instance);
 
-    WifiMessage msg = {
+    const WifiMessage msg = {
         .request_type = WifiRequestTypeDisconnect,
     };
 
@@ -111,7 +111,7 @@ void wifi_schedule_disconnect_request(Wifi* instance) {
 void wifi_schedule_deinit_request(Wifi* instance) {
     furi_assert(instance);
 
-    WifiMessage msg = {
+    const WifiMessage msg = {
         .request_type = WifiRequestTypeDeinit,
     };
 
