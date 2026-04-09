@@ -6,10 +6,6 @@ on:
       - dev
   pull_request:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET_SPEC: 21_64
@@ -26,6 +22,9 @@ jobs:
         target_spec: ["21_64", "22_65"]
     outputs:
       default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
+      cancel-in-progress: true
 
     steps:
       - name: "Wipe workspace"
