@@ -2,7 +2,6 @@ Import("FW_ENV")
 fwenv = FW_ENV
 
 from SCons.Util import splitext
-from SCons.Defaults import Copy
 from fbt.version import get_git_commit_unix_timestamp
 
 fwenv.SetDefault(BKP_RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources_bkp"))
@@ -22,13 +21,12 @@ def convert_animations():
     return converted
 
 def convert_power_cal():
-    src_files = fwenv.GlobRecursive("*.bat_cal", Dir("#/assets_bkp/bat_cal/"))
+    src_files = fwenv.GlobRecursive("*.bat_cal", Dir("#/assets_bkp/power/"))
     converted = []
 
-    for f in src_files:
-        file_node = assets_dir.File("power/" + f.name)
-        Copy(file_node, f)
-        converted.append(file_node)
+    for src in src_files:
+        dest = assets_dir.Dir(src.Dir(".").name + "/")
+        converted.append(fwenv.Install(dest, src))
 
     return converted
 
