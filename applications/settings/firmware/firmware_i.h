@@ -18,7 +18,7 @@ extern "C" {
 
 #define TAG "FirmwareSettings"
 
-#define THIS_APP_NAME "firmware"
+#define THIS_APP_NAME "firmware_settings"
 
 #define THIS_ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_APP_NAME) "/" path
 #define THIS_IMG_PATH(path)    THIS_ASSETS_PATH("images") "/" path
