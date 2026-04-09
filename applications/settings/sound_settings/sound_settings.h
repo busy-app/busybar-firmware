@@ -32,8 +32,6 @@ typedef enum {
 #define THIS_SETTINGS_APP "sound_settings"
 #define ASSETS_PATH(path) EXT_PATH("apps_assets/" THIS_SETTINGS_APP) "/" path
 #define IMG_PATH(path)    ASSETS_PATH("images") "/" path
-#define ANIM_PATH(path)   ASSETS_PATH("animations") "/" path
-#define SOUND_PATH(path)  ASSETS_PATH("sounds") "/" path
 
 typedef struct {
     FuriEventLoop* event_loop;

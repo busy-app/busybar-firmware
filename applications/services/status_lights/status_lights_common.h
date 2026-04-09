@@ -1,5 +1,5 @@
 /**
- * @file status_lights_common_public.h
+ * @file status_lights_common.h
  * @brief Common public definitions for Status Lights.
  */
 #pragma once

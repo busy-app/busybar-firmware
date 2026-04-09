@@ -2,6 +2,7 @@
 
 #include "busy_timer.h"
 #include "settings/busy_timer_settings.h"
+#include "settings/busy_timer_saved_state.h"
 
 #include <furi.h>
 
@@ -120,6 +121,7 @@ struct BusyTimer {
     StatusLights* status_lights;
     BusyTimerSnapshot last_known_snapshot;
     BusyTimerSettings settings[BusyTimerProfileIdMax];
+    BusyTimerSavedState saved_state;
     // TODO FW-635: Refactor & simplify internals ---->
     BusyTimerState state;
     BusyAppConfig app_config;

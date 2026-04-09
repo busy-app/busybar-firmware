@@ -32,7 +32,6 @@ static BleHttpRepeater* ble_http_repeater;
 static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data);
 
 static void ble_session_reset(BleHttpRepeater* instance) {
-    FURI_LOG_W(TAG, "Session reset");
     furi_mutex_acquire(instance->session_lock, FuriWaitForever);
     instance->current_request_num = 0;
     instance->previous_request_num = 0;
@@ -54,6 +53,7 @@ static void ble_session_callback(size_t data_size, void* data, void* context) {
             break;
         }
 
+        FURI_LOG_W(TAG, "Session reset from remote");
         ble_session_reset(context);
     } while(false);
 }
@@ -62,6 +62,7 @@ static void ble_session_update_on_open(BleHttpRepeater* instance) {
     furi_mutex_acquire(instance->session_lock, FuriWaitForever);
     if(instance->previous_request_num == instance->current_request_num)
         instance->current_request_num += 1;
+    FURI_LOG_D(TAG, "Session: %ld", instance->current_request_num);
     furi_mutex_release(instance->session_lock);
 }
 
@@ -97,7 +98,6 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
         mg_send(conn, data->buf, data->len);
         furi_semaphore_release(ble_http_repeater->uart_conn_sync);
     } else if(ev == MG_EV_CONNECT) {
-        FURI_LOG_D(TAG, "Connected");
         ble_session_update_on_open(ble_http);
         furi_semaphore_release(ble_http->uart_conn_sync);
     } else if(ev == MG_EV_READ) {
@@ -110,6 +110,7 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
 
             if(furi_semaphore_acquire(
                    ble_http->wait, BLE_HTTP_SESSION_TIMEOUT_ON_TX_CONFIRM_FAIL) != FuriStatusOk) {
+                FURI_LOG_W(TAG, "Session reset by timeout");
                 ble_session_reset(ble_http);
                 break;
             }
@@ -170,6 +171,8 @@ static BleHttpRepeater* ble_http_repeater_alloc(Ble* ble) {
 }
 
 static void ble_http_repeater_free(BleHttpRepeater* instance) {
+    ble_uart_set_rx_callback(instance->ble, BleUartChannelNordic, NULL, NULL);
+    ble_uart_set_tx_done_callback(instance->ble, BleUartChannelNordic, NULL, NULL);
     furi_thread_free(instance->thread);
     furi_semaphore_free(instance->wait);
     furi_record_close(RECORD_NETWORK);

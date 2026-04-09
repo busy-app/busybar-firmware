@@ -84,18 +84,15 @@ static bool api_time_set_timestamp_callback(
 }
 
 static FuriString* format_zone_info_json(const TzutilTzInfo* info) {
-    FuriString* abbr = furi_string_alloc_printf(info->abbr_formatter, info->abbr_param);
+    char abbr[TZUTIL_MAX_ABBR_LEN + 1];
+    tzutil_get_abbr(info, abbr, sizeof(abbr));
 
     char offset_buf[DATETIME_OFFSET_STR_LEN + 1];
 
     datetime_format_offset(&info->offset, offset_buf);
 
     FuriString* result = furi_string_alloc_printf(
-        "{\"name\":\"%s\",\"offset\":\"%s\",\"abbr\":\"%s\"}",
-        info->name,
-        offset_buf,
-        furi_string_get_cstr(abbr));
-    furi_string_free(abbr);
+        "{\"name\":\"%s\",\"offset\":\"%s\",\"abbr\":\"%s\"}", info->name, offset_buf, abbr);
     return result;
 }
 

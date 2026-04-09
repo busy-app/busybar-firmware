@@ -1,6 +1,5 @@
 #include "cli_command_gpio.h"
 #include "cli_command_display.h"
-#include "cli_command_status_lights.h"
 #include "cli_command_light_sensor.h"
 #include "cli_command_audio.h"
 #include "cli_command_sl_cli.h"
@@ -175,10 +174,6 @@ static void cli_commands_init(CliRegistry* registry) {
 
     cli_registry_add_command(
         registry, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);
-#ifdef SRV_STATUS_LIGHTS
-    cli_registry_add_command(
-        registry, "status_lights", CliCommandFlagParallelSafe, cli_command_status_lights, NULL);
-#endif // SRV_STATUS_LIGHTS
     cli_registry_add_command(
         registry, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
 #ifdef SRV_AUDIO
