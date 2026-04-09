@@ -16,6 +16,8 @@ static void wifi_intercom_state_callback(const void* item, void* context) {
 
     if(intercom_status == IntercomStatusOk) {
         wifi_schedule_init_request(instance);
+    } else if(intercom_status != IntercomStatusUnknown) {
+        wifi_schedule_deinit_request(instance);
     }
 }
 
@@ -90,6 +92,7 @@ static void wifi_process_request(Wifi* instance) {
         }
 
         if(request_type == WifiRequestTypeInit) {
+            FURI_LOG_I(TAG, "Initializing");
             instance->intercom_ch_control = intercom_channel_open(
                 instance->intercom,
                 IntercomChannelIdWifiControl,
@@ -104,7 +107,6 @@ static void wifi_process_request(Wifi* instance) {
             connect_request->credentials = *credentials;
 
             wifi_state_transition(instance, WifiStateConnecting, credentials);
-
             FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
@@ -114,8 +116,13 @@ static void wifi_process_request(Wifi* instance) {
         } else if(request_type == WifiRequestTypeForget) {
             FURI_LOG_I(TAG, "Forgetting saved network");
             wifi_settings_reset(NULL);
-            // NOTE: No backend request necessary
-            break;
+            break; // No backend request necessary
+
+        } else if(request_type == WifiRequestTypeDeinit) {
+            FURI_LOG_W(TAG, "Deinitializing due to error");
+            wifi_net_down(instance);
+            wifi_state_transition(instance, WifiStateUnknown);
+            break; // No backend request necessary
         }
 
         status = wifi_send_request(instance, request_type);

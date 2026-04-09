@@ -22,6 +22,8 @@ static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message
         api_lock_wait_unlock_and_free(message->lock);
 
     } else {
+        FURI_LOG_E(TAG, "Request timed out");
+
         status = WifiStatusTimeout;
         api_lock_free(message->lock);
     }
@@ -33,6 +35,14 @@ static void wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* mess
     if(furi_semaphore_acquire(instance->api_semaphore, 0) == FuriStatusOk) {
         wifi_api_send_message(instance, message);
     }
+}
+
+static void wifi_api_overriding_request(Wifi* instance, const WifiMessage* message) {
+    if(furi_semaphore_acquire(instance->api_semaphore, 0) != FuriStatusOk) {
+        FURI_LOG_W(TAG, "Overriding current request");
+    }
+
+    wifi_api_send_message(instance, message);
 }
 
 bool wifi_api_is_locked(Wifi* instance) {
@@ -87,6 +97,16 @@ void wifi_schedule_disconnect_request(Wifi* instance) {
     };
 
     wifi_api_nonblocking_request(instance, &msg);
+}
+
+void wifi_schedule_deinit_request(Wifi* instance) {
+    furi_assert(instance);
+
+    WifiMessage msg = {
+        .request_type = WifiRequestTypeDeinit,
+    };
+
+    wifi_api_overriding_request(instance, &msg);
 }
 
 FuriState* wifi_get_state(Wifi* instance) {
