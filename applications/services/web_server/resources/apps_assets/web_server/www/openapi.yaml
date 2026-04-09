@@ -865,7 +865,7 @@ paths:
           schema:
             type: number
           description: Audio volume (0-100)
-          example: "50"
+          example: 50
         - name: silent
           in: query
           required: false
@@ -873,7 +873,7 @@ paths:
             type: integer
             enum: [0, 1]
           description: Set volume silently (0 - play volume change sound(default), 1 - do not play sound)
-          example: "1"
+          example: 1
       responses:
         "200":
           description: Volume set successfully
@@ -2229,7 +2229,7 @@ components:
         volume:
           type: number
           description: Audio volume value (0-100)
-          example: "50"
+          example: 50
 
     TimestampInfo:
       type: object
@@ -2419,7 +2419,7 @@ components:
           $ref: "#/components/schemas/WifiSecurityMethod"
         rssi:
           type: integer
-          example: "58"
+          example: 58
 
     StatusResponse:
       type: object
@@ -2451,11 +2451,11 @@ components:
         channel:
           type: integer
           description: Only present when connected
-          example: "3"
+          example: 3
         rssi:
           type: integer
           description: Only present when connected
-          example: "-43"
+          example: -43
         security:
           description: Only present when connected
           $ref: "#/components/schemas/WifiSecurityMethod"
