@@ -1,7 +1,6 @@
 #include "factory_reset.h"
 
 #include <ble/ble.h>
-#include <wifi/wifi.h>
 #include <matter/matter.h>
 
 #include <furi_hal_nvm.h>
@@ -37,21 +36,6 @@ static void reset_ble_pairing(void) {
         printf("BLE pairing reset done\r\n");
     } else {
         printf("BLE not ready, skipping\r\n");
-    }
-#endif
-}
-
-static void reset_wifi_settings(void) {
-#ifndef FW_CFG_recovery
-    printf("Resetting Wifi settings...\r\n");
-
-    if(furi_record_exists(RECORD_WIFI)) {
-        Wifi* wifi = furi_record_open(RECORD_WIFI);
-        wifi_disconnect(wifi);
-        furi_record_close(RECORD_WIFI);
-        printf("Wifi settings reset done\r\n");
-    } else {
-        printf("Wifi not ready, skipping\r\n");
     }
 #endif
 }
@@ -94,9 +78,9 @@ void factory_reset_perform(Updater* updater, bool shipping_mode) {
     printf("Performing factory reset...\r\n");
 
     reset_ble_pairing();
-    reset_wifi_settings();
     reset_matter_pairing();
 
+    // Wifi settings will be reset here because they live on EMMC
     format_emmc_ext();
 
 #ifndef FURI_DEBUG
