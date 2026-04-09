@@ -140,7 +140,7 @@ static void wifi_process_request(Wifi* instance) {
     }
 
     if(unlock_api) {
-        wifi_api_unlock(instance, status);
+        wifi_api_unlock_all(instance, status);
     }
 }
 
@@ -223,7 +223,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
     }
 
     if(unlock_api) {
-        wifi_api_unlock(instance, status);
+        wifi_api_unlock_all(instance, status);
     }
 }
 
@@ -273,6 +273,22 @@ static void wifi_process_async_response(Wifi* instance, const WifiResponse* resp
     }
 }
 
+static void wifi_override_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Wifi* instance = context;
+    furi_assert(object == instance->override_queue);
+
+    if(!wifi_api_try_lock(instance)) {
+        wifi_api_unlock_request(instance, WifiStatusError);
+    }
+
+    furi_check(
+        furi_message_queue_get(instance->override_queue, &instance->api_message, 0) ==
+        FuriStatusOk);
+    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+}
+
 static void wifi_response_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -320,6 +336,7 @@ static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->override_queue = furi_message_queue_alloc(1, sizeof(WifiMessage));
     instance->response_queue = furi_message_queue_alloc(3, sizeof(WifiResponse));
     instance->api_semaphore = furi_semaphore_alloc(1, 1);
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
@@ -333,6 +350,13 @@ static Wifi* wifi_alloc(void) {
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->override_queue,
+        FuriEventLoopEventIn,
+        wifi_override_queue_callback,
+        instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,

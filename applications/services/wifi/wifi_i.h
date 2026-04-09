@@ -46,6 +46,7 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriMessageQueue* response_queue;
+    FuriMessageQueue* override_queue;
     FuriSemaphore* api_semaphore;
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
@@ -61,7 +62,11 @@ struct Wifi {
 // API management
 bool wifi_api_is_locked(Wifi* instance);
 
-void wifi_api_unlock(Wifi* instance, WifiStatus status);
+bool wifi_api_try_lock(Wifi* instance);
+
+void wifi_api_unlock_all(Wifi* instance, WifiStatus status);
+
+void wifi_api_unlock_request(Wifi* instance, WifiStatus status);
 
 // Internal nonblocking API calls
 void wifi_schedule_init_request(Wifi* instance);
