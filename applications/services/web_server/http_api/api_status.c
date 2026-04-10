@@ -132,9 +132,7 @@ static bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
     updater_get_settings(updater, &settings);
     furi_record_close(RECORD_UPDATER);
     furi_string_cat_printf(
-        json_str,
-        "\"auto_update_enabled\":\"%s\"",
-        settings.autoupdate_enabled ? "true" : "false");
+        json_str, "\"auto_update_enabled\":%s", settings.autoupdate_enabled ? "true" : "false");
 
     furi_string_cat_printf(json_str, "}");
 
