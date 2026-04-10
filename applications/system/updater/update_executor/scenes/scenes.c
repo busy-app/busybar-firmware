@@ -4,14 +4,16 @@
 
 #include <assert.h>
 
-extern const Scene update_executor_scene_install;
-extern const Scene update_executor_scene_success;
-extern const Scene update_executor_scene_fail;
+extern const Scene update_executor_internal_scene_install;
+extern const Scene update_executor_internal_scene_failure;
+extern const Scene update_executor_internal_scene_success;
+extern const Scene update_executor_internal_scene_reboot;
 
-const Scene* const update_executor_scenes[] = {
-    [UpdateExecutorSceneIdInstall] = &update_executor_scene_install,
-    [UpdateExecutorSceneIdSuccess] = &update_executor_scene_success,
-    [UpdateExecutorSceneIdFail] = &update_executor_scene_fail,
+const Scene* const update_executor_internal_scenes[] = {
+    [UpdateExecutorSceneIdxInstall] = &update_executor_internal_scene_install,
+    [UpdateExecutorSceneIdxFailure] = &update_executor_internal_scene_failure,
+    [UpdateExecutorSceneIdxSuccess] = &update_executor_internal_scene_success,
+    [UpdateExecutorSceneIdxReboot] = &update_executor_internal_scene_reboot,
 };
 
-static_assert(COUNT_OF(update_executor_scenes) == UpdateExecutorSceneIdsCount);
+static_assert(COUNT_OF(update_executor_internal_scenes) == UpdateExecutorSceneIdxsCount);

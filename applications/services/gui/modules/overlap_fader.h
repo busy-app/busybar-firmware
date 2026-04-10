@@ -58,6 +58,16 @@ Widget* overlap_fader_get_base(OverlapFader* instance);
  */
 void overlap_fader_align_to(OverlapFader* instance, Widget* target, OverlapFaderSide side);
 
+/**
+ * @brief Re-align the fader to its target without changing configuration.
+ *
+ * Useful when the target's position has changed after the initial alignment.
+ * Uses the target and alignment from the previous `overlap_fader_align_to` call.
+ *
+ * @param[in,out] instance pointer to the OverlapFader instance
+ */
+void overlap_fader_realign(OverlapFader* instance);
+
 #ifdef __cplusplus
 }
 #endif
