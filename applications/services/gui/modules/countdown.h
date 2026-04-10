@@ -82,6 +82,14 @@ void countdown_set_callback(Countdown* instance, CountdownCallback callback, voi
 void countdown_set_text_color(Countdown* instance, Color color);
 
 /**
+ * @brief Set the countdown font from a font file.
+ *
+ * @param[in,out] instance pointer to the Countdown instance to be modified
+ * @param[in] font_path path to font file
+ */
+void countdown_set_text_font(Countdown* instance, const char* font_path);
+
+/**
  * @brief Starts counting down (or up)
  * 
  * @param[in] instance pointer to the Countdown instance to be modified
