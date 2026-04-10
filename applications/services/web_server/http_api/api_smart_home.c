@@ -89,10 +89,10 @@ static void api_smart_home_factory_reset(struct mg_connection* conn, struct mg_h
     UNUSED(msg);
 
     Matter* matter = furi_record_open(RECORD_MATTER);
-    bool success = matter_factory_reset(matter);
+    MatterStatus matter_status = matter_factory_reset(matter);
     furi_record_close(RECORD_MATTER);
 
-    if(success) {
+    if(matter_status == MatterStatusOk) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_ERROR(conn, 503, "Smart home unavailable");
