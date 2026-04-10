@@ -39,20 +39,20 @@ CHIP_ERROR LoadCryptoStorageKey(
     MutableByteSpan& out_span) {
     CHIP_ERROR err;
 
-    FuriHalCryptoKeyDeprecated* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
 
     do {
-        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(key, key_type, key_id));
+        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(key, FuriHalCryptoPartitionMain, key_type, key_id));
 
         if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
 
-        err = CopySpanToMutableSpan(ByteSpan{key->data, key->header.size}, out_span);
+        err = CopySpanToMutableSpan(ByteSpan{key->data, key->length}, out_span);
 
     } while(false);
 
-    furi_hal_crypto_storage_free(key);
+    furi_hal_crypto_key_free(key);
 
     return err;
 }
@@ -64,28 +64,23 @@ CHIP_ERROR SignWithECDSA256Key(
     MutableByteSpan& out_span) {
     CHIP_ERROR err;
 
-    FuriHalCryptoKeyDeprecated* private_key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKey* private_key = furi_hal_crypto_key_alloc();
 
     do {
         err = TranslateFuriHalCryptoStatus(
-            furi_hal_crypto_storage_read(private_key, key_type, key_id));
+            furi_hal_crypto_storage_read(private_key, FuriHalCryptoPartitionMain, key_type, key_id));
 
         if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
 
-        const FuriHalCryptoWrappingMode wrap_mode =
-            private_key->header.flags & FuriHalCryptoKeyFlagWrap ? FuriHalCryptoWrappingModeOn :
-                                                                   FuriHalCryptoWrappingModeOff;
-        if(wrap_mode == FuriHalCryptoWrappingModeOff) {
+        if((private_key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
             ChipLogDetail(Crypto, "WARNING: Using unwrapped private key");
         }
 
         FuriHalCryptoEcdsa* ecdsa = furi_hal_crypto_ecdsa_sign_init(
             FuriHalCryptoEcdsaModeSha256,
-            private_key->data,
-            FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
-            wrap_mode);
+            private_key);
 
         uint8_t asn1_sig[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
         size_t asn1_sig_len = 0;
@@ -106,7 +101,7 @@ CHIP_ERROR SignWithECDSA256Key(
 
     } while(false);
 
-    furi_hal_crypto_storage_free(private_key);
+    furi_hal_crypto_key_free(private_key);
 
     return err;
 }

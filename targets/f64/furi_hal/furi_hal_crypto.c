@@ -7,10 +7,27 @@
 #include <sl_si91x_sha.h>
 #include <sl_si91x_wrap.h>
 
+#include <sl_si91x_trng.h>
+#include <psa/crypto.h>
+#include <mbedtls/x509_crt.h>
+#include <mbedtls/x509_csr.h>
+
 #define TAG "Crypto"
 
-uint8_t wrap_iv[] =
+#define FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX      (2048UL)
+
+static const uint8_t wrap_iv[] =
     {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46};
+
+FuriHalCryptoKey* furi_hal_crypto_key_alloc(void) {
+    return malloc(sizeof(FuriHalCryptoKey));
+}
+
+void furi_hal_crypto_key_free(FuriHalCryptoKey *key) {
+    bzero(key->data, sizeof(key->data));
+    free(key);
+}
+
 
 //#################### AES ####################
 struct FuriHalCryptoAes {
@@ -150,29 +167,27 @@ struct FuriHalCryptoEcdsa {
 
 FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
     FuriHalCryptoEcdsaMode mode,
-    uint8_t* key,
-    uint32_t key_size,
-    FuriHalCryptoWrappingMode wrapping_mode) {
+    const FuriHalCryptoKey* key) {
     FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
     furi_check(handle != NULL, "Failed to allocate memory for ECDSA handle");
 
     handle->config.ecdsa_operation = SL_SI91X_ECDSA_GENERATE_SIGN;
-    if(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224) {
+    if(key->type == FuriHalCryptoKeyTypeEcdsaPriv224) {
         handle->config.curve_id = SL_SI91X_ECC_SECP224R1;
-    } else if(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256) {
+    } else if(key->type == FuriHalCryptoKeyTypeEcdsaPriv256) {
         handle->config.curve_id = SL_SI91X_ECC_SECP256R1;
     } else {
-        furi_crash("Invalid key size");
+        furi_crash("Invalid key type");
     }
     handle->config.sha_mode = furi_hal_crypto_ecdsa_sha_mode[mode];
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
-    handle->config.private_key = key;
-    handle->config.private_key_length = key_size;
+    handle->config.private_key = key->data;
+    handle->config.private_key_length = key->length;
     handle->config.public_key = NULL;
     handle->config.public_key_length = 0;
     handle->config.signature_length = 0;
-    if(wrapping_mode != FuriHalCryptoWrappingModeOn) {
+    if((key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
         handle->config.key_config.b0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.b0.key_type = SL_SI91X_WRAPPED_KEY;
@@ -192,26 +207,25 @@ FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
 
 FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_verify_init(
     FuriHalCryptoEcdsaMode mode,
-    uint8_t* key,
-    uint32_t key_size) {
+    const FuriHalCryptoKey* key) {
     FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
     furi_check(handle != NULL, "Failed to allocate memory for ECDSA handle");
 
     handle->config.ecdsa_operation = SL_SI91X_ECDSA_VERIFY_SIGN;
-    if(key_size == FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224) {
+    if(key->type == FuriHalCryptoKeyTypeEcdsaPub224) {
         handle->config.curve_id = SL_SI91X_ECC_SECP224R1;
-    } else if(key_size == FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256) {
+    } else if(key->type == FuriHalCryptoKeyTypeEcdsaPub256) {
         handle->config.curve_id = SL_SI91X_ECC_SECP256R1;
     } else {
-        furi_crash("Invalid key size");
+        furi_crash("Invalid key type");
     }
     handle->config.sha_mode = furi_hal_crypto_ecdsa_sha_mode[mode];
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
     handle->config.private_key = NULL;
     handle->config.private_key_length = 0;
-    handle->config.public_key = key;
-    handle->config.public_key_length = key_size;
+    handle->config.public_key = key->data;
+    handle->config.public_key_length = key->length;
     handle->config.signature_length = 0;
     handle->config.key_config.b0.key_type = SL_SI91X_TRANSPARENT_KEY;
     handle->config.key_config.b0.key_size = 0;
@@ -276,10 +290,10 @@ struct FuriHalCryptoHmac {
 };
 
 static const sl_si91x_hmac_mode_t furi_hal_crypto_hmac_sha_mode[] = {
-    [FuriHalCryptoHmacShaModeSha1] = SL_SI91X_HMAC_SHA_1,
-    [FuriHalCryptoHmacShaModeSha256] = SL_SI91X_HMAC_SHA_256,
-    [FuriHalCryptoHmacShaModeSha384] = SL_SI91X_HMAC_SHA_384,
-    [FuriHalCryptoHmacShaModeSha512] = SL_SI91X_HMAC_SHA_512,
+    [FuriHalCryptoKeyTypeHmacSha1] = SL_SI91X_HMAC_SHA_1,
+    [FuriHalCryptoKeyTypeHmacSha256] = SL_SI91X_HMAC_SHA_256,
+    [FuriHalCryptoKeyTypeHmacSha384] = SL_SI91X_HMAC_SHA_384,
+    [FuriHalCryptoKeyTypeHmacSha512] = SL_SI91X_HMAC_SHA_512,
 };
 
 FuriHalCryptoHmac* furi_hal_crypto_hmac_init(
@@ -341,39 +355,6 @@ bool furi_hal_crypto_hmac_digest(
     return true;
 }
 
-void furi_hal_crypto_hmac_wrap_key(
-    uint32_t key_size,
-    uint8_t* key,
-    FuriHalCryptoHmacShaMode hmac_sha_mode,
-    uint8_t* wrapped_key,
-    size_t* wrapped_key_size) {
-    furi_assert(key);
-    furi_assert(wrapped_key);
-    furi_check(key_size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
-    //sl_si91x_wrap_config_t - size 1432 bytes
-    sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
-    wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
-    wrap_config->key_size = key_size;
-    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
-    wrap_config->padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
-    wrap_config->hmac_sha_mode = furi_hal_crypto_hmac_sha_mode[hmac_sha_mode];
-
-    if(wrap_config->wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
-        memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
-    }
-    //memset(wrapped_key, 0, *wrapped_key_size);
-    memcpy(wrap_config->key_buffer, key, wrap_config->key_size);
-
-    sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key);
-    *wrapped_key_size = wrap_config->key_size;
-    free(wrap_config);
-
-    if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
-        furi_crash("Failed to wrap key");
-    }
-}
-
 //#################### SHA ####################
 static const sl_si91x_crypto_sha_mode_t furi_hal_crypto_sha_mode[] = {
     [FuriHalCryptoShaModeSha1] = SL_SI91X_SHA_1,
@@ -411,28 +392,323 @@ bool furi_hal_crypto_sha(
 }
 
 //#################### Wrap Key ####################
-void furi_hal_crypto_wrap_key(uint32_t key_size, uint8_t* key, uint8_t* wrapped_key) {
+FuriHalCryptoStatus furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key) {
     furi_assert(key);
     furi_assert(wrapped_key);
-    furi_check(key_size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
+    furi_check(key->length <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
+    furi_check((key->flags & FuriHalCryptoKeyFlagWrap) == 0);
     //sl_si91x_wrap_config_t - size 1432 bytes
     sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
     wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
-    wrap_config->key_size = key_size;
-    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
-    wrap_config->padding = 0;
+    wrap_config->key_size = key->length;
+    switch(key->type) {
+    case FuriHalCryptoKeyTypeHmacSha1:
+    case FuriHalCryptoKeyTypeHmacSha256:
+    case FuriHalCryptoKeyTypeHmacSha384:
+    case FuriHalCryptoKeyTypeHmacSha512:
+        wrap_config->padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
+        wrap_config->hmac_sha_mode = furi_hal_crypto_hmac_sha_mode[key->type];
+        break;
+    default:
+        wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
+        wrap_config->padding = 0;
+        break;
+    }
 
-    memcpy(wrap_config->key_buffer, key, wrap_config->key_size);
+    memcpy(wrap_config->key_buffer, key->data, wrap_config->key_size);
     if(wrap_config->wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
         memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
     }
 
-    sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key);
-    furi_check(key_size == wrap_config->key_size, "Invalid key size");
+    sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key->data);
+    FuriHalCryptoStatus ret = FuriHalCryptoStatusOk;
+    if(status == SL_STATUS_OK) {
+        wrapped_key->type = key->type;
+        wrapped_key->flags = key->flags | FuriHalCryptoKeyFlagWrap;
+        wrapped_key->length = wrap_config->key_size;
+    } else if(status == SL_STATUS_SI91X_CRYPTO_DEVICE_SECURITY_IS_DISABLED) {
+        ret = FuriHalCryptoStatusUnavailable;
+    } else {
+        FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
+        ret = FuriHalCryptoStatusFail;
+    }
+
+    free(wrap_config);
+    return ret;
+}
+
+FuriHalCryptoStatus furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf) {
+    furi_assert(src_buf);
+    furi_assert(dst_buf);
+    furi_check(size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
+    //sl_si91x_wrap_config_t - size 1432 bytes
+    sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
+    wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
+    wrap_config->key_size = size;
+    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
+    wrap_config->padding = 0;
+    memcpy(wrap_config->key_buffer, src_buf, wrap_config->key_size);
+    memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
+
+    sl_status_t status = sl_si91x_wrap(wrap_config, dst_buf);
+
     free(wrap_config);
 
-    if(status != SL_STATUS_OK) {
+    if(status == SL_STATUS_SI91X_CRYPTO_DEVICE_SECURITY_IS_DISABLED) {
+        return FuriHalCryptoStatusUnavailable;
+    } else if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
-        furi_crash("Failed to wrap key");
+        return FuriHalCryptoStatusFail;
+    } else {
+        return FuriHalCryptoStatusOk;
     }
+}
+
+
+//#################### Key generation ##############
+FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size) {
+    furi_check(buf);
+    furi_check(size > 0);
+    furi_check(size <= 1024);
+
+    uint32_t trng_key[TRNG_KEY_SIZE] = {0x16157E2B, 0xA6D2AE28, 0x8815F7AB, 0x3C4FCF09};
+    sl_status_t status = SL_STATUS_FAIL;
+    // This API checks the Entropy of TRNG i.e source for TRNG
+    status = sl_si91x_trng_entropy();
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to check TRNG entropy: 0x%08lx\r\n", status);
+        return FuriHalCryptoStatusFail;
+    }
+    // This API Initializes key which needs to be programmed to TRNG hardware engine
+    status = sl_si91x_trng_program_key(trng_key, TRNG_KEY_SIZE);
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to program TRNG key: 0x%08lx\r\n", status);
+        return FuriHalCryptoStatusFail;
+    }
+    // Get Random dwords of desired length
+    uint32_t reget_num = 10;
+    do {
+        status = sl_si91x_trng_get_random_num((uint32_t*)buf, size);
+        --reget_num;
+    } while((status == SL_STATUS_TRNG_DUPLICATE_ENTROPY) && reget_num);
+
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to get random numbers: 0x%08lx\r\n", status);
+        return FuriHalCryptoStatusFail;
+    }
+    return FuriHalCryptoStatusOk;
+}
+
+FuriHalCryptoStatus
+    furi_hal_crypto_gen_random_key(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, FuriHalCryptoKeyFlag flags) {
+    furi_check(key);
+
+    switch(type) {
+    case FuriHalCryptoKeyTypeAes128:
+        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
+        break;
+    case FuriHalCryptoKeyTypeAes192:
+        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
+        break;
+    case FuriHalCryptoKeyTypeAes256:
+        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha1:
+        key->length = FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha256:
+        key->length = FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha384:
+        key->length = FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha512:
+        key->length = FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeEcdsaPriv224:
+        key->length = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224;
+        break;
+    case FuriHalCryptoKeyTypeEcdsaPriv256:
+        key->length = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
+        break;
+    default:
+        return FuriHalCryptoStatusWrongType;
+    }
+
+    key->type = type;
+    key->flags = flags;
+    return furi_hal_crypto_gen_random_buf(key->data, key->length);
+}
+
+FuriHalCryptoStatus
+    furi_hal_crypto_gen_asymmetric_pub_key(const FuriHalCryptoKey* priv_key, FuriHalCryptoKey* pub_key) {
+    furi_check(priv_key);
+    furi_check(pub_key);
+    if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv224 && priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256) {
+        return FuriHalCryptoStatusWrongType;
+    }
+    if(priv_key->flags & FuriHalCryptoKeyFlagWrap) {
+        return FuriHalCryptoStatusWrongType;
+    }
+
+    psa_status_t psa_status;
+    psa_key_id_t psa_key_id;
+    psa_key_attributes_t key_attr;
+    size_t pubkey_len;
+    FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
+
+    do {
+        psa_status = psa_crypto_init();
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(
+                TAG, "PSA crypto library initialization failed with error: %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "PSA crypto library initialization Success");
+        }
+        // Set up attributes for a volatile private key
+        key_attr = psa_key_attributes_init();
+        psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
+
+        if(priv_key->type == FuriHalCryptoKeyTypeEcdsaPriv224) {
+            psa_set_key_bits(&key_attr, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224_BITS);
+            pub_key->length = FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224; // Get size in bytes
+            pub_key->type = FuriHalCryptoKeyTypeEcdsaPub224;
+        } else if(priv_key->type == FuriHalCryptoKeyTypeEcdsaPriv256) {
+            psa_set_key_bits(&key_attr, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256_BITS);
+            pub_key->length = FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256; // Get size in bytes
+            pub_key->type = FuriHalCryptoKeyTypeEcdsaPub256;
+        }
+        pub_key->flags = 0;
+
+        psa_set_key_usage_flags(
+            &key_attr, PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE);
+        psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
+
+        // Import a private key
+        psa_status = psa_import_key(&key_attr, priv_key->data, priv_key->length, &psa_key_id);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Import Key failed with error: status %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Import Key success");
+        }
+
+        // Export a public key from a volatile private key
+        psa_status =
+            psa_export_public_key(psa_key_id, pub_key->data, pub_key->length, &pubkey_len);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(
+                TAG, "Exporting a Public Key from Private key Failed with error: %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Export Public Key from Private Key Success");
+        }
+
+        furi_check(pubkey_len == pub_key->length);
+
+        // Destroy the private key
+        psa_status = psa_destroy_key(psa_key_id);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Destroy Key failed with error : %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Destroy Key Success");
+        }
+        status = FuriHalCryptoStatusOk;
+    } while(false);
+    return status;
+}
+
+FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
+    const FuriHalCryptoKey* priv_key,
+    FuriHalCryptoKey* csr_der_key,
+    const char* subject_name) {
+    furi_check(priv_key);
+
+    if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256 || (priv_key->flags & FuriHalCryptoKeyFlagWrap) != 0) {
+        return FuriHalCryptoStatusWrongType;
+    }
+
+    psa_key_id_t psa_key_id = 0;
+    mbedtls_pk_context key_ctx;
+    mbedtls_x509write_csr csr_ctx;
+    int csr_der_status = 0;
+
+    size_t max_size = FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX;
+    uint8_t* buffer = malloc(max_size);
+    psa_key_attributes_t key_attr;
+    FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
+    psa_status_t psa_status;
+
+    do {
+        psa_status = psa_crypto_init();
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(
+                TAG, "PSA crypto library initialization failed with error: %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "PSA crypto library initialization Success");
+        }
+
+        // import key
+        key_attr = psa_key_attributes_init();
+        psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
+        psa_set_key_bits(&key_attr, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256_BITS);
+        psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
+        psa_set_key_usage_flags(
+            &key_attr,
+            PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH | PSA_KEY_USAGE_SIGN_MESSAGE |
+                PSA_KEY_USAGE_VERIFY_MESSAGE);
+
+        // Import a private key
+        psa_status = psa_import_key(&key_attr, priv_key->data, priv_key->length, &psa_key_id);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Import Key failed with error: status %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Import Key success");
+        }
+
+        // Generate CSR
+        mbedtls_x509write_csr_init(&csr_ctx);
+        csr_der_status = mbedtls_x509write_csr_set_subject_name(&csr_ctx, subject_name);
+        if(csr_der_status != 0) {
+            FURI_LOG_E(TAG, "Failed to set subject name for CSR: %d", csr_der_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Subject name set for CSR: %s", subject_name);
+        }
+        mbedtls_x509write_csr_set_md_alg(&csr_ctx, MBEDTLS_MD_SHA256);
+        mbedtls_pk_init(&key_ctx);
+        csr_der_status = mbedtls_pk_setup_opaque(&key_ctx, psa_key_id);
+        if(csr_der_status != 0) {
+            FURI_LOG_E(TAG, "Failed to setup key context for CSR: %d", csr_der_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Key context setup for CSR");
+        }
+        mbedtls_x509write_csr_set_key(&csr_ctx, &key_ctx);
+        int len_or_err =
+            mbedtls_x509write_csr_der(&csr_ctx, (uint8_t*)buffer, max_size, NULL, NULL);
+        if(len_or_err < 0) {
+            FURI_LOG_E(TAG, "Failed to generate CSR DER: %d", len_or_err);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "CSR DER generated successfully");
+        }
+
+        csr_der_key->length = len_or_err;
+        csr_der_key->type = FuriHalCryptoKeyTypeCsrDerEcdsa256;
+
+        memcpy(csr_der_key->data, buffer + (max_size - len_or_err), len_or_err);
+        status = FuriHalCryptoStatusOk;
+    } while(false);
+
+    mbedtls_x509write_csr_free(&csr_ctx);
+    mbedtls_pk_free(&key_ctx);
+    psa_destroy_key(psa_key_id);
+    free(buffer);
+
+    return status;
 }

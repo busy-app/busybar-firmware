@@ -23,7 +23,7 @@ static const uint8_t private_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {
 
 void crypto_csr_wrap(uint8_t* key, size_t key_size, uint8_t* wrapped_key) {
     furi_check(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
-    furi_hal_crypto_wrap_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
+    furi_hal_crypto_wrap_raw_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
 }
 
 void crypto_csr_command_add_extension(
@@ -54,7 +54,7 @@ void crypto_csr_command_add_extension(
         csr_ctx,
         (const char*)vid_oid.p,
         vid_oid.len,
-        0, // Не критичное расширение
+        0, // non-critical
         (unsigned char*)value,
         value_len);
 

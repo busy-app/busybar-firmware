@@ -41,29 +41,6 @@ static void print_status(FuriHalCryptoStatus status) {
     }
 }
 
-static void crypto_command_show_status(
-    FuriHalCryptoStatus status,
-    const FuriHalCryptoKeyDeprecated* key,
-    const char* name) {
-    furi_assert(key);
-    furi_assert(name);
-
-    const FuriHalCryptoKeySlotHeader* header = &key->header;
-    const FuriHalCryptoPartition key_part = key->partition;
-    const FuriHalCryptoKeyType key_type = header->type;
-    const uint32_t key_id = header->id;
-
-    if(status == FuriHalCryptoStatusOk) {
-        printf("Key %d:%d:%lX %s SUCCESS\r\n" CLI_STATUS_OK, key_part, key_type, key_id, name);
-    } else {
-        printf("Key %d:%d:%lX %s ERROR: ", key_part, key_type, key_id, name);
-
-        print_status(status);
-
-        printf(CLI_STATUS_ERROR);
-    }
-}
-
 static void
     show_status(FuriHalCryptoStatus status, const FuriHalCryptoKeySlot* slot, const char* name) {
     furi_assert(slot);
@@ -200,71 +177,69 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     uint32_t temp = 0xFF;
-    FuriHalCryptoKeyDeprecated* key = NULL;
+    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
-    if(furi_string_size(args)) {
-        char* args_cstr = (char*)furi_string_get_cstr(args);
-        StrintParseError parse_err = StrintParseNoError;
+    uint32_t key_id = 0;
+    do {
+        if(furi_string_size(args)) {
+            char* args_cstr = (char*)furi_string_get_cstr(args);
+            StrintParseError parse_err = StrintParseNoError;
 
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
-        partition = (FuriHalCryptoPartition)temp;
-        if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
-            cli_print_usage(
-                "crypto write",
-                "<partition> 0-partition_main, 1-partition_user\r\n",
-                furi_string_get_cstr(args));
-            printf(CLI_STATUS_ERROR);
-            return;
-        }
+            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+            partition = (FuriHalCryptoPartition)temp;
+            if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
+                cli_print_usage(
+                    "crypto write",
+                    "<partition> 0-partition_main, 1-partition_user\r\n",
+                    furi_string_get_cstr(args));
+                printf(CLI_STATUS_ERROR);
+                break;
+            }
 
-        key = furi_hal_crypto_storage_alloc(partition);
+            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+            key->type = (FuriHalCryptoKeyType)temp;
+            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key_id, 16);
+            parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
+            key->flags = (FuriHalCryptoKeyFlag)temp;
+            parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->length, 10);
+            if(!parse_err && (key->length > sizeof(key->data))) {
+                cli_print_usage("crypto write", "<size> of range\r\n", furi_string_get_cstr(args));
+                printf(CLI_STATUS_ERROR);
+                break;
+            }
 
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
-        key->header.type = (FuriHalCryptoKeyType)temp;
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key->header.id, 16);
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
-        key->header.flags = (FuriHalCryptoKeyFlag)temp;
-        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->header.size, 10);
-        if(!parse_err && (key->header.size > key->length)) {
-            cli_print_usage("crypto write", "<size> of range\r\n", furi_string_get_cstr(args));
-            furi_hal_crypto_storage_free(key);
-            printf(CLI_STATUS_ERROR);
-            return;
-        }
-
-        furi_string_printf(args, "%s", args_cstr);
-        furi_string_trim(args);
-        if(parse_err || !args_read_hex_bytes(args, key->data, key->header.size)) {
+            furi_string_printf(args, "%s", args_cstr);
+            furi_string_trim(args);
+            if(parse_err || !args_read_hex_bytes(args, key->data, key->length)) {
+                cli_print_usage(
+                    "crypto write",
+                    "<partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in byte>\r\n",
+                    furi_string_get_cstr(args));
+                printf(CLI_STATUS_ERROR);
+                break;
+            }
+        } else {
             cli_print_usage(
                 "crypto write",
                 "<partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in byte>\r\n",
                 furi_string_get_cstr(args));
-            furi_hal_crypto_storage_free(key);
             printf(CLI_STATUS_ERROR);
-            return;
+            break;
         }
-    } else {
-        cli_print_usage(
-            "crypto write",
-            "<partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in byte>\r\n",
-            furi_string_get_cstr(args));
-        printf(CLI_STATUS_ERROR);
-        return;
-    }
-    furi_check(key);
 
-    FuriHalCryptoStatus status = furi_hal_crypto_storage_write(key);
+        FuriHalCryptoKeySlot slot;
+        FuriHalCryptoStatus status = furi_hal_crypto_storage_write_ex(key, partition, key_id, &slot);
 
-    crypto_command_show_status(status, key, "write");
+        show_status(status, &slot, "write");
+    } while(false);
 
-    furi_hal_crypto_storage_free(key);
+    furi_hal_crypto_key_free(key);
 }
 
 void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
-    FuriHalCryptoKeyDeprecated* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
     uint32_t id = 0;
@@ -303,22 +278,32 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
         return;
     }
 
-    key = furi_hal_crypto_storage_alloc(partition);
-    FuriHalCryptoStatus status = furi_hal_crypto_storage_read(key, type, id);
+    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
+    // fill slot to show error
+    FuriHalCryptoKeySlot slot = {
+        .address = {
+            .partition = partition
+        },
+        .header = {
+            .id = id,
+            .type = type
+        }
+    };
+    FuriHalCryptoStatus status = furi_hal_crypto_storage_read_ex(key, &slot, partition, type, id);
 
     if(status == FuriHalCryptoStatusOk) {
         printf("partition: %d\r\n", partition);
-        printf("magic_number: 0x%08lx\r\n", key->header.magic_number);
-        printf("key_reserved: 0x%04X\r\n", key->header.reserved);
-        printf("key_size: %d\r\n", key->header.size);
-        printf("key_type: %ld\r\n", (uint32_t)key->header.type);
-        printf("key_type_name: %s\r\n", crypto_command_show_type(key->header.type));
-        printf("key_flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
-        printf("key_id: 0x%08lX\r\n", (uint32_t)key->header.id);
-        printf("key_reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
-        printf("key_crc32: 0x%08lX\r\n", key->header.crc32);
+        printf("magic_number: 0x%08lx\r\n", slot.header.magic_number);
+        printf("key_reserved: 0x%04X\r\n", slot.header.reserved);
+        printf("key_size: %d\r\n", key->length);
+        printf("key_type: %ld\r\n", (uint32_t)key->type);
+        printf("key_type_name: %s\r\n", crypto_command_show_type(key->type));
+        printf("key_flags: 0x%08lX\r\n", (uint32_t)key->flags);
+        printf("key_id: 0x%08lX\r\n", (uint32_t)slot.header.id);
+        printf("key_reserved1: 0x%08lX\r\n", (uint32_t)slot.header.reserved1);
+        printf("key_crc32: 0x%08lX\r\n", slot.header.crc32);
         printf("key_data:\r\n");
-        for(uint32_t i = 0; i < key->header.size; i++) {
+        for(uint32_t i = 0; i < key->length; i++) {
             if((i) % 32 == 0) printf("%08lx: ", i);
             printf("%02x ", key->data[i]);
             if((i + 1) % 32 == 0) {
@@ -328,8 +313,8 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
         printf("\r\n");
     }
 
-    crypto_command_show_status(status, key, "read");
-    furi_hal_crypto_storage_free(key);
+    show_status(status, &slot, "read");
+    furi_hal_crypto_key_free(key);
 }
 
 void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
@@ -370,7 +355,6 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
-    FuriHalCryptoKeyDeprecated* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
     FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
@@ -413,77 +397,54 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
         return;
     }
 
-    key = furi_hal_crypto_storage_alloc(partition);
+    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
 
     switch(type) {
-    case FuriHalCryptoKeyTypeAes128:
-        key->header.size = FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
-        break;
-    case FuriHalCryptoKeyTypeAes192:
-        key->header.size = FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
-        break;
-    case FuriHalCryptoKeyTypeAes256:
-        key->header.size = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
-        break;
-    case FuriHalCryptoKeyTypeHmacSha1:
-        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE;
-        break;
-    case FuriHalCryptoKeyTypeHmacSha256:
-        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE;
-        break;
-    case FuriHalCryptoKeyTypeHmacSha384:
-        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE;
-        break;
-    case FuriHalCryptoKeyTypeHmacSha512:
-        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE;
-        break;
     case FuriHalCryptoKeyTypeEcdsaPriv224:
-        key->header.size = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224;
-        asymmetric_key = true;
-        break;
     case FuriHalCryptoKeyTypeEcdsaPriv256:
-        key->header.size = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
         asymmetric_key = true;
         break;
     default:
-        printf("Error: Unsupported key type: %ld\r\n", (uint32_t)type);
-        furi_hal_crypto_storage_free(key);
-        printf(CLI_STATUS_ERROR);
-        return;
         break;
     }
-    key->header.type = type;
-    key->header.flags = flags;
-    key->header.id = id;
 
-    uint8_t* buf = malloc(key->header.size);
-
-    FuriHalCryptoStatus status = furi_hal_crypto_storage_gen_random_buf(buf, key->header.size);
-    if(status != FuriHalCryptoStatusOk) {
+    FuriHalCryptoStatus status = furi_hal_crypto_gen_random_key(key, type, flags);
+    if(status == FuriHalCryptoStatusWrongType) {
+        printf("Error: Unsupported key type: %ld\r\n", (uint32_t)type);
+        furi_hal_crypto_key_free(key);
+        printf(CLI_STATUS_ERROR);
+    } else if(status != FuriHalCryptoStatusOk) {
         printf("Error: Failed to generate random buffer:: %d\r\n", status);
         printf(CLI_STATUS_ERROR);
-        free(buf);
-        furi_hal_crypto_storage_free(key);
+        furi_hal_crypto_key_free(key);
         return;
     }
 
-    memcpy(key->data, buf, key->header.size);
-    memset(buf, 0, key->header.size);
-    free(buf);
-
+    FuriHalCryptoKeySlot slot;
     do {
         if(asymmetric_key) {
             // For asymmetric keys, we need to generate public key
-            status = furi_hal_crypto_storage_gen_asymmetric_pub_key(key);
-            if(status != FuriHalCryptoStatusOk) {
-                printf("Error: Failed to generate public key"
-                       "\r\n");
-                break;
-            }
-            printf("Generated public key successfully\r\n");
+            FuriHalCryptoKey* pub_key = malloc(sizeof(FuriHalCryptoKey));
+            do {
+                status = furi_hal_crypto_gen_asymmetric_pub_key(key, pub_key);
+                if(status != FuriHalCryptoStatusOk) {
+                    printf("Error: Failed to generate public key"
+                           "\r\n");
+                    break;
+                }
+                status = furi_hal_crypto_storage_write_ex(pub_key, partition, id, &slot);
+                if(status != FuriHalCryptoStatusOk) {
+                    printf("Error: Failed to write public key"
+                           "\r\n");
+                    show_status(status, &slot, "write");
+                    break;
+                }
+                printf("Generated public key successfully\r\n");
+            } while(false);
+            furi_hal_crypto_key_free(pub_key);
         }
 
-        status = furi_hal_crypto_storage_write(key);
+        status = furi_hal_crypto_storage_write_ex(key, partition, id, &slot);
         if(status == FuriHalCryptoStatusOk) {
             printf("Generated private key successfully\r\n");
         } else {
@@ -493,18 +454,16 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
 
     } while(false);
 
-    crypto_command_show_status(status, key, "write");
+    show_status(status, &slot, "write");
 
-    furi_hal_crypto_storage_free(key);
+    furi_hal_crypto_key_free(key);
 }
 
 void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
-    FuriHalCryptoKeyDeprecated* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
-    FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeEcdsaPriv256;
     FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
     uint32_t id = 0;
     uint32_t temp = 0xFF;
@@ -516,7 +475,7 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
         partition = (FuriHalCryptoPartition)temp;
         if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
             cli_print_usage(
-                "crypto gen",
+                "crypto gen_csr",
                 "<partition> 0-partition_main, 1-partition_user\r\n",
                 furi_string_get_cstr(args));
             printf(CLI_STATUS_ERROR);
@@ -529,7 +488,7 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
         furi_string_trim(args);
         if(parse_err) {
             cli_print_usage(
-                "crypto gen",
+                "crypto gen_csr",
                 "<partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
                 furi_string_get_cstr(args));
             printf(CLI_STATUS_ERROR);
@@ -537,76 +496,89 @@ void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
         }
     } else {
         cli_print_usage(
-            "crypto gen",
+            "crypto gen_csr",
             "<partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
             furi_string_get_cstr(args));
         printf(CLI_STATUS_ERROR);
         return;
     }
 
-    key = furi_hal_crypto_storage_alloc(partition);
-
-    key->header.type = type;
-    key->header.flags = flags;
-    key->header.id = id;
-    key->header.size =
-        FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256; // CSR is generated from private key
-    if(furi_string_size(args) == 0) {
-        printf("Warning: Subject name is required for CSR generation\r\n");
-        furi_string_set(args, "CN=Default Subject, O=Default Org, C=Default Country");
-        printf("Using default subject name: %s\r\n", furi_string_get_cstr(args));
-    }
-
-    uint8_t* buf = malloc(key->header.size);
-
-    // Generate random buffer for private key
-    FuriHalCryptoStatus status = furi_hal_crypto_storage_gen_random_buf(buf, key->header.size);
-    if(status != FuriHalCryptoStatusOk) {
-        printf("Error: Failed to generate random buffer:: %d\r\n", status);
-        printf(CLI_STATUS_ERROR);
-        free(buf);
-        furi_hal_crypto_storage_free(key);
-        return;
-    }
-
-    memcpy(key->data, buf, key->header.size);
-    memset(buf, 0, key->header.size);
-    free(buf);
+    FuriHalCryptoKey* priv_key = malloc(sizeof(FuriHalCryptoKey));
+    FuriHalCryptoKey* pub_key = malloc(sizeof(FuriHalCryptoKey));
+    FuriHalCryptoKey* csr_der_key = malloc(sizeof(FuriHalCryptoKey));
 
     do {
-        //generate public key
-        status = furi_hal_crypto_storage_gen_asymmetric_pub_key(key);
+        if(furi_string_size(args) == 0) {
+            printf("Warning: Subject name is required for CSR generation\r\n");
+            furi_string_set(args, "CN=Default Subject, O=Default Org, C=Default Country");
+            printf("Using default subject name: %s\r\n", furi_string_get_cstr(args));
+        }
+
+        // Generate random private key
+        FuriHalCryptoStatus status = furi_hal_crypto_gen_random_key(priv_key, FuriHalCryptoKeyTypeEcdsaPriv256, flags); // CSR is generated from private key
         if(status != FuriHalCryptoStatusOk) {
-            printf("Error: Failed to generate public key"
-                   "\r\n");
+            printf("Error: Failed to generate random key: %d\r\n", status);
+            printf(CLI_STATUS_ERROR);
             break;
         }
-        printf("Generated public key successfully\r\n");
 
-        //generate CSR
-        status = furi_hal_crypto_storage_gen_csr_der_ecdsa256(key, furi_string_get_cstr(args));
-        if(status != FuriHalCryptoStatusOk) {
-            printf("Error: Failed to generate CSR"
-                   "\r\n");
-            break;
-        }
-        printf("Generated CSR successfully\r\n");
+        FuriHalCryptoKeySlot slot;
+        do {
+            // generate public key
+            status = furi_hal_crypto_gen_asymmetric_pub_key(priv_key, pub_key);
+            if(status != FuriHalCryptoStatusOk) {
+                printf("Error: Failed to generate public key"
+                       "\r\n");
+                break;
+            }
+            status = furi_hal_crypto_storage_write_ex(pub_key, partition, id, &slot);
+            if(status != FuriHalCryptoStatusOk) {
+                printf("Error: Failed to save public key"
+                       "\r\n");
+                break;
+            }
+            printf("Generated public key successfully\r\n");
+            free(pub_key); // prevent out of memory
+            pub_key = NULL;
 
-        // ToDo: Wrap the private key for CSR
-        key->header.flags |= FuriHalCryptoKeyFlagWrap; // Set wrap flag for CSR
-        status = furi_hal_crypto_storage_write(key);
-        if(status == FuriHalCryptoStatusOk) {
-            printf("Generated private key successfully\r\n");
-        } else {
-            printf("Error: Failed to generate private key"
-                   "\r\n");
-        }
+            // generate CSR
+            status = furi_hal_crypto_gen_csr_der_ecdsa256(priv_key, csr_der_key, furi_string_get_cstr(args));
+            if(status != FuriHalCryptoStatusOk) {
+                printf("Error: Failed to generate CSR"
+                       "\r\n");
+                break;
+            }
+            status = furi_hal_crypto_storage_write_ex(csr_der_key, partition, id, &slot);
+            if(status != FuriHalCryptoStatusOk) {
+                printf("Error: Failed to save CSR"
+                       "\r\n");
+                break;
+            }
+            printf("Generated CSR successfully\r\n");
+
+            status = furi_hal_crypto_wrap_key(priv_key, priv_key);
+            if(status == FuriHalCryptoStatusUnavailable) {
+                printf("Key wrapping is unsupported\r\n");
+            }
+
+            status = furi_hal_crypto_storage_write_ex(priv_key, partition, id, &slot);
+            if(status == FuriHalCryptoStatusOk) {
+                printf("Generated private key successfully\r\n");
+            } else {
+                printf("Error: Failed to save private key"
+                       "\r\n");
+            }
+
+        } while(false);
+
+        show_status(status, &slot, "write");
 
     } while(false);
-
-    crypto_command_show_status(status, key, "write");
-
-    furi_hal_crypto_storage_free(key);
+    free(priv_key);
+    free(csr_der_key);
+    if(pub_key) {
+        free(pub_key);
+    }
 }
 
 void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
@@ -640,35 +612,19 @@ void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
 
     FuriHalCryptoKeyIter iter = furi_hal_crypto_key_iter_init(partition);
     printf("\t<part>\t<type>\t<id>\r\n");
-    bool read_next = true;
     FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
-    do {
-        FuriHalCryptoKey key;
-        FuriHalCryptoKeySlot slot;
-        status = furi_hal_crypto_key_iter_get(&iter, &key, &slot);
-        if(status == FuriHalCryptoStatusOk) {
-            printf("key:\t%d\t%d\t0x%08lX\r\n", slot.address.partition, key.type, slot.header.id);
-            status = furi_hal_crypto_key_iter_advance(&iter);
-        }
-        switch(status) {
-        case FuriHalCryptoStatusOk:
-            break;
-        case FuriHalCryptoStatusNotFound:
-        case FuriHalCryptoStatusStorageFull:
-            read_next = false;
-            break;
-        default:
-            show_status(status, &slot, "read");
-            read_next = false;
-            break;
-        }
-    } while(read_next);
+    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKeySlot slot;
+    while((status = furi_hal_crypto_key_iter_get_and_advance(&iter, key, &slot)) == FuriHalCryptoStatusOk) {
+        printf("key:\t%d\t%d\t0x%08lX\r\n", slot.address.partition, key->type, slot.header.id);
+    }
 
     if(status == FuriHalCryptoStatusNotFound || status == FuriHalCryptoStatusStorageFull) {
         printf(CLI_STATUS_OK);
     } else {
-        printf(CLI_STATUS_ERROR);
+        show_status(status, &slot, "read");
     }
+    furi_hal_crypto_key_free(key);
 }
 
 static void crypto_command_print_usage(void) {

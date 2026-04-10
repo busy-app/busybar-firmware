@@ -48,23 +48,18 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
 
     const uint32_t internal_key_id = (uint32_t)sign_message_request->key_id + KEY_ID_OFFSET;
 
-    FuriHalCryptoKeyDeprecated* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
     FuriHalCryptoStatus hal_status =
-        furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
+        furi_hal_crypto_storage_read(key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
 
     if(hal_status == FuriHalCryptoStatusOk) {
-        const FuriHalCryptoWrappingMode wrap_mode = key->header.flags & FuriHalCryptoKeyFlagWrap ?
-                                                        FuriHalCryptoWrappingModeOn :
-                                                        FuriHalCryptoWrappingModeOff;
-        if(wrap_mode == FuriHalCryptoWrappingModeOff) {
+        if(!(key->flags & FuriHalCryptoKeyFlagWrap)) {
             FURI_LOG_W(TAG, "Using unwrapped private key");
         }
 
         FuriHalCryptoEcdsa* sign_ctx = furi_hal_crypto_ecdsa_sign_init(
             FuriHalCryptoEcdsaModeSha256,
-            key->data,
-            FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
-            wrap_mode);
+            key);
 
         const TlsCryptoMessage* message = &sign_message_request->message;
         TlsCryptoSignature* signature = &sign_message_response->signature;
@@ -79,7 +74,7 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
         }
     }
 
-    furi_hal_crypto_storage_free(key);
+    furi_hal_crypto_key_free(key);
 
     return status;
 }
@@ -94,12 +89,12 @@ static TlsCryptoStatus tls_crypto_get_certificate_request_handler(
 
     const uint32_t internal_key_id = (uint32_t)get_cert_request->key_id + KEY_ID_OFFSET;
 
-    FuriHalCryptoKeyDeprecated* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
     FuriHalCryptoStatus hal_status =
-        furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeCrtDerEcdsa256, internal_key_id);
+        furi_hal_crypto_storage_read(key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeCrtDerEcdsa256, internal_key_id);
 
     if(hal_status == FuriHalCryptoStatusOk) {
-        const size_t data_len = key->header.size;
+        const size_t data_len = key->length;
         furi_check(data_len <= TLS_CRYPTO_DATA_LEN_MAX);
 
         TlsCryptoCertificate* certificate = &get_cert_response->certificate;
@@ -109,7 +104,7 @@ static TlsCryptoStatus tls_crypto_get_certificate_request_handler(
         status = TlsCryptoStatusOk;
     }
 
-    furi_hal_crypto_storage_free(key);
+    furi_hal_crypto_key_free(key);
 
     return status;
 }
