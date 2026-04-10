@@ -4,6 +4,8 @@
 
 #include <matter/matter.h>
 
+#define STATUS_LIGHTS_COLOR ((Color)COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF))
+
 typedef struct {
     bool ui_initialized;
 
@@ -33,10 +35,16 @@ static void matter_scene_pairing_on_enter(void* context) {
         status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.image"));
         status_view_set_header(scene->front_prompt, "Look at back\nscreen");
 
-        scene->back_codes = matter_code_view_alloc(app->back_scene_window);
-        matter_code_view_set_logo_path(scene->back_codes, IMG_PATH("matter_back_14x14.bin"));
+        GuiLayer* top_layer = gui_get_layer(app->gui, GuiLayerIdSystem);
+        Widget* top_back_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
+        scene->back_codes = matter_code_view_alloc(top_back_layer_root);
+        matter_code_view_set_logo_path(scene->back_codes, IMG_PATH("matter_back_21x21.image"));
         matter_code_view_set_codes(scene->back_codes, info.qr_code, info.manual_code);
     });
+
+    brightness_control_set_brightness_override(
+        app->brightness_control, BrightnessControlModuleStatusLights, BRIGHTNESS_MAX);
+    status_lights_run_preset(app->status_lights, StatusLightsPresetBlink, STATUS_LIGHTS_COLOR);
 
     scene->ui_initialized = true;
 }
@@ -52,6 +60,10 @@ static void matter_scene_pairing_on_exit(void* context) {
         status_view_free(scene->front_prompt);
         matter_code_view_free(scene->back_codes);
     });
+
+    status_lights_run_preset(app->status_lights, StatusLightsPresetOff, (Color){});
+    brightness_control_reset_brightness_override(
+        app->brightness_control, BrightnessControlModuleStatusLights);
 }
 
 static bool matter_scene_pairing_on_event(const SceneManagerEvent* event, void* context) {
