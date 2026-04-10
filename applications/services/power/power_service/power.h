@@ -15,6 +15,13 @@ typedef struct Power Power;
 #define POWER_PERCENT_LOW        (15)
 #define POWER_PERCENT_CRITICAL   (5)
 
+#if defined(SRV_STORAGE)
+#include <storage/storage.h>
+#define POWER_FACTORY_BAT_CAL BACKUP_PATH("recovery/resources/power/factory.bat_cal")
+#else
+#define POWER_FACTORY_BAT_CAL ""
+#endif
+
 typedef enum {
     PowerRebootHardware, // Hardware power reboot using charger
     PowerRebootNormal, // Reboot U5 + 917
@@ -93,6 +100,14 @@ void power_charge_enable(Power* power, bool enable);
 void power_set_charge_current(Power* power, uint32_t current_ma);
 void power_get_pd_info(Power* power, PowerPdInfo* info);
 void power_set_pd_mode(Power* power, uint32_t voltage_mv);
+
+/**
+ * @brief Loads battery calibration profile from the specified path.
+ * 
+ * The default one is `POWER_FACTORY_BAT_CAL`.
+ * 
+ * This is a no-op if `Storage` is not compiled in.
+ */
 void power_load_bat_cal(Power* power, const char* path);
 
 // TODO: internal API

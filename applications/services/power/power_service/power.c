@@ -9,11 +9,6 @@
 #define POWER_IRQ_GPIO (&gpio_bq25798_irq)
 #define POWER_I2C      (&furi_hal_i2c_handle_1)
 
-#if defined(SRV_STORAGE)
-#include <storage/storage.h>
-#define POWER_FACTORY_BAT_CAL BACKUP_PATH("recovery/resources/power/factory.bat_cal")
-#endif
-
 static void power_print_interrupt_flags(uint32_t flags) {
     FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", flags);
     if(flags & Bq25798ChargerFlagVbusPresent) FURI_LOG_D(TAG, "\tVbus present");
