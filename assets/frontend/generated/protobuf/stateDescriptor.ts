@@ -19,7 +19,9 @@ export default {
                 "matter",
                 "frame",
                 "input",
-                "timer"
+                "timer",
+                "ble",
+                "autoUpdateState"
               ]
             }
           },
@@ -71,10 +73,25 @@ export default {
             "timer": {
               "type": "BSB_Timer.Timer",
               "id": 12
+            },
+            "ble": {
+              "type": "BSB_State.Ble.Ble",
+              "id": 13
+            },
+            "autoUpdateState": {
+              "type": "BSB_Update.AutoUpdateState",
+              "id": 14
             }
           }
         },
         "State": {
+          "oneofs": {
+            "_error": {
+              "oneof": [
+                "error"
+              ]
+            }
+          },
           "fields": {
             "timestamp": {
               "type": "fixed64",
@@ -84,6 +101,13 @@ export default {
               "rule": "repeated",
               "type": "StateUpdate",
               "id": 2
+            },
+            "error": {
+              "type": "BSB_Error.Error",
+              "id": 3,
+              "options": {
+                "proto3_optional": true
+              }
             }
           }
         },
@@ -321,6 +345,10 @@ export default {
             "offset": {
               "type": "sint32",
               "id": 2
+            },
+            "abbr": {
+              "type": "string",
+              "id": 3
             }
           }
         },
@@ -353,6 +381,43 @@ export default {
             "state": {
               "type": "MatterCommissioningState",
               "id": 2
+            }
+          }
+        },
+        "Ble": {
+          "nested": {
+            "ServiceStatus": {
+              "values": {
+                "RESET": 0,
+                "INITIALIZATION": 1,
+                "READY": 2,
+                "ADVERTISING": 3,
+                "CONNECTABLE": 4,
+                "CONNECTED": 5,
+                "ERROR": 6
+              }
+            },
+            "Ble": {
+              "oneofs": {
+                "_remoteAddress": {
+                  "oneof": [
+                    "remoteAddress"
+                  ]
+                }
+              },
+              "fields": {
+                "status": {
+                  "type": "ServiceStatus",
+                  "id": 1
+                },
+                "remoteAddress": {
+                  "type": "string",
+                  "id": 2,
+                  "options": {
+                    "proto3_optional": true
+                  }
+                }
+              }
             }
           }
         }
@@ -454,6 +519,30 @@ export default {
             },
             "unavailable": {
               "type": "UpdateUnavailable",
+              "id": 2
+            }
+          }
+        },
+        "AutoUpdateInterval": {
+          "fields": {
+            "start": {
+              "type": "uint32",
+              "id": 1
+            },
+            "end": {
+              "type": "uint32",
+              "id": 2
+            }
+          }
+        },
+        "AutoUpdateState": {
+          "fields": {
+            "enabled": {
+              "type": "bool",
+              "id": 1
+            },
+            "interval": {
+              "type": "AutoUpdateInterval",
               "id": 2
             }
           }
@@ -621,6 +710,34 @@ export default {
             "encoderEvent": {
               "type": "EncoderEvent",
               "id": 3
+            }
+          }
+        }
+      }
+    },
+    "BSB_Error": {
+      "nested": {
+        "Cause": {
+          "values": {
+            "RESOURCE_LIMIT": 0
+          }
+        },
+        "Severity": {
+          "values": {
+            "FATAL": 0,
+            "ERROR": 1,
+            "WARNING": 2
+          }
+        },
+        "Error": {
+          "fields": {
+            "cause": {
+              "type": "Cause",
+              "id": 1
+            },
+            "severity": {
+              "type": "Severity",
+              "id": 2
             }
           }
         }

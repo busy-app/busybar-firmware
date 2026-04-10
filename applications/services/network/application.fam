@@ -6,7 +6,6 @@ App(
     order=30,
     provides=["netstat_cli"],
     sources=["network.c"],
-    targets=["f20", "f21", "f22"],
 )
 
 App(
@@ -15,14 +14,4 @@ App(
     apptype=FlipperAppType.CLICMD,
     entry_point="netstat_cli_command_entry",
     sources=["netstat_cli.c"],
-)
-
-App(
-    appid="network",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="network_on_system_start",
-    stack_size=512,
-    order=30,
-    sources=["network.c"],
-    targets=["f64", "f65"],
 )

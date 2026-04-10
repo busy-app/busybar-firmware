@@ -12,8 +12,10 @@
 #define STREAM_LOG_W(...)
 #endif
 
-#define MAX_CLIENTS_COUNT          (4)
-#define MAX_PUBLISH_MESSAGES_COUNT (8)
+#define MAX_CLIENTS_COUNT                 (4)
+#define MAX_PUBLISH_MESSAGES_COUNT        (8)
+#define PUBLISH_MESSAGES_PAUSE_THRESHOLD  (6)
+#define PUBLISH_MESSAGES_RESUME_THRESHOLD (2)
 
 #define FRAME_QUEUE_TIMEOUT          (10)
 #define FRAME_INTERVAL_MS            (100)
@@ -87,7 +89,6 @@ static void client_heartbeat_timer_callback(void* ctx) {
     case ClientStateInvalid:
     case ClientStateHandshake:
         // should never happen
-        furi_assert(false);
         break;
     }
 }
@@ -100,6 +101,12 @@ static void client_publish_callback(const SharedByteArray_t data, void* context)
     DataMessage msg;
     SharedByteArray_init_set(msg.data, data);
     FuriStatus error = furi_message_queue_put(client->active.queue, &msg, FRAME_QUEUE_TIMEOUT);
+    size_t count = furi_message_queue_get_count(client->active.queue);
+    if(count >= PUBLISH_MESSAGES_PAUSE_THRESHOLD) {
+        STREAM_LOG_W("Queue full, throttling");
+        state_publisher_set_paused(
+            client->parent->state_publisher, client->active.transport_handle, true);
+    }
     if(error != FuriStatusOk) {
         FURI_LOG_E(TAG, "Queue overflow, update skipped (%u)", error);
         SharedByteArray_clear(msg.data);
@@ -207,6 +214,12 @@ static void client_send_frame(struct mg_connection* conn, void* data, size_t len
                 conn, ByteArray_cget(*array, 0), ByteArray_size(*array), WEBSOCKET_OP_BINARY);
             SharedByteArray_clear(msg.data);
         }
+        if(client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID &&
+           furi_message_queue_get_count(client->active.queue) <=
+               PUBLISH_MESSAGES_RESUME_THRESHOLD) {
+            state_publisher_set_paused(
+                client->parent->state_publisher, client->active.transport_handle, false);
+        }
     } else if(client->state == ClientStateRequestingPing) {
         STREAM_LOG_D("Requesting ping");
         client_set_state(client, ClientStateWaitingPong);
@@ -233,6 +246,7 @@ static void client_set_enabled(Client* client, bool enabled) {
     } else if(was_enabled && !enabled) {
         state_publisher_del_transport(
             client->parent->state_publisher, client->active.transport_handle);
+        client->active.transport_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
     }
 }
 
@@ -255,6 +269,8 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
         STREAM_LOG_D("PONG");
         client_set_state(client, ClientStateActive);
         client->active.heartbeat_timer->expire = mg_now() + CLIENT_HEARTBEAT_INTERVAL_MS;
+        // Make sure to wake up and send collected messages
+        mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
     } else if(WEBSOCKET_TEXT(ws_msg->flags)) {
         STREAM_LOG_D("MSG");
 

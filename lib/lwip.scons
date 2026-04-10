@@ -8,6 +8,9 @@ env.Append(
     CPPDEFINES=[
         '"LWIP_PROVIDE_ERRNO"',  # TODO:
     ],
+    CPPFLAGS=[
+        "-Wno-unused-parameter",
+    ],
 )
 
 libenv = env.Clone(FW_LIB_NAME="lwip")
