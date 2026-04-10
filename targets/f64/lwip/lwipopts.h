@@ -47,7 +47,7 @@
 #define LWIP_SOCKET_SET_ERRNO              0
 #define IP_REASS_MAX_PBUFS                 0
 #define IP_REASSEMBLY                      1
-#define IP_FRAG                            0
+#define IP_FRAG                            1
 #define IP_OPTIONS_ALLOWED                 1
 #define MEMP_NUM_REASSDATA                 0
 #define LWIP_SO_RCVTIMEO                   0
