@@ -2349,10 +2349,15 @@ components:
           type: integer
           description: System boot timestamp
           example: 1767225600
+        auto_update_enabled:
+          type: boolean
+          description: Is auto-update enabled
+          example: true
       required:
         - api_semver
         - uptime
         - boot_time
+        - auto_update_enabled
 
     StatusPower:
       type: object
