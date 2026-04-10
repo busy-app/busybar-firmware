@@ -3,6 +3,7 @@
 #include "ble_system_command.h"
 #include "ble/service/ble_service.h"
 #include "http/ble_http_repeater.h"
+#include "streaming/ble_streaming.h"
 #include "device_name/device_name.h"
 
 #define TAG "BLE_U5"
@@ -315,6 +316,8 @@ static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void*
         BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
 
     furi_pubsub_publish(instance->on_status_change, (void*)response);
+
+    ble_streaming_update(instance->streaming, instance->status);
 
     return result;
 }

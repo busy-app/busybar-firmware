@@ -3,6 +3,7 @@
 
 #if !defined(BSB_MCU_SI917)
 #include "http/ble_http_repeater.h"
+#include "streaming/ble_streaming.h"
 #endif
 
 #define TAG "BLE"
@@ -144,6 +145,7 @@ static Ble* ble_alloc() {
     instance->error = furi_string_alloc();
 #if !defined(BSB_MCU_SI917)
     ble_http_repeater_init();
+    instance->streaming = ble_streaming_alloc(instance);
 
     instance->on_status_change = furi_pubsub_alloc();
     instance->current_command_lock = furi_mutex_alloc(FuriMutexTypeNormal);

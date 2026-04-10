@@ -42,6 +42,7 @@ App(
         "ble_system_command_u5.c",
         "ble_command_engine.c",
         "http/ble_http_repeater.c",
+        "streaming/ble_streaming.c",
         "settings/*.c",
         "service/*.c",
         "service/target/ble_service_target_u5.c",
