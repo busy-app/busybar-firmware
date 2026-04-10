@@ -1,5 +1,8 @@
+from subprocess import run
+
 from SCons.Action import Action
 from SCons.Builder import Builder
+from SCons.Script import Copy
 from SCons.Util import splitext
 
 
@@ -9,6 +12,34 @@ def create_header_file_action(target, source, env):
 
         for f in source:
             fout.write(f"extern const lv_image_dsc_t {splitext(f.name)[0]};\r\n")
+
+
+def _font_fallback_emitter(target, source, env):
+    return target, source + [env.subst("$FALLBACK_FILE")]
+
+
+def _convert_or_fallback_font_action(target, source, env):
+    target_path = env.subst("$TARGET", target=target)
+    source_path = env.subst("$SOURCE", source=source)
+
+    command = [
+        env.subst("$PYTHON3"),
+        env.subst("$FONT_CONVERTER"),
+        "-o",
+        target_path,
+        "-i",
+        source_path,
+        "-s",
+        env.subst("$FONT_SIZE"),
+        "-f",
+        "bin",
+    ]
+
+    if run(command).returncode != 0:
+        fallback_file = next(s for s in source if s.name.endswith(".font"))
+        return env.Execute(Copy(target_path, fallback_file))
+
+    return 0
 
 
 def generate(env):
@@ -66,16 +97,10 @@ def generate(env):
             ),
             "FontConverter": Builder(
                 action=Action(
-                    [
-                        [
-                            "${PYTHON3}",
-                            "${FONT_CONVERTER}",
-                            "${SOURCE}",
-                            "${TARGET}",
-                        ],
-                    ],
+                    _convert_or_fallback_font_action,
                     "${FONTCOMSTR}",
                 ),
+                emitter=_font_fallback_emitter,
             ),
             "ImageConverter": Builder(
                 action=Action(

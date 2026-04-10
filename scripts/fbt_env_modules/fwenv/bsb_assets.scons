@@ -1,7 +1,11 @@
 Import("FW_ENV")
 fwenv = FW_ENV
 
+from pathlib import Path
+from collections import namedtuple
+
 from SCons.Util import splitext
+from SCons.Errors import UserError
 from fbt.version import get_git_commit_unix_timestamp
 
 fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
@@ -63,14 +67,48 @@ def convert_images(src_dir, dst_dir):
 
 
 def convert_fonts(src_dir, dst_dir):
-    # TODO: perform conversion from ttf once `lv_font_conv` arrives to the toolchain
-    src_files = fwenv.GlobRecursive("*.font", Dir(src_dir + "fonts/"))
+    src_files = fw_assets_env.GlobRecursive(
+        "*.ttf", fw_assets_env.Dir("fonts/ttf", src_dir)
+    )
     converted = []
 
-    for f in src_files:
-        app_name = "" if (f.Dir(".").name == "fonts") else (f.Dir(".").name + "/")
-        file_node = dst_dir.File(app_name + "fonts/" + splitext(f.name)[0] + ".font")
-        converted.append(fw_assets_env.FontConverter(file_node, f))
+    FontConversion = namedtuple("FontConversion", ["name", "size"], defaults=(None, 16))
+    fonts_conversions = {
+        # "busy_bold_7": [FontConversion()],
+        # "busy_bold_10": [FontConversion()],
+        # "busy_condensed_7": [FontConversion()],
+        # "busy_regular_5": [FontConversion()],
+        "busy_regular_7": [
+            FontConversion(),
+            FontConversion(name="busy_regular_14", size=32),
+        ],
+        # "busy_regular_9": [FontConversion()],
+        # "busy_superscript_7": [FontConversion()],
+    }
+
+    if src_files and "shared" not in Path(src_dir).parts:
+        raise UserError("Fonts are only allowed as shared resources")
+
+    fallback_dir = fw_assets_env.Dir("fonts", src_dir)
+    target_dir = fw_assets_env.Dir("fonts", dst_dir)
+
+    for source_file in src_files:
+        source_font_name = splitext(source_file.name)[0]
+        font_conversions = fonts_conversions.get(source_font_name, [FontConversion()])
+
+        for conversion in font_conversions:
+            target_file = fw_assets_env.File(
+                f"{conversion.name or source_font_name}.font", target_dir
+            )
+
+            result = fw_assets_env.FontConverter(
+                target_file,
+                source_file,
+                FONT_SIZE=conversion.size,
+                FALLBACK_FILE=fw_assets_env.File(target_file.name, fallback_dir),
+            )
+
+            converted.append(result)
 
     return converted
 
