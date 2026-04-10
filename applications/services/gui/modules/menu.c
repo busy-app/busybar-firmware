@@ -14,6 +14,8 @@
 
 #define SCROLL_ANIM_DURATION_MS (0)
 
+#define ARROW_SYMBOL ">"
+
 struct Menu {
     Widget base;
     lv_group_t* group;
@@ -114,7 +116,7 @@ static lv_obj_t* menu_item_alloc(
         if(strlen(sub_label)) {
             lv_label_set_text(instance->sub_label, sub_label);
         }
-        lv_label_set_text(instance->arrow, ">");
+        lv_label_set_text(instance->arrow, ARROW_SYMBOL);
     }
 
     return obj;
