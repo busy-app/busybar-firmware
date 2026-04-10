@@ -17,6 +17,7 @@ typedef struct RateLimiter {
     RateLimiterLimit limit;
     time_t last_tick_ms;
     uint32_t sent_since_last_tick;
+    bool paused;
 } RateLimiter;
 
 typedef bool (*RateLimiterSendCallback)(void* context, bool heartbeat);
@@ -24,6 +25,13 @@ typedef bool (*RateLimiterSendCallback)(void* context, bool heartbeat);
 RateLimiter rate_limiter_init(RateLimiterLimit limit);
 
 void rate_limiter_set_limit(RateLimiter* instance, RateLimiterLimit limit);
+
+/**
+ * Pause or resume.
+ *
+ * @return previous paused state
+ */
+bool rate_limiter_set_paused(RateLimiter* instance, bool paused);
 
 uint32_t rate_limiter_send_if_allowed(
     RateLimiter* instance,

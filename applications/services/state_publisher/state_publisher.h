@@ -71,6 +71,11 @@ void state_publisher_set_rate_limit(
     StatePublisherTransportHandle transport,
     RateLimiterLimit rate_limit);
 
+void state_publisher_set_paused(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport,
+    bool paused);
+
 /**
  * Produce serialized BSB_State.State message with set error field
  *
