@@ -69,10 +69,10 @@ static void settings_scene_main_on_enter(void* context) {
 
         settings_app_descriptor_free(descriptor);
 
+        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
+
         menu_set_selected_item_index(data->front_menu, passed_index);
         menu_set_selected_item_index(data->back_menu, passed_index);
-
-        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
 
     instance->launching_subapp = NULL;

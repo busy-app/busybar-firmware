@@ -10,7 +10,6 @@ typedef enum {
 
 typedef enum {
     SceneCustomEventMenuItemClicked = AppEventSceneEventsStart,
-    SceneCustomEventSwitchToPairing,
 } SceneCustomEvent;
 
 typedef struct {
@@ -46,11 +45,6 @@ static void matter_scene_on_enter(void* context) {
         return;
     }
 
-    if(fabrics.count == 0) {
-        matter_settings_send_custom_event(app, SceneCustomEventSwitchToPairing);
-        return;
-    }
-
     with_gui(app->gui, {
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
 
@@ -62,16 +56,19 @@ static void matter_scene_on_enter(void* context) {
 
             submenu_add_item(
                 scene->submenus[display],
-                "Pair new controller",
+                "Pair device",
                 SceneSubmenuIndexPairing,
                 add_callback ? matter_scene_submenu_item_callback : NULL,
                 app);
-            submenu_add_item(
-                scene->submenus[display],
-                "Forget all pairings",
-                SceneSubmenuIndexReset,
-                add_callback ? matter_scene_submenu_item_callback : NULL,
-                app);
+
+            if(fabrics.count != 0) {
+                submenu_add_item(
+                    scene->submenus[display],
+                    "Forget all pairings",
+                    SceneSubmenuIndexReset,
+                    add_callback ? matter_scene_submenu_item_callback : NULL,
+                    app);
+            }
         }
     });
 
@@ -111,10 +108,6 @@ static bool matter_scene_on_event(const SceneManagerEvent* event, void* context)
                 furi_crash();
             }
 
-            consumed = true;
-
-        } else if(event->event == SceneCustomEventSwitchToPairing) {
-            scene_manager_replace_current_scene(app->scene_manager, SceneIdPairing);
             consumed = true;
         }
 

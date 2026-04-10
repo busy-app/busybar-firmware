@@ -3,6 +3,9 @@
 
 #define TAG "UpdExec"
 
+#define SUCCESS_SCENE_SHOW_TIME_MS 2500
+#define REBOOT_SCENE_SHOW_TIME_MS  3000
+
 static void update_executor_task_on_progress(
     const char* status,
     UpdateExecutorTaskStage stage,
@@ -16,16 +19,28 @@ static void update_executor_task_on_progress(
     update_executor->update_status = status;
     update_executor->update_percent = percent;
 
-    UpdateExecutorSceneId next_scene =
-        (stage == UpdateExecutorTaskStageCompleted)  ? UpdateExecutorSceneIdSuccess :
-        (update_executor_task_stage_is_error(stage)) ? UpdateExecutorSceneIdFail :
-                                                       UpdateExecutorSceneIdInstall;
+    if(stage == UpdateExecutorTaskStageCompleted) {
+        scene_manager_replace_current_scene(
+            update_executor->scene_manager, UpdateExecutorSceneIdxSuccess);
+        furi_delay_ms(SUCCESS_SCENE_SHOW_TIME_MS);
+
+        scene_manager_replace_current_scene(
+            update_executor->scene_manager, UpdateExecutorSceneIdxReboot);
+        furi_delay_ms(REBOOT_SCENE_SHOW_TIME_MS);
+
+        return;
+    }
+
+    UpdateExecutorSceneIdx next_scene = (update_executor_task_stage_is_error(stage)) ?
+                                            UpdateExecutorSceneIdxFailure :
+                                            UpdateExecutorSceneIdxInstall;
 
     if(next_scene != scene_manager_get_current_scene_id(update_executor->scene_manager)) {
         scene_manager_replace_current_scene(update_executor->scene_manager, next_scene);
     }
 
-    scene_manager_handle_custom_event(update_executor->scene_manager, 0);
+    scene_manager_handle_custom_event(
+        update_executor->scene_manager, UpdateExecutorEventUpdateProgress);
 }
 
 static UpdateExecutor* update_executor_alloc(void) {
@@ -34,9 +49,11 @@ static UpdateExecutor* update_executor_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->update_task = update_executor_task_alloc();
+
+    instance->scene_manager = scene_manager_alloc(
+        update_executor_internal_scenes, UpdateExecutorSceneIdxsCount, instance);
+
     instance->event_loop = furi_event_loop_alloc();
-    instance->scene_manager =
-        scene_manager_alloc(update_executor_scenes, UpdateExecutorSceneIdsCount, instance);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -48,7 +65,7 @@ static UpdateExecutor* update_executor_alloc(void) {
         instance->front_container = widget_alloc(root_front);
     });
 
-    scene_manager_next_scene(instance->scene_manager, UpdateExecutorSceneIdInstall);
+    scene_manager_next_scene(instance->scene_manager, UpdateExecutorSceneIdxInstall);
 
     update_executor_task_set_progress_callback(
         instance->update_task, update_executor_task_on_progress, instance);
@@ -58,12 +75,13 @@ static UpdateExecutor* update_executor_alloc(void) {
 }
 
 static void update_executor_free(UpdateExecutor* instance) {
+    scene_manager_free(instance->scene_manager);
+
     with_gui(instance->gui, {
         widget_free(instance->back_container);
         widget_free(instance->front_container);
     });
 
-    scene_manager_free(instance->scene_manager);
     furi_event_loop_free(instance->event_loop);
 
     if(instance->update_task) {
