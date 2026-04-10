@@ -3,10 +3,6 @@ name: Delete refs from mirrors
 on:
   delete:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   purge:
     if: github.event.ref_type == 'branch'
