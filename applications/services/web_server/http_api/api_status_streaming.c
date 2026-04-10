@@ -214,8 +214,9 @@ static void client_send_frame(struct mg_connection* conn, void* data, size_t len
                 conn, ByteArray_cget(*array, 0), ByteArray_size(*array), WEBSOCKET_OP_BINARY);
             SharedByteArray_clear(msg.data);
         }
-        if(furi_message_queue_get_count(client->active.queue) <=
-           PUBLISH_MESSAGES_RESUME_THRESHOLD) {
+        if(client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID &&
+           furi_message_queue_get_count(client->active.queue) <=
+               PUBLISH_MESSAGES_RESUME_THRESHOLD) {
             state_publisher_set_paused(
                 client->parent->state_publisher, client->active.transport_handle, false);
         }
@@ -245,6 +246,7 @@ static void client_set_enabled(Client* client, bool enabled) {
     } else if(was_enabled && !enabled) {
         state_publisher_del_transport(
             client->parent->state_publisher, client->active.transport_handle);
+        client->active.transport_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
     }
 }
 
