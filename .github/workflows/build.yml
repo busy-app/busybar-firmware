@@ -159,6 +159,9 @@ jobs:
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
     secrets: inherit
+    concurrency:
+      group: updater-tests-${{ github.workflow }}-${{ github.ref }}-${{ needs.build.outputs.bundle_target_spec }}
+      cancel-in-progress: true
 
   integration-tests:
     needs: build
@@ -170,3 +173,6 @@ jobs:
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
     secrets: inherit
+    concurrency:
+      group: updater-tests-${{ github.workflow }}-${{ github.ref }}-${{ needs.build.outputs.bundle_target_spec }}
+      cancel-in-progress: true

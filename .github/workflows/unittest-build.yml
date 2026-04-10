@@ -26,7 +26,7 @@ jobs:
       update_url: ${{ steps.set-url.outputs.update_url }}
       target: ${{ steps.build-fw.outputs.u5_target_hw }}
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
+      group: unit-tests-build-${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
       cancel-in-progress: true
 
     steps:
@@ -110,5 +110,5 @@ jobs:
       target: ${{ needs.unit-test-build.outputs.target }}
     secrets: inherit
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
+      group: unit-tests-${{ github.workflow }}-${{ github.ref }}-${{ needs.unit-test-build.outputs.target }}
       cancel-in-progress: true

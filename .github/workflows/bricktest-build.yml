@@ -114,3 +114,6 @@ jobs:
       normal_update_url: ${{ needs.brick-test-build.outputs.normal_update_url }}
       target: ${{ needs.brick-test-build.outputs.target }}
     secrets: inherit
+    concurrency:
+      group: brick-tests-${{ github.workflow }}-${{ github.ref }}-${{ needs.brick-test-build.outputs.target }}
+      cancel-in-progress: true
