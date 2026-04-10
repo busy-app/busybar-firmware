@@ -7,6 +7,12 @@
 
 #include <storage/storage.h>
 
+typedef enum {
+    UpdateExecutorEventUpdateProgress,
+
+    UpdateExecutorEventSceneEventsStart,
+} UpdateExecutorEvent;
+
 typedef struct {
     Gui* gui;
     Storage* storage;

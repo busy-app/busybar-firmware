@@ -27,10 +27,6 @@ typedef struct {
     FuriStateSub* update_state_subscription;
 } UpdateUiDownloadScene;
 
-static inline UpdateUiDownloadScene* update_ui_download_scene_get(UpdateUi* instance) {
-    return scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxDownload);
-}
-
 static void update_ui_download_scene_update_state_callback(const void* item, void* context) {
     UNUSED(item);
 
@@ -40,7 +36,8 @@ static void update_ui_download_scene_update_state_callback(const void* item, voi
 }
 
 static void update_ui_download_scene_on_update_state_change(UpdateUi* instance) {
-    UpdateUiDownloadScene* scene = update_ui_download_scene_get(instance);
+    UpdateUiDownloadScene* scene =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxDownload);
 
     UpdaterUpdateState update_state;
     furi_state_get(updater_get_update_state(instance->updater), &update_state);
@@ -85,25 +82,32 @@ static void update_ui_download_scene_on_update_state_change(UpdateUi* instance) 
 
 static void update_ui_download_scene_on_enter(void* context) {
     UpdateUi* instance = context;
-    UpdateUiDownloadScene* scene = update_ui_download_scene_get(instance);
+    UpdateUiDownloadScene* scene =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxDownload);
 
     with_gui(instance->gui, {
         /* front layout setup */
         scene->front_layout =
             flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeColumn);
-        flex_layout_set_spacing(scene->front_layout, 2);
-        widget_set_padding(flex_layout_get_base(scene->front_layout), 0, 0, 1, 2);
+        flex_layout_set_spacing(scene->front_layout, 1);
 
-        Widget* front_status_container = widget_alloc(flex_layout_get_base(scene->front_layout));
-        widget_set_height_content(front_status_container);
+        FlexLayout* front_status_layout =
+            flex_layout_alloc(flex_layout_get_base(scene->front_layout), FlexLayoutTypeRow);
+        widget_set_height(flex_layout_get_base(front_status_layout), 9); /* font's line height */
 
-        Label* front_status_label = label_alloc(front_status_container);
+        Label* front_status_label = label_alloc(flex_layout_get_base(front_status_layout));
         label_set_text(front_status_label, "Downloading");
-        widget_set_align(label_get_base(front_status_label), AlignLeftMid);
+        label_set_font(front_status_label, FONT_BUSY_REGULAR_5);
+        widget_set_size_content(label_get_base(front_status_label));
+        flex_layout_set_child_widget_grow(
+            front_status_layout, label_get_base(front_status_label), 1);
 
-        scene->front_percent_label = label_alloc(front_status_container);
+        scene->front_percent_label = label_alloc(flex_layout_get_base(front_status_layout));
         label_set_text(scene->front_percent_label, "0%");
-        widget_set_align(label_get_base(scene->front_percent_label), AlignRightMid);
+        label_set_font(scene->front_percent_label, FONT_BUSY_REGULAR_5);
+        widget_set_size_content(label_get_base(scene->front_percent_label));
+        flex_layout_set_child_widget_grow(
+            front_status_layout, label_get_base(scene->front_percent_label), 0);
 
         scene->front_progress_bar = progress_bar_alloc(flex_layout_get_base(scene->front_layout));
         widget_set_height(progress_bar_get_base(scene->front_progress_bar), 4);
@@ -111,43 +115,46 @@ static void update_ui_download_scene_on_enter(void* context) {
         /* back layout setup */
         scene->back_layout = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
         flex_layout_set_align(
-            scene->back_layout, FlexLayoutAlignEnd, FlexLayoutAlignStart, FlexLayoutAlignStart);
-        flex_layout_set_spacing(scene->back_layout, 8);
-        widget_set_padding(flex_layout_get_base(scene->back_layout), 2, 2, 0, 5);
+            scene->back_layout, FlexLayoutAlignEnd, FlexLayoutAlignStart, FlexLayoutAlignCenter);
+        widget_set_padding(flex_layout_get_base(scene->back_layout), 2, 2, 0, 0);
 
         FlexBox* back_status_container = flex_box_alloc(flex_layout_get_base(scene->back_layout));
         flex_box_set_flow(back_status_container, FlexBoxFlowRow);
         flex_box_set_align(back_status_container, FlexBoxAlignStart, FlexBoxAlignEnd);
         flex_box_set_spacing(back_status_container, 4);
+        widget_set_margin(flex_box_get_base(back_status_container), 0, 0, 0, 7);
 
         Image* back_status_image = image_alloc(flex_box_get_base(back_status_container));
-        image_set_source(back_status_image, THIS_IMG_PATH("download_back_12x12.bin"));
+        image_set_source(back_status_image, THIS_IMG_PATH("download_back_12x12.image"));
         widget_set_padding(image_get_base(back_status_image), 0, 0, 0, 1);
 
         Label* back_status_label = label_alloc(flex_box_get_base(back_status_container));
         label_set_text(back_status_label, "Downloading");
+        label_set_font(back_status_label, FONT_BUSY_REGULAR_9);
 
         scene->back_percent_label = label_alloc(flex_box_get_base(back_status_container));
         label_set_text(scene->back_percent_label, "0%");
+        label_set_font(scene->back_percent_label, FONT_BUSY_REGULAR_9);
         widget_set_ignore_layout(label_get_base(scene->back_percent_label), true);
         widget_set_align(label_get_base(scene->back_percent_label), AlignRightMid);
 
         scene->back_progress_bar = progress_bar_alloc(flex_layout_get_base(scene->back_layout));
-        widget_set_height(progress_bar_get_base(scene->back_progress_bar), 8);
+        widget_set_height(progress_bar_get_base(scene->back_progress_bar), 6);
+        widget_set_margin(progress_bar_get_base(scene->back_progress_bar), 0, 0, 0, 14);
 
         FlexBox* back_detail_container = flex_box_alloc(flex_layout_get_base(scene->back_layout));
         flex_box_set_flow(back_detail_container, FlexBoxFlowRow);
         flex_box_set_align(back_detail_container, FlexBoxAlignCenter, FlexBoxAlignCenter);
-        flex_box_set_spacing(back_detail_container, 2);
-        widget_set_align(flex_box_get_base(back_detail_container), AlignCenter);
+        flex_box_set_spacing(back_detail_container, 3);
+        widget_set_padding(flex_box_get_base(back_detail_container), 0, 0, 0, 8);
 
         scene->back_detail_label = label_alloc(flex_box_get_base(back_detail_container));
-        label_set_text_color(scene->back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
-        label_set_text_font_size(scene->back_detail_label, LabelFontSizeSmall);
         label_set_text(scene->back_detail_label, "To cancel update press");
+        label_set_font(scene->back_detail_label, FONT_BUSY_REGULAR_7);
+        label_set_text_color(scene->back_detail_label, BACK_DETAIL_LABEL_TEXT_COLOR);
 
         Image* back_detail_image = image_alloc(flex_box_get_base(back_detail_container));
-        image_set_source(back_detail_image, THIS_IMG_PATH("arrow_back_11x11.bin"));
+        image_set_source(back_detail_image, THIS_IMG_PATH("arrow_back_11x11.image"));
     });
 
     scene->update_state_subscription = furi_state_subscribe(
@@ -160,7 +167,8 @@ static void update_ui_download_scene_on_enter(void* context) {
 
 static void update_ui_download_scene_on_exit(void* context) {
     UpdateUi* instance = context;
-    UpdateUiDownloadScene* scene = update_ui_download_scene_get(instance);
+    UpdateUiDownloadScene* scene =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateUiSceneIdxDownload);
 
     furi_state_unsubscribe(scene->update_state_subscription);
 

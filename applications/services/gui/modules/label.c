@@ -28,15 +28,17 @@ static void label_event_callback(const lv_obj_class_t* class_p, lv_event_t* even
     Label* instance = (Label*)lv_event_get_target_obj(event);
 
     if(code == LV_EVENT_SIZE_CHANGED) {
-        int32_t lv_base_width = lv_obj_get_style_width((lv_obj_t*)&instance->base, LV_PART_MAIN);
-        int32_t lv_base_height = lv_obj_get_style_height((lv_obj_t*)&instance->base, LV_PART_MAIN);
+        lv_obj_t* lv_base = TO_LV_OBJ(&instance->base);
 
+        int32_t lv_base_width = lv_obj_get_style_width(lv_base, LV_PART_MAIN);
+        bool is_lv_width_inheritable = lv_base->w_layout || lv_base_width != LV_SIZE_CONTENT;
         lv_obj_set_width(
-            instance->label,
-            (lv_base_width == LV_SIZE_CONTENT) ? MY_CLASS->width_def : LV_PCT(100));
+            instance->label, is_lv_width_inheritable ? LV_PCT(100) : MY_CLASS->width_def);
+
+        int32_t lv_base_height = lv_obj_get_style_height(lv_base, LV_PART_MAIN);
+        bool is_lv_height_inheritable = lv_base->h_layout || lv_base_height != LV_SIZE_CONTENT;
         lv_obj_set_height(
-            instance->label,
-            (lv_base_height == LV_SIZE_CONTENT) ? MY_CLASS->height_def : LV_PCT(100));
+            instance->label, is_lv_height_inheritable ? LV_PCT(100) : MY_CLASS->height_def);
     }
 }
 
