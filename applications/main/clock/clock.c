@@ -38,23 +38,6 @@ static void clock_parse_arguments(const char* string, ClockArguments* arguments)
     furi_string_free(argument);
 }
 
-static bool clock_thread_signal_callback(uint32_t signal, void* argument, void* context) {
-    UNUSED(argument);
-
-    furi_assert(context);
-
-    Clock* instance = context;
-
-    switch(signal) {
-    case FuriSignalExit:
-        furi_event_loop_stop(instance->event_loop);
-        return true;
-
-    default:
-        return false;
-    }
-}
-
 static void clock_input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
@@ -227,11 +210,7 @@ static void clock_free(Clock* instance) {
 int32_t clock_entry(void* argument) {
     Clock* instance = clock_alloc(argument);
 
-    FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, clock_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
-
-    furi_thread_set_signal_callback(thread, NULL, NULL);
 
     clock_free(instance);
 

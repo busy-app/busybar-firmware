@@ -207,43 +207,61 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     case PowerMessageTypeOff:
         power_handle_shutdown(power, false);
         break;
+
     case PowerMessageTypeReboot:
         power_handle_reboot(power, msg.reboot_mode);
         break;
+
     case PowerMessageTypeIsUsbConnected:
         *(msg.param_bool) = power->state.usb_connected;
         break;
+
     case PowerMessageTypeIsBatteryReady:
         *(msg.param_bool) = power->state.battery_ready;
         break;
+
     case PowerMessageTypeGetInfo:
         furi_assert(msg.power_info);
         memcpy(msg.power_info, &(power->info), sizeof(PowerInfo));
         break;
+
     case PowerMessageTypeChargeEnable:
         power->charger_enabled = *(msg.param_bool);
         furi_hal_i2c_acquire(POWER_I2C);
         bq25798_charge_enable(POWER_I2C, power->charger_enabled);
         furi_hal_i2c_release(POWER_I2C);
         break;
+
     case PowerMessageTypeSetChargeCurrent:
         power->charger_current_limit = *(msg.param_int);
         furi_hal_i2c_acquire(POWER_I2C);
         bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
         furi_hal_i2c_release(POWER_I2C);
         break;
+
     case PowerMessageTypePdGetInfo:
         furi_assert(msg.power_info);
         memcpy(msg.pd_info, &(power->pd_info), sizeof(PowerPdInfo));
         break;
+
     case PowerMessageTypePdRequest:
         if(power->state.battery_ready && power->state.pd_initialized) {
             power_usb_pd_request_power(power->usb_pd, *(msg.param_int), 0);
         }
         break;
+
     case PowerMessageTypeUsbPdUpdate:
         power_handle_pd_update(power, msg.pd_mode.voltage, msg.pd_mode.current);
         break;
+
+    case PowerMessageTypeLoadBatCal:
+#if defined(SRV_STORAGE)
+        PowerBatCalibration* cal = power_load_bat_calibration(msg.param_str_owned);
+        if(cal) power->bat_cal = cal;
+#endif
+        free(msg.param_str_owned);
+        break;
+
     default:
         furi_crash();
     }
@@ -302,26 +320,26 @@ static void power_battery_state_transition(Power* power, PowerBatteryState state
     }
 }
 
-static void power_process_battery_state(Power* power, uint32_t voltage_mv, bool charging) {
+static void power_process_battery_state(Power* power, uint8_t charge_level, bool charging) {
     if(charging) {
         power_battery_state_transition(power, PowerBatteryStateNormal);
     } else {
         if(power->battery_state == PowerBatteryStateNormal) {
-            if(voltage_mv < (POWER_VOLTAGE_CRITICAL - POWER_VOLTAGE_HYSTERESIS)) {
+            if(charge_level < (POWER_PERCENT_CRITICAL - POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateCritical);
-            } else if(voltage_mv < (POWER_VOLTAGE_LOW - POWER_VOLTAGE_HYSTERESIS)) {
+            } else if(charge_level < (POWER_PERCENT_LOW - POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateLow);
             }
         } else if(power->battery_state == PowerBatteryStateLow) {
-            if(voltage_mv > (POWER_VOLTAGE_LOW + POWER_VOLTAGE_HYSTERESIS)) {
+            if(charge_level > (POWER_PERCENT_LOW + POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateNormal);
-            } else if(voltage_mv < (POWER_VOLTAGE_CRITICAL - POWER_VOLTAGE_HYSTERESIS)) {
+            } else if(charge_level < (POWER_PERCENT_CRITICAL - POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateCritical);
             }
         } else if(power->battery_state == PowerBatteryStateCritical) {
-            if(voltage_mv > (POWER_VOLTAGE_LOW + POWER_VOLTAGE_HYSTERESIS)) {
+            if(charge_level > (POWER_PERCENT_LOW + POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateNormal);
-            } else if(voltage_mv > (POWER_VOLTAGE_CRITICAL + POWER_VOLTAGE_HYSTERESIS)) {
+            } else if(charge_level > (POWER_PERCENT_CRITICAL + POWER_PERCENT_HYSTERESIS)) {
                 power_battery_state_transition(power, PowerBatteryStateLow);
             }
         }
@@ -352,6 +370,8 @@ static void power_update_info(Power* power) {
 
     Bq25798AdcValues adc_val = {0};
     furi_check(bq25798_get_adc_values(POWER_I2C, &adc_val));
+
+    power->charger_enabled = bq25798_is_charge_enabled(POWER_I2C);
 
     furi_hal_i2c_release(POWER_I2C);
 
@@ -420,7 +440,7 @@ static void power_update_info(Power* power) {
         furi_pubsub_publish(power->event_pubsub, &pub_event);
     }
 
-    uint8_t charge = power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, is_charging);
+    uint8_t charge = power_get_battery_charge(power->bat_cal, adc_val.bat_v, adc_val.bat_i);
     uint8_t previous_charge = power->info.charge;
 
     power->info.charge = charge;
@@ -440,8 +460,7 @@ static void power_update_info(Power* power) {
 
     power->info.is_charging = power_charger_is_charging(status.chg_stat);
     power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
-    power->info.charge = power_get_battery_charge(
-        power->info.voltage_battery, power->info.current_battery, power->info.is_charging);
+    power->info.charge = charge;
 
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
@@ -459,12 +478,13 @@ static void power_update_info(Power* power) {
         }
     }
 
-    power_process_battery_state(power, power->info.voltage_battery, power->info.is_charging);
+    power_process_battery_state(power, power->info.charge, power->info.is_charging);
 }
 
 static void power_tick_callback(void* context) {
     furi_assert(context);
     Power* power = context;
+
     power_update_info(power);
 }
 
@@ -480,6 +500,8 @@ static Power* power_alloc(void) {
     power->info.is_charging = false;
     power->info.charge = 0;
 
+    power->bat_cal = power_get_crude_calibration();
+
     furi_event_loop_subscribe_message_queue(
         power->event_loop,
         power->message_queue,
@@ -493,6 +515,8 @@ static Power* power_alloc(void) {
         power->event_loop, pd_queue, FuriEventLoopEventIn, power_usb_pd_msg_handler, power->usb_pd);
 
     furi_event_loop_tick_set(power->event_loop, 1000, power_tick_callback, power);
+
+    power_load_bat_cal(power, POWER_FACTORY_BAT_CAL); // schedule API call
 
     power->event_pubsub = furi_pubsub_alloc();
 

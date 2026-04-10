@@ -73,8 +73,9 @@ bool http_api_name_callback(
         } while(false);
 
         furi_string_free(name);
-    } else
-        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+    } else {
+        http_reply_405_method_not_allowed(conn, HttpMethodPost | HttpMethodGet);
+    }
 
     return true;
 }

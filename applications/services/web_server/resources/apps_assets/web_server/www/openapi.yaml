@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 17.1.0
+  version: 18.2.0
   contact:
     name: tbd
 
@@ -25,6 +25,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VersionInfo"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/transport:
+    get:
+      tags:
+        - System
+      summary: Get device network connection info
+      description: Retrieves device transport type (usb/wifi)
+      operationId: getTransport
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkInterfaceInfo"
         "500":
           description: Internal server error
           content:
@@ -889,28 +910,6 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/input:
-    get:
-      tags:
-        - Input
-
-      summary: Input events streaming
-      description: Start WebSocket session for input events streaming
-      operationId: connectInputWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: WebSocket upgrade failed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "426":
-          description: Upgrade required
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     post:
       tags:
         - Input
@@ -1181,27 +1180,6 @@ paths:
                 $ref: "#/components/schemas/ScreenResponse"
         "400":
           description: Wrong display
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/screen/ws:
-    get:
-      tags:
-        - Streaming
-      summary: Screen streaming WebSocket endpoint
-      description: |
-        WebSocket connection for real-time screen streaming.
-        Upgrade from HTTP to WebSocket protocol is required.
-        After connection, client must send desired display ID
-        as JSON {"display": 0}
-      operationId: connectScreenWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: Exceed max clients count
           content:
             application/json:
               schema:
@@ -1758,6 +1736,19 @@ components:
         - api_semver
       example:
         api_semver: "0.0.0"
+
+    NetworkInterfaceInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Connection type
+          enum: ["usb", "wifi"]
+          example: "usb"
+      required:
+        - type
+      example:
+        type: "usb"
 
     UpdateStatus:
       type: object
@@ -2358,10 +2349,15 @@ components:
           type: integer
           description: System boot timestamp
           example: 1767225600
+        auto_update_enabled:
+          type: boolean
+          description: Is auto-update enabled
+          example: true
       required:
         - api_semver
         - uptime
         - boot_time
+        - auto_update_enabled
 
     StatusPower:
       type: object

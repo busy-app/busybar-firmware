@@ -168,6 +168,14 @@ article > ul {
   padding-left: 1.25rem;
   margin-bottom: 1rem;
 }
+article > ol {
+  list-style-type: decimal;
+  padding-left: 1rem;
+  margin-bottom: 1rem;
+}
+article > ol > li:not(:last-child) {
+  margin-bottom: 1rem;
+}
 article > p {
   margin-bottom: 1rem;
 }

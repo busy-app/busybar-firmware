@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {17, 1, 0}
+#define API_VERSION {18, 2, 0}
 
 // Root API handlers
 void* http_api_root_alloc(void);
@@ -72,8 +72,6 @@ bool http_api_audio_callback(
     void* ctx);
 
 // Input
-void* http_api_input_alloc(void);
-void http_api_input_free(void* ctx);
 bool http_api_input_callback(
     FuriString* path,
     HttpMethod method,
@@ -128,15 +126,6 @@ bool http_api_update_hdr_callback_root(
     void* ctx);
 
 // Streaming
-void* http_api_streaming_ws_alloc(void);
-void http_api_streaming_ws_free(void* ctx);
-bool http_api_streaming_ws_callback(
-    FuriString* path,
-    HttpMethod method,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx);
-
 bool http_api_streaming_single_frame_callback(
     FuriString* path,
     HttpMethod method,

@@ -80,7 +80,7 @@ void mqtt_account_init(Mqtt* instance) {
         instance,
         MqttScopeDevice,
         MqttQosExactlyOnce,
-        "link/otp",
+        MQTT_TOPIC_LINK_PIN,
         mqtt_account_link_otp_message_callback,
         instance);
 
@@ -88,7 +88,7 @@ void mqtt_account_init(Mqtt* instance) {
         instance,
         MqttScopeDevice,
         MqttQosExactlyOnce,
-        "link/token",
+        MQTT_TOPIC_LINK_DONE,
         mqtt_account_link_token_message_callback,
         instance);
 
@@ -96,7 +96,7 @@ void mqtt_account_init(Mqtt* instance) {
         instance,
         MqttScopeSession,
         MqttQosAtLeastOnce,
-        "gone",
+        MQTT_TOPIC_UNLINK_FROM_CLOUD,
         mqtt_account_unlink_message_callback,
         instance);
 }

@@ -129,6 +129,9 @@ static MatterSettings* matter_settings_alloc(void) {
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
 
+    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+    instance->brightness_control = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, matter_settings_gui_input_callback, instance);
@@ -190,6 +193,8 @@ static void matter_settings_free(MatterSettings* instance) {
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
+    furi_record_close(RECORD_STATUS_LIGHTS);
+    furi_record_close(RECORD_BRIGHTNESS_CONTROL);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

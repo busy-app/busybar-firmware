@@ -5,6 +5,7 @@
 #include <furi_hal_rtc.h>
 #include <toolbox/hex.h>
 #include <sl_info/sl_info.h>
+#include <applications/system/updater/updater.h>
 
 #define TAG "HttpStatus"
 
@@ -124,7 +125,14 @@ static bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
         uptime % 60);
 
     time_t boot_timestamp = context->boot_timestamp;
-    furi_string_cat_printf(json_str, "\"boot_time\":%lld", boot_timestamp);
+    furi_string_cat_printf(json_str, "\"boot_time\":%lld,", boot_timestamp);
+
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+    UpdaterSettings settings;
+    updater_get_settings(updater, &settings);
+    furi_record_close(RECORD_UPDATER);
+    furi_string_cat_printf(
+        json_str, "\"auto_update_enabled\":%s", settings.autoupdate_enabled ? "true" : "false");
 
     furi_string_cat_printf(json_str, "}");
 
@@ -183,7 +191,7 @@ bool http_api_status_callback(
 
     if(IS_HTTP_ENDPOINT(path)) {
         if(method != HttpMethodGet) {
-            MG_REPLY_METHOD_NOT_ALLOWED(conn);
+            http_reply_405_method_not_allowed(conn, HttpMethodGet);
             return true;
         }
         FuriString* json_response = furi_string_alloc();
@@ -216,7 +224,7 @@ bool http_api_status_callback(
     for(size_t i = 0; i < COUNT_OF(status_handlers); i++) {
         if(furi_string_equal(path, status_handlers[i].name)) {
             if(method != HttpMethodGet) {
-                MG_REPLY_METHOD_NOT_ALLOWED(conn);
+                http_reply_405_method_not_allowed(conn, HttpMethodGet);
                 return true;
             }
             FuriString* json_response = furi_string_alloc();

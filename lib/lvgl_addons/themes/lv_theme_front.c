@@ -12,9 +12,6 @@
 
 #define SCROLLBAR_WIDTH (0)
 
-#define MENU_ITEM_PAD_HOR (0)
-#define MENU_ITEM_PAD_VER (0)
-
 #define MENU_SUBLABEL_MAX_WIDTH (26)
 
 typedef struct {
@@ -33,6 +30,7 @@ typedef struct {
     lv_style_t menu_arrow;
 
     lv_style_t submenu;
+    lv_style_t submenu_item;
     lv_style_t submenu_cursor;
 
     lv_style_t dialog;
@@ -94,8 +92,7 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
     lv_style_init(&theme->styles.menu_item);
-    lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
-    lv_style_set_pad_ver(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
+    lv_style_set_margin_top(&theme->styles.menu_item, -1);
 
     lv_style_init(&theme->styles.menu_icon);
     lv_style_set_image_opa(&theme->styles.menu_icon, LV_OPA_COVER);
@@ -111,6 +108,9 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
 
     lv_style_init(&theme->styles.submenu);
     lv_style_set_pad_row(&theme->styles.submenu, 1);
+
+    lv_style_init(&theme->styles.submenu_item);
+    lv_style_set_margin_top(&theme->styles.submenu_item, -2);
 
     lv_style_init(&theme->styles.submenu_cursor);
     lv_style_set_pad_left(&theme->styles.submenu_cursor, 2);
@@ -231,6 +231,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &submenu_item_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.submenu_item, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &submenu_cursor_lvgl_class)) {

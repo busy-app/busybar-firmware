@@ -46,6 +46,8 @@ bool bq25798_set_charge_voltage_limit(FuriHalI2cBusHandle* handle, uint32_t valu
 
 bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled);
 
+bool bq25798_is_charge_enabled(FuriHalI2cBusHandle* handle);
+
 void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25798PowerSwitch mode);
 
 bool bq25798_adc_enable(FuriHalI2cBusHandle* handle, bool enabled);
