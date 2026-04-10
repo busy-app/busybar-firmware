@@ -7,4 +7,4 @@ bool ble_service_target_execute(
     BleIntercomFrameType frame_type,
     BleServiceCommandEnum command,
     size_t data_size,
-    void* data);
+    const void* data);

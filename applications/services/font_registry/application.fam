@@ -5,6 +5,16 @@ App(
     entry_point="font_registry_startup",
     stack_size=1 * 1024,
     targets=["f20", "f21", "f22"],
+    sources=["font_registry.c"],
+    provides=["fontstat_cli"],
     requires=["storage"],
     order=60,
+)
+
+App(
+    appid="fontstat_cli",
+    name="fontstat",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="fontstat_cli_command_entry",
+    sources=["fontstat_cli.c"],
 )

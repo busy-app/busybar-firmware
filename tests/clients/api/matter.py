@@ -25,7 +25,7 @@ class PairingStatus(BaseModel):
     """Pairing status details."""
 
     value: Literal["never_started", "started", "completed_successfully", "failed"]
-    timestamp: str | None = None
+    timestamp: int | None = None
 
 
 class SmartHomePairingResponse(BaseModel):

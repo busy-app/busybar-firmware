@@ -55,7 +55,7 @@ static bool mqtt_message_get_raw_property(
 static struct mg_str mqtt_message_trim_response_topic(struct mg_str response_topic) {
     struct mg_str captures[3]; // NOTE: Should be number of captures + 1
     const struct mg_str pattern =
-        mg_str(MQTT_SESSION_ROOT_TOPIC "/*/" MQTT_DIRECTION_UP "/" MQTT_API_VERSION "/#");
+        mg_str(MQTT_ROOT_TOPIC_SESSION "/*/" MQTT_DIRECTION_UP "/" MQTT_API_VERSION "/#");
 
     if(mg_match(response_topic, pattern, captures)) {
         return captures[COUNT_OF(captures) - 2];

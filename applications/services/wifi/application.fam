@@ -18,6 +18,7 @@ App(
         "settings/*.c",
         "wifi_state.c",
         "wifi_util.c",
+        "wifi_power.c",
     ],
 )
 

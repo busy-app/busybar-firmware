@@ -130,7 +130,7 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
                 scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
             volume_model_set(instance->model, data->volume);
-            audio_play_file(instance->audio, SOUND_PATH("volume_change.snd"));
+            audio_play_file(instance->audio, SHARED_SOUND_PATH("volume_change.snd"));
 
             consumed = true;
             break;

@@ -131,11 +131,11 @@ class TestDrawPriorityValidation:
         except requests.exceptions.ReadTimeout:
             pass
 
-    @allure.title("POST /api/display/draw – missing app_id → 400")
+    @allure.title("POST /api/display/draw – missing application_name → 400")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_missing_app_id_rejected(self, assets_api: AssetsAPI):
-        """Request body without app_id must be rejected."""
+        """Request body without application_name must be rejected."""
         try:
             resp = assets_api.draw_raw({"elements": _SIMPLE_ELEM})
             assets_api.assert_status(resp, 400)
@@ -148,7 +148,7 @@ class TestDrawPriorityValidation:
     def test_missing_elements_rejected(self, assets_api: AssetsAPI):
         """Request body without elements array must be rejected."""
         try:
-            resp = assets_api.draw_raw({"app_id": _APP_ID})
+            resp = assets_api.draw_raw({"application_name": _APP_ID})
             assets_api.assert_status(resp, 400)
         except requests.exceptions.ReadTimeout:
             pass
@@ -158,7 +158,7 @@ class TestDrawPriorityValidation:
     @pytest.mark.frontend
     def test_empty_elements_array_rejected(self, assets_api: AssetsAPI):
         """An empty elements array contains nothing to draw; must be rejected."""
-        resp = assets_api.draw_raw({"app_id": _APP_ID, "elements": []})
+        resp = assets_api.draw_raw({"application_name": _APP_ID, "elements": []})
         assets_api.assert_status(resp, 400)
 
 

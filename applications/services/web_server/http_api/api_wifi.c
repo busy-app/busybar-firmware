@@ -125,6 +125,24 @@ static bool api_wifi_check_record_exists(struct mg_connection* conn) {
     return true;
 }
 
+static WifiStatus api_wifi_disconnect_and_forget(void) {
+    WifiStatus status;
+
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+
+    do {
+        status = wifi_disconnect(wifi);
+        if(status != WifiStatusOk) {
+            break;
+        }
+        status = wifi_forget(wifi);
+    } while(false);
+
+    furi_record_close(RECORD_WIFI);
+
+    return status;
+}
+
 static bool api_wifi_get_networks_callback(
     FuriString* path,
     HttpMethod method,
@@ -304,6 +322,10 @@ static bool api_wifi_connect_parse_config(
     FuriString* buf = furi_string_alloc();
     do {
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SSID, buf, error_msg)) break;
+        if(furi_string_empty(buf)) {
+            furi_string_printf(error_msg, "%s must not be empty", WIFI_JSON_KEY_SSID);
+            break;
+        }
         strncpy(credentials->ssid, furi_string_get_cstr(buf), SSID_MAX_LEN);
 
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_PASSWORD, buf, error_msg)) break;
@@ -386,11 +408,9 @@ static bool api_wifi_disconnect_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
     if(!api_wifi_check_record_exists(conn)) return true;
 
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    WifiStatus status = wifi_disconnect(wifi);
-    furi_record_close(RECORD_WIFI);
-
+    const WifiStatus status = api_wifi_disconnect_and_forget();
     const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+
     if(data->code == 200)
         MG_REPLY_OK(conn);
     else

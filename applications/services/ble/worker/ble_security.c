@@ -42,7 +42,7 @@ static void ble_security_format_item(
     ble_security_format_array(buf, item, size, separator);
 }
 
-static void ble_sercurity_format_rpa_data(
+static void ble_security_format_rpa_data(
     FuriString* output,
     const rsi_bt_event_le_security_keys_t* security) {
     furi_assert(security);
@@ -91,7 +91,7 @@ static void ble_security_format_encryption_data(
 
 static void ble_security_log_keys(const BleSecurityData* security) {
     FuriString* buf = furi_string_alloc();
-    ble_sercurity_format_rpa_data(buf, &security->irk);
+    ble_security_format_rpa_data(buf, &security->irk);
     BLE_LOG_I("Privacy:\r\n%s", furi_string_get_cstr(buf));
 
     ble_security_format_encryption_data(buf, &security->ltk);

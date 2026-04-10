@@ -29,7 +29,14 @@ AnimFileFrameFlag anim_file_seq_load_current_frame(AnimFile* anim) {
         if(!seq->remaining_duration) return AnimFileFrameFlagNoChange;
 
         if(seq->disp_frame_idx == seq->last_disp_frame) {
-            if(!anim_file_start_last_frame(anim)) return AnimFileFrameFlagNoChange;
+            if(!anim_file_start_last_frame(anim)) {
+                AnimFileFrameFlag flags = seq->flags;
+
+                seq->flags = AnimFileFrameFlagNone;
+                seq->remaining_duration = 0;
+
+                return flags;
+            }
         }
 
         seq->disp_frame_idx++;

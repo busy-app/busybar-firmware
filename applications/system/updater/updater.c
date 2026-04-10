@@ -154,6 +154,9 @@ static UpdaterStatus updater_do_set_settings(Updater* instance, UpdaterMessage* 
 
     updater_internal_settings_change_build_specific(instance);
 
+    furi_pubsub_publish(
+        instance->pubsub, &(UpdaterEvent){.type = UpdaterEventTypeSettingsChanged});
+
     return UpdaterStatusOk;
 }
 
@@ -400,6 +403,12 @@ bool updater_set_settings(Updater* instance, const UpdaterSettings* settings) {
     return updater_internal_invoke_sync(instance, &message) == UpdaterStatusOk;
 }
 
+FuriPubSub* updater_get_pubsub(Updater* instance) {
+    furi_check(instance);
+
+    return instance->pubsub;
+}
+
 static Updater* updater_alloc(void) {
     Updater* instance = malloc(sizeof(*instance));
 
@@ -414,6 +423,7 @@ static Updater* updater_alloc(void) {
 
     instance->update_lock = furi_semaphore_alloc(1, 1);
     instance->update_state = furi_state_alloc(sizeof(UpdaterUpdateState));
+    instance->pubsub = furi_pubsub_alloc();
 
     updater_internal_setup_build_specific(instance);
 

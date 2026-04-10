@@ -28,7 +28,7 @@ static bool mqtt_is_valid_scope_for_current_status(Mqtt* instance, MqttScope sco
     return is_valid;
 }
 
-static void mqtt_make_topic_path(
+void mqtt_make_topic_path(
     Mqtt* instance,
     MqttScope scope,
     const char* dir,
@@ -38,11 +38,11 @@ static void mqtt_make_topic_path(
     const char* id;
 
     if(scope == MqttScopeDevice) {
-        root = MQTT_DEVICE_ROOT_TOPIC;
+        root = MQTT_ROOT_TOPIC_DEVICE;
         id = furi_string_get_cstr(instance->device_serial);
 
     } else if(scope == MqttScopeSession) {
-        root = MQTT_SESSION_ROOT_TOPIC;
+        root = MQTT_ROOT_TOPIC_SESSION;
         id = instance->saved_state.session_id;
 
     } else {
@@ -115,9 +115,7 @@ bool mqtt_publish_internal(
     const void* data,
     size_t data_size,
     const MqttProperty* props,
-    uint32_t props_count,
-    MqttPublishDoneCallback publish_done_callback,
-    void* callback_context) {
+    uint32_t props_count) {
     if(!mqtt_is_valid_scope_for_current_status(instance, scope)) {
         FURI_LOG_E(TAG, "Unable to publish: scope: %d, status: %d", scope, instance->status);
         return false;
@@ -158,10 +156,6 @@ bool mqtt_publish_internal(
     }
 
     furi_string_free(path);
-
-    if(publish_done_callback) {
-        publish_done_callback(callback_context);
-    }
 
     return true;
 }

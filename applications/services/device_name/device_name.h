@@ -14,6 +14,8 @@
 
 #include <furi.h>
 
+#include "device_name_common.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -16,6 +16,8 @@ typedef struct {
         struct {
             uint32_t expiry_interval;
             FuriString* response_topic;
+            void* payload;
+            size_t payload_size;
         };
     };
 } MqttStreamingApiMessage;

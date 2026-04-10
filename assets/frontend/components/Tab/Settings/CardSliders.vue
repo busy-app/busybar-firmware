@@ -129,6 +129,11 @@ async function refreshAudioVolume () {
   loading.value.audio = false;
 }
 
+const mute = ref({
+  isMuted: false,
+  volumeBeforeMute: 50
+});
+
 const nextVolumeNumber = ref<number | undefined>(undefined);
 const volumeNumber = computed(() => {
   if (mute.value.isMuted) {
@@ -137,9 +142,11 @@ const volumeNumber = computed(() => {
     return audioStore.audio?.volume === undefined ? 50 : audioStore.audio?.volume;
   }
 });
-const mute = ref({
-  isMuted: false,
-  volumeBeforeMute: 50
+
+watch(volumeNumber, newValue => {
+  if (!mute.value.isMuted) {
+    nextVolumeNumber.value = newValue;
+  }
 });
 
 function unmute () {
@@ -185,6 +192,12 @@ async function refreshDisplayBrightness () {
 const nextBrightnessNumber = ref<number | undefined>(undefined);
 const brightnessNumber = computed(() => isNaN(Number(brightnessStore.displayBrightness?.value)) ? 50 : Number(brightnessStore.displayBrightness?.value));
 const isBrightnessAuto = computed(() => brightnessStore.displayBrightness?.value === 'auto');
+
+watch(brightnessNumber, newValue => {
+  if (!isBrightnessAuto.value) {
+    nextBrightnessNumber.value = newValue;
+  }
+});
 
 function disableAutoBrightness () {
   nextBrightnessNumber.value = 50;

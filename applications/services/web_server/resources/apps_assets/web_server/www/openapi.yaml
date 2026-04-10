@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 16.0.0
+  version: 18.1.0
   contact:
     name: tbd
 
@@ -25,6 +25,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VersionInfo"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/transport:
+    get:
+      tags:
+        - System
+      summary: Get device network connection info
+      description: Retrieves device transport type (usb/wifi)
+      operationId: getTransport
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkInterfaceInfo"
         "500":
           description: Internal server error
           content:
@@ -865,7 +886,15 @@ paths:
           schema:
             type: number
           description: Audio volume (0-100)
-          example: "50"
+          example: 50
+        - name: silent
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: Set volume silently (0 - play volume change sound(default), 1 - do not play sound)
+          example: 1
       responses:
         "200":
           description: Volume set successfully
@@ -881,28 +910,6 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/input:
-    get:
-      tags:
-        - Input
-
-      summary: Input events streaming
-      description: Start WebSocket session for input events streaming
-      operationId: connectInputWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: WebSocket upgrade failed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "426":
-          description: Upgrade required
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     post:
       tags:
         - Input
@@ -1173,27 +1180,6 @@ paths:
                 $ref: "#/components/schemas/ScreenResponse"
         "400":
           description: Wrong display
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/screen/ws:
-    get:
-      tags:
-        - Streaming
-      summary: Screen streaming WebSocket endpoint
-      description: |
-        WebSocket connection for real-time screen streaming.
-        Upgrade from HTTP to WebSocket protocol is required.
-        After connection, client must send desired display ID
-        as JSON {"display": 0}
-      operationId: connectScreenWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: Exceed max clients count
           content:
             application/json:
               schema:
@@ -1751,6 +1737,19 @@ components:
       example:
         api_semver: "0.0.0"
 
+    NetworkInterfaceInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Connection type
+          enum: ["usb", "wifi"]
+          example: "usb"
+      required:
+        - type
+      example:
+        type: "usb"
+
     UpdateStatus:
       type: object
       properties:
@@ -2221,7 +2220,7 @@ components:
         volume:
           type: number
           description: Audio volume value (0-100)
-          example: "50"
+          example: 50
 
     TimestampInfo:
       type: object
@@ -2411,7 +2410,7 @@ components:
           $ref: "#/components/schemas/WifiSecurityMethod"
         rssi:
           type: integer
-          example: "58"
+          example: 58
 
     StatusResponse:
       type: object
@@ -2443,11 +2442,11 @@ components:
         channel:
           type: integer
           description: Only present when connected
-          example: "3"
+          example: 3
         rssi:
           type: integer
           description: Only present when connected
-          example: "-43"
+          example: -43
         security:
           description: Only present when connected
           $ref: "#/components/schemas/WifiSecurityMethod"
@@ -2817,9 +2816,9 @@ components:
               description: 'Latest state of smart home pairing (Matter "commissioning") process. Note: "never_started" only refers to the current power cycle of the device; this status is not recorded across reboots.'
               example: "completed_successfully"
             timestamp:
-              type: string
-              description: "UTC Unix millisecond timestamp of latest state update. Only present when a status update has occurred. Note: it's a number in a string."
-              example: "1769436711000"
+              type: integer
+              description: "UTC Unix second timestamp of latest state update. Only present when a status update has occurred."
+              example: 1769436711
     SmartHomePairingPayload:
       type: object
       description: Set of information for pairing with a Matter smart home

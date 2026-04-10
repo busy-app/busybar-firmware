@@ -28,7 +28,7 @@ DEFAULT_ELEMENT_PRIORITY = 50  # default priority used by the draw endpoint when
 
 # Draw semantics: a POST /api/display/draw request is accepted when
 #   request_priority >= active_loader_priority
-# Equal-priority requests from a *different* app_id override the current display.
+# Equal-priority requests from a *different* app_name override the current display.
 
 
 # === Response Models ===
@@ -69,7 +69,7 @@ class DisplayElement(BaseModel):
 class DisplayDrawRequest(BaseModel):
     """Request for POST /api/display/draw."""
 
-    app_id: str
+    application_name: str
     priority: int | None = None
     elements: list[DisplayElement]
 
@@ -97,13 +97,13 @@ class AssetsAPI(BaseAPI):
     # === Assets ===
 
     def upload_asset(
-        self, app_id: str, filename: str, content: bytes, timeout: int = 10
+        self, app_name: str, filename: str, content: bytes, timeout: int = 10
     ) -> AssetResultResponse:
         """
         Upload an asset file.
 
         Args:
-            app_id: Application ID
+            app_name: Application name
             filename: Asset filename
             content: File content as bytes
             timeout: Request timeout in seconds
@@ -111,30 +111,30 @@ class AssetsAPI(BaseAPI):
         return self.post(
             "/api/assets/upload",
             AssetResultResponse,
-            params={"app_id": app_id, "file": filename},
+            params={"application_name": app_name, "file": filename},
             data=content,
             headers={"Content-Type": "application/octet-stream"},
             timeout=timeout,
         )
 
-    def delete_assets(self, app_id: str) -> AssetResultResponse:
+    def delete_assets(self, app_name: str) -> AssetResultResponse:
         """
         Delete all assets for an application.
 
         Args:
-            app_id: Application ID
+            app_name: Application name
         """
         return self.delete(
             "/api/assets/upload",
             AssetResultResponse,
-            params={"app_id": app_id},
+            params={"application_name": app_name},
         )
 
     # === Display ===
 
     def draw(
         self,
-        app_id: str,
+        app_name: str,
         elements: list[dict[str, Any]],
         priority: int | None = None,
     ) -> AssetResultResponse:
@@ -142,11 +142,11 @@ class AssetsAPI(BaseAPI):
         Draw elements to the display (raises on non-2xx).
 
         Args:
-            app_id: Application ID
+            app_name: Application name
             elements: List of element dictionaries
             priority: Draw priority (1–100). Defaults to server default (50).
         """
-        body: dict[str, Any] = {"app_id": app_id, "elements": elements}
+        body: dict[str, Any] = {"application_name": app_name, "elements": elements}
         if priority is not None:
             body["priority"] = priority
         return self.post(
@@ -157,7 +157,7 @@ class AssetsAPI(BaseAPI):
 
     def draw_response(
         self,
-        app_id: str,
+        app_name: str,
         elements: list[dict[str, Any]],
         priority: int | None = None,
     ) -> requests.Response:
@@ -167,7 +167,7 @@ class AssetsAPI(BaseAPI):
         Use this variant when the call is expected to fail (400, 409, etc.)
         so that the error status code can be inspected without raising.
         """
-        body: dict[str, Any] = {"app_id": app_id, "elements": elements}
+        body: dict[str, Any] = {"application_name": app_name, "elements": elements}
         if priority is not None:
             body["priority"] = priority
         return self.post_raw("/api/display/draw", json=body)
@@ -180,24 +180,24 @@ class AssetsAPI(BaseAPI):
         """Clear all elements from the display."""
         return self.delete("/api/display/draw", AssetResultResponse)
 
-    def clear_display_by_app(self, app_id: str) -> requests.Response:
-        """Clear display elements belonging to a specific app_id."""
-        return self.delete_raw("/api/display/draw", params={"app_id": app_id})
+    def clear_display_by_app(self, app_name: str) -> requests.Response:
+        """Clear display elements belonging to a specific app_name."""
+        return self.delete_raw("/api/display/draw", params={"application_name": app_name})
 
     # === Audio ===
 
-    def play_audio(self, app_id: str, path: str) -> AssetResultResponse:
+    def play_audio(self, app_name: str, path: str) -> AssetResultResponse:
         """
         Play an audio file.
 
         Args:
-            app_id: Application ID
+            app_name: Application name
             path: Audio file path
         """
         return self.post(
             "/api/audio/play",
             AssetResultResponse,
-            params={"app_id": app_id, "path": path},
+            params={"application_name": app_name, "path": path},
         )
 
     def stop_audio(self) -> AssetResultResponse:

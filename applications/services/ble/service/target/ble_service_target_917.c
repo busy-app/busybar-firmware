@@ -3,152 +3,90 @@
 
 #define TAG "BleService917"
 
-static bool ble_service_target_init(BleServiceObject* instance, size_t data_size, void* data) {
-    BLE_LOG_D("%s - ble_service_target_init", instance->config->name);
+static void ble_char_tx_done_cb(void* ctx) {
+    BleCharacteristicObject* ch = ctx;
+    uint16_t handle = ble_characteristic_get_handle(ch);
+    const uint8_t cccd_value = ble_characteristic_get_cccd_value(ch);
+    BLE_LOG_D("Upd resp, H: %04X, val: %02X", handle, cccd_value);
+    ble_worker_receive_confirm(handle, cccd_value);
+}
 
-    do {
-        if(data_size == 0) {
-            ble_service_set_error(instance, "Empty init data");
-            break;
-        }
-
-        if(!ble_service_parse_intercom_service_data(instance, data, NULL)) {
-            ble_service_set_error(instance, "Failed to parse service data");
-            break;
-        }
-
-        if(!ble_worker_register_service(instance)) {
-            ble_service_set_error(instance, "Failed to register service");
-            break;
-        }
-        instance->ready = true;
-    } while(false);
-
-    BLE_LOG_I("%s - %s", instance->config->name, instance->ready ? "Ready" : "Not ready");
-
-    ble_service_prepare_send_intercom_frame(
-        instance,
-        BleIntercomFrameTypeResponse,
-        BleServiceCommandInit,
-        instance->ready,
-        furi_string_size(instance->error),
-        furi_string_get_cstr(instance->error));
-
-    return true;
+static void ble_characteristic_update_callback(size_t data_size, void* data, void* context) {
+    BleCharacteristicObject* ch = context;
+    const uint16_t handle = ble_characteristic_get_handle(ch);
+    const uint8_t cccd_value = ble_characteristic_get_cccd_value(ch);
+    ble_worker_send(handle, data_size, data, cccd_value);
 }
 
 static bool ble_service_command_handler_init(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     size_t data_size,
-    void* data) {
-    bool result = false;
-    if(frame_type == BleIntercomFrameTypeRequest) {
-        BLE_LOG_D("Init request");
-        result = ble_service_target_init(instance, data_size, data);
-    } else {
-        BLE_LOG_D("Init response");
-    }
-    return result;
-}
-
-static void ble_service_update_characteristic_extra_action(BleCharacteristicObject* ch) {
-    const uint16_t handle = ble_characteristic_get_handle(ch);
-    const uint8_t cccd_value = ble_characteristic_get_cccd_value(ch);
-    size_t data_size = ble_characteristic_get_data_size(ch);
-    ble_worker_send(handle, data_size, ble_characteristic_get_data(ch), cccd_value);
-}
-
-static bool ble_service_update_request(BleServiceObject* instance, size_t data_size, void* data) {
+    const void* data) {
+    UNUSED(frame_type);
     bool result = false;
     do {
         if(data_size == 0) {
-            ble_service_set_error(instance, "Empty data");
+            ble_service_set_error(instance, "Empty init data");
             break;
         }
 
-        if(!ble_service_parse_intercom_service_data(
-               instance, data, ble_service_update_characteristic_extra_action)) {
+        if(!ble_service_parse_intercom_service_data(instance, data)) {
             ble_service_set_error(instance, "Failed to parse service data");
             break;
         }
-        result = true;
+
+        for(uint8_t i = 0; i < instance->config->char_count; i++) {
+            BleCharacteristicObject* ch = instance->chars[i];
+            ble_characteristic_register_tx_done_callback(ch, ble_char_tx_done_cb, ch);
+            ble_characteristic_register_update_callback(
+                ch, ble_characteristic_update_callback, ch);
+        }
+
+        if(!ble_worker_register_service(instance)) {
+            ble_service_set_error(instance, "Failed to register service");
+            break;
+        }
+
+        result = ble_service_send_data(
+            instance, BleServiceCommandInit, BleIntercomFrameTypeResponse, false);
+
     } while(false);
-
-    ble_service_prepare_send_intercom_frame(
-        instance,
-        BleIntercomFrameTypeResponse,
-        BleServiceCommandUpdate,
-        result,
-        furi_string_size(instance->error),
-        furi_string_get_cstr(instance->error));
-
-    return true;
-}
-
-static bool ble_service_update_response(BleServiceObject* instance, size_t data_size, void* data) {
-    UNUSED(data_size);
-
-    const BleIntercomServiceData* service_config = data;
-    uint8_t offset = 0;
-
-    for(size_t i = 0; i < service_config->char_count; i++) {
-        const BleCharacteristicData* char_init =
-            (BleCharacteristicData*)((uint8_t*)service_config->chars_config + offset);
-
-        BleCharacteristicObject* ch = instance->chars[char_init->header.index];
-        uint16_t handle = ble_characteristic_get_handle(ch);
-        const uint8_t cccd_value = ble_characteristic_get_cccd_value(ch);
-        BLE_LOG_D("Upd resp, H: %04X, val: %02X", handle, cccd_value);
-        ble_worker_receive_confirm(handle, cccd_value);
-    }
-    return true;
+    return result;
 }
 
 static bool ble_service_command_handler_update(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     size_t data_size,
-    void* data) {
-    if(frame_type == BleIntercomFrameTypeRequest) {
-        return ble_service_update_request(instance, data_size, data);
+    const void* data) {
+    UNUSED(frame_type);
+    UNUSED(data_size);
+
+    bool result = false;
+    if(!ble_service_parse_intercom_service_data(instance, data)) {
+        BLE_LOG_W("%s - update decode error", instance->config->name);
     } else {
-        return ble_service_update_response(instance, data_size, data);
+        result = ble_service_send_data(
+            instance, BleServiceCommandUpdate, BleIntercomFrameTypeResponse, true);
     }
+
+    return result;
 }
 
 static bool ble_service_command_handler_run(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     size_t data_size,
-    void* data) {
+    const void* data) {
     BLE_LOG_D("ble_service_command_handler_run");
 
     UNUSED(frame_type);
     UNUSED(data_size);
     UNUSED(data);
 
-    bool result = false;
-    do {
-        size_t total_size = 0;
-        BleIntercomServiceData* config =
-            ble_service_create_intercom_service_data_pack(instance, true, &total_size);
-
-        BLE_LOG_D("%s - config size: %d", instance->config->name, total_size);
-        result = true;
-
-        ble_service_prepare_send_intercom_frame(
-            instance,
-            BleIntercomFrameTypeRequest,
-            BleServiceCommandUpdate,
-            result,
-            total_size,
-            config);
-
-        free(config);
-
-    } while(false);
-    return result;
+    return ble_service_send_data(
+        instance, BleServiceCommandUpdate, BleIntercomFrameTypeRequest, true);
 }
 
 bool ble_service_target_execute(
@@ -156,7 +94,7 @@ bool ble_service_target_execute(
     BleIntercomFrameType frame_type,
     BleServiceCommandEnum command,
     size_t data_size,
-    void* data) {
+    const void* data) {
     BLE_LOG_D("%s - target_execute: %d", instance->config->name, command);
 
     bool result = false;
