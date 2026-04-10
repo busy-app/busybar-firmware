@@ -138,3 +138,16 @@ void power_set_pd_mode(Power* power, uint32_t voltage_mv) {
         furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(msg.lock);
 }
+
+void power_load_bat_cal(Power* power, const char* path) {
+    furi_check(power);
+    furi_check(path);
+
+    PowerMessage msg = {
+        .type = PowerMessageTypeLoadBatCal,
+        .param_str_owned = strdup(path),
+    };
+
+    furi_check(
+        furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
+}
