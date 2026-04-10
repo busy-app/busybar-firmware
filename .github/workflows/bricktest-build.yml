@@ -7,10 +7,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET_SPEC: 21_64
@@ -30,6 +26,9 @@ jobs:
       update_url: ${{ steps.set-url.outputs.update_url }}
       normal_update_url: ${{ steps.set-url.outputs.normal_update_url }}
       target: ${{ steps.build-fw.outputs.u5_target_hw }}
+    concurrency:
+      group: brick-test-build-${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
+      cancel-in-progress: true
 
     steps:
       - name: "Wipe workspace"

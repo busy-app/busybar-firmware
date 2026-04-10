@@ -23,7 +23,7 @@ jobs:
     outputs:
       default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
+      group: compact-build-${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
       cancel-in-progress: true
 
     steps:
