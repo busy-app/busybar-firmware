@@ -6,7 +6,6 @@
 #include <toolbox/hex.h>
 #include <sl_info/sl_info.h>
 #include <applications/system/updater/updater.h>
-// #include <applications/system/updater/settings/settings.h>
 
 #define TAG "HttpStatus"
 
