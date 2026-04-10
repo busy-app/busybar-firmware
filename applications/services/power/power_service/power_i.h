@@ -74,6 +74,7 @@ typedef enum {
     PowerMessageTypeSetChargeCurrent,
     PowerMessageTypePdGetInfo,
     PowerMessageTypePdRequest,
+    PowerMessageTypeLoadBatCal,
 
     // TODO: separate queue for internal messages?
     PowerMessageTypeUsbPdUpdate,
@@ -92,6 +93,7 @@ typedef struct {
         PowerPdInfo* pd_info;
         bool* param_bool;
         int32_t* param_int;
+        char* param_str_owned;
     };
 } PowerMessage;
 

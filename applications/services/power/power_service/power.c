@@ -212,43 +212,61 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     case PowerMessageTypeOff:
         power_handle_shutdown(power, false);
         break;
+
     case PowerMessageTypeReboot:
         power_handle_reboot(power, msg.reboot_mode);
         break;
+
     case PowerMessageTypeIsUsbConnected:
         *(msg.param_bool) = power->state.usb_connected;
         break;
+
     case PowerMessageTypeIsBatteryReady:
         *(msg.param_bool) = power->state.battery_ready;
         break;
+
     case PowerMessageTypeGetInfo:
         furi_assert(msg.power_info);
         memcpy(msg.power_info, &(power->info), sizeof(PowerInfo));
         break;
+
     case PowerMessageTypeChargeEnable:
         power->charger_enabled = *(msg.param_bool);
         furi_hal_i2c_acquire(POWER_I2C);
         bq25798_charge_enable(POWER_I2C, power->charger_enabled);
         furi_hal_i2c_release(POWER_I2C);
         break;
+
     case PowerMessageTypeSetChargeCurrent:
         power->charger_current_limit = *(msg.param_int);
         furi_hal_i2c_acquire(POWER_I2C);
         bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
         furi_hal_i2c_release(POWER_I2C);
         break;
+
     case PowerMessageTypePdGetInfo:
         furi_assert(msg.power_info);
         memcpy(msg.pd_info, &(power->pd_info), sizeof(PowerPdInfo));
         break;
+
     case PowerMessageTypePdRequest:
         if(power->state.battery_ready && power->state.pd_initialized) {
             power_usb_pd_request_power(power->usb_pd, *(msg.param_int), 0);
         }
         break;
+
     case PowerMessageTypeUsbPdUpdate:
         power_handle_pd_update(power, msg.pd_mode.voltage, msg.pd_mode.current);
         break;
+
+    case PowerMessageTypeLoadBatCal:
+#if defined(SRV_STORAGE)
+        PowerBatCalibration* cal = power_load_bat_calibration(msg.param_str_owned);
+        if(cal) power->bat_cal = cal;
+#endif
+        free(msg.param_str_owned);
+        break;
+
     default:
         furi_crash();
     }
@@ -472,15 +490,6 @@ static void power_tick_callback(void* context) {
     furi_assert(context);
     Power* power = context;
 
-    // Storage & power deadlock prevention
-    if(!power->tried_to_load_storage_cal) {
-        power->tried_to_load_storage_cal = true;
-#if defined(SRV_STORAGE)
-        PowerBatCalibration* cal = power_load_bat_calibration(POWER_FACTORY_BAT_CAL);
-        if(cal) power->bat_cal = cal;
-#endif
-    }
-
     power_update_info(power);
 }
 
@@ -511,6 +520,8 @@ static Power* power_alloc(void) {
         power->event_loop, pd_queue, FuriEventLoopEventIn, power_usb_pd_msg_handler, power->usb_pd);
 
     furi_event_loop_tick_set(power->event_loop, 1000, power_tick_callback, power);
+
+    power_load_bat_cal(power, POWER_FACTORY_BAT_CAL); // schedule API call
 
     power->event_pubsub = furi_pubsub_alloc();
 
