@@ -3,14 +3,18 @@
 vault_provision.py — Provision BusyBar device TLS credentials via Vault PKI.
 
 Extracts a CSR from the device's secure element, submits it to a HashiCorp
-Vault intermediate CA for signing, and writes the signed certificate chain
-back to the device.
+Vault intermediate CA for signing, writes the signed certificate chain
+back to the device, and provisions any raw key data stored in Vault's KV
+store.
 
 Uses AppRole authentication for machine-identity access to Vault.
 
 Usage:
     python vault_provision.py provision [--vault-addr URL] [--insecure-crypto]
     python vault_provision.py cleanup
+    python vault_provision.py upload-key <name> --key-type N --key-id N [--data-hex|--data-file]
+    python vault_provision.py list-keys
+    python vault_provision.py delete-key <name>
 """
 
 import os
@@ -45,6 +49,10 @@ KEY_ID_TLS_DEVICE = KEY_ID_OFFSET + 1
 KEY_TYPE_ECDSA256_KEY = 8
 KEY_TYPE_CSR_DER_ECDSA256 = 11
 KEY_TYPE_ECDSA256_CERT = 12
+
+# Key types that hold secret material and should be wrapped in secure mode.
+# Certificates are public data and are never wrapped.
+KEY_TYPES_SECRET = {2, 8}  # AES256=2, EcdsaPriv256=8
 
 VAULT_ADDR_DEFAULT = "http://127.0.0.1:8200"
 
@@ -142,6 +150,57 @@ class VaultClient:
         resp.raise_for_status()
         return resp.text
 
+    # -- KV v2 operations for raw key data --------------------------------
+
+    KV_MOUNT = "secret"
+    KV_PREFIX = "busybar-keys"
+
+    def kv_list(self) -> list[str]:
+        """List all key names stored in the KV store."""
+        resp = self.session.request(
+            "LIST",
+            f"{self.addr}/v1/{self.KV_MOUNT}/metadata/{self.KV_PREFIX}/",
+            timeout=10,
+        )
+        if resp.status_code == 404:
+            return []
+        resp.raise_for_status()
+        return resp.json()["data"]["keys"]
+
+    def kv_read(self, name: str) -> dict | None:
+        """Read a key entry from the KV store. Returns the data dict or None."""
+        resp = self.session.get(
+            f"{self.addr}/v1/{self.KV_MOUNT}/data/{self.KV_PREFIX}/{name}",
+            timeout=10,
+        )
+        if resp.status_code == 404:
+            return None
+        resp.raise_for_status()
+        return resp.json()["data"]["data"]
+
+    def kv_write(self, name: str, key_type: int, key_id: int, data_hex: str):
+        """Write a key entry to the KV store."""
+        resp = self.session.post(
+            f"{self.addr}/v1/{self.KV_MOUNT}/data/{self.KV_PREFIX}/{name}",
+            json={
+                "data": {
+                    "key_type": key_type,
+                    "key_id": key_id,
+                    "data": data_hex,
+                }
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+
+    def kv_delete(self, name: str):
+        """Delete a key entry from the KV store (metadata + all versions)."""
+        resp = self.session.delete(
+            f"{self.addr}/v1/{self.KV_MOUNT}/metadata/{self.KV_PREFIX}/{name}",
+            timeout=10,
+        )
+        resp.raise_for_status()
+
 
 def _make_subject(device_uid: str, conf: dict[str, str]) -> x509.Name:
     cn_template = conf.get("PKI_DEVICE_CN_TEMPLATE", "BusyBar device {uid}")
@@ -217,6 +276,67 @@ class Main(App):
             "cleanup", help="Wipe key storage partition"
         )
         self.cleanup_parser.set_defaults(func=self.cleanup)
+
+        # Upload key command (admin)
+        self.upload_key_parser = self.subparsers.add_parser(
+            "upload-key", help="Upload raw key data to Vault KV store (admin)"
+        )
+        self.upload_key_parser.add_argument(
+            "name", help="Key name (unique label in Vault)"
+        )
+        self.upload_key_parser.add_argument(
+            "--key-type",
+            type=lambda x: int(x, 0),
+            required=True,
+            help="Key type integer (e.g. 8 for ECDSA256_KEY, 12 for ECDSA256_CERT)",
+        )
+        self.upload_key_parser.add_argument(
+            "--key-id",
+            type=lambda x: int(x, 0),
+            required=True,
+            help="Key ID (e.g. 0x12)",
+        )
+        self.upload_key_parser.add_argument(
+            "--data-hex", type=str, default=None, help="Key data as hex string"
+        )
+        self.upload_key_parser.add_argument(
+            "--data-file",
+            type=str,
+            default=None,
+            help="Path to binary file containing key data",
+        )
+        self.upload_key_parser.add_argument(
+            "--vault-addr",
+            type=str,
+            default=VAULT_ADDR_DEFAULT,
+            help=f"Vault server address (default: {VAULT_ADDR_DEFAULT})",
+        )
+        self.upload_key_parser.set_defaults(func=self.upload_key)
+
+        # List keys command (admin)
+        self.list_keys_parser = self.subparsers.add_parser(
+            "list-keys", help="List raw keys stored in Vault KV store"
+        )
+        self.list_keys_parser.add_argument(
+            "--vault-addr",
+            type=str,
+            default=VAULT_ADDR_DEFAULT,
+            help=f"Vault server address (default: {VAULT_ADDR_DEFAULT})",
+        )
+        self.list_keys_parser.set_defaults(func=self.list_keys)
+
+        # Delete key command (admin)
+        self.delete_key_parser = self.subparsers.add_parser(
+            "delete-key", help="Delete a raw key from Vault KV store (admin)"
+        )
+        self.delete_key_parser.add_argument("name", help="Key name to delete")
+        self.delete_key_parser.add_argument(
+            "--vault-addr",
+            type=str,
+            default=VAULT_ADDR_DEFAULT,
+            help=f"Vault server address (default: {VAULT_ADDR_DEFAULT})",
+        )
+        self.delete_key_parser.set_defaults(func=self.delete_key)
 
     def get_portname(self):
         return ("10.0.4.20", 23)
@@ -392,6 +512,61 @@ class Main(App):
         key_data = pn.private_value.to_bytes(32, "big")
         self.write_private_key(crypto_storage, key_data, wrap=False)
 
+    # -- raw key provisioning from Vault KV ----------------------------
+
+    def provision_raw_keys(
+        self,
+        crypto_storage: CryptoStorage,
+        vault: VaultClient,
+        secure: bool,
+    ):
+        """Fetch all raw keys from Vault KV and write them to the device."""
+        key_names = vault.kv_list()
+        if not key_names:
+            print("  No raw keys configured in Vault — skipping.")
+            return
+
+        print(f"  Provisioning {len(key_names)} raw key(s) (secure={secure})...")
+
+        for name in key_names:
+            entry = vault.kv_read(name)
+            if entry is None:
+                print(f"    Warning: key '{name}' listed but not readable, skipping")
+                continue
+
+            key_type = int(entry["key_type"])
+            key_id = int(entry["key_id"])
+            data_hex = entry["data"]
+            data_bytes = bytes.fromhex(data_hex)
+            data_len = len(data_bytes)
+
+            # Wrap secret material (private keys, symmetric keys) in secure mode;
+            # certificates are public and never wrapped.
+            wrap = secure and key_type in KEY_TYPES_SECRET
+            flags = 1 if wrap else 0
+
+            print(
+                f"    {name}: type={key_type} id=0x{key_id:x} "
+                f"len={data_len} wrap={wrap}"
+            )
+
+            ret = crypto_storage.write_key(
+                0,
+                key_type,
+                key_id,
+                flags,
+                data_len,
+                data_hex,
+                echo=False,
+            )
+            if ret != 0:
+                raise Exception(
+                    f"write_key failed for '{name}' (type={key_type}, "
+                    f"id=0x{key_id:x}) with error {ret}"
+                )
+
+        print(f"  Raw key provisioning complete ({len(key_names)} key(s)).")
+
     # -- commands ---------------------------------------------------------
 
     @CatchExceptions
@@ -414,7 +589,8 @@ class Main(App):
         if not device_uid:
             raise RuntimeError("Could not read u5_hardware_uid from device_info")
 
-        if not insecure and info.get("sl_m4_secureboot") != "true":
+        secure = not insecure
+        if secure and info.get("sl_m4_secureboot") != "true":
             raise RuntimeError(
                 "Key wrapping requested but device does not support secure boot"
                 " (sl_m4_secureboot is not enabled). Pass --insecure-crypto to"
@@ -433,7 +609,69 @@ class Main(App):
                 self.provision_insecure(crypto_storage, vault, device_uid, conf)
             else:
                 self.provision_secure(crypto_storage, vault, device_uid, conf)
+
+            # Provision raw keys from Vault KV store
+            self.provision_raw_keys(crypto_storage, vault, secure=secure)
+
         print("Vault TLS provisioning OK")
+
+    @CatchExceptions
+    def upload_key(self):
+        data_hex = self.args.data_hex
+        data_file = self.args.data_file
+
+        if not data_hex and not data_file:
+            raise RuntimeError("Provide either --data-hex or --data-file")
+        if data_hex and data_file:
+            raise RuntimeError("Provide only one of --data-hex or --data-file")
+
+        if data_file:
+            raw = Path(data_file).read_bytes()
+            data_hex = raw.hex()
+
+        # Validate hex
+        bytes.fromhex(data_hex)
+
+        vault = _vault_client_from_env(self.args.vault_addr)
+        vault.kv_write(
+            self.args.name,
+            self.args.key_type,
+            self.args.key_id,
+            data_hex,
+        )
+        data_len = len(bytes.fromhex(data_hex))
+        print(
+            f"Uploaded key '{self.args.name}': "
+            f"type={self.args.key_type} id=0x{self.args.key_id:x} "
+            f"len={data_len}"
+        )
+
+    @CatchExceptions
+    def list_keys(self):
+        vault = _vault_client_from_env(self.args.vault_addr)
+        key_names = vault.kv_list()
+        if not key_names:
+            print("No raw keys stored in Vault.")
+            return
+
+        print(f"{'NAME':<30} {'TYPE':>6} {'ID':>6} {'SIZE':>6}")
+        print("-" * 52)
+        for name in key_names:
+            entry = vault.kv_read(name)
+            if entry is None:
+                print(f"{name:<30} {'?':>6} {'?':>6} {'?':>6}")
+                continue
+            key_type = int(entry["key_type"])
+            key_id = int(entry["key_id"])
+            data_len = len(bytes.fromhex(entry["data"]))
+            print(f"{name:<30} {key_type:>6} 0x{key_id:>04x} {data_len:>6}")
+        print(f"\nTotal: {len(key_names)}")
+
+    @CatchExceptions
+    def delete_key(self):
+        vault = _vault_client_from_env(self.args.vault_addr)
+        vault.kv_delete(self.args.name)
+        print(f"Deleted key '{self.args.name}' from Vault.")
 
     @CatchExceptions
     def cleanup(self):
