@@ -50,9 +50,18 @@ KEY_TYPE_ECDSA256_KEY = 8
 KEY_TYPE_CSR_DER_ECDSA256 = 11
 KEY_TYPE_ECDSA256_CERT = 12
 
+KEY_TYPE_AES256 = 2
+
 # Key types that hold secret material and should be wrapped in secure mode.
 # Certificates are public data and are never wrapped.
 KEY_TYPES_SECRET = {2, 8}  # AES256=2, EcdsaPriv256=8
+
+# Device-specific AES keys generated on-device (not stored in Vault).
+# List of (key_id,) tuples.
+DEVICE_AES_KEYS = [
+    (0x05, "aes-device-1"),
+    (0x06, "aes-device-2"),
+]
 
 VAULT_ADDR_DEFAULT = "http://127.0.0.1:8200"
 
@@ -520,52 +529,93 @@ class Main(App):
         vault: VaultClient,
         secure: bool,
     ):
-        """Fetch all raw keys from Vault KV and write them to the device."""
+        """Fetch raw keys from Vault KV, write them to the device,
+        then generate device-specific AES keys on-device."""
+
+        # Build set of (key_type, key_id) pairs that will be generated on-device
+        # so we can skip any stale Vault entries for those slots.
+        device_gen_slots = {
+            (KEY_TYPE_AES256, kid) for kid, _ in DEVICE_AES_KEYS
+        }
+
         key_names = vault.kv_list()
+        vault_written = 0
         if not key_names:
             print("  No raw keys configured in Vault — skipping.")
-            return
-
-        print(f"  Provisioning {len(key_names)} raw key(s) (secure={secure})...")
-
-        for name in key_names:
-            entry = vault.kv_read(name)
-            if entry is None:
-                print(f"    Warning: key '{name}' listed but not readable, skipping")
-                continue
-
-            key_type = int(entry["key_type"])
-            key_id = int(entry["key_id"])
-            data_hex = entry["data"]
-            data_bytes = bytes.fromhex(data_hex)
-            data_len = len(data_bytes)
-
-            # Wrap secret material (private keys, symmetric keys) in secure mode;
-            # certificates are public and never wrapped.
-            wrap = secure and key_type in KEY_TYPES_SECRET
-            flags = 1 if wrap else 0
-
+        else:
             print(
-                f"    {name}: type={key_type} id=0x{key_id:x} "
-                f"len={data_len} wrap={wrap}"
+                f"  Provisioning raw key(s) from Vault (secure={secure})..."
             )
 
-            ret = crypto_storage.write_key(
-                0,
-                key_type,
-                key_id,
-                flags,
-                data_len,
-                data_hex,
-                echo=False,
-            )
-            if ret != 0:
-                raise Exception(
-                    f"write_key failed for '{name}' (type={key_type}, "
-                    f"id=0x{key_id:x}) with error {ret}"
+            for name in key_names:
+                entry = vault.kv_read(name)
+                if entry is None:
+                    print(
+                        f"    Warning: key '{name}' listed but not readable, skipping"
+                    )
+                    continue
+
+                key_type = int(entry["key_type"])
+                key_id = int(entry["key_id"])
+
+                if (key_type, key_id) in device_gen_slots:
+                    print(
+                        f"    {name}: skipped (slot type={key_type} id=0x{key_id:x}"
+                        f" is generated on-device)"
+                    )
+                    continue
+
+                data_hex = entry["data"]
+                data_bytes = bytes.fromhex(data_hex)
+                data_len = len(data_bytes)
+
+                # Wrap secret material (private keys, symmetric keys) in secure mode;
+                # certificates are public and never wrapped.
+                wrap = secure and key_type in KEY_TYPES_SECRET
+                flags = 1 if wrap else 0
+
+                print(
+                    f"    {name}: type={key_type} id=0x{key_id:x} "
+                    f"len={data_len} wrap={wrap}"
                 )
 
-        print(f"  Raw key provisioning complete ({len(key_names)} key(s)).")
+                ret = crypto_storage.write_key(
+                    0,
+                    key_type,
+                    key_id,
+                    flags,
+                    data_len,
+                    data_hex,
+                    echo=False,
+                )
+                if ret != 0:
+                    raise Exception(
+                        f"write_key failed for '{name}' (type={key_type}, "
+                        f"id=0x{key_id:x}) with error {ret}"
+                    )
+                vault_written += 1
+
+        # Generate device-specific AES keys directly on the device.
+        print(f"  Generating {len(DEVICE_AES_KEYS)} device AES key(s) on-device...")
+        for key_id, label in DEVICE_AES_KEYS:
+            flags = 1 if secure else 0
+            print(
+                f"    {label}: gen type={KEY_TYPE_AES256} id=0x{key_id:x} "
+                f"wrap={secure}"
+            )
+            ret = crypto_storage.gen_key(0, KEY_TYPE_AES256, key_id, flags, echo=False)
+            if ret != 0:
+                raise Exception(
+                    f"gen_key failed for '{label}' "
+                    f"(id=0x{key_id:x}) with error {ret}"
+                )
+
+        vault_count = vault_written
+        total = vault_count + len(DEVICE_AES_KEYS)
+        print(
+            f"  Raw key provisioning complete ({total} key(s): "
+            f"{vault_count} from Vault, {len(DEVICE_AES_KEYS)} on-device)."
+        )
 
     # -- commands ---------------------------------------------------------
 

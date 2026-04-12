@@ -115,6 +115,24 @@ class CryptoStorage(Cli):
             print(parsed_data)
         return ret
 
+    def gen_key(
+        self,
+        partition: int,
+        key_type: int,
+        key_id: int,
+        flags: int,
+        *,
+        echo: bool = True,
+    ):
+        data = self.send_and_wait_prompt(
+            f"{self.CRYPTO_CMD} gen {partition} {key_type} {key_id:x} {flags:x}\r"
+        )
+        parsed_data, ret = self._parse_response(data)
+
+        if echo:
+            print(parsed_data)
+        return ret
+
     def gen_csr(
         self,
         partition: int,
