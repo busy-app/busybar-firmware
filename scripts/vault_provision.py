@@ -14,8 +14,8 @@ Usage:
 """
 
 import os
-import json
 import base64
+import re
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -47,7 +47,29 @@ KEY_TYPE_CSR_DER_ECDSA256 = 11
 KEY_TYPE_ECDSA256_CERT = 12
 
 VAULT_ADDR_DEFAULT = "http://127.0.0.1:8200"
-VAULT_ROLE_NAME = "busybar-device"
+
+# Default path to pki.conf (in busybar-pki repo, sibling of bsb-firmware)
+PKI_CONF_DEFAULT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.pardir,
+    os.pardir,
+    "busybar-pki",
+    "pki.conf",
+)
+
+
+def _load_pki_conf(path: str) -> dict[str, str]:
+    """Parse shell-style key=value config file (supports quoted values)."""
+    conf = {}
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            m = re.match(r'^([A-Z_]+)="(.*)"$', line)
+            if m:
+                conf[m.group(1)] = m.group(2)
+    return conf
 
 
 def _get_device_info(portname) -> dict[str, str]:
@@ -85,10 +107,12 @@ class VaultClient:
         token = resp.json()["auth"]["client_token"]
         return cls(addr, token)
 
-    def sign_csr_pem(self, csr_pem: str, common_name: str, ttl: str = "43800h") -> dict:
+    def sign_csr_pem(
+        self, csr_pem: str, common_name: str, role: str, ttl: str = "43800h"
+    ) -> dict:
         """Submit a CSR to Vault for signing. Returns the response data dict."""
         resp = self.session.post(
-            f"{self.addr}/v1/pki_int/sign-verbatim/{VAULT_ROLE_NAME}",
+            f"{self.addr}/v1/pki_int/sign-verbatim/{role}",
             json={
                 "csr": csr_pem,
                 "common_name": common_name,
@@ -119,12 +143,15 @@ class VaultClient:
         return resp.text
 
 
-def _make_subject(device_uid: str) -> x509.Name:
+def _make_subject(device_uid: str, conf: dict[str, str]) -> x509.Name:
+    cn_template = conf.get("PKI_DEVICE_CN_TEMPLATE", "BusyBar device {uid}")
     return x509.Name(
         [
-            x509.NameAttribute(NameOID.COMMON_NAME, f"BusyBar device {device_uid}"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Flipper FZCO"),
-            x509.NameAttribute(NameOID.COUNTRY_NAME, "AE"),
+            x509.NameAttribute(NameOID.COMMON_NAME, cn_template.format(uid=device_uid)),
+            x509.NameAttribute(
+                NameOID.ORGANIZATION_NAME, conf.get("PKI_ORGANIZATION", "Flipper FZCO")
+            ),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, conf.get("PKI_COUNTRY", "AE")),
         ]
     )
 
@@ -176,6 +203,12 @@ class Main(App):
             action="store_true",
             default=False,
             help="Generate key pair on host (for devices without secure boot)",
+        )
+        self.provision_parser.add_argument(
+            "--pki-conf",
+            type=str,
+            default=PKI_CONF_DEFAULT,
+            help=f"Path to pki.conf (default: {PKI_CONF_DEFAULT})",
         )
         self.provision_parser.set_defaults(func=self.provision)
 
@@ -253,9 +286,19 @@ class Main(App):
     # -- secure path: key never leaves the device ------------------------
 
     def provision_secure(
-        self, crypto_storage: CryptoStorage, vault: VaultClient, device_uid: str
+        self,
+        crypto_storage: CryptoStorage,
+        vault: VaultClient,
+        device_uid: str,
+        conf: dict[str, str],
     ):
-        subject = f"CN=BusyBar device {device_uid},O=Flipper FZCO,C=AE"
+        cn_template = conf.get("PKI_DEVICE_CN_TEMPLATE", "BusyBar device {uid}")
+        org = conf.get("PKI_ORGANIZATION", "Flipper FZCO")
+        country = conf.get("PKI_COUNTRY", "AE")
+        role = conf.get("PKI_VAULT_ROLE", "busybar-device")
+        ttl = conf.get("PKI_DEVICE_TTL", "43800h")
+        cn = cn_template.format(uid=device_uid)
+        subject = f"CN={cn},O={org},C={country}"
         print("  Generating wrapped key pair + CSR on device...")
         ret = crypto_storage.gen_csr(0, KEY_ID_TLS_DEVICE, 0, subject, echo=False)
         if ret != 0:
@@ -272,7 +315,7 @@ class Main(App):
         csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode()
 
         print("  Submitting CSR to Vault for signing...")
-        result = vault.sign_csr_pem(csr_pem, f"BusyBar device {device_uid}")
+        result = vault.sign_csr_pem(csr_pem, cn, role, ttl)
 
         device_cert_pem = result["certificate"]
         ca_chain_pem = result.get("ca_chain", [])
@@ -290,14 +333,23 @@ class Main(App):
     # -- insecure path: key generated on host -----------------------------
 
     def provision_insecure(
-        self, crypto_storage: CryptoStorage, vault: VaultClient, device_uid: str
+        self,
+        crypto_storage: CryptoStorage,
+        vault: VaultClient,
+        device_uid: str,
+        conf: dict[str, str],
     ):
+        role = conf.get("PKI_VAULT_ROLE", "busybar-device")
+        ttl = conf.get("PKI_DEVICE_TTL", "43800h")
+        cn_template = conf.get("PKI_DEVICE_CN_TEMPLATE", "BusyBar device {uid}")
+        cn = cn_template.format(uid=device_uid)
+
         print("  Generating key pair on host...")
         device_private_key = ec.generate_private_key(ec.SECP256R1())
 
         csr = (
             x509.CertificateSigningRequestBuilder()
-            .subject_name(_make_subject(device_uid))
+            .subject_name(_make_subject(device_uid, conf))
             .add_extension(
                 x509.KeyUsage(
                     digital_signature=True,
@@ -322,7 +374,7 @@ class Main(App):
         csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode()
 
         print("  Submitting CSR to Vault for signing...")
-        result = vault.sign_csr_pem(csr_pem, f"BusyBar device {device_uid}")
+        result = vault.sign_csr_pem(csr_pem, cn, role, ttl)
 
         device_cert_pem = result["certificate"]
         serial = result.get("serial_number", "unknown")
@@ -346,6 +398,15 @@ class Main(App):
     def provision(self):
         vault_addr = self.args.vault_addr
         insecure = self.args.insecure_crypto
+        pki_conf_path = self.args.pki_conf
+
+        # Load PKI config
+        conf: dict[str, str] = {}
+        if os.path.isfile(pki_conf_path):
+            conf = _load_pki_conf(pki_conf_path)
+            print(f"  Loaded PKI config from {pki_conf_path}")
+        else:
+            print(f"  Warning: PKI config not found at {pki_conf_path}, using defaults")
 
         info = _get_device_info(self.get_portname())
 
@@ -369,9 +430,9 @@ class Main(App):
             print("  Checking TLS slots are empty...")
             self.ensure_tls_slots_empty(crypto_storage)
             if insecure:
-                self.provision_insecure(crypto_storage, vault, device_uid)
+                self.provision_insecure(crypto_storage, vault, device_uid, conf)
             else:
-                self.provision_secure(crypto_storage, vault, device_uid)
+                self.provision_secure(crypto_storage, vault, device_uid, conf)
         print("Vault TLS provisioning OK")
 
     @CatchExceptions
