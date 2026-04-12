@@ -1,0 +1,386 @@
+#!/usr/bin/env python3
+"""
+vault_provision.py — Provision BusyBar device TLS credentials via Vault PKI.
+
+Extracts a CSR from the device's secure element, submits it to a HashiCorp
+Vault intermediate CA for signing, and writes the signed certificate chain
+back to the device.
+
+Uses AppRole authentication for machine-identity access to Vault.
+
+Usage:
+    python vault_provision.py provision [--vault-addr URL] [--insecure-crypto]
+    python vault_provision.py cleanup
+"""
+
+import os
+import json
+import base64
+from pathlib import Path
+from datetime import datetime, timezone
+
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
+
+from flipper.cli import Cli
+from flipper.app import App, CatchExceptions
+from crypto_storage import CryptoStorage
+
+try:
+    import requests
+except ImportError:
+    raise SystemExit(
+        "This script requires the 'requests' library.\n"
+        "Install it with:  pip install requests"
+    )
+
+
+# Key slot constants (must match mqtt_provision.py)
+KEY_ID_OFFSET = 0x10
+KEY_ID_TLS_SIGN = KEY_ID_OFFSET + 0
+KEY_ID_TLS_DEVICE = KEY_ID_OFFSET + 1
+
+KEY_TYPE_ECDSA256_KEY = 8
+KEY_TYPE_CSR_DER_ECDSA256 = 11
+KEY_TYPE_ECDSA256_CERT = 12
+
+VAULT_ADDR_DEFAULT = "http://127.0.0.1:8200"
+VAULT_ROLE_NAME = "busybar-device"
+
+
+def _get_device_info(portname) -> dict[str, str]:
+    """Run device_info once and return all key-value pairs."""
+    with Cli(portname) as cli:
+        cli.send("device_info\r")
+        raw = cli.read.until(cli.CLI_PROMPT)
+    result = {}
+    for line in raw.decode("utf-8").splitlines():
+        if ": " not in line:
+            continue
+        key, _, value = line.partition(": ")
+        result[key.strip()] = value.strip()
+    return result
+
+
+class VaultClient:
+    """Minimal Vault HTTP client for PKI operations."""
+
+    def __init__(self, addr: str, token: str):
+        self.addr = addr.rstrip("/")
+        self.token = token
+        self.session = requests.Session()
+        self.session.headers["X-Vault-Token"] = self.token
+
+    @classmethod
+    def from_approle(cls, addr: str, role_id: str, secret_id: str) -> "VaultClient":
+        """Authenticate via AppRole and return a VaultClient with a valid token."""
+        resp = requests.post(
+            f"{addr.rstrip('/')}/v1/auth/approle/login",
+            json={"role_id": role_id, "secret_id": secret_id},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        token = resp.json()["auth"]["client_token"]
+        return cls(addr, token)
+
+    def sign_csr_pem(self, csr_pem: str, common_name: str, ttl: str = "43800h") -> dict:
+        """Submit a CSR to Vault for signing. Returns the response data dict."""
+        resp = self.session.post(
+            f"{self.addr}/v1/pki_int/sign-verbatim/{VAULT_ROLE_NAME}",
+            json={
+                "csr": csr_pem,
+                "common_name": common_name,
+                "ttl": ttl,
+                "format": "pem",
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        return resp.json()["data"]
+
+    def get_ca_chain_pem(self) -> str:
+        """Fetch the full CA chain in PEM format."""
+        resp = self.session.get(
+            f"{self.addr}/v1/pki_int/ca_chain",
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.text
+
+    def get_ca_cert_pem(self) -> str:
+        """Fetch the intermediate CA certificate in PEM format."""
+        resp = self.session.get(
+            f"{self.addr}/v1/pki_int/ca/pem",
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.text
+
+
+def _make_subject(device_uid: str) -> x509.Name:
+    return x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, f"BusyBar device {device_uid}"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Flipper FZCO"),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "AE"),
+        ]
+    )
+
+
+def _pem_to_der(pem_data: str) -> bytes:
+    """Convert the first PEM certificate to DER bytes."""
+    cert = x509.load_pem_x509_certificate(pem_data.encode())
+    return cert.public_bytes(serialization.Encoding.DER)
+
+
+def _vault_client_from_env(vault_addr: str) -> VaultClient:
+    """Build a VaultClient from environment variables."""
+    # Try AppRole first
+    role_id = os.environ.get("VAULT_ROLE_ID")
+    secret_id = os.environ.get("VAULT_SECRET_ID")
+    if role_id and secret_id:
+        print("  Authenticating to Vault via AppRole...")
+        return VaultClient.from_approle(vault_addr, role_id, secret_id)
+
+    # Fall back to token
+    token = os.environ.get("VAULT_TOKEN")
+    if token:
+        print("  Using VAULT_TOKEN for Vault authentication...")
+        return VaultClient(vault_addr, token)
+
+    raise RuntimeError(
+        "No Vault credentials found. Set either:\n"
+        "  VAULT_ROLE_ID + VAULT_SECRET_ID  (AppRole)\n"
+        "  VAULT_TOKEN                       (direct token)"
+    )
+
+
+class Main(App):
+    def init(self):
+        self.subparsers = self.parser.add_subparsers(help="sub-command help")
+
+        # Provision command
+        self.provision_parser = self.subparsers.add_parser(
+            "provision", help="Provision device TLS credentials via Vault"
+        )
+        self.provision_parser.add_argument(
+            "--vault-addr",
+            type=str,
+            default=VAULT_ADDR_DEFAULT,
+            help=f"Vault server address (default: {VAULT_ADDR_DEFAULT})",
+        )
+        self.provision_parser.add_argument(
+            "--insecure-crypto",
+            action="store_true",
+            default=False,
+            help="Generate key pair on host (for devices without secure boot)",
+        )
+        self.provision_parser.set_defaults(func=self.provision)
+
+        # Cleanup command
+        self.cleanup_parser = self.subparsers.add_parser(
+            "cleanup", help="Wipe key storage partition"
+        )
+        self.cleanup_parser.set_defaults(func=self.cleanup)
+
+    def get_portname(self):
+        return ("10.0.4.20", 23)
+
+    # -- helpers ----------------------------------------------------------
+
+    def ensure_tls_slots_empty(self, crypto_storage: CryptoStorage):
+        keys, _listing, ret = crypto_storage.enumerate_keys(0, echo=False)
+        if ret != 0:
+            raise Exception(f"list_partition failed with error {ret}")
+
+        occupied = {
+            (KEY_TYPE_ECDSA256_CERT, KEY_ID_TLS_SIGN): "TLS sign cert",
+            (KEY_TYPE_ECDSA256_CERT, KEY_ID_TLS_DEVICE): "TLS device cert",
+            (KEY_TYPE_ECDSA256_KEY, KEY_ID_TLS_DEVICE): "TLS device key",
+        }
+        for entry in keys:
+            label = occupied.get((entry.key_type, entry.key_id))
+            if label and entry.partition == 0:
+                raise RuntimeError(
+                    f"{label} slot already provisioned; refusing to overwrite"
+                )
+
+    def write_certs(
+        self, crypto_storage: CryptoStorage, ca_cert_der: bytes, device_cert_der: bytes
+    ):
+        ret = crypto_storage.write_key(
+            0,
+            KEY_TYPE_ECDSA256_CERT,
+            KEY_ID_TLS_SIGN,
+            0,
+            len(ca_cert_der),
+            ca_cert_der.hex(),
+            echo=False,
+        )
+        if ret != 0:
+            raise Exception(f"write_key (CA cert) failed with error {ret}")
+
+        ret = crypto_storage.write_key(
+            0,
+            KEY_TYPE_ECDSA256_CERT,
+            KEY_ID_TLS_DEVICE,
+            0,
+            len(device_cert_der),
+            device_cert_der.hex(),
+            echo=False,
+        )
+        if ret != 0:
+            raise Exception(f"write_key (device cert) failed with error {ret}")
+
+    def write_private_key(
+        self, crypto_storage: CryptoStorage, key_data: bytes, wrap: bool
+    ):
+        flags = 1 if wrap else 0
+        ret = crypto_storage.write_key(
+            0,
+            KEY_TYPE_ECDSA256_KEY,
+            KEY_ID_TLS_DEVICE,
+            flags,
+            len(key_data),
+            key_data.hex(),
+            echo=False,
+        )
+        if ret != 0:
+            raise Exception(f"write_key (private key) failed with error {ret}")
+
+    # -- secure path: key never leaves the device ------------------------
+
+    def provision_secure(
+        self, crypto_storage: CryptoStorage, vault: VaultClient, device_uid: str
+    ):
+        subject = f"CN=BusyBar device {device_uid},O=Flipper FZCO,C=AE"
+        print("  Generating wrapped key pair + CSR on device...")
+        ret = crypto_storage.gen_csr(0, KEY_ID_TLS_DEVICE, 0, subject, echo=False)
+        if ret != 0:
+            raise Exception(f"Device CSR generation failed with error {ret}")
+
+        csr_der = crypto_storage.read_key_data(
+            0, KEY_TYPE_CSR_DER_ECDSA256, KEY_ID_TLS_DEVICE
+        )
+        if csr_der is None:
+            raise Exception("Failed to read CSR from device")
+
+        # Convert DER CSR to PEM for Vault
+        csr = x509.load_der_x509_csr(csr_der)
+        csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode()
+
+        print("  Submitting CSR to Vault for signing...")
+        result = vault.sign_csr_pem(csr_pem, f"BusyBar device {device_uid}")
+
+        device_cert_pem = result["certificate"]
+        ca_chain_pem = result.get("ca_chain", [])
+        serial = result.get("serial_number", "unknown")
+        print(f"  Certificate issued, serial: {serial}")
+
+        # Get intermediate CA cert for the signing cert slot
+        ca_cert_pem = vault.get_ca_cert_pem()
+
+        print("  Writing CA + device certs to device...")
+        ca_cert_der = _pem_to_der(ca_cert_pem)
+        device_cert_der = _pem_to_der(device_cert_pem)
+        self.write_certs(crypto_storage, ca_cert_der, device_cert_der)
+
+    # -- insecure path: key generated on host -----------------------------
+
+    def provision_insecure(
+        self, crypto_storage: CryptoStorage, vault: VaultClient, device_uid: str
+    ):
+        print("  Generating key pair on host...")
+        device_private_key = ec.generate_private_key(ec.SECP256R1())
+
+        csr = (
+            x509.CertificateSigningRequestBuilder()
+            .subject_name(_make_subject(device_uid))
+            .add_extension(
+                x509.KeyUsage(
+                    digital_signature=True,
+                    content_commitment=False,
+                    key_encipherment=False,
+                    data_encipherment=False,
+                    key_agreement=False,
+                    key_cert_sign=False,
+                    crl_sign=False,
+                    encipher_only=False,
+                    decipher_only=False,
+                ),
+                critical=True,
+            )
+            .add_extension(
+                x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH]),
+                critical=False,
+            )
+            .sign(device_private_key, hashes.SHA256())
+        )
+
+        csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode()
+
+        print("  Submitting CSR to Vault for signing...")
+        result = vault.sign_csr_pem(csr_pem, f"BusyBar device {device_uid}")
+
+        device_cert_pem = result["certificate"]
+        serial = result.get("serial_number", "unknown")
+        print(f"  Certificate issued, serial: {serial}")
+
+        ca_cert_pem = vault.get_ca_cert_pem()
+
+        print("  Writing CA + device certs to device...")
+        ca_cert_der = _pem_to_der(ca_cert_pem)
+        device_cert_der = _pem_to_der(device_cert_pem)
+        self.write_certs(crypto_storage, ca_cert_der, device_cert_der)
+
+        print("  Writing private key (unwrapped)...")
+        pn = device_private_key.private_numbers()
+        key_data = pn.private_value.to_bytes(32, "big")
+        self.write_private_key(crypto_storage, key_data, wrap=False)
+
+    # -- commands ---------------------------------------------------------
+
+    @CatchExceptions
+    def provision(self):
+        vault_addr = self.args.vault_addr
+        insecure = self.args.insecure_crypto
+
+        info = _get_device_info(self.get_portname())
+
+        device_uid = info.get("u5_hardware_uid")
+        if not device_uid:
+            raise RuntimeError("Could not read u5_hardware_uid from device_info")
+
+        if not insecure and info.get("sl_m4_secureboot") != "true":
+            raise RuntimeError(
+                "Key wrapping requested but device does not support secure boot"
+                " (sl_m4_secureboot is not enabled). Pass --insecure-crypto to"
+                " use plain key storage."
+            )
+
+        vault = _vault_client_from_env(vault_addr)
+
+        mode = "insecure" if insecure else "secure"
+        print(f"Vault TLS provisioning [{mode}] uid={device_uid}")
+
+        with CryptoStorage(self.get_portname()) as crypto_storage:
+            print("  Checking TLS slots are empty...")
+            self.ensure_tls_slots_empty(crypto_storage)
+            if insecure:
+                self.provision_insecure(crypto_storage, vault, device_uid)
+            else:
+                self.provision_secure(crypto_storage, vault, device_uid)
+        print("Vault TLS provisioning OK")
+
+    @CatchExceptions
+    def cleanup(self):
+        with CryptoStorage(self.get_portname()) as crypto_storage:
+            ret = crypto_storage.wipe_partition(0)
+            if ret != 0:
+                raise Exception(f"wipe_partition failed with error {ret}")
+
+
+if __name__ == "__main__":
+    Main()()
