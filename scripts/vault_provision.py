@@ -64,6 +64,7 @@ DEVICE_AES_KEYS = [
 ]
 
 VAULT_ADDR_DEFAULT = "http://127.0.0.1:8200"
+DEVICE_ADDR_DEFAULT = "10.0.4.20:23"
 
 # Default path to pki.conf (in busybar-pki repo, sibling of bsb-firmware)
 PKI_CONF_DEFAULT = os.path.join(
@@ -278,11 +279,23 @@ class Main(App):
             default=PKI_CONF_DEFAULT,
             help=f"Path to pki.conf (default: {PKI_CONF_DEFAULT})",
         )
+        self.provision_parser.add_argument(
+            "--device-addr",
+            type=str,
+            default=DEVICE_ADDR_DEFAULT,
+            help=f"Device address as host:port (default: {DEVICE_ADDR_DEFAULT})",
+        )
         self.provision_parser.set_defaults(func=self.provision)
 
         # Cleanup command
         self.cleanup_parser = self.subparsers.add_parser(
             "cleanup", help="Wipe key storage partition"
+        )
+        self.cleanup_parser.add_argument(
+            "--device-addr",
+            type=str,
+            default=DEVICE_ADDR_DEFAULT,
+            help=f"Device address as host:port (default: {DEVICE_ADDR_DEFAULT})",
         )
         self.cleanup_parser.set_defaults(func=self.cleanup)
 
@@ -348,7 +361,9 @@ class Main(App):
         self.delete_key_parser.set_defaults(func=self.delete_key)
 
     def get_portname(self):
-        return ("10.0.4.20", 23)
+        addr = getattr(self.args, "device_addr", DEVICE_ADDR_DEFAULT)
+        host, _, port = addr.rpartition(":")
+        return (host, int(port))
 
     # -- helpers ----------------------------------------------------------
 
@@ -531,20 +546,12 @@ class Main(App):
     ):
         """Fetch raw keys from Vault KV, write them to the device,
         then generate device-specific AES keys on-device."""
-
-        # Build set of (key_type, key_id) pairs that will be generated on-device
-        # so we can skip any stale Vault entries for those slots.
-        device_gen_slots = {
-            (KEY_TYPE_AES256, kid) for kid, _ in DEVICE_AES_KEYS
-        }
-
         key_names = vault.kv_list()
-        vault_written = 0
         if not key_names:
             print("  No raw keys configured in Vault — skipping.")
         else:
             print(
-                f"  Provisioning raw key(s) from Vault (secure={secure})..."
+                f"  Provisioning {len(key_names)} raw key(s) from Vault (secure={secure})..."
             )
 
             for name in key_names:
@@ -557,14 +564,6 @@ class Main(App):
 
                 key_type = int(entry["key_type"])
                 key_id = int(entry["key_id"])
-
-                if (key_type, key_id) in device_gen_slots:
-                    print(
-                        f"    {name}: skipped (slot type={key_type} id=0x{key_id:x}"
-                        f" is generated on-device)"
-                    )
-                    continue
-
                 data_hex = entry["data"]
                 data_bytes = bytes.fromhex(data_hex)
                 data_len = len(data_bytes)
@@ -593,7 +592,6 @@ class Main(App):
                         f"write_key failed for '{name}' (type={key_type}, "
                         f"id=0x{key_id:x}) with error {ret}"
                     )
-                vault_written += 1
 
         # Generate device-specific AES keys directly on the device.
         print(f"  Generating {len(DEVICE_AES_KEYS)} device AES key(s) on-device...")
@@ -610,7 +608,7 @@ class Main(App):
                     f"(id=0x{key_id:x}) with error {ret}"
                 )
 
-        vault_count = vault_written
+        vault_count = len(key_names) if key_names else 0
         total = vault_count + len(DEVICE_AES_KEYS)
         print(
             f"  Raw key provisioning complete ({total} key(s): "
