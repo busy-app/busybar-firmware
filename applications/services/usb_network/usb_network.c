@@ -69,9 +69,10 @@ static err_t ip6_output_fn(struct netif* netif, struct pbuf* p, const ip6_addr_t
 
 static err_t netif_init_cb(struct netif* netif) {
     LWIP_ASSERT("netif != NULL", (netif != NULL));
+
     netif->mtu = CFG_TUD_NET_MTU;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP |
-    // TODO: Link control
+                   // TODO: Link control
                    NETIF_FLAG_LINK_UP | NETIF_FLAG_UP;
     netif->state = NULL;
     netif->name[0] = 'E';
@@ -174,7 +175,7 @@ static void usb_network_init_dhcp(UsbNetwork* instance, UsbNetworkIpAddress star
     instance->dhcp_config.dns.addr = 0;
     instance->dhcp_config.domain = "usb";
     instance->dhcp_config.num_entry = DHCP_ENTRIES_MAX;
-    instance->dhcp_config.entries = usb_network->dhcp_entries;
+    instance->dhcp_config.entries = instance->dhcp_entries;
 
     usb_network_init_dhcp_entries(instance, start_addr);
 
@@ -193,10 +194,7 @@ static void usb_network_init_mdns(UsbNetwork* instance) {
     mdns_resp_announce(netif);
 }
 
-static void usb_network_init_netif(void* arg) {
-    furi_assert(arg);
-    UsbNetwork* instance = arg;
-
+static void usb_network_init_netif(UsbNetwork* instance) {
     struct netif* netif = &instance->netif;
 
     memcpy(netif->hwaddr, furi_hal_version_get_usb_mac(), 6);
@@ -209,6 +207,8 @@ static void usb_network_init_netif(void* arg) {
     const ip4_addr_t gateway = {ip_config->gateway.val};
     const ip4_addr_t netmask = {ip_config->netmask.val};
 
+    LOCK_TCPIP_CORE();
+
     netif_add(netif, &ip, &netmask, &gateway, NULL, netif_init_cb, tcpip_input);
 #if LWIP_IPV6
     netif_create_ip6_linklocal_address(netif, 1);
@@ -220,6 +220,8 @@ static void usb_network_init_netif(void* arg) {
 #ifdef USB_NET_IPERF
     lwiperf_start_tcp_server_default(NULL, NULL);
 #endif
+
+    UNLOCK_TCPIP_CORE();
 }
 
 bool usb_network_is_dhcp_addr(UsbNetwork* instance, uint8_t* addr) {
@@ -237,8 +239,7 @@ static UsbNetwork* usb_network_alloc(void) {
     UsbNetwork* instance = malloc(sizeof(UsbNetwork));
 
     usb_network_settings_load(&instance->settings);
-
-    tcpip_callback(usb_network_init_netif, instance);
+    usb_network_init_netif(instance);
 
     return instance;
 }
