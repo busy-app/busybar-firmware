@@ -87,7 +87,7 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
 
             BLE_LOG_W("INTERCOM_DEINIT!");
             for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
-                ble_service_reset(instance->services[i]);
+                ble_service_deinit(instance->services[i]);
             }
 
             ble_command_unblock_with_result(instance, false);

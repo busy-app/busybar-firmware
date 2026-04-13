@@ -220,6 +220,23 @@ void ble_service_enqueue_run(BleServiceObject* instance) {
 
     ble_service_enqueue_message(instance);
 }
+void ble_service_deinit(BleServiceObject* instance) {
+    if(instance && ble_service_lock(instance)) {
+        BLE_LOG_D("%s - ble_service_reset", instance->config->name);
+        ble_service_target_execute(
+            instance, BleIntercomFrameTypeRequest, BleServiceCommandDeinit, 0, NULL);
+
+        ble_service_frame_unlock(instance->input_frame);
+        ble_service_frame_unlock(instance->output_frame);
+
+        for(uint8_t i = 0; i < instance->config->char_count; i++) {
+            ble_characteristic_reset(instance->chars[i]);
+        }
+
+        instance->ready = false;
+        ble_service_unlock(instance);
+    }
+}
 
 void ble_service_write_data(
     BleServiceObject* instance,
