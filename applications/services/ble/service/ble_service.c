@@ -34,7 +34,7 @@ static inline void ble_service_prepare_intercom_frame_header(
     header->num = num;
 }
 
-static void ble_service_prepare_send_intercom_frame(
+static bool ble_service_prepare_send_intercom_frame(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     BleServiceCommandEnum command,
@@ -51,6 +51,7 @@ static void ble_service_prepare_send_intercom_frame(
         data_size,
         instance->sequence_num);
 
+    bool send_result = false;
     if(ble_service_frame_lock(instance->output_frame)) {
         ble_service_frame_append_data(
             instance->output_frame, &header, sizeof(BleIntercomFrameHeader));
@@ -62,11 +63,20 @@ static void ble_service_prepare_send_intercom_frame(
         const void* frame = ble_service_frame_get_data_ptr(instance->output_frame);
         const size_t frame_size = ble_service_frame_get_data_size(instance->output_frame);
 
-        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, FuriWaitForever);
-        furi_assert(tx == frame_size);
-        instance->sequence_num += 1;
+        size_t tx =
+            intercom_tx(instance->intercom_ch, frame, frame_size, BLE_INTERCOM_TX_TIMEOUT_MS);
+
+        if(tx == frame_size) {
+            instance->sequence_num += 1;
+            send_result = true;
+        } else {
+            ble_service_set_error(instance, "Unable to send data via intercom");
+        }
+
         ble_service_frame_unlock(instance->output_frame);
     }
+
+    return send_result;
 }
 
 bool ble_service_is_ready(BleServiceObject* instance) {
@@ -369,9 +379,8 @@ bool ble_service_send_data(
         ble_service_create_intercom_service_data_pack(instance, modified_only, &total_size);
 
     if(config->char_count > 0) {
-        result = true;
-        ble_service_prepare_send_intercom_frame(
-            instance, frame_type, command, result, total_size, config);
+        result = ble_service_prepare_send_intercom_frame(
+            instance, frame_type, command, true, total_size, config);
     }
 
     free(config);
