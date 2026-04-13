@@ -1,6 +1,7 @@
 #include "usb_i.h"
 #include "usb_network.h"
-#include "usb_network_settings.h"
+
+#include <furi_hal_version.h>
 
 #include <furi.h>
 
@@ -17,6 +18,8 @@
 
 #include <network/network.h>
 
+#include "settings/usb_network_settings.h"
+
 #define TAG "UsbNet"
 
 #define USB_NET_IPERF
@@ -24,11 +27,10 @@
 #define DHCP_LEASE_DEFAULT (24 * 60 * 60)
 
 struct UsbNetwork {
-    struct netif netif_data;
-    struct netif* netif;
-
+    struct netif netif;
     dhcp_config_t dhcp_config;
     dhcp_entry_t dhcp_entries[DHCP_ENTRIES_MAX];
+    UsbNetworkSettings settings;
 };
 
 static UsbNetwork* usb_network = NULL;
@@ -119,8 +121,8 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
         pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
 
-        if(usb_network && usb_network->netif) { /* Check if netif is initialized */
-            err_t err = usb_network->netif->input(p, usb_network->netif);
+        if(usb_network) { /* Check if netif is initialized */
+            err_t err = usb_network->netif.input(p, &usb_network->netif);
             if(err != ERR_OK) {
                 FURI_LOG_W(TAG, "netif->input failed with error: %d", err);
                 pbuf_free(p); /* Free pbuf if input failed */
@@ -146,86 +148,109 @@ uint16_t tud_network_xmit_cb(uint8_t* dst, void* ref, uint16_t arg) {
 void tud_network_init_cb(void) {
 }
 
-static void usb_network_init_netif(void* arg) {
-    UNUSED(arg);
+static void usb_network_init_dhcp_entries(UsbNetwork* instance, UsbNetworkIpAddress start_addr) {
+    UsbNetworkIpAddress entry_addr = start_addr;
 
-    usb_network->netif = &(usb_network->netif_data);
+    for(uint32_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
+        uint8_t device_octet = entry_addr.bytes[3];
 
-    usb_network->netif_data.hwaddr_len = 6;
-    memcpy(usb_network->netif_data.hwaddr, usb_network_settings_get_mac_address(), 6);
-    usb_network->netif_data.hwaddr[5] ^= 0x01;
-
-    UsbNetworkAddress address = usb_network_settings_get_address();
-
-    const ip4_addr_t ip = {
-        PP_HTONL(LWIP_MAKEU32(address.ip.a, address.ip.b, address.ip.c, address.ip.d))};
-    const ip4_addr_t gateway = {PP_HTONL(
-        LWIP_MAKEU32(address.gateway.a, address.gateway.b, address.gateway.c, address.gateway.d))};
-    const ip4_addr_t netmask = {PP_HTONL(
-        LWIP_MAKEU32(address.netmask.a, address.netmask.b, address.netmask.c, address.netmask.d))};
-
-    usb_network->netif = netif_add(
-        &(usb_network->netif_data), &ip, &netmask, &gateway, NULL, netif_init_cb, tcpip_input);
-#if LWIP_IPV6
-    netif_create_ip6_linklocal_address(usb_network->netif, 1);
-#endif
-    while(!netif_is_up(usb_network->netif))
-        ;
-
-    // Prepare DHCP configuration
-    uint8_t counter = address.ip.d;
-    for(uint8_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
-        // check for collision with our own address
-        if(counter == address.ip.d || counter == 0) {
-            counter++;
+        while(device_octet == start_addr.bytes[3] || device_octet == 0) {
+            ++device_octet;
         }
 
-        usb_network->dhcp_entries[i].addr.addr =
-            PP_HTONL(LWIP_MAKEU32(address.ip.a, address.ip.b, address.ip.c, counter));
-        usb_network->dhcp_entries[i].lease = DHCP_LEASE_DEFAULT;
-        counter++;
+        entry_addr.bytes[3] = device_octet;
+
+        dhcp_entry_t* entry = &instance->dhcp_entries[i];
+        entry->addr.addr = entry_addr.val;
+        entry->lease = DHCP_LEASE_DEFAULT;
     }
+}
 
-    usb_network->dhcp_config.netif = usb_network->netif;
-    usb_network->dhcp_config.router.addr = 0;
-    usb_network->dhcp_config.port = 67;
-    usb_network->dhcp_config.dns.addr = 0;
-    usb_network->dhcp_config.domain = "usb";
-    usb_network->dhcp_config.num_entry = DHCP_ENTRIES_MAX;
-    usb_network->dhcp_config.entries = usb_network->dhcp_entries;
+static void usb_network_init_dhcp(UsbNetwork* instance, UsbNetworkIpAddress start_addr) {
+    instance->dhcp_config.netif = &instance->netif;
+    instance->dhcp_config.router.addr = 0;
+    instance->dhcp_config.port = 67;
+    instance->dhcp_config.dns.addr = 0;
+    instance->dhcp_config.domain = "usb";
+    instance->dhcp_config.num_entry = DHCP_ENTRIES_MAX;
+    instance->dhcp_config.entries = usb_network->dhcp_entries;
 
-    while(dhserv_init(&(usb_network->dhcp_config)) != ERR_OK)
-        ;
+    usb_network_init_dhcp_entries(instance, start_addr);
+
+    while(dhserv_init(&instance->dhcp_config) != ERR_OK) {
+        // Busy poll
+    }
+}
+
+static void usb_network_init_mdns(UsbNetwork* instance) {
+    // TODO: use device name as hostname
+    struct netif* netif = &instance->netif;
 
     mdns_resp_init();
-    mdns_resp_add_netif(usb_network->netif, usb_network_settings_get_hostname());
-    mdns_resp_add_service(
-        usb_network->netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, mdns_srv_txt, NULL);
-    mdns_resp_announce(usb_network->netif);
+    mdns_resp_add_netif(netif, "busybar");
+    mdns_resp_add_service(netif, "httpd", "_http", DNSSD_PROTO_TCP, 80, mdns_srv_txt, NULL);
+    mdns_resp_announce(netif);
+}
+
+static void usb_network_init_netif(void* arg) {
+    furi_assert(arg);
+    UsbNetwork* instance = arg;
+
+    struct netif* netif = &instance->netif;
+
+    memcpy(netif->hwaddr, furi_hal_version_get_usb_mac(), 6);
+    netif->hwaddr[5] ^= 0x01;
+    netif->hwaddr_len = 6;
+
+    const UsbNetworkIpConfig* ip_config = &instance->settings.ip_config;
+
+    const ip4_addr_t ip = {ip_config->address.val};
+    const ip4_addr_t gateway = {ip_config->gateway.val};
+    const ip4_addr_t netmask = {ip_config->netmask.val};
+
+    netif_add(netif, &ip, &netmask, &gateway, NULL, netif_init_cb, tcpip_input);
+#if LWIP_IPV6
+    netif_create_ip6_linklocal_address(netif, 1);
+#endif
+
+    while(!netif_is_up(netif)) {
+        // Busy poll
+    }
+
+    usb_network_init_dhcp(instance, ip_config->address);
+    usb_network_init_mdns(instance);
 
 #ifdef USB_NET_IPERF
     lwiperf_start_tcp_server_default(NULL, NULL);
 #endif
 }
 
-bool usb_network_is_dhcp_addr(UsbNetwork* usb_network, uint8_t* addr) {
-    furi_assert(usb_network);
+bool usb_network_is_dhcp_addr(UsbNetwork* instance, uint8_t* addr) {
+    furi_assert(instance);
     furi_assert(addr);
     for(uint8_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
-        if(memcmp(&usb_network->dhcp_entries[i].addr.addr, addr, 4) == 0) {
+        if(memcmp(&instance->dhcp_entries[i].addr.addr, addr, 4) == 0) {
             return true;
         }
     }
     return false;
 }
 
-void usb_network_init(void) {
-    usb_network_settings_init();
+static UsbNetwork* usb_network_alloc(void) {
+    UsbNetwork* instance = malloc(sizeof(UsbNetwork));
 
+    usb_network_settings_load(&instance->settings);
+
+    tcpip_callback(usb_network_init_netif, instance);
+
+    return instance;
+}
+
+void usb_network_init(void) {
     furi_record_open(RECORD_NETWORK);
 
-    usb_network = malloc(sizeof(UsbNetwork));
-    tcpip_callback(usb_network_init_netif, NULL);
+    furi_check(usb_network == NULL);
+    usb_network = usb_network_alloc();
 
     furi_record_create(RECORD_USB_NETWORK, usb_network);
 }

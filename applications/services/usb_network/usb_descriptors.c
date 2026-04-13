@@ -1,4 +1,4 @@
-#include "usb_network_settings.h"
+#include "settings/usb_network_settings.h"
 
 #include <furi.h>
 #include <furi_hal_version.h>
@@ -194,7 +194,7 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
         break;
 
     case UsbStrNcmMac:
-        const uint8_t* ncm_mac = usb_network_settings_get_mac_address();
+        const uint8_t* ncm_mac = furi_hal_version_get_usb_mac();
         for(uint8_t i = 0; i < 6; i++) {
             desc_string_temp[i * 2 + 1] = "0123456789ABCDEF"[(ncm_mac[i] >> 4) & 0xf];
             desc_string_temp[i * 2 + 2] = "0123456789ABCDEF"[(ncm_mac[i] >> 0) & 0xf];
@@ -316,9 +316,9 @@ bool tud_vendor_control_xfer_cb(
     case TUSB_REQ_TYPE_VENDOR:
         switch(request->bRequest) {
         case UsbVendorReqWebUsb:
-
             // Get landing page url
-            const char* hostname = usb_network_settings_get_hostname();
+            // TODO: use device name
+            const char* hostname = "busybar";
             const char* zone = ".local";
 
             size_t webusb_url_desc_size =

@@ -1,7 +1,8 @@
+#include "usb_i.h"
+
 #include <furi.h>
 #include <furi_hal.h>
 #include <tusb.h>
-#include "usb_i.h"
 
 #define TAG "USB"
 
