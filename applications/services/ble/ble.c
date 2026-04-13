@@ -64,6 +64,40 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
     Ble* instance = context;
 
     if(furi_mutex_acquire(instance->ble_lock, 100) == FuriStatusOk) {
+        if(events & BleEventTypeIntercomInit) {
+            BLE_LOG_I("INTERCOM_INIT!");
+            instance->intercom_ch = intercom_channel_open(
+                instance->intercom,
+                IntercomChannelIdBle,
+                ble_backend_intercom_rx_callback,
+                instance);
+
+            for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+                instance->services[i] = ble_service_alloc(
+                    service_config[i], instance->message_queue, instance->intercom_ch);
+            }
+#if !defined(BSB_MCU_SI917)
+            furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
+#endif
+        }
+
+        if(events & BleEventTypeIntercomDeinit) {
+            furi_string_printf(instance->error, "Intercom error");
+            instance->status = BleServiceStatusError;
+
+            BLE_LOG_W("INTERCOM_DEINIT!");
+            for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+                ble_service_reset(instance->services[i]);
+            }
+
+            ble_command_unblock_with_result(instance, false);
+            //ble_command_terminate_pending()
+            // if(api_lock_is_locked(instance->current_command_api_lock)) {
+            //     instance->current_command->header.result = false;
+            //     api_lock_unlock(instance->current_command_api_lock);
+            // }
+        }
+
         if(events & BleEventTypeDeviceNameChanged) {
             ble_invoke_retry_command_on_internal_event(
                 instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
