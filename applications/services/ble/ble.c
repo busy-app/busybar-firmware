@@ -195,8 +195,6 @@ static Ble* ble_alloc() {
     instance->current_command_api_lock = api_lock_alloc_locked();
     instance->current_command_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
     instance->current_command = malloc(instance->current_command_size);
-
-    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
 #endif
 
     furi_record_create(RECORD_BLE, instance);
