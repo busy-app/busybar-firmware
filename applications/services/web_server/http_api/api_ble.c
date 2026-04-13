@@ -88,13 +88,14 @@ static bool api_ble_get_state_callback(
     furi_record_close(RECORD_BLE);
 
     do {
+        int code = 503;
         if(!result) {
-            MG_REPLY_BAD_REQUEST(conn);
+            MG_REPLY_ERROR(conn, code, "Unable to get BLE status");
             break;
         }
 
         if(state.status == BleServiceStatusError) {
-            MG_REPLY_ERROR(conn, 400, ble_status_names[state.status]);
+            MG_REPLY_ERROR(conn, code, ble_status_names[state.status]);
             break;
         }
 
