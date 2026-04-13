@@ -13,8 +13,10 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     else if(events & BleEventTypeIncomingMessage)
         return (BleIntercomFrameGeneric*)&instance->current_command->header;
     else {
-        BLE_LOG_W("Unknown event");
-        return NULL;
+void ble_command_unblock_with_result(Ble* instance, bool result) {
+    if(instance->current_command_api_lock) {
+        instance->current_command->header.result = result;
+        api_lock_unlock(instance->current_command_api_lock);
     }
 }
 

@@ -12,6 +12,11 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     return (BleIntercomFrameGeneric*)&instance->mailbox;
 }
 
+void ble_command_unblock_with_result(Ble* instance, bool result) {
+    UNUSED(instance);
+    UNUSED(result);
+}
+
 static void
     ble_connection_changed_callback(void* ctx, bool connected, const uint8_t* remote_dev_address) {
     BLE_LOG_D("ble_connection_changed_callback");
