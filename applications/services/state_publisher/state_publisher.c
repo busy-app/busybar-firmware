@@ -79,7 +79,7 @@ static StatePublisher* state_publisher_alloc(void) {
     instance->screen_streamer_front = screen_streamer_alloc(
         GuiDisplayIdFront, instance->gui, screen_streamer_callback, instance);
 
-    instance->transports_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
+    instance->transports_mutex = furi_mutex_alloc(FuriMutexTypeRecursive);
     for(uint32_t i = 0; i != COUNT_OF(instance->transports); ++i) {
         Transport* t = instance->transports + i;
         t->valid = false;
@@ -162,6 +162,22 @@ void state_publisher_set_rate_limit(
     furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
     rate_limiter_set_limit(&instance->transports[transport].limiter, rate_limit);
     furi_mutex_release(instance->transports_mutex);
+}
+
+void state_publisher_set_paused(
+    StatePublisher* instance,
+    StatePublisherTransportHandle transport,
+    bool paused) {
+    furi_mutex_acquire(instance->transports_mutex, FuriWaitForever);
+    bool was_paused = rate_limiter_set_paused(&instance->transports[transport].limiter, paused);
+    furi_mutex_release(instance->transports_mutex);
+
+    if(!paused && was_paused) {
+        Message msg = {
+            .type = MessageTypeTransportResumed,
+        };
+        state_publisher_send_message(instance, &msg);
+    }
 }
 
 int32_t state_publisher_srv(void* p) {
@@ -325,6 +341,10 @@ static bool handle_publish_update(StatePublisher* instance, const Message* messa
             for(size_t i = 0; i != MAX_TRANSPORTS; ++i) {
                 Transport* t = instance->transports + i;
                 if(t->valid && (t->flags & flags)) {
+                    if(StateUpdateArray_size(t->seq_updates) >= MAX_SEQ_UPDATES) {
+                        FURI_LOG_W(TAG, "Sequential updates full, dropping");
+                        StateUpdateArray_reset(t->seq_updates);
+                    }
                     StateUpdateArray_push_back(t->seq_updates, shared_update);
                 }
             }
@@ -362,6 +382,13 @@ static void rate_limiter_timer_callback(void* context) {
     uint32_t sleep_time_ms = send_out(instance, StreamFlagAll, false);
 
     furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
+}
+
+static bool handle_transport_resumed(StatePublisher* instance, const Message* message) {
+    furi_assert(message->type == MessageTypeTransportResumed);
+
+    send_out(instance, StreamFlagAll, false);
+    return true;
 }
 
 static bool handle_power_event(StatePublisher* instance, const Message* message) {
@@ -408,6 +435,7 @@ static bool handle_ble(StatePublisher* instance, const Message* message) {
 
 static const MessageHandler message_handlers[] = {
     [MessageTypePublishUpdate] = handle_publish_update,
+    [MessageTypeTransportResumed] = handle_transport_resumed,
     [MessageTypePowerEvent] = handle_power_event,
     [MessageTypeAudioEvent] = handle_audio_event,
     [MessageTypeMatterEvent] = handle_matter_event,

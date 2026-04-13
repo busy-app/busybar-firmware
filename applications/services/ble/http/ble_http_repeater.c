@@ -6,8 +6,6 @@
 
 #define BLE_HTTP_HOST "http://127.0.0.1:80"
 
-#define MAX_TX_CHUNK_SIZE (237)
-
 #define BLE_HTTP_SESSION_TIMEOUT_ON_TX_CONFIRM_FAIL (4000)
 
 typedef struct {

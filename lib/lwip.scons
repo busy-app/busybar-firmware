@@ -13,6 +13,12 @@ env.Append(
 libenv = env.Clone(FW_LIB_NAME="lwip")
 libenv.ApplyLibFlags()
 
+libenv.AppendUnique(
+    CPPFLAGS=[
+        "-Wno-unused-parameter",
+    ],
+)
+
 sources = libenv.Glob("lwip/src/core/*.c", source=True)
 sources += libenv.Glob("lwip/src/core/ipv4/*.c", source=True)
 sources += libenv.Glob("lwip/src/core/ipv6/*.c", source=True)

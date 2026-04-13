@@ -5,6 +5,7 @@
 #include <furi_hal_rtc.h>
 #include <toolbox/hex.h>
 #include <sl_info/sl_info.h>
+#include <applications/system/updater/updater.h>
 
 #define TAG "HttpStatus"
 
@@ -124,7 +125,14 @@ static bool status_get_system(FuriString* json_str, ApiStatusCtx* context) {
         uptime % 60);
 
     time_t boot_timestamp = context->boot_timestamp;
-    furi_string_cat_printf(json_str, "\"boot_time\":%lld", boot_timestamp);
+    furi_string_cat_printf(json_str, "\"boot_time\":%lld,", boot_timestamp);
+
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+    UpdaterSettings settings;
+    updater_get_settings(updater, &settings);
+    furi_record_close(RECORD_UPDATER);
+    furi_string_cat_printf(
+        json_str, "\"auto_update_enabled\":%s", settings.autoupdate_enabled ? "true" : "false");
 
     furi_string_cat_printf(json_str, "}");
 
