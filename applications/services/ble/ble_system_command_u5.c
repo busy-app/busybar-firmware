@@ -249,8 +249,19 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
 
 static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandGetStatus request");
+    Ble* instance = context;
     frame->header.command = BleCommandGetStatus;
-    return ble_command_request_process(frame, context);
+    const BleServiceStatus state = instance->status;
+    bool result = false;
+    if(state == BleServiceStatusError) {
+        BLE_LOG_W("No status, error occurred");
+
+        instance->current_command->header.result = result;
+        api_lock_unlock(instance->current_command_api_lock);
+    } else {
+        result = ble_command_request_process(frame, context);
+    }
+    return result;
 }
 
 static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void* context) {
