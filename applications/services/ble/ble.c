@@ -113,13 +113,15 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
                 instance, BleCommandEnable, BleEventTypeEnableOnStart, 100);
         }
 
-        if((events & BleEventTypeFrameReceived) || (events & BleEventTypeIncomingMessage)) {
-            BleIntercomFrameGeneric* frame = ble_command_preprocess(instance, events);
-            ble_command_engine_run(instance->engine, frame, instance);
+        if(events & BleEventTypeFrameReceived) {
+            ble_command_engine_run(
+                instance->engine, BleCommandEngineExtractFrameSourceIntercomBuffer);
+            furi_semaphore_release(instance->mailbox_lock);
+        }
 
-            if(events & BleEventTypeFrameReceived) {
-                furi_semaphore_release(instance->mailbox_lock);
-            }
+        if(events & BleEventTypeApiCommand) {
+            ble_command_engine_run(
+                instance->engine, BleCommandEngineExtractFrameSourceCommandBuffer);
         }
         furi_mutex_release(instance->ble_lock);
     } else
@@ -170,7 +172,8 @@ static Ble* ble_alloc() {
 
     instance->message_queue =
         furi_message_queue_alloc(BLE_SERVICES_COUNT, sizeof(BleServiceObject*));
-    instance->engine = ble_command_engine_alloc(ble_commands, BleCommandCount, NULL, NULL);
+    instance->engine = ble_command_engine_alloc(
+        instance, ble_commands, BleCommandCount, ble_command_extract_frame);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, ble_custom_event_callback, instance);

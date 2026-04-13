@@ -15,7 +15,8 @@ typedef enum {
     BleCommandCount
 } BleSystemCommand;
 
-BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events);
+BleIntercomFrameGeneric*
+    ble_command_extract_frame(Ble* instance, BleCommandEngineExtractFrameSource source);
 
 bool ble_command_request_process(BleIntercomFrameGeneric* frame, void* context);
 bool ble_command_response_process(BleIntercomFrameGeneric* frame, void* context);

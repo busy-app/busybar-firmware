@@ -7,8 +7,9 @@
 
 #define TAG "BLE_917"
 
-BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) {
-    UNUSED(events);
+BleIntercomFrameGeneric*
+    ble_command_extract_frame(Ble* instance, BleCommandEngineExtractFrameSource source) {
+    furi_check(source == BleCommandEngineExtractFrameSourceIntercomBuffer);
     return (BleIntercomFrameGeneric*)&instance->mailbox;
 }
 

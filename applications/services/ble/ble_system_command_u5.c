@@ -7,12 +7,17 @@
 
 #define TAG "BLE_U5"
 
-BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) {
-    if(events & BleEventTypeFrameReceived)
+BleIntercomFrameGeneric*
+    ble_command_extract_frame(Ble* instance, BleCommandEngineExtractFrameSource source) {
+    if(source == BleCommandEngineExtractFrameSourceIntercomBuffer)
         return &instance->mailbox;
-    else if(events & BleEventTypeIncomingMessage)
+    else if(source == BleCommandEngineExtractFrameSourceCommandBuffer)
         return (BleIntercomFrameGeneric*)&instance->current_command->header;
     else {
+        furi_crash("Unknown source");
+    }
+}
+
 void ble_command_unblock_with_result(Ble* instance, bool result) {
     if(instance->current_command_api_lock) {
         instance->current_command->header.result = result;
