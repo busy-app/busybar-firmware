@@ -64,8 +64,7 @@ static void busy_timer_smart_home_start_app(BusyTimer* instance) {
         busy_timer_apply_profile_settings(instance, TIMER_SMART_HOME_PROFILE_ID);
     }
 
-    BusyTimerSettings* settings = &instance->settings[TIMER_SMART_HOME_PROFILE_ID];
-    BusyAppConfig* app_config = &settings->profile.app_config;
+    BusyAppConfig* app_config = &instance->app_config;
     // NOTE: "Trigger smart home" setting is forced ON only for the current session.
     //       The main profile setting will remain unchanged.
     app_config->is_smart_home_enabled = true;
