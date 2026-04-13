@@ -1,5 +1,4 @@
-#include "usb_i.h"
-#include "usb_network.h"
+#include "usb_network_i.h"
 
 #include <furi_hal_version.h>
 
@@ -7,33 +6,17 @@
 
 #include <tusb.h>
 
-#include <lwip/api.h>
 #include <lwip/init.h>
 #include <lwip/udp.h>
 #include <lwip/tcpip.h>
 #include <lwip/apps/mdns.h>
 #include <lwip/apps/lwiperf.h>
 
-#include <dhserver.h>
-
 #include <network/network.h>
-
-#include "settings/usb_network_settings.h"
 
 #define TAG "UsbNet"
 
-#define USB_NET_IPERF
-#define DHCP_ENTRIES_MAX   3
-#define DHCP_LEASE_DEFAULT (24 * 60 * 60)
-
-struct UsbNetwork {
-    struct netif netif;
-    dhcp_config_t dhcp_config;
-    dhcp_entry_t dhcp_entries[DHCP_ENTRIES_MAX];
-    UsbNetworkSettings settings;
-};
-
-static UsbNetwork* usb_network = NULL;
+UsbNetwork* usb_network = NULL;
 
 static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     (void)netif;
@@ -92,62 +75,6 @@ static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
     if(res != ERR_OK) {
         FURI_LOG_E(TAG, "mdns add service txt failed");
     }
-}
-
-bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
-    if(size != 0) {
-#if(ETH_PAD_SIZE != 0)
-        size += ETH_PAD_SIZE; /* allow room for Ethernet padding */
-#endif
-        struct pbuf* p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
-
-        if(!p) {
-            FURI_LOG_T(TAG, "cannot receive frame, pbuf_alloc failed");
-            tud_network_recv_renew();
-            return true;
-        }
-
-#if(ETH_PAD_SIZE != 0)
-        pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
-#endif
-
-        for(struct pbuf* q = p; q != NULL && size > 0; q = q->next) {
-            /* Read enough bytes to fill this pbuf in the chain. 
-             * The available data in the pbuf is given by the q->len variable. */
-            memcpy(q->payload, src, size < q->len ? size : q->len);
-            src += q->len;
-            size -= q->len;
-        }
-
-#if(ETH_PAD_SIZE != 0)
-        pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
-#endif
-
-        if(usb_network) { /* Check if netif is initialized */
-            err_t err = usb_network->netif.input(p, &usb_network->netif);
-            if(err != ERR_OK) {
-                FURI_LOG_W(TAG, "netif->input failed with error: %d", err);
-                pbuf_free(p); /* Free pbuf if input failed */
-            }
-        } else {
-            FURI_LOG_E(TAG, "usb_network->netif is NULL in recv_cb");
-            pbuf_free(p); /* Free pbuf as it cannot be processed */
-        }
-        tud_network_recv_renew();
-    }
-
-    return true;
-}
-
-uint16_t tud_network_xmit_cb(uint8_t* dst, void* ref, uint16_t arg) {
-    struct pbuf* p = (struct pbuf*)ref;
-    UNUSED(arg);
-
-    uint16_t res = pbuf_copy_partial(p, dst, p->tot_len, 0);
-    return res;
-}
-
-void tud_network_init_cb(void) {
 }
 
 static void usb_network_init_dhcp_entries(UsbNetwork* instance, UsbNetworkIpAddress start_addr) {
