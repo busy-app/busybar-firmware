@@ -389,7 +389,7 @@ void ble_invoke_retry_command_on_internal_event(
         header->command = command;
         header->source = BleIntercomFrameSourceSystem;
         header->data_size = 0;
-        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIncomingMessage);
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeApiCommand);
     } else {
         BLE_LOG_W("Invoke retry");
         furi_event_loop_set_custom_event(instance->event_loop, retry_event);

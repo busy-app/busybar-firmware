@@ -30,7 +30,7 @@ static void ble_send_message(
     header->data_size = data_size;
     if(data_size > 0) memcpy(instance->current_command->data, data, data_size);
 
-    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIncomingMessage);
+    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeApiCommand);
 
     api_lock_wait_unlock(instance->current_command_api_lock);
 

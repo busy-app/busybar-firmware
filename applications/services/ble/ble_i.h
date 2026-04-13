@@ -23,7 +23,7 @@ typedef struct {
 typedef enum {
     BleEventTypeInitOnStart = (1 << 0),
     BleEventTypeEnableOnStart = (1 << 1),
-    BleEventTypeIncomingMessage = (1 << 2),
+    BleEventTypeApiCommand = (1 << 2),
     BleEventTypeFrameReceived = (1 << 3),
     BleEventTypeDeviceNameChanged = (1 << 4),
     BleEventTypeIntercomInit = (1 << 5),
