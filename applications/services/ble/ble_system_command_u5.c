@@ -106,13 +106,13 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
 
     if(total_ready == BLE_SERVICES_COUNT) {
         instance->status = BleServiceStatusReady;
-        instance->current_command->header.result = true;
         ble_subscribe_on_name_change(instance);
 
         ble_set_service_post_process_callback(instance, NULL);
 
         ble_restore_state_on_start(instance);
-
+        ///TODO: replace with command unlock
+        instance->current_command->header.result = true;
         api_lock_unlock(instance->current_command_api_lock);
     }
 }
@@ -143,7 +143,6 @@ static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* conte
 }
 
 static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* context) {
-    UNUSED(frame);
     BLE_LOG_D("BleCommandInit response");
     Ble* instance = context;
 
@@ -181,7 +180,6 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
 }
 
 static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* context) {
-    UNUSED(frame);
     BLE_LOG_D("BleCommandEnable response");
     Ble* instance = context;
 
