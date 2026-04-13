@@ -11,8 +11,8 @@
 #define HOURS_IN_DAY      (24U)
 
 typedef struct {
-    Label* firmware_info[GuiDisplayIdMax];
-    FuriString* firmware_info_str;
+    Label* front_label;
+    Label* back_label;
 } AboutSceneFirmware;
 
 static void about_scene_firmware_on_enter(void* context) {
@@ -21,55 +21,57 @@ static void about_scene_firmware_on_enter(void* context) {
 
     AboutSceneFirmware* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFirmware);
-    scene->firmware_info_str = furi_string_alloc();
+
+    FuriString* firmware_info_string = furi_string_alloc();
 
     const Version* version = version_get();
     furi_string_printf(
-        scene->firmware_info_str, GREY_TEXT("Version:") " %s\n", version_get_version(version));
+        firmware_info_string, GREY_TEXT("Version:") " %s\n", version_get_version(version));
     furi_string_cat_printf(
-        scene->firmware_info_str, GREY_TEXT("Branch:") "\n%s\n", version_get_gitbranch(version));
+        firmware_info_string, GREY_TEXT("Branch:") "\n%s\n", version_get_gitbranch(version));
     furi_string_cat_printf(
-        scene->firmware_info_str,
-        GREY_TEXT("Commit hash:") "\n%s\n",
-        version_get_githash(version));
+        firmware_info_string, GREY_TEXT("Commit hash:") "\n%s\n", version_get_githash(version));
 
     uint8_t api_version[] = API_VERSION;
     furi_string_cat_printf(
-        scene->firmware_info_str,
+        firmware_info_string,
         GREY_TEXT("API version:") " %u.%u.%u\n",
         api_version[0],
         api_version[1],
         api_version[2]);
     furi_string_cat_printf(
-        scene->firmware_info_str,
-        GREY_TEXT("Build date:") "\n%s\n",
-        version_get_builddate(version));
+        firmware_info_string, GREY_TEXT("Build date:") "\n%s\n", version_get_builddate(version));
 
     uint32_t uptime_seconds = furi_get_tick() / furi_kernel_get_tick_frequency();
     uint32_t uptime_minutes = uptime_seconds / SECONDS_IN_MINUTE;
     uint32_t uptime_hours = uptime_minutes / MINUTES_IN_HOUR;
     uint32_t uptime_days = uptime_hours / HOURS_IN_DAY;
     furi_string_cat_printf(
-        scene->firmware_info_str,
+        firmware_info_string,
         GREY_TEXT("Uptime:") " %lud %02luh %02lum\n",
         uptime_days,
         uptime_hours % HOURS_IN_DAY,
         uptime_minutes % MINUTES_IN_HOUR);
 
-    Widget* const windows[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = instance->front_scene_window,
-        [GuiDisplayIdBack] = instance->back_scene_window,
-    };
-
     with_gui(instance->gui, {
-        for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
-            widget_set_scrollbar_mode(windows[disp], WidgetScrollBarModeAuto);
-            scene->firmware_info[disp] = label_alloc(windows[disp]);
-            label_set_inline_text_color_formatting(scene->firmware_info[disp], true);
-            label_set_text(
-                scene->firmware_info[disp], furi_string_get_cstr(scene->firmware_info_str));
-        }
+        widget_set_scrollbar_mode(instance->front_scene_window, WidgetScrollBarModeAuto);
+
+        scene->front_label = label_alloc(instance->front_scene_window);
+        label_set_inline_text_color_formatting(scene->front_label, true);
+        label_set_text(scene->front_label, furi_string_get_cstr(firmware_info_string));
+        label_set_font(scene->front_label, FONT_BUSY_REGULAR_5);
+        label_set_line_spacing(scene->front_label, -2);
+
+        widget_set_scrollbar_mode(instance->back_scene_window, WidgetScrollBarModeAuto);
+
+        scene->back_label = label_alloc(instance->back_scene_window);
+        widget_set_padding(label_get_base(scene->back_label), 2, 0, 0, 0);
+        label_set_inline_text_color_formatting(scene->back_label, true);
+        label_set_text(scene->back_label, furi_string_get_cstr(firmware_info_string));
+        label_set_font(scene->back_label, FONT_BUSY_REGULAR_7);
     });
+
+    furi_string_free(firmware_info_string);
 }
 
 static void about_scene_firmware_on_exit(void* context) {
@@ -78,12 +80,12 @@ static void about_scene_firmware_on_exit(void* context) {
     AboutSceneFirmware* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFirmware);
 
-    furi_string_free(scene->firmware_info_str);
-
     with_gui(instance->gui, {
-        for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
-            label_free(scene->firmware_info[disp]);
-        }
+        label_free(scene->front_label);
+        widget_set_scrollbar_mode(instance->front_scene_window, WidgetScrollBarModeOff);
+
+        label_free(scene->back_label);
+        widget_set_scrollbar_mode(instance->back_scene_window, WidgetScrollBarModeOff);
     });
 }
 

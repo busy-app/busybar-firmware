@@ -13,8 +13,8 @@
 #define GREY_TEXT(text)            "#888888 " text "#"
 
 typedef struct {
-    Label* general_info[GuiDisplayIdMax];
-    FuriString* general_info_str;
+    Label* front_label;
+    Label* back_label;
 } AboutSceneGeneral;
 
 static void about_scene_general_fill_name(FuriString* info) {
@@ -60,25 +60,23 @@ static void about_scene_general_on_enter(void* context) {
 
     AboutSceneGeneral* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdGeneral);
-    scene->general_info_str = furi_string_alloc();
+    FuriString* general_info_string = furi_string_alloc();
     FuriString* temp_str = furi_string_alloc();
 
     // Devce name
     about_scene_general_fill_name(temp_str);
     furi_string_printf(
-        scene->general_info_str, GREY_TEXT("Name:") " %s\n", furi_string_get_cstr(temp_str));
+        general_info_string, GREY_TEXT("Name:") " %s\n", furi_string_get_cstr(temp_str));
 
     // Device serial number
     about_scene_general_fill_serial_number(temp_str);
     furi_string_cat_printf(
-        scene->general_info_str,
-        GREY_TEXT("Serial number:") "\n%s\n",
-        furi_string_get_cstr(temp_str));
+        general_info_string, GREY_TEXT("Serial number:") "\n%s\n", furi_string_get_cstr(temp_str));
 
     // Device hardware version
     about_scene_general_fill_hardware_version(temp_str);
     furi_string_cat_printf(
-        scene->general_info_str,
+        general_info_string,
         GREY_TEXT("Hardware version:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
@@ -89,14 +87,14 @@ static void about_scene_general_on_enter(void* context) {
     SlInfoStatus sl_status = sl_info_get_value(sl_info, "sl_wifi_mac", &sl_mac_addr);
     if(sl_status == SlInfoStatusOk) {
         furi_string_cat_printf(
-            scene->general_info_str, GREY_TEXT("Mac address [Wi-Fi]:") "\n%s\n", sl_mac_addr);
+            general_info_string, GREY_TEXT("Mac address [Wi-Fi]:") "\n%s\n", sl_mac_addr);
     }
 
     // Device BLE MAC address
     sl_status = sl_info_get_value(sl_info, "sl_ble_mac", &sl_mac_addr);
     if(sl_status == SlInfoStatusOk) {
         furi_string_cat_printf(
-            scene->general_info_str, GREY_TEXT("Mac address [BLE]:") "\n%s\n", sl_mac_addr);
+            general_info_string, GREY_TEXT("Mac address [BLE]:") "\n%s\n", sl_mac_addr);
     }
 
     furi_record_close(RECORD_SL_INFO);
@@ -104,40 +102,45 @@ static void about_scene_general_on_enter(void* context) {
     // Device USB MAC address
     about_scene_general_fill_mac_address(temp_str);
     furi_string_cat_printf(
-        scene->general_info_str,
+        general_info_string,
         GREY_TEXT("Mac address [USB]:") "\n%s\n",
         furi_string_get_cstr(temp_str));
 
     // Device Front display info
     furi_string_cat_printf(
-        scene->general_info_str,
+        general_info_string,
         GREY_TEXT("Front display:") "\n%dx%d (LED)\n",
         FRONT_DISPLAY_W,
         FRONT_DISPLAY_H);
 
     // Device Back display info
     furi_string_cat_printf(
-        scene->general_info_str,
+        general_info_string,
         GREY_TEXT("Back display:") "\n%dx%d (OLED)\n",
         BACK_DISPLAY_W,
         BACK_DISPLAY_H);
 
     furi_string_free(temp_str);
 
-    Widget* const windows[GuiDisplayIdMax] = {
-        [GuiDisplayIdFront] = instance->front_scene_window,
-        [GuiDisplayIdBack] = instance->back_scene_window,
-    };
-
     with_gui(instance->gui, {
-        for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
-            widget_set_scrollbar_mode(windows[disp], WidgetScrollBarModeAuto);
-            scene->general_info[disp] = label_alloc(windows[disp]);
-            label_set_inline_text_color_formatting(scene->general_info[disp], true);
-            label_set_text(
-                scene->general_info[disp], furi_string_get_cstr(scene->general_info_str));
-        }
+        widget_set_scrollbar_mode(instance->front_scene_window, WidgetScrollBarModeAuto);
+
+        scene->front_label = label_alloc(instance->front_scene_window);
+        label_set_inline_text_color_formatting(scene->front_label, true);
+        label_set_text(scene->front_label, furi_string_get_cstr(general_info_string));
+        label_set_font(scene->front_label, FONT_BUSY_REGULAR_5);
+        label_set_line_spacing(scene->front_label, -2);
+
+        widget_set_scrollbar_mode(instance->back_scene_window, WidgetScrollBarModeAuto);
+
+        scene->back_label = label_alloc(instance->back_scene_window);
+        widget_set_padding(label_get_base(scene->back_label), 2, 0, 0, 0);
+        label_set_inline_text_color_formatting(scene->back_label, true);
+        label_set_text(scene->back_label, furi_string_get_cstr(general_info_string));
+        label_set_font(scene->back_label, FONT_BUSY_REGULAR_7);
     });
+
+    furi_string_free(general_info_string);
 }
 
 static void about_scene_general_on_exit(void* context) {
@@ -146,12 +149,12 @@ static void about_scene_general_on_exit(void* context) {
     AboutSceneGeneral* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdGeneral);
 
-    furi_string_free(scene->general_info_str);
-
     with_gui(instance->gui, {
-        for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
-            label_free(scene->general_info[disp]);
-        }
+        label_free(scene->front_label);
+        widget_set_scrollbar_mode(instance->front_scene_window, WidgetScrollBarModeOff);
+
+        label_free(scene->back_label);
+        widget_set_scrollbar_mode(instance->back_scene_window, WidgetScrollBarModeOff);
     });
 }
 
