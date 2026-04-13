@@ -71,6 +71,7 @@ static err_t netif_init_cb(struct netif* netif) {
     LWIP_ASSERT("netif != NULL", (netif != NULL));
     netif->mtu = CFG_TUD_NET_MTU;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP |
+    // TODO: Link control
                    NETIF_FLAG_LINK_UP | NETIF_FLAG_UP;
     netif->state = NULL;
     netif->name[0] = 'E';
@@ -212,10 +213,6 @@ static void usb_network_init_netif(void* arg) {
 #if LWIP_IPV6
     netif_create_ip6_linklocal_address(netif, 1);
 #endif
-
-    while(!netif_is_up(netif)) {
-        // Busy poll
-    }
 
     usb_network_init_dhcp(instance, ip_config->address);
     usb_network_init_mdns(instance);
