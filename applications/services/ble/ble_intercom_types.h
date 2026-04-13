@@ -1,6 +1,7 @@
 #pragma once
 
 #include <intercom/intercom.h>
+#include <intercom/intercom_frame.h>
 #include <furi.h>
 
 typedef enum {
@@ -17,45 +18,43 @@ typedef enum {
 
 typedef uint8_t BleCommandCode;
 
-typedef struct /*FURI_PACKED*/ {
-    BleIntercomFrameSource source;
-    BleIntercomFrameType frame_type;
+typedef struct FURI_PACKED {
+    bool result;
     BleCommandCode command;
     uint16_t service_index;
-    bool result;
 
-    size_t data_size;
+    uint32_t num;
+    BleIntercomFrameSource source;
+    BleIntercomFrameType frame_type;
+    uint32_t data_size;
 } BleIntercomFrameHeader;
 
-#define MAX_BLE_INTERCOM_FRAME_SIZE (512U - sizeof(BleIntercomFrameHeader))
+#define MAX_BLE_INTERCOM_FRAME_SIZE (INTERCOM_FRAME_DATA_SIZE - sizeof(BleIntercomFrameHeader))
 
-typedef struct {
+typedef struct FURI_PACKED {
     BleIntercomFrameHeader header;
     uint8_t data[MAX_BLE_INTERCOM_FRAME_SIZE];
 } BleIntercomFrameGeneric;
 
 //==========================================================================================================
 
-typedef struct {
-    uint8_t index;
-    uint8_t data_size;
+typedef struct FURI_PACKED {
+    uint16_t index;
+    uint16_t data_size;
+    BleIntercomFrameType frame_type;
+    uint32_t seq_num;
 } BleCharacteristicDataHeader;
 
-typedef struct /*FURI_PACKED*/ {
+typedef struct FURI_PACKED {
     BleCharacteristicDataHeader header;
     uint8_t data[];
 } BleCharacteristicData;
 
-typedef uint8_t BleCharacteristicCountType;
+typedef uint32_t BleCharacteristicCountType;
 
-typedef struct {
+typedef struct FURI_PACKED {
     BleCharacteristicCountType char_count;
     BleCharacteristicData chars_config[];
 } BleIntercomServiceData;
-
-typedef struct /*FURI_PACKED*/ {
-    BleIntercomFrameHeader header;
-    BleIntercomServiceData service_init;
-} BleIntercomFrameServiceConfig;
 
 //=============================================

@@ -8,7 +8,11 @@ App(
     order=130,
     targets=["f64", "f65"],
     requires=["intercom"],
-    sources=["status_lights_backend.c", "status_lights_preset_defs.c", "presets/*.c"],
+    sources=[
+        "status_lights_backend.c",
+        "status_lights_preset_defs.c",
+        "presets/*.c",
+    ],
 )
 
 App(
@@ -21,5 +25,18 @@ App(
     order=130,
     targets=["f20", "f21", "f22"],
     requires=["intercom", "light_sensor"],
-    sources=["status_lights.c"],
+    provides=["status_lights_cli"],
+    sources=[
+        "status_lights.c",
+        "status_lights_api.c",
+    ],
+)
+
+App(
+    appid="status_lights_cli",
+    name="status_lights",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="status_lights_cli_command",
+    requires=["status_lights"],
+    sources=["status_lights_cli.c"],
 )

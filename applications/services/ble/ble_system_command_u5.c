@@ -3,6 +3,7 @@
 #include "ble_system_command.h"
 #include "ble/service/ble_service.h"
 #include "http/ble_http_repeater.h"
+#include "streaming/ble_streaming.h"
 #include "device_name/device_name.h"
 
 #define TAG "BLE_U5"
@@ -126,7 +127,7 @@ static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* conte
         instance->current_command->header.result = true;
         api_lock_unlock(instance->current_command_api_lock);
     } else if(state == BleServiceStatusError) {
-        BLE_LOG_W("No init, error occured");
+        BLE_LOG_W("No init, error occurred");
 
         instance->current_command->header.result = false;
         api_lock_unlock(instance->current_command_api_lock);
@@ -164,7 +165,7 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
         instance->current_command->header.result = true;
         api_lock_unlock(instance->current_command_api_lock);
     } else if(state == BleServiceStatusError) {
-        BLE_LOG_W("No enable, error occured");
+        BLE_LOG_W("No enable, error occurred");
 
         instance->current_command->header.result = false;
         api_lock_unlock(instance->current_command_api_lock);
@@ -209,7 +210,7 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
     ///TODO: replace this with some preprocess function which will check if command is allowed in this state
     bool result = false;
     if(state == BleServiceStatusError) {
-        BLE_LOG_W("No disable, error occured");
+        BLE_LOG_W("No disable, error occurred");
 
         instance->current_command->header.result = result;
         api_lock_unlock(instance->current_command_api_lock);
@@ -305,6 +306,7 @@ static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void*
             break;
         }
 
+        instance->status = response->status;
         result = true;
     } while(false);
 
@@ -314,6 +316,8 @@ static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void*
         BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
 
     furi_pubsub_publish(instance->on_status_change, (void*)response);
+
+    ble_streaming_update(instance->streaming, instance->status);
 
     return result;
 }

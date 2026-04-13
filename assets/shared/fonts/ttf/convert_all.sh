@@ -27,6 +27,7 @@ lv_font_conv --font busy_regular_7px.ttf -o ../busy_regular_7.font \
              --bpp 1 --size 16 --no-compress --format bin --range 0-65535
 lv_font_conv --font busy_regular_7px.ttf -o "$baked_fonts_dir/lv_font_busy_regular_7.c" \
              --bpp 1 --size 16 --no-compress --format lvgl --range 0-65535
+             
 lv_font_conv --font busy_regular_7px.ttf -o ../busy_regular_14.font \
              --bpp 1 --size 32 --no-compress --format bin --range 0-65535
 

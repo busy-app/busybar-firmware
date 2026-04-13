@@ -8,6 +8,8 @@
 #include <matter/matter.h>
 #include <input/input.h>
 #include <gui/gui.h>
+#include <furi_hal_rtc.h>
+#include <tzutil.h>
 
 static void brightness_state_callback(const void* item, void* context);
 static void time_settings_state_callback(const void* item, void* context);
@@ -21,6 +23,8 @@ static void device_name_pubsub_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
 static void input_event_pubsub_callback(const void* message, void* context);
 static void busy_timer_pubsub_callback(const void* message, void* context);
+static void updater_pubsub_callback(const void* message, void* context);
+static void ble_pubsub_callback(const void* message, void* context);
 
 void state_publisher_subscribe(StatePublisher* instance) {
     {
@@ -64,6 +68,8 @@ void state_publisher_subscribe(StatePublisher* instance) {
         FuriState* check_state = updater_get_check_state(instance->updater);
         furi_state_subscribe(update_state, updater_update_state_callback, instance);
         furi_state_subscribe(check_state, updater_check_state_callback, instance);
+        FuriPubSub* updater_pubsub = updater_get_pubsub(instance->updater);
+        furi_pubsub_subscribe(updater_pubsub, updater_pubsub_callback, instance);
     }
     {
         FuriPubSub* input_pubsub = furi_record_open(RECORD_INPUT_EVENTS);
@@ -74,12 +80,16 @@ void state_publisher_subscribe(StatePublisher* instance) {
         FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
     }
+    {
+        instance->ble = furi_record_open(RECORD_BLE);
+        FuriPubSub* pubsub = ble_get_pubsub(instance->ble);
+        furi_pubsub_subscribe(pubsub, ble_pubsub_callback, instance);
+    }
 }
 
 static void brightness_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const BrightnessControlState* state = item;
-    FURI_LOG_D(TAG, "publish brightness");
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_brightness_tag;
@@ -102,7 +112,6 @@ static void brightness_state_callback(const void* item, void* context) {
 
 void state_publisher_publish_power(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish power");
 
     PowerInfo power_info;
     power_get_info(instance->power, &power_info);
@@ -129,7 +138,6 @@ void state_publisher_publish_power(StatePublisher* instance) {
 
 void state_publisher_publish_audio(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish audio");
 
     float volume = audio_get_volume(instance->audio);
 
@@ -142,9 +150,10 @@ void state_publisher_publish_audio(StatePublisher* instance) {
 
 void state_publisher_publish_matter(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish matter");
 
-    MatterCommissionedFabrics info = matter_commissioned_fabrics(instance->matter);
+    MatterCommissionedFabrics info;
+    matter_get_commissioned_fabrics(instance->matter, &info);
+
     update->which_state = BSB_State_StateUpdate_matter_tag;
 
     update->state.matter.fabric_count = info.count;
@@ -171,8 +180,6 @@ void state_publisher_publish_matter(StatePublisher* instance) {
 void state_publisher_publish_update_check(StatePublisher* instance, const UpdaterCheckState* info) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_update_check_tag;
-
-    FURI_LOG_D(TAG, "publish update check");
 
     switch(info->result) {
     case UpdaterCheckResultAvailable: {
@@ -209,9 +216,22 @@ void state_publisher_publish_update_check(StatePublisher* instance, const Update
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
 
+void state_publisher_publish_autoupdate(StatePublisher* instance) {
+    UpdaterSettings settings;
+    updater_get_settings(instance->updater, &settings);
+
+    BSB_State_StateUpdate* update = malloc(sizeof(*update));
+    update->which_state = BSB_State_StateUpdate_auto_update_state_tag;
+    update->state.auto_update_state.enabled = settings.autoupdate_enabled;
+
+    update->state.auto_update_state.has_interval = true;
+    update->state.auto_update_state.interval.start = settings.autoupdate_interval_start;
+    update->state.auto_update_state.interval.end = settings.autoupdate_interval_end;
+    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+}
+
 void state_publisher_publish_busy_timer(StatePublisher* instance) {
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish busy timer");
 
     update->which_state = BSB_State_StateUpdate_timer_tag;
 
@@ -229,6 +249,42 @@ void state_publisher_publish_busy_timer(StatePublisher* instance) {
 
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
+
+void state_publisher_publish_ble(StatePublisher* instance) {
+    BleState ble_state;
+    bool ok = ble_get_state(instance->ble, &ble_state);
+
+    if(ok) {
+        BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+
+        static BSB_State_Ble_ServiceStatus lookup[] = {
+            [BleServiceStatusReset] = BSB_State_Ble_ServiceStatus_RESET,
+            [BleServiceStatusInitialization] = BSB_State_Ble_ServiceStatus_INITIALIZATION,
+            [BleServiceStatusReady] = BSB_State_Ble_ServiceStatus_READY,
+            [BleServiceStatusAdvertising] = BSB_State_Ble_ServiceStatus_ADVERTISING,
+            [BleServiceStatusConnectable] = BSB_State_Ble_ServiceStatus_CONNECTABLE,
+            [BleServiceStatusConnected] = BSB_State_Ble_ServiceStatus_CONNECTED,
+            [BleServiceStatusError] = BSB_State_Ble_ServiceStatus_ERROR,
+        };
+        static_assert(COUNT_OF(lookup) == BleServiceStatusCount);
+
+        update->which_state = BSB_State_StateUpdate_ble_tag;
+        update->state.ble.status = lookup[ble_state.status];
+
+        if(ble_state.status == BleServiceStatusConnected) {
+            update->state.ble.has_remote_address = true;
+            strlcpy(
+                update->state.ble.remote_address,
+                (const char*)ble_state.remote_device_address,
+                sizeof(update->state.ble.remote_address));
+        } else {
+            update->state.ble.has_remote_address = false;
+        }
+
+        state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    }
+}
+
 static void power_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     StatePublisher* instance = context;
@@ -257,7 +313,6 @@ static void device_name_pubsub_callback(const void* message, void* context) {
 
     if(event->type == DeviceNameEventTypeNameChanged) {
         BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-        FURI_LOG_D(TAG, "publish device name");
 
         update->which_state = BSB_State_StateUpdate_device_name_tag;
         static_assert(
@@ -303,8 +358,6 @@ static void input_event_pubsub_callback(const void* message, void* context) {
     }
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    FURI_LOG_D(TAG, "publish input event");
-    FURI_LOG_D(TAG, "input event: type=%u, key=%u", event->type, event->key);
 
     update->which_state = BSB_State_StateUpdate_input_tag;
 
@@ -369,6 +422,28 @@ static void busy_timer_pubsub_callback(const void* message, void* context) {
     state_publisher_send_message(instance, &msg);
 }
 
+static void updater_pubsub_callback(const void* message, void* context) {
+    const UpdaterEvent* event = message;
+    StatePublisher* instance = context;
+
+    if(event->type == UpdaterEventTypeSettingsChanged) {
+        Message msg = {
+            .type = MessageTypeAutoupdateEvent,
+        };
+        state_publisher_send_message(instance, &msg);
+    }
+}
+
+static void ble_pubsub_callback(const void* message, void* context) {
+    UNUSED(message);
+    StatePublisher* instance = context;
+
+    Message msg = {
+        .type = MessageTypeBle,
+    };
+    state_publisher_send_message(instance, &msg);
+}
+
 static void time_settings_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const TimeSettings* settings = item;
@@ -381,6 +456,14 @@ static void time_settings_state_callback(const void* item, void* context) {
         update->state.timezone.name, settings->timezone.name, sizeof(update->state.timezone.name));
     update->state.timezone.offset =
         settings->timezone.offset.hours * 60 + settings->timezone.offset.minutes;
+
+    DateTime now = furi_hal_rtc_get_datetime().dt;
+    TzutilTzInfo info;
+    if(tzutil_get_info_by_name(settings->timezone.name, &now, &info)) {
+        tzutil_get_abbr(&info, update->state.timezone.abbr, sizeof(update->state.timezone.abbr));
+    } else {
+        update->state.timezone.abbr[0] = 0;
+    }
 
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
@@ -429,8 +512,6 @@ static void convert_ip_config(BSB_State_Wifi* dst, const WifiIpConfig* ip_config
 static void wifi_info_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const WifiInfo* info = item;
-
-    FURI_LOG_D(TAG, "publish wifi");
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_wifi_tag;
@@ -512,8 +593,6 @@ static void updater_update_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
     const UpdaterUpdateState* info = item;
 
-    FURI_LOG_D(TAG, "publish update state");
-
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_update_state_tag;
 
@@ -584,15 +663,6 @@ void screen_streamer_callback(
     uint8_t stream_flags,
     void* context) {
     StatePublisher* instance = context;
-    FURI_LOG_D(
-        TAG,
-        "frame for %hhx: %lux%lu (%zu) pf:%u c:%u",
-        stream_flags,
-        frame->width,
-        frame->height,
-        frame->data_size,
-        frame->pixel_format,
-        frame->compression);
 
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
     update->which_state = BSB_State_StateUpdate_frame_tag;

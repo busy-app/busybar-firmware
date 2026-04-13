@@ -117,7 +117,8 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_size(instance->top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_column(instance->top_layout, 1, LV_PART_MAIN);
-    lv_obj_set_style_margin_ver(instance->top_layout, -1, LV_PART_MAIN);
+    lv_obj_set_style_margin_top(instance->top_layout, -1, LV_PART_MAIN);
+    lv_obj_set_style_margin_bottom(instance->top_layout, -2, LV_PART_MAIN);
 
     instance->main_label = lv_label_create(instance->top_layout);
     lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);

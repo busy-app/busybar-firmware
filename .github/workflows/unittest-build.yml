@@ -25,6 +25,9 @@ jobs:
     outputs:
       update_url: ${{ steps.set-url.outputs.update_url }}
       target: ${{ steps.build-fw.outputs.u5_target_hw }}
+    concurrency:
+      group: unit-tests-build-${{ github.workflow }}-${{ github.ref }}-${{ matrix.target_spec }}
+      cancel-in-progress: true
 
     steps:
       - name: 'Wipe workspace'
@@ -106,3 +109,6 @@ jobs:
       update_url: ${{ needs.unit-test-build.outputs.update_url }}
       target: ${{ needs.unit-test-build.outputs.target }}
     secrets: inherit
+    concurrency:
+      group: unit-tests-${{ github.workflow }}-${{ github.ref }}-${{ needs.unit-test-build.outputs.target }}
+      cancel-in-progress: true

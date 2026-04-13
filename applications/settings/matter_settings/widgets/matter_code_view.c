@@ -19,6 +19,7 @@ struct MatterCodeView {
     Widget base;
     lv_obj_t* logo;
     lv_obj_t* wordmark;
+    lv_obj_t* state_line;
     lv_obj_t* man_title;
     lv_obj_t* man_code;
     lv_obj_t* qr_code;
@@ -72,7 +73,7 @@ void matter_code_view_set_codes(MatterCodeView* instance, const char* qr, const 
     furi_check(manual);
 
     lv_label_set_text(instance->man_code, manual);
-    lv_qrcode_set_size(instance->qr_code, 50);
+    lv_qrcode_set_size(instance->qr_code, 66);
     lv_qrcode_update(instance->qr_code, qr, strlen(qr));
 }
 
@@ -95,12 +96,21 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     lv_obj_class_init_obj(instance->wordmark);
     lv_label_set_text(instance->wordmark, "matter");
     lv_obj_set_style_align(instance->wordmark, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
-    lv_obj_set_style_x(instance->wordmark, 19, LV_PART_MAIN);
+    lv_obj_set_style_x(instance->wordmark, 29, LV_PART_MAIN);
+    lv_obj_set_style_y(instance->wordmark, 3, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->wordmark, TEXT_COLOR, LV_PART_MAIN);
     lv_obj_set_style_text_font(
         instance->wordmark,
         font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9),
         LV_PART_MAIN);
+
+    instance->state_line = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
+    lv_obj_class_init_obj(instance->state_line);
+    lv_obj_set_style_text_font(instance->state_line, lv_theme_get_font_small(obj), LV_PART_MAIN);
+    lv_label_set_text(instance->state_line, "Ready to pair");
+    lv_obj_set_style_align(instance->state_line, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
+    lv_obj_set_style_y(instance->state_line, -24, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->state_line, TEXT_COLOR, LV_PART_MAIN);
 
     instance->man_title = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
     lv_obj_class_init_obj(instance->man_title);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "status_lights_common_public.h"
+#include "status_lights_common.h"
 
 #ifdef __cplusplus
 extern "C" {

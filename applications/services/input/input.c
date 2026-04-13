@@ -222,12 +222,12 @@ int32_t input_srv(void* p) {
     InputSwitchPosition position = InputSwitchPositionMAX;
     furi_state_set(input->switch_pos, &position);
 
+    furi_record_create(RECORD_INPUT, input);
+
 #ifdef SRV_INTERCOM
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     intercom_channel_open(intercom, IntercomChannelIdInput, input_intercom_rx_callback, input);
 #endif
-
-    furi_record_create(RECORD_INPUT, input);
 
     furi_event_loop_run(input->event_loop);
 

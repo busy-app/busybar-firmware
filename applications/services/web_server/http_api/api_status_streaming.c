@@ -12,8 +12,10 @@
 #define STREAM_LOG_W(...)
 #endif
 
-#define MAX_CLIENTS_COUNT          (4)
-#define MAX_PUBLISH_MESSAGES_COUNT (8)
+#define MAX_CLIENTS_COUNT                 (4)
+#define MAX_PUBLISH_MESSAGES_COUNT        (8)
+#define PUBLISH_MESSAGES_PAUSE_THRESHOLD  (6)
+#define PUBLISH_MESSAGES_RESUME_THRESHOLD (2)
 
 #define FRAME_QUEUE_TIMEOUT          (10)
 #define FRAME_INTERVAL_MS            (100)
@@ -23,6 +25,11 @@
 #define WEBSOCKET_PING(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_PING))
 #define WEBSOCKET_PONG(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_PONG))
 #define WEBSOCKET_TEXT(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_TEXT))
+
+#define RATE_LIMIT                                \
+    (RateLimiterLimit) {                          \
+        .max_packet_count = 11, .period_ms = 1000 \
+    }
 
 typedef enum {
     ClientStateHandshake,
@@ -82,7 +89,6 @@ static void client_heartbeat_timer_callback(void* ctx) {
     case ClientStateInvalid:
     case ClientStateHandshake:
         // should never happen
-        furi_assert(false);
         break;
     }
 }
@@ -95,6 +101,12 @@ static void client_publish_callback(const SharedByteArray_t data, void* context)
     DataMessage msg;
     SharedByteArray_init_set(msg.data, data);
     FuriStatus error = furi_message_queue_put(client->active.queue, &msg, FRAME_QUEUE_TIMEOUT);
+    size_t count = furi_message_queue_get_count(client->active.queue);
+    if(count >= PUBLISH_MESSAGES_PAUSE_THRESHOLD) {
+        STREAM_LOG_W("Queue full, throttling");
+        state_publisher_set_paused(
+            client->parent->state_publisher, client->active.transport_handle, true);
+    }
     if(error != FuriStatusOk) {
         FURI_LOG_E(TAG, "Queue overflow, update skipped (%u)", error);
         SharedByteArray_clear(msg.data);
@@ -196,21 +208,24 @@ static void client_send_frame(struct mg_connection* conn, void* data, size_t len
 
     if(client->state == ClientStateActive) {
         DataMessage msg;
-        if(furi_message_queue_get(client->active.queue, &msg, FRAME_QUEUE_TIMEOUT) ==
-           FuriStatusOk) {
+        while(furi_message_queue_get(client->active.queue, &msg, 0) == FuriStatusOk) {
             const ByteArray_t* array = SharedByteArray_cref(msg.data);
             mg_ws_send(
                 conn, ByteArray_cget(*array, 0), ByteArray_size(*array), WEBSOCKET_OP_BINARY);
             SharedByteArray_clear(msg.data);
-        } else {
-            FURI_LOG_W(TAG, "Woke up for no message");
+        }
+        if(client->active.transport_handle != STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID &&
+           furi_message_queue_get_count(client->active.queue) <=
+               PUBLISH_MESSAGES_RESUME_THRESHOLD) {
+            state_publisher_set_paused(
+                client->parent->state_publisher, client->active.transport_handle, false);
         }
     } else if(client->state == ClientStateRequestingPing) {
         STREAM_LOG_D("Requesting ping");
         client_set_state(client, ClientStateWaitingPong);
         mg_ws_send(conn, data, len, WEBSOCKET_OP_PING);
     } else if(client->state == ClientStateInvalid) {
-        mg_close_conn(conn);
+        conn->is_draining = 1;
     }
 }
 
@@ -225,11 +240,13 @@ static void client_set_enabled(Client* client, bool enabled) {
             client->parent->state_publisher,
             StatePublisherTransportClassWebSocket,
             FRAME_INTERVAL_MS,
+            RATE_LIMIT,
             client_publish_callback,
             client);
     } else if(was_enabled && !enabled) {
         state_publisher_del_transport(
             client->parent->state_publisher, client->active.transport_handle);
+        client->active.transport_handle = STATE_PUBLISHER_TRANSPORT_HANDLE_INVALID;
     }
 }
 
@@ -252,6 +269,8 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
         STREAM_LOG_D("PONG");
         client_set_state(client, ClientStateActive);
         client->active.heartbeat_timer->expire = mg_now() + CLIENT_HEARTBEAT_INTERVAL_MS;
+        // Make sure to wake up and send collected messages
+        mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
     } else if(WEBSOCKET_TEXT(ws_msg->flags)) {
         STREAM_LOG_D("MSG");
 
@@ -262,6 +281,19 @@ static void client_on_message(struct mg_connection* conn, struct mg_ws_message* 
             FURI_LOG_E(TAG, "bad request");
         }
     }
+}
+
+static void client_connection_on_open_rejected(struct mg_connection* conn) {
+    ByteArray_t buf;
+    ByteArray_init(buf);
+    if(state_publisher_serialize_error_message(
+           &buf, BSB_Error_Severity_FATAL, BSB_Error_Cause_RESOURCE_LIMIT)) {
+        const void* data = ByteArray_cget(buf, 0);
+        size_t len = ByteArray_size(buf);
+        mg_ws_send(conn, data, len, WEBSOCKET_OP_BINARY);
+    }
+    ByteArray_clear(buf);
+    conn->is_draining = 1;
 }
 
 bool http_api_status_ws_callback(
@@ -280,16 +312,17 @@ bool http_api_status_ws_callback(
     Client* client = client_alloc(instance, conn);
 
     if(!client) {
-        MG_REPLY_ERROR(conn, 400, "Exceeded max clients count");
-        return true;
+        FURI_LOG_W(TAG, "No available websockets");
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        conn_ctx->ws.on_open = client_connection_on_open_rejected;
+    } else {
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        conn_ctx->ws.on_open = client_connection_open;
+        conn_ctx->on_close = client_connection_close;
+        conn_ctx->ws.on_message = client_on_message;
+        conn_ctx->on_wakeup = client_send_frame;
+        conn_ctx->context = client;
     }
-
-    ConnectionContext* conn_ctx = (void*)conn->data;
-    conn_ctx->ws.on_open = client_connection_open;
-    conn_ctx->on_close = client_connection_close;
-    conn_ctx->ws.on_message = client_on_message;
-    conn_ctx->on_wakeup = client_send_frame;
-    conn_ctx->context = client;
 
     mg_ws_upgrade(conn, msg, NULL);
 

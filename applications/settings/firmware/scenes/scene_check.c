@@ -28,10 +28,10 @@ static inline FirmwareSettingsCheckScene*
 }
 
 static void firmware_settings_check_scene_prepare_up_to_date_result(FirmwareSettings* instance) {
-    instance->check_result_preset.front_image_path = THIS_IMG_PATH("checkmark_front_8x8.image");
+    instance->check_result_preset.front_image_path = SHARED_IMG_PATH("checkmark_front_8x8.image");
     furi_string_set(instance->check_result_preset.front_text, "Up to date");
 
-    instance->check_result_preset.back_image_path = THIS_IMG_PATH("checkmark_back_11x11.image");
+    instance->check_result_preset.back_image_path = SHARED_IMG_PATH("checkmark_back_11x11.image");
     furi_string_set(instance->check_result_preset.back_primary_text, "Firmware is up to date");
     furi_string_printf(
         instance->check_result_preset.back_detail_text,

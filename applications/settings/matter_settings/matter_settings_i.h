@@ -11,6 +11,8 @@
 #include <gui/gui.h>
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
+#include <status_lights/status_lights.h>
+#include <brightness_control/brightness_control.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -50,12 +52,14 @@ typedef struct {
     SceneManager* scene_manager;
     WifiPoller* wifi_poller;
 
-    MatterSrv* matter;
+    Matter* matter;
     FuriPubSubSubscription* matter_subscription;
     Desktop* desktop;
     Gui* gui;
     FrontDisplaySrv* front_display;
     BackDisplaySrv* back_display;
+    StatusLights* status_lights;
+    BrightnessControl* brightness_control;
 
     Widget* front_scene_window;
 

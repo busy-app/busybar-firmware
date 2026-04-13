@@ -279,8 +279,6 @@ bool mqtt_publish(
     const void* data,
     size_t data_size);
 
-typedef void (*MqttPublishDoneCallback)(void* context);
-
 /**
  * @brief Publish a message to a topic on the MQTT broker with additional properties.
  *
@@ -294,8 +292,6 @@ typedef void (*MqttPublishDoneCallback)(void* context);
  * @param[in] data_size size (or length) of the @p data to be published
  * @param[in] props pointer to the array of MQTT message properties
  * @param[in] props_count number of properties contained in the @p props array
- * @param[in] publish_done_callback function to be called when publish is done (e.g. to free the data buffer). Can be NULL.
- * @param[in] callback_context data to be passed to publish_done_callback.
  * @returns @c true if publishing was successful, false otherwise
  */
 bool mqtt_publish_ex(
@@ -305,9 +301,7 @@ bool mqtt_publish_ex(
     const void* data,
     size_t data_size,
     const MqttProperty* props,
-    uint32_t props_count,
-    MqttPublishDoneCallback publish_done_callback,
-    void* callback_context);
+    uint32_t props_count);
 
 /**
  * @brief Subscribe to a topic on the MQTT broker and start receiving messages.

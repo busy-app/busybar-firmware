@@ -1,88 +1,78 @@
 #include "../update_executor_i.h"
 #include "scenes.h"
 
-#include <gui/modules/flex_layout.h>
-#include <gui/modules/anim_player.h>
+#include <gui/modules/flex_box.h>
+#include <gui/modules/image.h>
 #include <gui/modules/label.h>
 
-#define SUCCESS_SCENE_DELAY_MS 1500
-
 typedef struct {
-    FlexLayout* back_flex;
-    FlexLayout* front_flex;
-} SuccessScene;
+    FlexBox* front_box;
 
-static void success_scene_on_enter(void* context) {
+    FlexBox* back_box;
+} UpdateExecutorSuccessScene;
+
+static void update_executor_success_scene_on_enter(void* context) {
     furi_assert(context);
 
     UpdateExecutor* instance = context;
-    SuccessScene* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdSuccess);
+    UpdateExecutorSuccessScene* scene =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdxSuccess);
 
     with_gui(instance->gui, {
-        /* back ui */
-        data->back_flex = flex_layout_alloc(instance->back_container, FlexLayoutTypeColumn);
-        flex_layout_set_spacing(data->back_flex, 6);
-        flex_layout_set_align(
-            data->back_flex, FlexLayoutAlignCenter, FlexLayoutAlignCenter, FlexLayoutAlignStart);
-        widget_set_size_content(flex_layout_get_base(data->back_flex));
-        widget_set_align(flex_layout_get_base(data->back_flex), AlignCenter);
+        /* front layout setup */
+        scene->front_box = flex_box_alloc(instance->front_container);
+        flex_box_set_flow(scene->front_box, FlexBoxFlowRow);
+        flex_box_set_align(scene->front_box, FlexBoxAlignStart, FlexBoxAlignCenter);
+        flex_box_set_spacing(scene->front_box, 2);
+        widget_set_align(flex_box_get_base(scene->front_box), AlignLeftMid);
 
-        AnimPlayer* back_spinner_anim_player =
-            anim_player_alloc(flex_layout_get_base(data->back_flex));
-        anim_player_set_source(
-            back_spinner_anim_player, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
-        widget_set_size_content(anim_player_get_base(back_spinner_anim_player));
+        Image* front_image = image_alloc(flex_box_get_base(scene->front_box));
+        image_set_source(front_image, SHARED_IMG_PATH("checkmark_front_8x8.image"));
 
-        Label* back_status_label = label_alloc(flex_layout_get_base(data->back_flex));
-        label_set_text_font_size(back_status_label, LabelFontSizeLarge);
-        label_set_text(back_status_label, "Restarting device...");
-        label_set_font(back_status_label, FONT_BUSY_REGULAR_9);
-        widget_set_size_content(label_get_base(back_status_label));
+        Label* front_label = label_alloc(flex_box_get_base(scene->front_box));
+        label_set_text(front_label, "Update completed");
+        label_set_font(front_label, FONT_BUSY_REGULAR_5);
 
-        /* front ui */
-        data->front_flex = flex_layout_alloc(instance->front_container, FlexLayoutTypeRow);
-        flex_layout_set_spacing(data->front_flex, 2);
-        widget_set_size_content(flex_layout_get_base(data->front_flex));
-        widget_set_align(flex_layout_get_base(data->front_flex), AlignLeftMid);
+        /* back layout setup */
+        scene->back_box = flex_box_alloc(instance->back_container);
+        flex_box_set_flow(scene->back_box, FlexBoxFlowColumn);
+        flex_box_set_align(scene->back_box, FlexBoxAlignCenter, FlexBoxAlignCenter);
+        flex_box_set_spacing(scene->back_box, 7);
+        widget_set_align(flex_box_get_base(scene->back_box), AlignCenter);
 
-        AnimPlayer* front_spinner_anim_player =
-            anim_player_alloc(flex_layout_get_base(data->front_flex));
-        anim_player_set_source(
-            front_spinner_anim_player, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
-        widget_set_size_content(anim_player_get_base(front_spinner_anim_player));
+        Image* back_image = image_alloc(flex_box_get_base(scene->back_box));
+        image_set_source(back_image, SHARED_IMG_PATH("checkmark_back_11x11.image"));
+        widget_set_padding(image_get_base(back_image), 2, 3, 2, 3);
 
-        Label* front_status_label = label_alloc(flex_layout_get_base(data->front_flex));
-        label_set_text(front_status_label, "Restarting device...");
-        widget_set_size_content(label_get_base(front_status_label));
+        Label* back_label = label_alloc(flex_box_get_base(scene->back_box));
+        label_set_text(back_label, "Update completed");
+        label_set_font(back_label, FONT_BUSY_REGULAR_9);
     });
 }
 
-static void success_scene_on_exit(void* context) {
+static void update_executor_success_scene_on_exit(void* context) {
     furi_assert(context);
 
     UpdateExecutor* instance = context;
-    SuccessScene* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdSuccess);
+    UpdateExecutorSuccessScene* scene =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdxSuccess);
 
     with_gui(instance->gui, {
-        flex_layout_free(data->back_flex);
-        flex_layout_free(data->front_flex);
+        flex_box_free(scene->back_box);
+        flex_box_free(scene->front_box);
     });
 }
 
-static bool success_scene_on_event(const SceneManagerEvent* event, void* context) {
-    furi_assert(context);
-    furi_assert(event->type == SceneManagerEventTypeCustom);
-
-    furi_delay_ms(SUCCESS_SCENE_DELAY_MS);
+static bool update_executor_success_scene_on_event(const SceneManagerEvent* event, void* context) {
+    UNUSED(event);
+    UNUSED(context);
 
     return true;
 }
 
-const Scene update_executor_scene_success = {
-    .enter_callback = success_scene_on_enter,
-    .exit_callback = success_scene_on_exit,
-    .event_callback = success_scene_on_event,
-    .data_size = sizeof(SuccessScene),
+const Scene update_executor_internal_scene_success = {
+    .enter_callback = update_executor_success_scene_on_enter,
+    .exit_callback = update_executor_success_scene_on_exit,
+    .event_callback = update_executor_success_scene_on_event,
+    .data_size = sizeof(UpdateExecutorSuccessScene),
 };

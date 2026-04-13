@@ -6,7 +6,7 @@
     <div class="flex gap-3">
       <UIcon
         data-id="layout-default-header-logo"
-        name="i-busy-bar-logo"
+        name="i-busy-logo-white"
         class="w-[70px] h-[28px] mr-5"
         @click="onLogoClick"
       />
@@ -173,7 +173,11 @@
           side: 'bottom',
           sideOffset: 8
         }"
+        size="lg"
         :ui="{
+          content: 'bg-elevated ring-accented/50',
+          group: 'border-accented/50',
+          item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
           itemLabelExternalIcon: 'hidden'
         }"
       >
@@ -187,11 +191,20 @@
           class="rounded-full"
         />
 
-        <template #signin-trailing>
-          <UIcon
-            name="i-bi-open-in-new"
-            class="shrink-0 size-5 ml-4"
-          />
+        <template #signin>
+          <div class="flex flex-col gap-2 rounded-md">
+            <div class="flex justify-between items-center gap-2">
+              <UIcon
+                name="i-busy-logo"
+                class="w-12 h-5"
+              />
+              <UIcon
+                name="i-bi-open-in-new"
+                class="size-5"
+              />
+            </div>
+            <div class="max-w-[230px] text-xs text-muted">Link your device to BUSY Account to sync your data across all platforms</div>
+          </div>
         </template>
       </UDropdownMenu>
     </div>
@@ -201,21 +214,13 @@
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
 const pms = usePasswordModalStore();
-const apiStore = useApiStore();
 const tabStore = useTabStore();
 
 const colorMode = useColorMode();
 
-const passwordSetItems = [
+const passwordSetItems = computed(() => [
   {
-    label: 'Lock down',
-    icon: 'i-bi-lock',
-    onSelect: () => {
-      lockDown();
-    }
-  },
-  {
-    label: 'Virtual LAN password',
+    label: 'Manage password',
     icon: 'i-bi-password',
     children: [
       {
@@ -238,10 +243,15 @@ const passwordSetItems = [
         }
       }
     ]
+  },
+  {
+    label: `${colorMode.value === 'dark' ? 'Switch to light' : 'Switch to dark'} theme`,
+    icon: colorMode.value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon',
+    onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
   }
-];
+]);
 
-const passwordUnsetItems = [
+const passwordUnsetItems = computed(() => [
   {
     label: 'Set password',
     icon: 'i-bi-password',
@@ -251,8 +261,13 @@ const passwordUnsetItems = [
       pms.passwordModel.new = '';
       pms.showSetPasswordModal = true;
     }
+  },
+  {
+    label: `${colorMode.value === 'dark' ? 'Switch to light' : 'Switch to dark'} theme`,
+    icon: colorMode.value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon',
+    onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
   }
-];
+]);
 
 const userDropdownItems = computed(() => {
   const baseItems = [
@@ -264,13 +279,6 @@ const userDropdownItems = computed(() => {
         type: 'link',
         href: 'https://cloud.busy.app',
         target: '_blank'
-      }
-    ],
-    [
-      {
-        label: `${colorMode.value === 'dark' ? 'Switch to light' : 'Switch to dark'} theme`,
-        icon: colorMode.value === 'dark' ? 'i-bi-brightness' : 'i-bi-moon',
-        onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
       }
     ]
   ];
@@ -290,9 +298,9 @@ const userDropdownItems = computed(() => {
       ...baseItems
     ];
   } else if (deviceStore.httpAPIAccess.mode === 'key') {
-    return [passwordSetItems, ...baseItems];
+    return [[...passwordSetItems.value], ...baseItems];
   } else {
-    return [passwordUnsetItems, ...baseItems];
+    return [[...passwordUnsetItems.value], ...baseItems];
   }
 });
 
@@ -325,11 +333,11 @@ async function restartDevice () {
   }
 }
 
-async function lockDown () {
+/* async function lockDown () {
   apiStore.apiKey = null;
   deviceStore.busyBar.setApiKey('');
   await navigateTo('/login', { external: true });
-}
+} */
 
 const power = computed(() => deviceStore.deviceStatus?.power);
 
@@ -355,7 +363,7 @@ async function init () {
 
   await deviceStore.detectConnectionType();
   if (deviceStore.connectionType === 'usb') {
-    passwordSetItems.splice(0, 1);
+    passwordSetItems.value.splice(0, 1);
   }
 
   nameModel.value = await deviceStore.fetchDeviceName();
