@@ -26,6 +26,8 @@ typedef enum {
     BleEventTypeIncomingMessage = (1 << 2),
     BleEventTypeFrameReceived = (1 << 3),
     BleEventTypeDeviceNameChanged = (1 << 4),
+    BleEventTypeIntercomInit = (1 << 5),
+    BleEventTypeIntercomDeinit = (1 << 6),
 } BleEventType;
 
 typedef void (
@@ -40,8 +42,8 @@ struct Ble {
 
     FuriMessageQueue* message_queue;
     FuriEventLoop* event_loop;
+    Intercom* intercom;
     IntercomChannel* intercom_ch;
-    //--------------------------
     FuriString* error;
 
     BleServiceObject* services[BLE_SERVICES_COUNT];

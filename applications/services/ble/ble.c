@@ -7,6 +7,8 @@
 
 #define TAG "BLE"
 
+static void ble_backend_intercom_rx_callback(const void* data, size_t data_size, void* context);
+
 void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
     furi_assert(ble);
     ble->service_post_process_callback = callback;
@@ -111,6 +113,20 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
     }
 }
 
+static void ble_intercom_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    Ble* instance = context;
+    const IntercomStatus intercom_status = *(IntercomStatus*)item;
+
+    if(intercom_status == IntercomStatusOk) {
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIntercomInit);
+    } else if(intercom_status != IntercomStatusUnknown) {
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIntercomDeinit);
+    }
+}
+
 static Ble* ble_alloc() {
     Ble* instance = malloc(sizeof(Ble));
     instance->status = BleServiceStatusReset;
@@ -132,14 +148,9 @@ static Ble* ble_alloc() {
         ble_event_loop_msg_queue_handler,
         instance);
 
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom_ch = intercom_channel_open(
-        intercom, IntercomChannelIdBle, ble_backend_intercom_rx_callback, instance);
-
-    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
-        instance->services[i] =
-            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom_ch);
-    }
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+    furi_state_subscribe(
+        intercom_get_state(instance->intercom), ble_intercom_state_callback, instance);
 
     instance->error = furi_string_alloc();
 #if !defined(BSB_MCU_SI917)
