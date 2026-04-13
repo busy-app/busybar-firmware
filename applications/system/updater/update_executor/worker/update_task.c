@@ -169,18 +169,21 @@ typedef struct {
         .weight = (WEIGHT),      \
     }
 
-// Stage                 Measured time  Weight
-// ReadManifest:         252 ms         0
-// ValidateDFUImage:     5536 ms        15
-// FlashWrite:           1669 ms        5
-// FlashValidate:        1323 ms        4
-// 917RadioWrite:        70893 ms       202
-// 917RadioInstall:      18049 ms       52
-// 917Write:             34993 ms       98
-// 917Install:           9272 ms        26
-// ResourcesFileCleanup: 1124 ms        3
-// ResourcesDirCleanup:  1459 ms        4
-// ResourcesFileUnpack:  6173 ms        18
+/*
+Stage                 Measured time  Weight
+*******************************************
+ReadManifest          253 ms         0      
+ValidateDFUImage      6121 ms        17     
+FlashWrite            3625 ms        10     
+FlashValidate         3082 ms        9      
+917RadioWrite         51179 ms       145    
+917RadioInstall       18505 ms       53     
+917Write              24511 ms       70     
+917Install            9088 ms        26 
+ResourcesFileCleanup  4192 ms        12 
+ResourcesDirCleanup   3538 ms        10 
+ResourcesFileUnpack   15044 ms       43 
+*/
 
 static const UpdateTaskStageGroupMap update_task_stage_progress[] = {
     [UpdateExecutorTaskStageProgress] = STAGE_DEF(UpdateExecutorTaskStageGroupMisc, 0),
@@ -188,22 +191,22 @@ static const UpdateTaskStageGroupMap update_task_stage_progress[] = {
     [UpdateExecutorTaskStageReadManifest] = STAGE_DEF(UpdateExecutorTaskStageGroupPrepare, 0),
 
     [UpdateExecutorTaskStageValidateDFUImage] =
-        STAGE_DEF(UpdateExecutorTaskStageGroupFirmware, 15),
-    [UpdateExecutorTaskStageFlashWrite] = STAGE_DEF(UpdateExecutorTaskStageGroupFirmware, 5),
-    [UpdateExecutorTaskStageFlashValidate] = STAGE_DEF(UpdateExecutorTaskStageGroupFirmware, 4),
+        STAGE_DEF(UpdateExecutorTaskStageGroupFirmware, 17),
+    [UpdateExecutorTaskStageFlashWrite] = STAGE_DEF(UpdateExecutorTaskStageGroupFirmware, 10),
+    [UpdateExecutorTaskStageFlashValidate] = STAGE_DEF(UpdateExecutorTaskStageGroupFirmware, 9),
 
-    [UpdateExecutorTaskStage917RadioWrite] = STAGE_DEF(UpdateExecutorTaskStageGroup917Radio, 202),
-    [UpdateExecutorTaskStage917RadioInstall] = STAGE_DEF(UpdateExecutorTaskStageGroup917Radio, 52),
+    [UpdateExecutorTaskStage917RadioWrite] = STAGE_DEF(UpdateExecutorTaskStageGroup917Radio, 145),
+    [UpdateExecutorTaskStage917RadioInstall] = STAGE_DEF(UpdateExecutorTaskStageGroup917Radio, 53),
 
-    [UpdateExecutorTaskStage917Write] = STAGE_DEF(UpdateExecutorTaskStageGroup917, 98),
+    [UpdateExecutorTaskStage917Write] = STAGE_DEF(UpdateExecutorTaskStageGroup917, 70),
     [UpdateExecutorTaskStage917Install] = STAGE_DEF(UpdateExecutorTaskStageGroup917, 26),
 
     [UpdateExecutorTaskStageResourcesFileCleanup] =
-        STAGE_DEF(UpdateExecutorTaskStageGroupResources, 3),
+        STAGE_DEF(UpdateExecutorTaskStageGroupResources, 12),
     [UpdateExecutorTaskStageResourcesDirCleanup] =
-        STAGE_DEF(UpdateExecutorTaskStageGroupResources, 4),
+        STAGE_DEF(UpdateExecutorTaskStageGroupResources, 10),
     [UpdateExecutorTaskStageResourcesFileUnpack] =
-        STAGE_DEF(UpdateExecutorTaskStageGroupResources, 18),
+        STAGE_DEF(UpdateExecutorTaskStageGroupResources, 43),
 
     [UpdateExecutorTaskStageCompleted] = STAGE_DEF(UpdateExecutorTaskStageGroupMisc, 1),
     [UpdateExecutorTaskStageError] = STAGE_DEF(UpdateExecutorTaskStageGroupMisc, 1),
