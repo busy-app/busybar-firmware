@@ -3,6 +3,7 @@
 typedef enum {
     BleServiceCommandUnknown,
     BleServiceCommandInit,
+    BleServiceCommandDeinit,
     BleServiceCommandRun,
     BleServiceCommandUpdate,
 
