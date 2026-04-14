@@ -65,7 +65,6 @@ static bool ble_service_command_handler_deinit(
     UNUSED(data);
     UNUSED(data_size);
     BLE_LOG_D("%s - ble_service_command_handler_deinit", instance->config->name);
-    ble_worker_stop();
     return false;
 }
 
