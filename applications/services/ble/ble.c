@@ -51,6 +51,37 @@ static void
 #endif
 }
 
+static void ble_allocate_services(Ble* instance) {
+    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+        instance->services[i] =
+            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom_ch);
+    }
+}
+
+static void ble_custom_event_handler_init(Ble* instance) {
+    instance->intercom_ch = intercom_channel_open(
+        instance->intercom, IntercomChannelIdBle, ble_backend_intercom_rx_callback, instance);
+
+    ble_allocate_services(instance);
+#if !defined(BSB_MCU_SI917)
+    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
+#endif
+}
+
+static void ble_deinit_services(Ble* instance) {
+    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+        ble_service_deinit(instance->services[i]);
+    }
+}
+
+static void ble_custom_event_handler_deinit(Ble* instance) {
+    furi_string_printf(instance->error, "Intercom error");
+    instance->status = BleServiceStatusError;
+
+    ble_deinit_services(instance);
+    ble_command_unblock_with_result(instance, false);
+}
+
 static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Ble* ble = context;
@@ -69,37 +100,11 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
 
     if(furi_mutex_acquire(instance->ble_lock, BLE_SERVICE_LOCK_TIMEOUT) == FuriStatusOk) {
         if(events & BleEventTypeIntercomInit) {
-            BLE_LOG_I("INTERCOM_INIT!");
-            instance->intercom_ch = intercom_channel_open(
-                instance->intercom,
-                IntercomChannelIdBle,
-                ble_backend_intercom_rx_callback,
-                instance);
-
-            for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
-                instance->services[i] = ble_service_alloc(
-                    service_config[i], instance->message_queue, instance->intercom_ch);
-            }
-#if !defined(BSB_MCU_SI917)
-            furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeInitOnStart);
-#endif
+            ble_custom_event_handler_init(instance);
         }
 
         if(events & BleEventTypeIntercomDeinit) {
-            furi_string_printf(instance->error, "Intercom error");
-            instance->status = BleServiceStatusError;
-
-            BLE_LOG_W("INTERCOM_DEINIT!");
-            for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
-                ble_service_deinit(instance->services[i]);
-            }
-
-            ble_command_unblock_with_result(instance, false);
-            //ble_command_terminate_pending()
-            // if(api_lock_is_locked(instance->current_command_api_lock)) {
-            //     instance->current_command->header.result = false;
-            //     api_lock_unlock(instance->current_command_api_lock);
-            // }
+            ble_custom_event_handler_deinit(instance);
         }
 
         if(events & BleEventTypeDeviceNameChanged) {
