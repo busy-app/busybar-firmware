@@ -1260,6 +1260,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BleStatusResponse"
+        "503":
+          description: Failed to get BLE status, because of an error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/time:
     get:
