@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 18.1.0
+  version: 18.2.0
   contact:
     name: tbd
 
@@ -2349,10 +2349,15 @@ components:
           type: integer
           description: System boot timestamp
           example: 1767225600
+        auto_update_enabled:
+          type: boolean
+          description: Is auto-update enabled
+          example: true
       required:
         - api_semver
         - uptime
         - boot_time
+        - auto_update_enabled
 
     StatusPower:
       type: object

@@ -8,13 +8,16 @@ env.Append(
     CPPDEFINES=[
         '"LWIP_PROVIDE_ERRNO"',  # TODO:
     ],
-    CPPFLAGS=[
-        "-Wno-unused-parameter",
-    ],
 )
 
 libenv = env.Clone(FW_LIB_NAME="lwip")
 libenv.ApplyLibFlags()
+
+libenv.AppendUnique(
+    CPPFLAGS=[
+        "-Wno-unused-parameter",
+    ],
+)
 
 sources = libenv.Glob("lwip/src/core/*.c", source=True)
 sources += libenv.Glob("lwip/src/core/ipv4/*.c", source=True)

@@ -92,24 +92,13 @@ def _production_certs_bundle(production: Path):
     """Extract PAI from certificate_chain.pem; yield (pai, dac_key, dac_cert) paths."""
     temp = Path(tempfile.mkdtemp(prefix="bsb-matter-certs"))
     try:
-        src_chain = production / "certificate_chain.pem"
+        pai_cert = production / "certificate_chain.pem"
         src_dac_cert = production / "certificate.pem"
         src_dac_key = production / "privateKey.pem"
 
-        for p in (src_chain, src_dac_cert, src_dac_key):
+        for p in (pai_cert, src_dac_cert, src_dac_key):
             if not p.is_file():
                 raise FileNotFoundError(f"Missing required file: {p}")
-
-        delimiter = "-----BEGIN CERTIFICATE-----"
-        pai_and_paa = src_chain.read_text(encoding="utf-8")
-        certs = [delimiter + cert for cert in pai_and_paa.split(delimiter) if cert]
-        if len(certs) < 2:
-            raise RuntimeError(
-                "certificate_chain.pem must contain both PAI and PAA certificates"
-            )
-
-        pai_cert = temp / "pai.pem"
-        pai_cert.write_text(certs[0], encoding="utf-8")
 
         yield pai_cert, src_dac_key, src_dac_cert
     finally:
