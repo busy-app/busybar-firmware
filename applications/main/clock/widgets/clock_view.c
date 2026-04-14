@@ -13,18 +13,25 @@ struct ClockView {
     lv_obj_t* icon;
     lv_obj_t* icon_label_date;
 
-    lv_obj_t* text_label_time;
-    lv_obj_t* text_label_meridian;
-    lv_obj_t* text_label_date;
+    lv_obj_t* time_spangroup;
+    lv_span_t* time_hour_span;
+    lv_span_t* time_minute_colon_span;
+    lv_span_t* time_minute_span;
+    lv_span_t* time_second_colon_span;
+    lv_span_t* time_second_span;
+
+    lv_obj_t* time_meridian_label;
+
+    lv_obj_t* date_label;
 
     FontRegistry* font_registry;
     const lv_font_t* font_busy_bold_7;
     const lv_font_t* font_busy_regular_5;
     const lv_font_t* font_busy_superscript_7;
 
-    bool show_seconds;
-    bool show_date;
     TimeSettingTimeFormat time_format;
+    bool show_date;
+    bool show_seconds;
 };
 
 const lv_obj_class_t clock_view_lvgl_class;
@@ -99,22 +106,45 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_pad_column(time_container, 1, LV_PART_MAIN);
     lv_obj_set_size(time_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-    instance->text_label_time = lv_label_create(time_container);
-    lv_obj_set_style_text_font(
-        instance->text_label_time, instance->font_busy_bold_7, LV_PART_MAIN);
-    lv_obj_set_style_text_color(instance->text_label_time, lv_color_white(), LV_PART_MAIN);
+    instance->time_spangroup = lv_spangroup_create(time_container);
 
-    instance->text_label_meridian = lv_label_create(time_container);
-    lv_obj_set_style_text_font(
-        instance->text_label_meridian, instance->font_busy_regular_5, LV_PART_MAIN);
-    lv_obj_set_style_text_color(instance->text_label_meridian, lv_color_white(), LV_PART_MAIN);
+    instance->time_hour_span = lv_spangroup_add_span(instance->time_spangroup);
+    lv_style_set_text_font(
+        lv_span_get_style(instance->time_hour_span), instance->font_busy_bold_7);
+    lv_style_set_text_color(lv_span_get_style(instance->time_hour_span), lv_color_white());
 
-    instance->text_label_date = lv_label_create(text_container);
+    instance->time_minute_colon_span = lv_spangroup_add_span(instance->time_spangroup);
+    lv_style_set_text_font(
+        lv_span_get_style(instance->time_minute_colon_span), instance->font_busy_bold_7);
+    lv_style_set_text_color(lv_span_get_style(instance->time_minute_colon_span), lv_color_white());
+    lv_span_set_text_static(instance->time_minute_colon_span, ":");
+
+    instance->time_minute_span = lv_spangroup_add_span(instance->time_spangroup);
+    lv_style_set_text_font(
+        lv_span_get_style(instance->time_minute_span), instance->font_busy_bold_7);
+    lv_style_set_text_color(lv_span_get_style(instance->time_minute_span), lv_color_white());
+
+    instance->time_second_colon_span = lv_spangroup_add_span(instance->time_spangroup);
+    lv_style_set_text_font(
+        lv_span_get_style(instance->time_second_colon_span), instance->font_busy_bold_7);
+    lv_style_set_text_color(lv_span_get_style(instance->time_second_colon_span), lv_color_white());
+    lv_span_set_text_static(instance->time_second_colon_span, ":");
+
+    instance->time_second_span = lv_spangroup_add_span(instance->time_spangroup);
+    lv_style_set_text_font(
+        lv_span_get_style(instance->time_second_span), instance->font_busy_bold_7);
+    lv_style_set_text_color(lv_span_get_style(instance->time_second_span), lv_color_white());
+
+    instance->time_meridian_label = lv_label_create(time_container);
     lv_obj_set_style_text_font(
-        instance->text_label_date, instance->font_busy_regular_5, LV_PART_MAIN);
-    lv_obj_set_style_text_color(instance->text_label_date, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_opa(instance->text_label_date, LV_OPA_50, LV_PART_MAIN);
-    lv_obj_set_style_translate_y(instance->text_label_date, -2, LV_PART_MAIN);
+        instance->time_meridian_label, instance->font_busy_regular_5, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->time_meridian_label, lv_color_white(), LV_PART_MAIN);
+
+    instance->date_label = lv_label_create(text_container);
+    lv_obj_set_style_text_font(instance->date_label, instance->font_busy_regular_5, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->date_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_opa(instance->date_label, LV_OPA_50, LV_PART_MAIN);
+    lv_obj_set_style_margin_top(instance->date_label, -2, LV_PART_MAIN);
 }
 
 static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -130,13 +160,13 @@ static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
 /* internals */
 
-const char* clock_app_get_month_short_name(uint8_t month) {
+const char* clock_view_get_month_short_name(uint8_t month) {
     furi_assert(month >= 1 && month <= COUNT_OF(month_short_names));
 
     return month_short_names[month - 1];
 }
 
-const char* clock_app_get_weekday_short_name(uint8_t dayofweek) {
+const char* clock_view_get_weekday_short_name(uint8_t dayofweek) {
     furi_assert(dayofweek >= 1 && dayofweek <= COUNT_OF(weekday_short_names));
 
     return weekday_short_names[dayofweek - 1];
@@ -152,9 +182,9 @@ ClockView* clock_view_alloc(Widget* parent) {
 
     ClockView* instance = (ClockView*)obj;
 
-    instance->show_seconds = true;
-    instance->show_date = true;
     instance->time_format = TimeSettingTimeFormat12h;
+    instance->show_date = true;
+    instance->show_seconds = true;
 
     return instance;
 }
@@ -171,41 +201,48 @@ Widget* clock_view_get_base(ClockView* instance) {
     return (Widget*)instance;
 }
 
-void clock_view_set_show_seconds(ClockView* instance, bool show_seconds) {
-    furi_check(instance);
-
-    instance->show_seconds = show_seconds;
-}
-
-void clock_view_set_show_date(ClockView* instance, bool show_date) {
-    furi_check(instance);
-
-    lv_obj_update_flag(instance->icon, LV_OBJ_FLAG_HIDDEN, !show_date);
-    lv_obj_update_flag(instance->text_label_date, LV_OBJ_FLAG_HIDDEN, !show_date);
-
-    instance->show_seconds = show_date;
-}
-
 void clock_view_set_time_format(ClockView* instance, TimeSettingTimeFormat time_format) {
     furi_check(instance);
 
-    bool do_hide_meridian;
+    bool hide_meridian;
     switch(time_format) {
     case TimeSettingTimeFormat24h:
-        do_hide_meridian = true;
+        hide_meridian = true;
         break;
 
     case TimeSettingTimeFormat12h:
-        do_hide_meridian = false;
+        hide_meridian = false;
         break;
 
     default:
         furi_crash();
     }
 
-    lv_obj_update_flag(instance->text_label_meridian, LV_OBJ_FLAG_HIDDEN, do_hide_meridian);
+    lv_obj_update_flag(instance->time_meridian_label, LV_OBJ_FLAG_HIDDEN, hide_meridian);
 
     instance->time_format = time_format;
+}
+
+void clock_view_set_show_date(ClockView* instance, bool show_date) {
+    furi_check(instance);
+
+    lv_obj_update_flag(instance->icon, LV_OBJ_FLAG_HIDDEN, !show_date);
+    lv_obj_update_flag(instance->date_label, LV_OBJ_FLAG_HIDDEN, !show_date);
+
+    instance->show_date = show_date;
+}
+
+void clock_view_set_show_seconds(ClockView* instance, bool show_seconds) {
+    furi_check(instance);
+
+    if(show_seconds) {
+        lv_span_set_text_static(instance->time_second_colon_span, ":");
+    } else {
+        lv_span_set_text_static(instance->time_second_colon_span, "");
+        lv_span_set_text_static(instance->time_second_span, "");
+    }
+
+    instance->show_seconds = show_seconds;
 }
 
 void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
@@ -215,63 +252,66 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     if(instance->show_date) {
         lv_label_set_text_fmt(instance->icon_label_date, "%" PRIu8, date_time->dayofmonth);
         lv_label_set_text_fmt(
-            instance->text_label_date,
+            instance->date_label,
             "%s, %s",
-            clock_app_get_month_short_name(date_time->month),
-            clock_app_get_weekday_short_name(date_time->dayofweek));
+            clock_view_get_month_short_name(date_time->month),
+            clock_view_get_weekday_short_name(date_time->dayofweek));
     }
 
-    const char* meridian;
-    int display_hour_min_width;
     uint8_t display_hour;
+    int display_hour_width;
 
     switch(instance->time_format) {
     case TimeSettingTimeFormat24h:
-        meridian = NULL;
-        display_hour_min_width = 2;
+        display_hour_width = 2;
         display_hour = date_time->hour;
         break;
 
     case TimeSettingTimeFormat12h:
-        meridian = (date_time->hour >= 12) ? "PM" : "AM";
-        display_hour_min_width = 0;
+        display_hour_width = 0;
         display_hour = (date_time->hour == 0) ? 12 :
                        (date_time->hour > 12) ? date_time->hour - 12 :
                                                 date_time->hour;
+
+        lv_label_set_text_static(
+            instance->time_meridian_label, (date_time->hour >= 12) ? "PM" : "AM");
         break;
 
     default:
         furi_crash();
     }
 
+    FuriString* string_builder = furi_string_alloc();
+
+    furi_string_printf(string_builder, "%0*" PRIu8, display_hour_width, display_hour);
+    lv_span_set_text(instance->time_hour_span, furi_string_get_cstr(string_builder));
+
+    furi_string_printf(string_builder, "%02" PRIu8, date_time->minute);
+    lv_span_set_text(instance->time_minute_span, furi_string_get_cstr(string_builder));
+
     if(instance->show_seconds) {
-        lv_label_set_text_fmt(
-            instance->text_label_time,
-            "%0*" PRIu8 ":%02" PRIu8 ":%02" PRIu8,
-            display_hour_min_width,
-            display_hour,
-            date_time->minute,
-            date_time->second);
-    } else {
-        lv_label_set_text_fmt(
-            instance->text_label_time,
-            "%0*" PRIu8 ":%02" PRIu8,
-            display_hour_min_width,
-            display_hour,
-            date_time->minute);
+        furi_string_printf(string_builder, "%02" PRIu8, date_time->second);
+        lv_span_set_text(instance->time_second_span, furi_string_get_cstr(string_builder));
     }
 
-    if(meridian) lv_label_set_text(instance->text_label_meridian, meridian);
+    furi_string_free(string_builder);
+    lv_spangroup_refresh(instance->time_spangroup);
+
+    if(meridian) lv_label_set_text_static(instance->time_meridian_label, meridian);
 }
 
 /* LVGL class descriptor */
 
 const lv_obj_class_t clock_view_lvgl_class = {
     .base_class = &widget_lvgl_class,
+
     .constructor_cb = clock_view_lvgl_constructor,
     .destructor_cb = clock_view_lvgl_destructor,
+
     .name = "widget-clock-view",
+
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
+
     .instance_size = sizeof(ClockView),
 };
