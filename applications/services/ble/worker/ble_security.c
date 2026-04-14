@@ -17,7 +17,7 @@ struct BleSecurityData {
 #define BLE_SECURITY_RPA_UPDATE_TIMEOUT (900U) //15 min
 #define BLE_SECURITY_RPA_IRK_SIZE       16
 
-#define BLE_SECURITY_LOG_KEYS
+// #define BLE_SECURITY_LOG_KEYS
 
 #ifdef BLE_SECURITY_LOG_KEYS
 static void ble_security_format_array(
