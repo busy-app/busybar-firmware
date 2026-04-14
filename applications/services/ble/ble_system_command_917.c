@@ -118,12 +118,14 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
     Ble* instance = context;
 
     ble_worker_stop();
-
-    instance->status = BleServiceStatusReady;
-    frame->header.data_size = 0;
-    frame->header.result = true;
-
-    return ble_command_response_process(frame, context);
+    bool result = false;
+    if(instance->status != BleServiceStatusError) {
+        instance->status = BleServiceStatusReady;
+        frame->header.data_size = 0;
+        frame->header.result = true;
+        result = ble_command_response_process(frame, context);
+    }
+    return result;
 }
 
 static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* context) {
