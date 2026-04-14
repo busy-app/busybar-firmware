@@ -219,6 +219,12 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
 
         instance->current_command->header.result = result;
         api_lock_unlock(instance->current_command_api_lock);
+
+        const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_command_lock);
+        const FuriThreadId current_id = furi_thread_get_current_id();
+        if(owner_id == current_id) {
+            furi_mutex_release(instance->current_command_lock);
+        }
     } else {
         result = ble_command_request_process(frame, context);
     }
