@@ -232,9 +232,15 @@ void ble_invoke_retry_command_on_internal_event(
     BleSystemCommand command,
     BleEventType retry_event,
     uint32_t retry_timeout) {
-    UNUSED(instance);
-    UNUSED(retry_timeout);
-    UNUSED(command);
-    UNUSED(retry_event);
-    furi_crash("Not implemented");
+    if(furi_semaphore_acquire(instance->mailbox_lock, retry_timeout) == FuriStatusOk) {
+        BleIntercomFrameHeader* header = &instance->mailbox.header;
+        header->frame_type = BleIntercomFrameTypeRequest;
+        header->command = command;
+        header->source = BleIntercomFrameSourceSystem;
+        header->data_size = 0;
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeFrameReceived);
+    } else {
+        BLE_LOG_W("Invoke retry");
+        furi_event_loop_set_custom_event(instance->event_loop, retry_event);
+    }
 }
