@@ -162,8 +162,8 @@ void usb_network_up(void) {
 
     LOCK_TCPIP_CORE();
     // TODO: DHCP server
-    netif_set_link_up(netif);
     netif_set_up(netif);
+    netif_set_link_up(netif);
     UNLOCK_TCPIP_CORE();
 }
 
@@ -173,8 +173,8 @@ void usb_network_down(void) {
 
     LOCK_TCPIP_CORE();
     // TODO: DHCP server
-    netif_set_down(netif);
     netif_set_link_down(netif);
+    netif_set_down(netif);
     UNLOCK_TCPIP_CORE();
 }
 
