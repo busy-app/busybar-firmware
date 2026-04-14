@@ -118,7 +118,6 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
         ble_set_service_post_process_callback(instance, NULL);
 
         ble_restore_state_on_start(instance);
-        ///TODO: replace with command unlock
         instance->current_command->header.result = true;
         api_lock_unlock(instance->current_command_api_lock);
     }
