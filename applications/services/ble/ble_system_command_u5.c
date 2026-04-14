@@ -20,9 +20,15 @@ BleIntercomFrameGeneric*
 }
 
 void ble_command_unblock_with_result(Ble* instance, bool result) {
-    if(instance->current_command_api_lock) {
+    if(api_lock_is_locked(instance->current_command_api_lock)) {
         instance->current_command->header.result = result;
         api_lock_unlock(instance->current_command_api_lock);
+    }
+
+    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_command_lock);
+    const FuriThreadId current_id = furi_thread_get_current_id();
+    if(owner_id == current_id) {
+        furi_mutex_release(instance->current_command_lock);
     }
 }
 
