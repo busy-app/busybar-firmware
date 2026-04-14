@@ -14,41 +14,47 @@
 
 #include <network/network.h>
 
+#ifndef ETH_PAD_SIZE
+#define ETH_PAD_SIZE 0
+#endif // ETH_PAD_SIZE
+
+#if(ETH_PAD_SIZE != 0)
+#define PBUF_ADD_PADDING(p)  pbuf_header((p), ETH_PAD_SIZE)
+#define PBUF_DROP_PADDING(p) pbuf_header((p), -ETH_PAD_SIZE)
+#else // ETH_PAD_SIZE != 0
+#define PBUF_ADD_PADDING(p)
+#define PBUF_DROP_PADDING(p)
+#endif // ETH_PAD_SIZE != 0
+
 #define TAG "UsbNet"
 
-UsbNetwork* usb_network = NULL;
+static UsbNetwork* usb_network = NULL;
 
 static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
-    (void)netif;
+    UNUSED(netif);
 
-#if(ETH_PAD_SIZE != 0)
-    pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
-#endif
+    err_t ret = ERR_USE;
 
-    if(!tud_ready()) {
-        return ERR_USE;
-    }
+    PBUF_DROP_PADDING(p);
 
-    if(!tud_network_can_xmit(p->tot_len)) {
-        return ERR_USE;
-    }
-    tud_network_xmit(p, 0);
+    do {
+        if(!tud_ready()) {
+            break;
+        }
 
-#if(ETH_PAD_SIZE != 0)
-    pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
-#endif
-    return ERR_OK;
+        if(!tud_network_can_xmit(p->tot_len)) {
+            break;
+        }
+
+        tud_network_xmit(p, 0);
+
+        ret = ERR_OK;
+    } while(false);
+
+    PBUF_ADD_PADDING(p);
+
+    return ret;
 }
-
-static err_t ip4_output_fn(struct netif* netif, struct pbuf* p, const ip4_addr_t* addr) {
-    return etharp_output(netif, p, addr);
-}
-
-#if LWIP_IPV6
-static err_t ip6_output_fn(struct netif* netif, struct pbuf* p, const ip6_addr_t* addr) {
-    return ethip6_output(netif, p, addr);
-}
-#endif
 
 static err_t netif_init_cb(struct netif* netif) {
     LWIP_ASSERT("netif != NULL", (netif != NULL));
@@ -61,9 +67,9 @@ static err_t netif_init_cb(struct netif* netif) {
     netif->name[0] = 'E';
     netif->name[1] = 'X';
     netif->linkoutput = linkoutput_fn;
-    netif->output = ip4_output_fn;
+    netif->output = etharp_output;
 #if LWIP_IPV6
-    netif->output_ip6 = ip6_output_fn;
+    netif->output_ip6 = ethip6_output;
 #endif
     return ERR_OK;
 }
@@ -149,6 +155,52 @@ static void usb_network_init_netif(UsbNetwork* instance) {
 #endif
 
     UNLOCK_TCPIP_CORE();
+}
+
+void usb_network_up(void) {
+}
+
+void usb_network_down(void) {
+}
+
+bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
+    if(data_size == 0) {
+        return false;
+    }
+
+    struct pbuf* p = pbuf_alloc(PBUF_RAW, data_size + ETH_PAD_SIZE, PBUF_POOL);
+
+    if(!p) {
+        FURI_LOG_T(TAG, "cannot receive frame, pbuf_alloc failed");
+        return false;
+    }
+
+    PBUF_DROP_PADDING(p);
+    pbuf_take(p, data, data_size);
+    PBUF_ADD_PADDING(p);
+
+    if(usb_network) { /* Check if netif is initialized */
+        struct netif* netif = &usb_network->netif;
+        const err_t err = netif->input(p, netif);
+
+        if(err != ERR_OK) {
+            FURI_LOG_W(TAG, "netif->input failed with error: %d", err);
+            pbuf_free(p); /* Free pbuf if input failed */
+        }
+
+    } else {
+        FURI_LOG_E(TAG, "usb_network->netif is NULL in recv_cb");
+        pbuf_free(p); /* Free pbuf as it cannot be processed */
+        return false;
+    }
+
+    tud_network_recv_renew();
+    return true;
+}
+
+uint16_t usb_network_tx(uint8_t* data, void* context) {
+    struct pbuf* p = context;
+    return pbuf_copy_partial(p, data, p->tot_len, 0);
 }
 
 bool usb_network_is_dhcp_addr(UsbNetwork* instance, uint8_t* addr) {

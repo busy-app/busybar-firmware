@@ -4,7 +4,7 @@
 #include <furi_hal.h>
 #include <tusb.h>
 
-#define TAG "USB"
+#define TAG "Usb"
 
 static void usb_core_irq(void* context) {
     UNUSED(context);

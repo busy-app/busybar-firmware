@@ -20,4 +20,10 @@ struct UsbNetwork {
     UsbNetworkSettings settings;
 };
 
-extern UsbNetwork* usb_network;
+void usb_network_up(void);
+
+void usb_network_down(void);
+
+bool usb_network_rx(const uint8_t* data, uint16_t data_size);
+
+uint16_t usb_network_tx(uint8_t* data, void* context);
