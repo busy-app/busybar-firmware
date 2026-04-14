@@ -81,6 +81,9 @@ static void ble_custom_event_handler_deinit(Ble* instance) {
 
     ble_deinit_services(instance);
     ble_command_unblock_with_result(instance, false);
+
+    ble_invoke_retry_command_on_internal_event(
+        instance, BleCommandDisable, BleEventTypeIntercomDeinit, BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
 }
 
 static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* context) {
