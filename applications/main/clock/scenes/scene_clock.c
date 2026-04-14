@@ -40,9 +40,11 @@ static void clock_scene_clock_on_enter(void* context) {
         scene->front_clock = clock_view_alloc(instance->front_scene_window);
         widget_set_align(clock_view_get_base(scene->front_clock), AlignCenter);
 
+        clock_view_set_time_format(scene->front_clock, time_settings->time_format);
         clock_view_set_show_date(scene->front_clock, instance->settings.show_date);
         clock_view_set_show_seconds(scene->front_clock, instance->settings.show_seconds);
-        clock_view_set_time_format(scene->front_clock, time_settings->time_format);
+        clock_view_set_blink_colons(scene->front_clock, instance->settings.blink_colons);
+
         clock_view_set_date_time(scene->front_clock, &local_time.dt);
 
         /* back layout setup */

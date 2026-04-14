@@ -56,8 +56,11 @@ static void clock_scene_main_on_enter(void* context) {
         scene->front_clock = clock_view_alloc(scene->front_container);
         widget_set_align(clock_view_get_base(scene->front_clock), AlignLeftMid);
 
-        clock_view_set_show_seconds(scene->front_clock, false);
         clock_view_set_time_format(scene->front_clock, time_settings->time_format);
+        clock_view_set_show_date(scene->front_clock, true);
+        clock_view_set_show_seconds(scene->front_clock, false);
+        clock_view_set_blink_colons(scene->front_clock, instance->settings.blink_colons);
+
         clock_view_set_date_time(scene->front_clock, &local_time.dt);
 
         AnimMenu* front_menu = anim_menu_alloc(scene->front_container);
