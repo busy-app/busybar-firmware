@@ -164,37 +164,53 @@ void usb_network_down(void) {
 }
 
 bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
-    if(data_size == 0) {
-        return false;
-    }
+    furi_assert(usb_network);
 
-    struct pbuf* p = pbuf_alloc(PBUF_RAW, data_size + ETH_PAD_SIZE, PBUF_POOL);
+    bool success = false;
+    struct pbuf* pbuf = NULL;
 
-    if(!p) {
-        FURI_LOG_T(TAG, "cannot receive frame, pbuf_alloc failed");
-        return false;
-    }
-
-    PBUF_DROP_PADDING(p);
-    pbuf_take(p, data, data_size);
-    PBUF_ADD_PADDING(p);
-
-    if(usb_network) { /* Check if netif is initialized */
-        struct netif* netif = &usb_network->netif;
-        const err_t err = netif->input(p, netif);
-
-        if(err != ERR_OK) {
-            FURI_LOG_W(TAG, "netif->input failed with error: %d", err);
-            pbuf_free(p); /* Free pbuf if input failed */
+    do {
+        // TODO: Is this really possible?
+        if(data_size == 0) {
+            FURI_LOG_W(TAG, "Data size is zero");
+            break;
         }
 
-    } else {
-        FURI_LOG_E(TAG, "usb_network->netif is NULL in recv_cb");
-        pbuf_free(p); /* Free pbuf as it cannot be processed */
-        return false;
+        pbuf = pbuf_alloc(PBUF_RAW, data_size + ETH_PAD_SIZE, PBUF_POOL);
+
+        if(!pbuf) {
+            FURI_LOG_T(TAG, "pbuf_alloc() failed");
+            break;
+        }
+
+        err_t lwip_err;
+
+        PBUF_DROP_PADDING(pbuf);
+        lwip_err = pbuf_take(pbuf, data, data_size);
+        PBUF_ADD_PADDING(pbuf);
+
+        if(lwip_err != ERR_OK) {
+            FURI_LOG_W(TAG, "pbuf_take() failed with error: %d", lwip_err);
+            break;
+        }
+
+        struct netif* netif = &usb_network->netif;
+        lwip_err = netif->input(pbuf, netif);
+
+        if(lwip_err != ERR_OK) {
+            FURI_LOG_W(TAG, "netif->input() failed with error: %d", lwip_err);
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    if(!success && pbuf) {
+        pbuf_free(pbuf);
     }
 
     tud_network_recv_renew();
+
     return true;
 }
 
