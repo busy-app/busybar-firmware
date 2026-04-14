@@ -127,7 +127,7 @@ extern "C" {
 
 FuriHalCryptoKey* furi_hal_crypto_key_alloc(void);
 
-void furi_hal_crypto_key_free(FuriHalCryptoKey *key);
+void furi_hal_crypto_key_free(FuriHalCryptoKey* key);
 
 //#################### AES ####################
 /**
@@ -146,11 +146,10 @@ void furi_hal_crypto_key_free(FuriHalCryptoKey *key);
  *     - FuriHalCryptoWrappingModeOff
  *     - FuriHalCryptoWrappingModeOn
  */
-FuriHalCryptoAes* furi_hal_crypto_aes_init(
+FuriHalCryptoStatus furi_hal_crypto_aes_init(
+    FuriHalCryptoAes** aes,
     FuriHalCryptoAesMode mode,
-    uint8_t* key,
-    size_t key_size,
-    FuriHalCryptoWrappingMode wrapping_mode);
+    const FuriHalCryptoKey* key);
 
 /**
  * Deinitialize the AES module.
@@ -210,9 +209,8 @@ bool furi_hal_crypto_aes_decrypt(
  *    - FuriHalCryptoWrappingModeOn
  * @return FuriHalCryptoEcdsa* ECDSA handle
  */
-FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
-    FuriHalCryptoEcdsaMode mode,
-    const FuriHalCryptoKey* key);
+FuriHalCryptoEcdsa*
+    furi_hal_crypto_ecdsa_sign_init(FuriHalCryptoEcdsaMode mode, const FuriHalCryptoKey* key);
 
 /**
  * @brief Initialize ECDSA verification
@@ -354,10 +352,11 @@ bool furi_hal_crypto_sha(
  * @param[in] uint8_t* key Pointer to the key.
  * @param[out] uint8_t* wrapped_key Pointer to the wrapped key.
  */
-FuriHalCryptoStatus furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key);
+FuriHalCryptoStatus
+    furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key);
 
-FuriHalCryptoStatus furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf);
-
+FuriHalCryptoStatus
+    furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf);
 
 //#################### Key generation ##############
 
@@ -371,17 +370,19 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size);
 /** Generate a random key.
  * @param[in] type key type to generate.
  */
-FuriHalCryptoStatus
-    furi_hal_crypto_gen_random_key(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, FuriHalCryptoKeyFlag flags);
+FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
+    FuriHalCryptoKey* key,
+    FuriHalCryptoKeyType type,
+    FuriHalCryptoKeyFlag flags);
 
 /** Generate an asymmetric public key from a private key.
 * @param[in] priv_key Pointer to the private key.
 * @param[out] pub_key Pointer to the public key.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus
-    furi_hal_crypto_gen_asymmetric_pub_key(const FuriHalCryptoKey* priv_key, FuriHalCryptoKey* pub_key);
-
+FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
+    const FuriHalCryptoKey* priv_key,
+    FuriHalCryptoKey* pub_key);
 
 /** Generate a CSR in DER format for ECDSA 256.
 * @param[in] priv_key Pointer to the private key.
@@ -393,6 +394,10 @@ FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     const FuriHalCryptoKey* priv_key,
     FuriHalCryptoKey* csr_der_key,
     const char* subject_name);
+
+//#################### Util ##############
+/** Get human-readable key type name */
+const char* furi_hal_crypto_get_key_type_name(FuriHalCryptoKeyType type);
 
 #ifdef __cplusplus
 }

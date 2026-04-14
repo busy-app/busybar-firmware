@@ -31,11 +31,14 @@ typedef struct {
 static bool supervisor_is_tls_crypto_healthy(void) {
     bool is_healthy = false;
 
-    FuriHalCryptoKey *key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
 
     do {
         const FuriHalCryptoStatus status = furi_hal_crypto_storage_read(
-            key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeEcdsaPriv256, SUPERVISOR_CRYPTO_KEY_ID);
+            key,
+            FuriHalCryptoPartitionMain,
+            FuriHalCryptoKeyTypeEcdsaPriv256,
+            SUPERVISOR_CRYPTO_KEY_ID);
 
         if(status != FuriHalCryptoStatusOk) {
             // Special case: report good health if the key is not provisioned
@@ -43,9 +46,8 @@ static bool supervisor_is_tls_crypto_healthy(void) {
             break;
         }
 
-        FuriHalCryptoEcdsa* sign_ctx = furi_hal_crypto_ecdsa_sign_init(
-            FuriHalCryptoEcdsaModeSha256,
-            key);
+        FuriHalCryptoEcdsa* sign_ctx =
+            furi_hal_crypto_ecdsa_sign_init(FuriHalCryptoEcdsaModeSha256, key);
 
         uint8_t message[SUPERVISOR_CRYPTO_TEST_MSG_LEN];
         furi_hal_random_fill_buf(message, sizeof(message));

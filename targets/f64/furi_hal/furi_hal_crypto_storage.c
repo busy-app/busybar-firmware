@@ -105,9 +105,11 @@ static FuriHalCryptoStatus furi_hal_crypto_storage_check_key_slot_is_free(
     return ret;
 }
 
-static FuriHalCryptoStatus
-    furi_hal_crypto_storage_find_empty_slot(const FuriHalCryptoKey* key, FuriHalCryptoPartition partition, uint32_t id, FuriHalCryptoKeyAddress* address) {
-
+static FuriHalCryptoStatus furi_hal_crypto_storage_find_empty_slot(
+    const FuriHalCryptoKey* key,
+    FuriHalCryptoPartition partition,
+    uint32_t id,
+    FuriHalCryptoKeyAddress* address) {
     FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
     const uint32_t address_start = get_partition_start(partition);
     const uint32_t address_max = get_partition_end(partition);
@@ -158,8 +160,10 @@ static FuriHalCryptoStatus
     return ret;
 }
 
-static FuriHalCryptoStatus
-    furi_hal_crypto_storage_read_address(FuriHalCryptoKey* key, FuriHalCryptoKeySlotHeader* header, uint32_t address_start) {
+static FuriHalCryptoStatus furi_hal_crypto_storage_read_address(
+    FuriHalCryptoKey* key,
+    FuriHalCryptoKeySlotHeader* header,
+    uint32_t address_start) {
     furi_assert(key);
     furi_assert(header);
 
@@ -255,7 +259,6 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(
     const FuriHalCryptoKey* key,
     FuriHalCryptoPartition partition,
     uint32_t id) {
-
     return furi_hal_crypto_storage_write_ex(key, partition, id, NULL);
 }
 
@@ -267,13 +270,10 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
     furi_check(key);
 
     FuriHalCryptoKeySlot slot;
-    FuriHalCryptoStatus ret = furi_hal_crypto_storage_find_empty_slot(key, partition, id, &slot.address);
+    FuriHalCryptoStatus ret =
+        furi_hal_crypto_storage_find_empty_slot(key, partition, id, &slot.address);
     if(ret == FuriHalCryptoStatusDuplicate) {
-        FURI_LOG_E(
-            TAG,
-            "Key with type %d and id 0x%08lx already exists",
-            key->type,
-            id);
+        FURI_LOG_E(TAG, "Key with type %d and id 0x%08lx already exists", key->type, id);
         return ret;
     } else if(ret == FuriHalCryptoStatusStorageFull) {
         FURI_LOG_E(TAG, "No free space for key storage");
@@ -302,7 +302,8 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
     uint8_t* crc_buf = malloc(FURI_HAL_CRYPTO_DATA_SIZE_MAX);
     memcpy(crc_buf, key->data, key->length);
     bzero(crc_buf + key->length, FURI_HAL_CRYPTO_DATA_SIZE_MAX - key->length);
-    slot.header.crc32 = crc32_calc_buffer(slot.header.crc32, crc_buf, FURI_HAL_CRYPTO_DATA_SIZE_MAX);
+    slot.header.crc32 =
+        crc32_calc_buffer(slot.header.crc32, crc_buf, FURI_HAL_CRYPTO_DATA_SIZE_MAX);
     bzero(crc_buf, FURI_HAL_CRYPTO_DATA_SIZE_MAX);
     free(crc_buf);
 
@@ -324,10 +325,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
     }
 
     status = sl_si91x_command_to_write_common_flash(
-        abs_address + sizeof(FuriHalCryptoKeySlotHeader),
-        (uint8_t*)key->data,
-        key->length,
-        0);
+        abs_address + sizeof(FuriHalCryptoKeySlotHeader), (uint8_t*)key->data, key->length, 0);
 
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to write to NWP flash: 0x%08lx\r\n", status);
@@ -335,7 +333,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
     }
 
     // check if key is written correctly
-    FuriHalCryptoKey *key_check = malloc(sizeof(FuriHalCryptoKey));
+    FuriHalCryptoKey* key_check = malloc(sizeof(FuriHalCryptoKey));
     FuriHalCryptoKeySlotHeader header_check;
 
     ret = furi_hal_crypto_storage_read_address(key_check, &header_check, abs_address);
@@ -373,10 +371,11 @@ FuriHalCryptoStatus furi_hal_crypto_storage_read_ex(
     FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
 
     FuriHalCryptoKeyIter iter = furi_hal_crypto_key_iter_init(partition);
-    FuriHalCryptoKey *current_key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKey* current_key = furi_hal_crypto_key_alloc();
     FuriHalCryptoKeySlot current_slot;
 
-    while((ret = furi_hal_crypto_key_iter_get_and_advance(&iter, current_key, &current_slot)) == FuriHalCryptoStatusOk) {
+    while((ret = furi_hal_crypto_key_iter_get_and_advance(&iter, current_key, &current_slot)) ==
+          FuriHalCryptoStatusOk) {
         if(current_slot.header.id == id && current_slot.header.type == type) {
             *key = *current_key;
             if(slot) {

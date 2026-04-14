@@ -14,20 +14,19 @@
 
 #define TAG "Crypto"
 
-#define FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX      (2048UL)
+#define FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX (2048UL)
 
-static const uint8_t wrap_iv[] =
+static const uint8_t wrap_iv[SL_SI91X_IV_SIZE] =
     {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46};
 
 FuriHalCryptoKey* furi_hal_crypto_key_alloc(void) {
     return malloc(sizeof(FuriHalCryptoKey));
 }
 
-void furi_hal_crypto_key_free(FuriHalCryptoKey *key) {
+void furi_hal_crypto_key_free(FuriHalCryptoKey* key) {
     bzero(key->data, sizeof(key->data));
     free(key);
 }
-
 
 //#################### AES ####################
 struct FuriHalCryptoAes {
@@ -39,32 +38,42 @@ static const sl_si91x_aes_mode_t furi_hal_crypto_aes_mode[] = {
     [FuriHalCryptoAesModeECB] = SL_SI91X_AES_ECB,
     [FuriHalCryptoAesModeCTR] = SL_SI91X_AES_CTR};
 
-FuriHalCryptoAes* furi_hal_crypto_aes_init(
+FuriHalCryptoStatus furi_hal_crypto_aes_init(
+    FuriHalCryptoAes** aes,
     FuriHalCryptoAesMode mode,
-    uint8_t* key,
-    size_t key_size,
-    FuriHalCryptoWrappingMode wrapping_mode) {
+    const FuriHalCryptoKey* key) {
+    furi_check(aes);
+    furi_check(key);
+
+    switch(key->type) {
+    case FuriHalCryptoKeyTypeAes128:
+    case FuriHalCryptoKeyTypeAes192:
+    case FuriHalCryptoKeyTypeAes256:
+        break;
+    default:
+        return FuriHalCryptoStatusWrongType;
+    }
+
     FuriHalCryptoAes* handle = malloc(sizeof(FuriHalCryptoAes));
-    furi_check(handle != NULL, "Failed to allocate memory for AES handle");
 
     handle->config.aes_mode = furi_hal_crypto_aes_mode[mode];
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
     handle->config.iv = NULL;
-    switch(key_size) {
-    case SL_SI91X_AES_KEY_SIZE_128:
+    switch(key->type) {
+    case FuriHalCryptoKeyTypeAes128:
         handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_128;
         break;
-    case SL_SI91X_AES_KEY_SIZE_192:
+    case FuriHalCryptoKeyTypeAes192:
         handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_192;
         break;
-    case SL_SI91X_AES_KEY_SIZE_256:
+    case FuriHalCryptoKeyTypeAes256:
         handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_256;
         break;
-
     default:
-        furi_crash("Invalid key size");
+        // unreachable
+        furi_assert(false);
         break;
     }
     handle->config.key_config.b0.key_slot = 0;
@@ -72,26 +81,19 @@ FuriHalCryptoAes* furi_hal_crypto_aes_init(
     if(handle->config.key_config.b0.wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
         memcpy(handle->config.key_config.b0.wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
     }
-    memcpy(handle->config.key_config.b0.key_buffer, key, handle->config.key_config.b0.key_size);
+    memcpy(handle->config.key_config.b0.key_buffer, key->data, key->length);
 
-    if(wrapping_mode == FuriHalCryptoWrappingModeOff) {
+    if((key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
         handle->config.key_config.b0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.b0.key_type = SL_SI91X_WRAPPED_KEY;
         //for 128 bits key, wrap key size is 128 bits,
         //for 192 and 256 bits keys, wrap key size is 256 bits
-        if(handle->config.key_config.b0.key_size == SL_SI91X_AES_KEY_SIZE_128) {
-            memcpy(handle->config.key_config.b0.key_buffer, key, SL_SI91X_AES_KEY_SIZE_128);
-        } else if(
-            handle->config.key_config.b0.key_size == SL_SI91X_AES_KEY_SIZE_192 ||
-            handle->config.key_config.b0.key_size == SL_SI91X_AES_KEY_SIZE_256) {
-            memcpy(handle->config.key_config.b0.key_buffer, key, SL_SI91X_AES_KEY_SIZE_256);
-        } else {
-            furi_crash("Invalid key size");
-        }
     }
 
-    return handle;
+    *aes = handle;
+
+    return FuriHalCryptoStatusOk;
 }
 
 void furi_hal_crypto_aes_deinit(FuriHalCryptoAes* handle) {
@@ -104,10 +106,10 @@ bool furi_hal_crypto_aes_encrypt(
     uint8_t* input,
     uint16_t input_length,
     uint8_t* output) {
-    furi_assert(handle);
-    furi_assert(input);
-    furi_assert(input_length % 16 == 0);
-    furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
+    furi_check(handle);
+    furi_check(input);
+    furi_check(input_length % 16 == 0);
+    furi_check(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
     if(handle->config.aes_mode != SL_SI91X_AES_ECB) {
         furi_check(iv);
     }
@@ -132,10 +134,10 @@ bool furi_hal_crypto_aes_decrypt(
     uint8_t* input,
     uint16_t input_length,
     uint8_t* output) {
-    furi_assert(handle);
-    furi_assert(input);
-    furi_assert(input_length % 16 == 0);
-    furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
+    furi_check(handle);
+    furi_check(input);
+    furi_check(input_length % 16 == 0);
+    furi_check(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
     if(handle->config.aes_mode != SL_SI91X_AES_ECB) {
         furi_check(iv);
     }
@@ -165,9 +167,8 @@ struct FuriHalCryptoEcdsa {
     sl_si91x_ecdsa_config_t config;
 };
 
-FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
-    FuriHalCryptoEcdsaMode mode,
-    const FuriHalCryptoKey* key) {
+FuriHalCryptoEcdsa*
+    furi_hal_crypto_ecdsa_sign_init(FuriHalCryptoEcdsaMode mode, const FuriHalCryptoKey* key) {
     FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
     furi_check(handle != NULL, "Failed to allocate memory for ECDSA handle");
 
@@ -205,9 +206,8 @@ FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
     return handle;
 }
 
-FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_verify_init(
-    FuriHalCryptoEcdsaMode mode,
-    const FuriHalCryptoKey* key) {
+FuriHalCryptoEcdsa*
+    furi_hal_crypto_ecdsa_verify_init(FuriHalCryptoEcdsaMode mode, const FuriHalCryptoKey* key) {
     FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
     furi_check(handle != NULL, "Failed to allocate memory for ECDSA handle");
 
@@ -392,7 +392,8 @@ bool furi_hal_crypto_sha(
 }
 
 //#################### Wrap Key ####################
-FuriHalCryptoStatus furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key) {
+FuriHalCryptoStatus
+    furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key) {
     furi_assert(key);
     furi_assert(wrapped_key);
     furi_check(key->length <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
@@ -437,7 +438,8 @@ FuriHalCryptoStatus furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHa
     return ret;
 }
 
-FuriHalCryptoStatus furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf) {
+FuriHalCryptoStatus
+    furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf) {
     furi_assert(src_buf);
     furi_assert(dst_buf);
     furi_check(size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
@@ -463,7 +465,6 @@ FuriHalCryptoStatus furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src
         return FuriHalCryptoStatusOk;
     }
 }
-
 
 //#################### Key generation ##############
 FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size) {
@@ -499,8 +500,10 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size) {
     return FuriHalCryptoStatusOk;
 }
 
-FuriHalCryptoStatus
-    furi_hal_crypto_gen_random_key(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, FuriHalCryptoKeyFlag flags) {
+FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
+    FuriHalCryptoKey* key,
+    FuriHalCryptoKeyType type,
+    FuriHalCryptoKeyFlag flags) {
     furi_check(key);
 
     switch(type) {
@@ -540,11 +543,13 @@ FuriHalCryptoStatus
     return furi_hal_crypto_gen_random_buf(key->data, key->length);
 }
 
-FuriHalCryptoStatus
-    furi_hal_crypto_gen_asymmetric_pub_key(const FuriHalCryptoKey* priv_key, FuriHalCryptoKey* pub_key) {
+FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
+    const FuriHalCryptoKey* priv_key,
+    FuriHalCryptoKey* pub_key) {
     furi_check(priv_key);
     furi_check(pub_key);
-    if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv224 && priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256) {
+    if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv224 &&
+       priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256) {
         return FuriHalCryptoStatusWrongType;
     }
     if(priv_key->flags & FuriHalCryptoKeyFlagWrap) {
@@ -626,7 +631,8 @@ FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     const char* subject_name) {
     furi_check(priv_key);
 
-    if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256 || (priv_key->flags & FuriHalCryptoKeyFlagWrap) != 0) {
+    if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256 ||
+       (priv_key->flags & FuriHalCryptoKeyFlagWrap) != 0) {
         return FuriHalCryptoStatusWrongType;
     }
 
@@ -711,4 +717,31 @@ FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     free(buffer);
 
     return status;
+}
+
+static const char* const key_type_names[] = {
+    [FuriHalCryptoKeyTypeAes128] = "AES-128",
+    [FuriHalCryptoKeyTypeAes192] = "AES-192",
+    [FuriHalCryptoKeyTypeAes256] = "AES-256",
+    [FuriHalCryptoKeyTypeHmacSha1] = "SHA-1",
+    [FuriHalCryptoKeyTypeHmacSha256] = "SHA-256",
+    [FuriHalCryptoKeyTypeHmacSha384] = "SHA-384",
+    [FuriHalCryptoKeyTypeHmacSha512] = "SHA-512",
+    [FuriHalCryptoKeyTypeEcdsaPriv224] = "ECDSA-224",
+    [FuriHalCryptoKeyTypeEcdsaPriv256] = "ECDSA-256",
+    [FuriHalCryptoKeyTypeEcdsaPub224] = "ECDSA-224-pub",
+    [FuriHalCryptoKeyTypeEcdsaPub256] = "ECDSA-256-pub",
+    [FuriHalCryptoKeyTypeCsrDerEcdsa256] = "CSR-DER-ECDSA-256",
+    [FuriHalCryptoKeyTypeCrtDerEcdsa256] = "CRT-DER-ECDSA-256",
+    [FuriHalCryptoKeyTypeMatterAttestation] = "Matter Attestation",
+    [FuriHalCryptoKeyTypeMatterSetup] = "Matter Setup",
+    [FuriHalCryptoKeyTypeMatterDeviceInfo] = "Matter Device Info",
+};
+
+const char* furi_hal_crypto_get_key_type_name(FuriHalCryptoKeyType type) {
+    if(type < COUNT_OF(key_type_names)) {
+        return key_type_names[type];
+    } else {
+        return "Unknown";
+    }
 }
