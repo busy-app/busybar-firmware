@@ -5,6 +5,8 @@
 
 #define MY_CLASS (&clock_view_lvgl_class)
 
+#define COLON_BLINK_TIMER_PERIOD_MS 500
+
 #define ICON_LABEL_DATE_TEXT_COLOR_HEX 0x323232
 
 struct ClockView {
@@ -24,6 +26,8 @@ struct ClockView {
 
     lv_obj_t* date_label;
 
+    lv_timer_t* colon_blink_timer;
+
     FontRegistry* font_registry;
     const lv_font_t* font_busy_bold_7;
     const lv_font_t* font_busy_regular_5;
@@ -32,6 +36,9 @@ struct ClockView {
     TimeSettingTimeFormat time_format;
     bool show_date;
     bool show_seconds;
+    bool blink_colons;
+
+    uint8_t displayed_second;
 };
 
 const lv_obj_class_t clock_view_lvgl_class;
@@ -63,6 +70,15 @@ static const char* const weekday_short_names[] = {
 
 /* LVGL-specific code */
 
+static void clock_view_colon_blink_timer_callback(lv_timer_t* timer) {
+    ClockView* instance = timer->user_data;
+
+    lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), LV_OPA_40);
+    lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), LV_OPA_40);
+
+    lv_spangroup_refresh(instance->time_spangroup);
+}
+
 static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
@@ -76,7 +92,7 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     instance->font_busy_superscript_7 =
         font_registry_load_font(instance->font_registry, FONT_BUSY_SUPERSCRIPT_7);
 
-    lv_obj_t* primary_container = lv_obj_create(obj);
+    lv_obj_t* primary_container = lv_obj_create(TO_LV_OBJ(instance));
     lv_obj_set_flex_flow(primary_container, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
         primary_container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
@@ -91,8 +107,8 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
         instance->icon_label_date, instance->font_busy_superscript_7, LV_PART_MAIN);
     lv_obj_set_style_text_color(
         instance->icon_label_date, lv_color_hex(ICON_LABEL_DATE_TEXT_COLOR_HEX), LV_PART_MAIN);
-    lv_obj_set_style_translate_y(instance->icon_label_date, 2, LV_PART_MAIN);
     lv_obj_set_style_pad_left(instance->icon_label_date, 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(instance->icon_label_date, -2, LV_PART_MAIN);
     lv_obj_set_align(instance->icon_label_date, LV_ALIGN_BOTTOM_MID);
 
     lv_obj_t* text_container = lv_obj_create(primary_container);
@@ -107,33 +123,20 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_size(time_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     instance->time_spangroup = lv_spangroup_create(time_container);
+    lv_obj_set_style_text_font(instance->time_spangroup, instance->font_busy_bold_7, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->time_spangroup, lv_color_white(), LV_PART_MAIN);
 
     instance->time_hour_span = lv_spangroup_add_span(instance->time_spangroup);
-    lv_style_set_text_font(
-        lv_span_get_style(instance->time_hour_span), instance->font_busy_bold_7);
-    lv_style_set_text_color(lv_span_get_style(instance->time_hour_span), lv_color_white());
 
     instance->time_minute_colon_span = lv_spangroup_add_span(instance->time_spangroup);
-    lv_style_set_text_font(
-        lv_span_get_style(instance->time_minute_colon_span), instance->font_busy_bold_7);
-    lv_style_set_text_color(lv_span_get_style(instance->time_minute_colon_span), lv_color_white());
     lv_span_set_text_static(instance->time_minute_colon_span, ":");
 
     instance->time_minute_span = lv_spangroup_add_span(instance->time_spangroup);
-    lv_style_set_text_font(
-        lv_span_get_style(instance->time_minute_span), instance->font_busy_bold_7);
-    lv_style_set_text_color(lv_span_get_style(instance->time_minute_span), lv_color_white());
 
     instance->time_second_colon_span = lv_spangroup_add_span(instance->time_spangroup);
-    lv_style_set_text_font(
-        lv_span_get_style(instance->time_second_colon_span), instance->font_busy_bold_7);
-    lv_style_set_text_color(lv_span_get_style(instance->time_second_colon_span), lv_color_white());
     lv_span_set_text_static(instance->time_second_colon_span, ":");
 
     instance->time_second_span = lv_spangroup_add_span(instance->time_spangroup);
-    lv_style_set_text_font(
-        lv_span_get_style(instance->time_second_span), instance->font_busy_bold_7);
-    lv_style_set_text_color(lv_span_get_style(instance->time_second_span), lv_color_white());
 
     instance->time_meridian_label = lv_label_create(time_container);
     lv_obj_set_style_text_font(
@@ -145,12 +148,19 @@ static void clock_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_text_color(instance->date_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_opa(instance->date_label, LV_OPA_50, LV_PART_MAIN);
     lv_obj_set_style_margin_top(instance->date_label, -2, LV_PART_MAIN);
+
+    instance->colon_blink_timer = lv_timer_create(
+        clock_view_colon_blink_timer_callback, COLON_BLINK_TIMER_PERIOD_MS, instance);
+    lv_timer_set_auto_delete(instance->colon_blink_timer, false);
+    lv_timer_set_repeat_count(instance->colon_blink_timer, 0);
 }
 
 static void clock_view_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     ClockView* instance = (ClockView*)obj;
+
+    lv_timer_delete(instance->colon_blink_timer);
 
     font_registry_unload_font(instance->font_registry, instance->font_busy_superscript_7);
     font_registry_unload_font(instance->font_registry, instance->font_busy_regular_5);
@@ -185,6 +195,9 @@ ClockView* clock_view_alloc(Widget* parent) {
     instance->time_format = TimeSettingTimeFormat12h;
     instance->show_date = true;
     instance->show_seconds = true;
+    instance->blink_colons = true;
+
+    instance->displayed_second = -1;
 
     return instance;
 }
@@ -245,6 +258,19 @@ void clock_view_set_show_seconds(ClockView* instance, bool show_seconds) {
     instance->show_seconds = show_seconds;
 }
 
+void clock_view_set_blink_colons(ClockView* instance, bool blink_colons) {
+    furi_check(instance);
+
+    if(!blink_colons) {
+        lv_style_set_text_opa(lv_span_get_style(instance->time_second_colon_span), LV_OPA_COVER);
+        lv_style_set_text_opa(lv_span_get_style(instance->time_minute_colon_span), LV_OPA_COVER);
+
+        lv_timer_pause(instance->colon_blink_timer);
+    }
+
+    instance->blink_colons = blink_colons;
+}
+
 void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     furi_check(instance);
     furi_check(date_time);
@@ -260,7 +286,6 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
 
     uint8_t display_hour;
     int display_hour_width;
-
     switch(instance->time_format) {
     case TimeSettingTimeFormat24h:
         display_hour_width = 2;
@@ -289,15 +314,28 @@ void clock_view_set_date_time(ClockView* instance, const DateTime* date_time) {
     furi_string_printf(string_builder, "%02" PRIu8, date_time->minute);
     lv_span_set_text(instance->time_minute_span, furi_string_get_cstr(string_builder));
 
-    if(instance->show_seconds) {
-        furi_string_printf(string_builder, "%02" PRIu8, date_time->second);
-        lv_span_set_text(instance->time_second_span, furi_string_get_cstr(string_builder));
+    if(instance->displayed_second != date_time->second) {
+        if(instance->show_seconds) {
+            furi_string_printf(string_builder, "%02" PRIu8, date_time->second);
+            lv_span_set_text(instance->time_second_span, furi_string_get_cstr(string_builder));
+        }
+
+        if(instance->blink_colons) {
+            lv_style_set_text_opa(
+                lv_span_get_style(instance->time_second_colon_span), LV_OPA_COVER);
+            lv_style_set_text_opa(
+                lv_span_get_style(instance->time_minute_colon_span), LV_OPA_COVER);
+
+            lv_timer_set_repeat_count(instance->colon_blink_timer, 1);
+            lv_timer_resume(instance->colon_blink_timer);
+            lv_timer_reset(instance->colon_blink_timer);
+        }
     }
 
     furi_string_free(string_builder);
     lv_spangroup_refresh(instance->time_spangroup);
 
-    if(meridian) lv_label_set_text_static(instance->time_meridian_label, meridian);
+    instance->displayed_second = date_time->second;
 }
 
 /* LVGL class descriptor */

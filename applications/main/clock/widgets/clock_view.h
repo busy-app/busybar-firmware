@@ -17,11 +17,13 @@ void clock_view_free(ClockView* instance);
 
 Widget* clock_view_get_base(ClockView* instance);
 
-void clock_view_set_show_seconds(ClockView* instance, bool show_seconds);
+void clock_view_set_time_format(ClockView* instance, TimeSettingTimeFormat time_format);
 
 void clock_view_set_show_date(ClockView* instance, bool show_date);
 
-void clock_view_set_time_format(ClockView* instance, TimeSettingTimeFormat time_format);
+void clock_view_set_show_seconds(ClockView* instance, bool show_seconds);
+
+void clock_view_set_blink_colons(ClockView* instance, bool blink_colons);
 
 void clock_view_set_date_time(ClockView* instance, const DateTime* date_time);
 
