@@ -7,6 +7,10 @@
 
 #define TAG "BLE"
 
+#define BLE_SERVICE_LOCK_TIMEOUT         (100)
+#define BLE_SERVICE_MAILBOX_LOCK_TIMEOUT (100)
+#define BLE_COMMAND_INVOKE_RETRY_TIMEOUT (100)
+
 static void ble_backend_intercom_rx_callback(const void* data, size_t data_size, void* context);
 
 void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
@@ -63,7 +67,7 @@ static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* 
 static void ble_custom_event_callback(uint32_t events, void* context) {
     Ble* instance = context;
 
-    if(furi_mutex_acquire(instance->ble_lock, 100) == FuriStatusOk) {
+    if(furi_mutex_acquire(instance->ble_lock, BLE_SERVICE_LOCK_TIMEOUT) == FuriStatusOk) {
         if(events & BleEventTypeIntercomInit) {
             BLE_LOG_I("INTERCOM_INIT!");
             instance->intercom_ch = intercom_channel_open(
@@ -100,17 +104,26 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
 
         if(events & BleEventTypeDeviceNameChanged) {
             ble_invoke_retry_command_on_internal_event(
-                instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
+                instance,
+                BleCommandSetDeviceName,
+                BleEventTypeDeviceNameChanged,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
         if(events & BleEventTypeInitOnStart) {
             ble_invoke_retry_command_on_internal_event(
-                instance, BleCommandInit, BleEventTypeInitOnStart, 100);
+                instance,
+                BleCommandInit,
+                BleEventTypeInitOnStart,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
         if(events & BleEventTypeEnableOnStart) {
             ble_invoke_retry_command_on_internal_event(
-                instance, BleCommandEnable, BleEventTypeEnableOnStart, 100);
+                instance,
+                BleCommandEnable,
+                BleEventTypeEnableOnStart,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
         if(events & BleEventTypeFrameReceived) {
@@ -138,7 +151,8 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
     furi_check(frame->header.frame_type != BleIntercomFrameTypeUnknown);
 
     if(frame->header.source == BleIntercomFrameSourceSystem) {
-        if(furi_semaphore_acquire(instance->mailbox_lock, 100) == FuriStatusOk) {
+        if(furi_semaphore_acquire(instance->mailbox_lock, BLE_SERVICE_MAILBOX_LOCK_TIMEOUT) ==
+           FuriStatusOk) {
             memcpy(&instance->mailbox, data, data_size);
             furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeFrameReceived);
         } else
