@@ -33,7 +33,7 @@ static UsbNetwork* usb_network = NULL;
 static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     UNUSED(netif);
 
-    err_t ret = ERR_USE;
+    err_t ret = ERR_IF;
 
     PBUF_DROP_PADDING(p);
 
@@ -57,27 +57,26 @@ static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
 }
 
 static err_t netif_init_cb(struct netif* netif) {
-    LWIP_ASSERT("netif != NULL", (netif != NULL));
+    furi_assert(netif);
 
     netif->mtu = CFG_TUD_NET_MTU;
-    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP |
-                   // TODO: Link control
-                   NETIF_FLAG_LINK_UP | NETIF_FLAG_UP;
-    netif->state = NULL;
+    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
     netif->name[0] = 'E';
     netif->name[1] = 'X';
-    netif->linkoutput = linkoutput_fn;
     netif->output = etharp_output;
+    netif->linkoutput = linkoutput_fn;
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;
 #endif
+
     return ERR_OK;
 }
 
 static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
     UNUSED(txt_userdata);
 
-    err_t res = mdns_resp_add_service_txtitem(service, "path=/", 6);
+    const err_t res = mdns_resp_add_service_txtitem(service, "path=/", 6);
+
     if(res != ERR_OK) {
         FURI_LOG_E(TAG, "mdns add service txt failed");
     }
@@ -158,9 +157,25 @@ static void usb_network_init_netif(UsbNetwork* instance) {
 }
 
 void usb_network_up(void) {
+    furi_assert(usb_network);
+    struct netif* netif = &usb_network->netif;
+
+    LOCK_TCPIP_CORE();
+    // TODO: DHCP server
+    netif_set_link_up(netif);
+    netif_set_up(netif);
+    UNLOCK_TCPIP_CORE();
 }
 
 void usb_network_down(void) {
+    furi_assert(usb_network);
+    struct netif* netif = &usb_network->netif;
+
+    LOCK_TCPIP_CORE();
+    // TODO: DHCP server
+    netif_set_down(netif);
+    netif_set_link_down(netif);
+    UNLOCK_TCPIP_CORE();
 }
 
 bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
@@ -215,8 +230,8 @@ bool usb_network_rx(const uint8_t* data, uint16_t data_size) {
 }
 
 uint16_t usb_network_tx(uint8_t* data, void* context) {
-    struct pbuf* p = context;
-    return pbuf_copy_partial(p, data, p->tot_len, 0);
+    struct pbuf* pbuf = context;
+    return pbuf_copy_partial(pbuf, data, pbuf->tot_len, 0);
 }
 
 bool usb_network_is_dhcp_addr(UsbNetwork* instance, uint8_t* addr) {
