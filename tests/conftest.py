@@ -125,6 +125,10 @@ def web_session() -> requests.Session:
             kwargs["timeout"] = 10
         method = args[0] if args else kwargs.get("method", "GET")
         url = args[1] if len(args) > 1 else kwargs.get("url", "")
+        params = kwargs.get("params", {})
+        if params:
+            import urllib.parse
+            url = f"{url}?{urllib.parse.urlencode(params, doseq=True)}"
         response = None
         error = None
         start_time = time.time()

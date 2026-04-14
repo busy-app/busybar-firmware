@@ -54,7 +54,7 @@ SAFE_WRITE_OPERATION_IDS: frozenset[str] = frozenset(
         "setDisplayBrightness",
         "clearDisplay",
         # Audio — reversible
-        "setAudioVolume",
+        # "setAudioVolume",  # TODO: crashes AudioSrv, see FW-814
         "stopAudio",
         # Time — reversible
         "setTimeTimestamp",
