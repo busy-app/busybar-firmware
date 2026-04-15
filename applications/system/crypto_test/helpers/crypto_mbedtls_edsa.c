@@ -27,11 +27,27 @@ static const uint8_t public_key_check[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256] = 
     0x4f, 0x57, 0x75, 0x77, 0xa8, 0x3e, 0x51, 0x1b, 0xa3, 0x07, 0xb5, 0x35, 0xb1,
     0x0c, 0xc2, 0x26, 0x72, 0x41, 0xe5, 0x4c, 0x25, 0x0d, 0x44, 0xaf, 0xa4, 0x0b};
 
-void crypto_mbedtls_edsa_wrap(uint8_t* key, size_t key_size, uint8_t* wrapped_key) {
+bool crypto_mbedtls_edsa_wrap(const uint8_t* key_buf, size_t key_size, uint8_t* wrapped_key_buf) {
     furi_check(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
-    FuriHalCryptoStatus status =
-        furi_hal_crypto_wrap_raw_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
-    furi_check(status == FuriHalCryptoStatusOk);
+    FuriHalCryptoStatus status = FuriHalCryptoStatusOk;
+    FuriHalCryptoKey* key = NULL;
+    bool result = false;
+    do {
+        status = furi_hal_crypto_key_init_raw(
+            &key, FuriHalCryptoKeyTypeEcdsaPriv256, key_buf, key_size);
+        CRYPTO_COMMON_CHECK_STATUS(status, "init key");
+        FuriHalCryptoKey* wrapped_key = furi_hal_crypto_key_alloc();
+        do {
+            status = furi_hal_crypto_wrap_key(key, wrapped_key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "wrap key");
+            memcpy(wrapped_key_buf, wrapped_key->data, wrapped_key->length);
+            result = true;
+        } while(false);
+        furi_hal_crypto_key_free(wrapped_key);
+        furi_hal_crypto_key_free(key);
+    } while(false);
+
+    return result;
 }
 
 //sli_si91x_crypto_wrap_key(key, key_size, SL_SI91X_WRAP_IV_CBC_MODE, WRAP_IV);
@@ -133,7 +149,9 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
 #elif IMPORT_WRAPPED_KEYS
     uint8_t wrapped_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256];
     memset(wrapped_key, 0, sizeof(wrapped_key));
-    crypto_mbedtls_edsa_wrap(private_key, sizeof(private_key), wrapped_key);
+    if(!crypto_mbedtls_edsa_wrap(private_key, sizeof(private_key), wrapped_key)) {
+        return;
+    }
     memcpy(private_key, wrapped_key, sizeof(wrapped_key));
 
     printf("Wrapped Key: ");

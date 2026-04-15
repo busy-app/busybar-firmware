@@ -19,8 +19,64 @@
 static const uint8_t wrap_iv[SL_SI91X_IV_SIZE] =
     {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46};
 
+static size_t get_key_specific_size(FuriHalCryptoKeyType type) {
+    switch(type) {
+    case FuriHalCryptoKeyTypeAes128:
+        return FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
+    case FuriHalCryptoKeyTypeAes192:
+        return FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
+    case FuriHalCryptoKeyTypeAes256:
+        return FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
+    case FuriHalCryptoKeyTypeHmacSha1:
+    case FuriHalCryptoKeyTypeHmacSha256:
+    case FuriHalCryptoKeyTypeHmacSha384:
+    case FuriHalCryptoKeyTypeHmacSha512:
+        return 0;
+    case FuriHalCryptoKeyTypeEcdsaPriv224:
+        return FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224;
+    case FuriHalCryptoKeyTypeEcdsaPriv256:
+        return FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
+    case FuriHalCryptoKeyTypeEcdsaPub224:
+        return FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224;
+    case FuriHalCryptoKeyTypeEcdsaPub256:
+        return FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256;
+    case FuriHalCryptoKeyTypeCsrDerEcdsa256:
+    case FuriHalCryptoKeyTypeCrtDerEcdsa256:
+    case FuriHalCryptoKeyTypeMatterAttestation:
+    case FuriHalCryptoKeyTypeMatterSetup:
+    case FuriHalCryptoKeyTypeMatterDeviceInfo:
+        return 0;
+    default:
+        // unreachable
+        furi_assert(false);
+        return 0;
+    }
+}
+
 FuriHalCryptoKey* furi_hal_crypto_key_alloc(void) {
     return malloc(sizeof(FuriHalCryptoKey));
+}
+
+FuriHalCryptoStatus furi_hal_crypto_key_init_raw(
+    FuriHalCryptoKey** out_key,
+    FuriHalCryptoKeyType type,
+    const uint8_t* data,
+    size_t length) {
+    size_t specific_length = get_key_specific_size(type);
+    if(specific_length != 0 && specific_length != length) {
+        return FuriHalCryptoStatusInvalidParameter;
+    } else if(length > FURI_HAL_CRYPTO_DATA_SIZE_MAX) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
+
+    FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
+    key->flags = 0;
+    key->type = type;
+    key->length = length;
+    memcpy(key->data, data, length);
+
+    *out_key = key;
+    return FuriHalCryptoStatusOk;
 }
 
 void furi_hal_crypto_key_free(FuriHalCryptoKey* key) {
@@ -496,34 +552,6 @@ FuriHalCryptoStatus
 
     free(wrap_config);
     return ret;
-}
-
-FuriHalCryptoStatus
-    furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf) {
-    furi_assert(src_buf);
-    furi_assert(dst_buf);
-    furi_check(size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
-    //sl_si91x_wrap_config_t - size 1432 bytes
-    sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
-    wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
-    wrap_config->key_size = size;
-    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
-    wrap_config->padding = 0;
-    memcpy(wrap_config->key_buffer, src_buf, wrap_config->key_size);
-    memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
-
-    sl_status_t status = sl_si91x_wrap(wrap_config, dst_buf);
-
-    free(wrap_config);
-
-    if(status == SL_STATUS_SI91X_CRYPTO_DEVICE_SECURITY_IS_DISABLED) {
-        return FuriHalCryptoStatusUnavailable;
-    } else if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
-        return FuriHalCryptoStatusDriverError;
-    } else {
-        return FuriHalCryptoStatusOk;
-    }
 }
 
 //#################### Key generation ##############

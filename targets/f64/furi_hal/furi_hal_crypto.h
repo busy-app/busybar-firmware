@@ -130,6 +130,12 @@ extern "C" {
 
 FuriHalCryptoKey* furi_hal_crypto_key_alloc(void);
 
+FuriHalCryptoStatus furi_hal_crypto_key_init_raw(
+    FuriHalCryptoKey** key,
+    FuriHalCryptoKeyType type,
+    const uint8_t* data,
+    size_t length);
+
 void furi_hal_crypto_key_free(FuriHalCryptoKey* key);
 
 //#################### AES ####################
@@ -406,10 +412,6 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus
     furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key);
-
-FURI_HAL_NODISCARD
-FuriHalCryptoStatus
-    furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf);
 
 //#################### Key generation ##############
 
