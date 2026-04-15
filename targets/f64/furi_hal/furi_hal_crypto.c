@@ -512,8 +512,12 @@ FuriHalCryptoStatus
     furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey** wrapped_key_out) {
     furi_assert(key);
     furi_assert(wrapped_key_out);
-    furi_check(key->length <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
-    furi_check((key->flags & FuriHalCryptoKeyFlagWrap) == 0);
+    if(key->length > SL_SI91X_WRAP_KEY_BUFFER_SIZE) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
+    if(key->flags & FuriHalCryptoKeyFlagWrap) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
     //sl_si91x_wrap_config_t - size 1432 bytes
     sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
     wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;

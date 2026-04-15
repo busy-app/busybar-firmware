@@ -414,6 +414,12 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
  *
  * @param[in] uint8_t* key Pointer to the key.
  * @param[out] uint8_t* wrapped_key Pointer to the wrapped key.
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if key is too long
+ *    - FuriHalCryptoStatusInvalidParameter if key is already wrapped
+ *    - FuriHalCryptoStatusUnsupported if device security is not enabled (key wrapping is not possible)
+ *    - FuriHalCryptoStatusDriverError otherwise
  */
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus
