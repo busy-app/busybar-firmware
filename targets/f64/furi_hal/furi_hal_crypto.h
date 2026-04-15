@@ -73,24 +73,24 @@ typedef enum {
 } FuriHalCryptoShaMode;
 
 typedef enum {
-    FuriHalCryptoKeyTypeAes128,
-    FuriHalCryptoKeyTypeAes192,
-    FuriHalCryptoKeyTypeAes256,
-    FuriHalCryptoKeyTypeHmacSha1,
-    FuriHalCryptoKeyTypeHmacSha256,
-    FuriHalCryptoKeyTypeHmacSha384,
-    FuriHalCryptoKeyTypeHmacSha512,
-    FuriHalCryptoKeyTypeEcdsaPriv224,
-    FuriHalCryptoKeyTypeEcdsaPriv256,
-    FuriHalCryptoKeyTypeEcdsaPub224,
-    FuriHalCryptoKeyTypeEcdsaPub256,
+    FuriHalCryptoKeyTypeAes128 = 0,
+    FuriHalCryptoKeyTypeAes192 = 1,
+    FuriHalCryptoKeyTypeAes256 = 2,
+    FuriHalCryptoKeyTypeHmacSha1 = 3,
+    FuriHalCryptoKeyTypeHmacSha256 = 4,
+    FuriHalCryptoKeyTypeHmacSha384 = 5,
+    FuriHalCryptoKeyTypeHmacSha512 = 6,
+    FuriHalCryptoKeyTypeEcdsaPriv224 = 7,
+    FuriHalCryptoKeyTypeEcdsaPriv256 = 8,
+    FuriHalCryptoKeyTypeEcdsaPub224 = 9,
+    FuriHalCryptoKeyTypeEcdsaPub256 = 10,
 
-    FuriHalCryptoKeyTypeCsrDerEcdsa256,
-    FuriHalCryptoKeyTypeCrtDerEcdsa256,
+    FuriHalCryptoKeyTypeCsrDerEcdsa256 = 11,
+    FuriHalCryptoKeyTypeCrtDerEcdsa256 = 12,
 
-    FuriHalCryptoKeyTypeMatterAttestation,
-    FuriHalCryptoKeyTypeMatterSetup,
-    FuriHalCryptoKeyTypeMatterDeviceInfo,
+    FuriHalCryptoKeyTypeMatterAttestation = 13,
+    FuriHalCryptoKeyTypeMatterSetup = 14,
+    FuriHalCryptoKeyTypeMatterDeviceInfo = 15,
 
     FuriHalCryptoKeyTypeNone = 0xFFFFFFFF,
 } FuriHalCryptoKeyType;
@@ -119,6 +119,7 @@ typedef enum {
     FuriHalCryptoStatusErrorCrc,
     FuriHalCryptoStatusWrongType,
     FuriHalCryptoStatusUnavailable,
+    FuriHalCryptoStatusInvalidParameter,
 } FuriHalCryptoStatus;
 
 #ifdef __cplusplus
@@ -284,29 +285,28 @@ bool furi_hal_crypto_ecdsa_verify(
 
 //#################### HMAC ####################
 /**
+ * Create a SHA-HMAC key from a buffer.
+ *
+ * @param mode SHA mode
+ * @param data key data
+ * @param length data length in bytes
+ */
+FuriHalCryptoKey* furi_hal_crypto_key_init_hmac(
+    FuriHalCryptoHmacShaMode mode,
+    const uint8_t* data,
+    size_t length);
+
+/**
  * Initialize HMAC.
  *
- * @param[in] mode HMAC SHA mode.
- *    - FuriHalCryptoHmacShaModeSha1
- *    - FuriHalCryptoHmacShaModeSha256
- *    - FuriHalCryptoHmacShaModeSha384
- *    - FuriHalCryptoHmacShaModeSha512
+ * @param[out] handle HMAC handle
  * @param[in] key Pointer to the key.
- * @param[in] key_size Size of the key.
- *    - FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE
- *    - FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE
- *    - FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE
- *    - FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE
- * @param[in] wrapping_mode Wrapping mode.
- *    - FuriHalCryptoWrappingModeOff
- *    - FuriHalCryptoWrappingModeOn
- * @return Handle to the HMAC.
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
  */
-FuriHalCryptoHmac* furi_hal_crypto_hmac_init(
-    FuriHalCryptoHmacShaMode mode,
-    uint8_t* key,
-    size_t key_size,
-    FuriHalCryptoWrappingMode wrapping_mode);
+FuriHalCryptoStatus
+    furi_hal_crypto_hmac_init(FuriHalCryptoHmac** handle, const FuriHalCryptoKey* key);
 
 /**
  * Deinitialize HMAC.
@@ -324,11 +324,14 @@ void furi_hal_crypto_hmac_deinit(FuriHalCryptoHmac* handle);
  * @param[out] output Pointer to the output buffer.
  * @param[in] output_length Length of the output buffer.
  *
- * @return True if the HMAC digest is computed successfully, false otherwise.
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if output length doesn't match the digest length
+ *    - FuriHalCryptoStatusFail otherwise
  */
-bool furi_hal_crypto_hmac_digest(
+FuriHalCryptoStatus furi_hal_crypto_hmac_digest(
     FuriHalCryptoHmac* handle,
-    uint8_t* input,
+    const uint8_t* input,
     uint16_t input_length,
     uint8_t* output,
     size_t output_length);

@@ -21,11 +21,6 @@ static const uint8_t private_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {
     0xc2, 0x4d, 0x58, 0x0f, 0x1b, 0x80, 0x56, 0xbe, 0xcf, 0xf9, 0xdd,
     0x1a, 0x07, 0x1c, 0x0f, 0x76, 0x86, 0x92, 0x37, 0xcb, 0xab};
 
-void crypto_csr_wrap(uint8_t* key, size_t key_size, uint8_t* wrapped_key) {
-    furi_check(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
-    furi_hal_crypto_wrap_raw_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
-}
-
 void crypto_csr_command_add_extension(
     void* csr_ctx,
     const char* oid,

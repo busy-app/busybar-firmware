@@ -303,18 +303,43 @@ static const sl_si91x_hmac_mode_t furi_hal_crypto_hmac_sha_mode[] = {
     [FuriHalCryptoKeyTypeHmacSha512] = SL_SI91X_HMAC_SHA_512,
 };
 
-FuriHalCryptoHmac* furi_hal_crypto_hmac_init(
-    FuriHalCryptoHmacShaMode mode,
-    uint8_t* key,
-    size_t key_size,
-    FuriHalCryptoWrappingMode wrapping_mode) {
-    FuriHalCryptoHmac* handle = malloc(sizeof(FuriHalCryptoHmac));
-    furi_check(handle != NULL, "Failed to allocate memory for HMAC handle");
+static const FuriHalCryptoKeyType hmac_sha_type[] = {
+    [FuriHalCryptoHmacShaModeSha1] = FuriHalCryptoKeyTypeHmacSha1,
+    [FuriHalCryptoHmacShaModeSha256] = FuriHalCryptoKeyTypeHmacSha256,
+    [FuriHalCryptoHmacShaModeSha384] = FuriHalCryptoKeyTypeHmacSha384,
+    [FuriHalCryptoHmacShaModeSha512] = FuriHalCryptoKeyTypeHmacSha512,
+};
 
-    handle->config.hmac_mode = furi_hal_crypto_hmac_sha_mode[mode];
+FuriHalCryptoKey* furi_hal_crypto_key_init_hmac(
+    FuriHalCryptoHmacShaMode mode,
+    const uint8_t* data,
+    size_t length) {
+    FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
+    key->type = hmac_sha_type[mode];
+    key->length = MIN(length, sizeof(key->data));
+    memcpy(key->data, data, key->length);
+    return key;
+}
+
+FuriHalCryptoStatus
+    furi_hal_crypto_hmac_init(FuriHalCryptoHmac** handle_out, const FuriHalCryptoKey* key) {
+    furi_check(handle_out);
+
+    switch(key->type) {
+    case FuriHalCryptoKeyTypeHmacSha1:
+    case FuriHalCryptoKeyTypeHmacSha256:
+    case FuriHalCryptoKeyTypeHmacSha384:
+    case FuriHalCryptoKeyTypeHmacSha512:
+        break;
+    default:
+        return FuriHalCryptoStatusWrongType;
+    }
+
+    FuriHalCryptoHmac* handle = malloc(sizeof(FuriHalCryptoHmac));
+    handle->config.hmac_mode = furi_hal_crypto_hmac_sha_mode[key->type];
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
-    if(wrapping_mode != FuriHalCryptoWrappingModeOn) {
+    if((key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
         handle->config.key_config.B0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.B0.key_type = SL_SI91X_WRAPPED_KEY;
@@ -323,33 +348,46 @@ FuriHalCryptoHmac* furi_hal_crypto_hmac_init(
             memcpy(handle->config.key_config.B0.wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
         }
     }
-    handle->config.key_config.B0.key_size = key_size;
-    handle->config.key_config.B0.key = key;
+    handle->config.key_config.B0.key_size = key->length;
+    handle->config.key_config.B0.key = malloc(key->length);
+    memcpy(handle->config.key_config.B0.key, key->data, key->length);
 
-    return handle;
+    *handle_out = handle;
+    return FuriHalCryptoStatusOk;
 }
 
 void furi_hal_crypto_hmac_deinit(FuriHalCryptoHmac* handle) {
     furi_check(handle);
+    free(handle->config.key_config.B0.key);
     free(handle);
 }
 
-bool furi_hal_crypto_hmac_digest(
+static uint32_t get_hmac_digest_len(sl_si91x_hmac_mode_t mode) {
+    switch(mode) {
+    case SL_SI91X_HMAC_SHA_1:
+        return SL_SI91X_HMAC_SHA_1_DIGEST_LEN;
+    case SL_SI91X_HMAC_SHA_256:
+        return SL_SI91X_HMAC_SHA_256_DIGEST_LEN;
+    case SL_SI91X_HMAC_SHA_384:
+        return SL_SI91X_HMAC_SHA_384_DIGEST_LEN;
+    case SL_SI91X_HMAC_SHA_512:
+        return SL_SI91X_HMAC_SHA_512_DIGEST_LEN;
+    default:
+        furi_assert(false);
+        return 0;
+    }
+}
+
+FuriHalCryptoStatus furi_hal_crypto_hmac_digest(
     FuriHalCryptoHmac* handle,
-    uint8_t* input,
+    const uint8_t* input,
     uint16_t input_length,
     uint8_t* output,
     size_t output_length) {
     furi_check(handle && input && output);
-    furi_check(
-        (handle->config.hmac_mode == SL_SI91X_HMAC_SHA_1 &&
-         output_length == SL_SI91X_HMAC_SHA_1_DIGEST_LEN) ||
-        (handle->config.hmac_mode == SL_SI91X_HMAC_SHA_256 &&
-         output_length == SL_SI91X_HMAC_SHA_256_DIGEST_LEN) ||
-        (handle->config.hmac_mode == SL_SI91X_HMAC_SHA_384 &&
-         output_length == SL_SI91X_HMAC_SHA_384_DIGEST_LEN) ||
-        (handle->config.hmac_mode == SL_SI91X_HMAC_SHA_512 &&
-         output_length == SL_SI91X_HMAC_SHA_512_DIGEST_LEN));
+    if(output_length != get_hmac_digest_len(handle->config.hmac_mode)) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
 
     handle->config.msg = input;
     handle->config.msg_length = input_length;
@@ -357,9 +395,9 @@ bool furi_hal_crypto_hmac_digest(
     sl_status_t status = sl_si91x_hmac(&handle->config, output);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to compute HMAC, , Error Code : 0x%08lX", status);
-        return false;
+        return FuriHalCryptoStatusFail;
     }
-    return true;
+    return FuriHalCryptoStatusOk;
 }
 
 //#################### SHA ####################
