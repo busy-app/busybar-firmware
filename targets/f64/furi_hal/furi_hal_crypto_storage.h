@@ -53,7 +53,7 @@ FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partit
 
 FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
     FuriHalCryptoKeyIter* iter,
-    FuriHalCryptoKey* key_out,
+    FuriHalCryptoKey** key_out,
     FuriHalCryptoKeySlot* slot_out);
 
 /** Write a key to the NWP flash.
@@ -82,7 +82,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
 FuriHalCryptoStatus furi_hal_crypto_storage_read(
-    FuriHalCryptoKey* key,
+    FuriHalCryptoKey** key,
     FuriHalCryptoPartition partition,
     FuriHalCryptoKeyType type,
     uint32_t id);
@@ -96,7 +96,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_read(
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
 FuriHalCryptoStatus furi_hal_crypto_storage_read_ex(
-    FuriHalCryptoKey* key,
+    FuriHalCryptoKey** key,
     FuriHalCryptoKeySlot* slot,
     FuriHalCryptoPartition partition,
     FuriHalCryptoKeyType type,

@@ -30,20 +30,20 @@ static const uint8_t public_key_check[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256] = 
 bool crypto_mbedtls_edsa_wrap(const uint8_t* key_buf, size_t key_size, uint8_t* wrapped_key_buf) {
     furi_check(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
     FuriHalCryptoStatus status = FuriHalCryptoStatusOk;
-    FuriHalCryptoKey* key = NULL;
     bool result = false;
     do {
+        FuriHalCryptoKey* key = NULL;
         status = furi_hal_crypto_key_init_raw(
             &key, FuriHalCryptoKeyTypeEcdsaPriv256, key_buf, key_size);
         CRYPTO_COMMON_CHECK_STATUS(status, "init key");
-        FuriHalCryptoKey* wrapped_key = furi_hal_crypto_key_alloc();
         do {
-            status = furi_hal_crypto_wrap_key(key, wrapped_key);
+            FuriHalCryptoKey* wrapped_key = NULL;
+            status = furi_hal_crypto_wrap_key(key, &wrapped_key);
             CRYPTO_COMMON_CHECK_STATUS(status, "wrap key");
             memcpy(wrapped_key_buf, wrapped_key->data, wrapped_key->length);
+            furi_hal_crypto_key_free(wrapped_key);
             result = true;
         } while(false);
-        furi_hal_crypto_key_free(wrapped_key);
         furi_hal_crypto_key_free(key);
     } while(false);
 

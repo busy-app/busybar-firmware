@@ -53,7 +53,7 @@ static size_t get_key_specific_size(FuriHalCryptoKeyType type) {
     }
 }
 
-FuriHalCryptoKey* furi_hal_crypto_key_alloc(void) {
+static FuriHalCryptoKey* key_alloc(void) {
     return malloc(sizeof(FuriHalCryptoKey));
 }
 
@@ -69,7 +69,7 @@ FuriHalCryptoStatus furi_hal_crypto_key_init_raw(
         return FuriHalCryptoStatusInvalidParameter;
     }
 
-    FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
+    FuriHalCryptoKey* key = key_alloc();
     key->flags = 0;
     key->type = type;
     key->length = length;
@@ -385,7 +385,7 @@ FuriHalCryptoKey* furi_hal_crypto_key_init_hmac(
     FuriHalCryptoHmacShaMode mode,
     const uint8_t* data,
     size_t length) {
-    FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKey* key = key_alloc();
     key->type = hmac_sha_key_type_lookup[mode];
     key->length = MIN(length, sizeof(key->data));
     memcpy(key->data, data, key->length);
@@ -509,9 +509,9 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
 
 //#################### Wrap Key ####################
 FuriHalCryptoStatus
-    furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key) {
+    furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey** wrapped_key_out) {
     furi_assert(key);
-    furi_assert(wrapped_key);
+    furi_assert(wrapped_key_out);
     furi_check(key->length <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
     furi_check((key->flags & FuriHalCryptoKeyFlagWrap) == 0);
     //sl_si91x_wrap_config_t - size 1432 bytes
@@ -537,17 +537,23 @@ FuriHalCryptoStatus
         memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
     }
 
+    FuriHalCryptoKey* wrapped_key = key_alloc();
     sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key->data);
     FuriHalCryptoStatus ret = FuriHalCryptoStatusOk;
     if(status == SL_STATUS_OK) {
         wrapped_key->type = key->type;
         wrapped_key->flags = key->flags | FuriHalCryptoKeyFlagWrap;
         wrapped_key->length = wrap_config->key_size;
+        *wrapped_key_out = wrapped_key;
     } else if(status == SL_STATUS_SI91X_CRYPTO_DEVICE_SECURITY_IS_DISABLED) {
         ret = FuriHalCryptoStatusUnavailable;
     } else {
         FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
         ret = FuriHalCryptoStatusDriverError;
+    }
+
+    if(ret != FuriHalCryptoStatusOk) {
+        furi_hal_crypto_key_free(wrapped_key);
     }
 
     free(wrap_config);
@@ -589,53 +595,63 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size) {
 }
 
 FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
-    FuriHalCryptoKey* key,
+    FuriHalCryptoKey** key_out,
     FuriHalCryptoKeyType type,
     FuriHalCryptoKeyFlag flags) {
-    furi_check(key);
+    furi_check(key_out);
 
+    size_t length = 0;
     switch(type) {
     case FuriHalCryptoKeyTypeAes128:
-        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
+        length = FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
         break;
     case FuriHalCryptoKeyTypeAes192:
-        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
+        length = FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
         break;
     case FuriHalCryptoKeyTypeAes256:
-        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
+        length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
         break;
     case FuriHalCryptoKeyTypeHmacSha1:
-        key->length = FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE;
+        length = FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE;
         break;
     case FuriHalCryptoKeyTypeHmacSha256:
-        key->length = FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE;
+        length = FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE;
         break;
     case FuriHalCryptoKeyTypeHmacSha384:
-        key->length = FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE;
+        length = FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE;
         break;
     case FuriHalCryptoKeyTypeHmacSha512:
-        key->length = FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE;
+        length = FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE;
         break;
     case FuriHalCryptoKeyTypeEcdsaPriv224:
-        key->length = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224;
+        length = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224;
         break;
     case FuriHalCryptoKeyTypeEcdsaPriv256:
-        key->length = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
+        length = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
         break;
     default:
         return FuriHalCryptoStatusInvalidParameter;
     }
 
+    FuriHalCryptoKey* key = key_alloc();
+
+    key->length = length;
     key->type = type;
     key->flags = flags;
-    return furi_hal_crypto_gen_random_buf(key->data, key->length);
+    FuriHalCryptoStatus status = furi_hal_crypto_gen_random_buf(key->data, key->length);
+    if(status == FuriHalCryptoStatusOk) {
+        *key_out = key;
+    } else {
+        furi_hal_crypto_key_free(key);
+    }
+    return status;
 }
 
 FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
     const FuriHalCryptoKey* priv_key,
-    FuriHalCryptoKey* pub_key) {
+    FuriHalCryptoKey** pub_key_out) {
     furi_check(priv_key);
-    furi_check(pub_key);
+    furi_check(pub_key_out);
     if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv224 &&
        priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256) {
         return FuriHalCryptoStatusInvalidParameter;
@@ -650,6 +666,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
     size_t pubkey_len;
     FuriHalCryptoStatus status = FuriHalCryptoStatusDriverError;
 
+    FuriHalCryptoKey* pub_key = key_alloc();
     do {
         psa_status = psa_crypto_init();
         if(psa_status != PSA_SUCCESS) {
@@ -710,12 +727,17 @@ FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
         }
         status = FuriHalCryptoStatusOk;
     } while(false);
+    if(status == FuriHalCryptoStatusOk) {
+        *pub_key_out = pub_key;
+    } else {
+        furi_hal_crypto_key_free(pub_key);
+    }
     return status;
 }
 
 FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     const FuriHalCryptoKey* priv_key,
-    FuriHalCryptoKey* csr_der_key,
+    FuriHalCryptoKey** csr_der_key_out,
     const char* subject_name) {
     furi_check(priv_key);
 
@@ -792,10 +814,13 @@ FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
             FURI_LOG_D(TAG, "CSR DER generated successfully");
         }
 
+        FuriHalCryptoKey* csr_der_key = key_alloc();
         csr_der_key->length = len_or_err;
         csr_der_key->type = FuriHalCryptoKeyTypeCsrDerEcdsa256;
 
         memcpy(csr_der_key->data, buffer + (max_size - len_or_err), len_or_err);
+
+        *csr_der_key_out = csr_der_key;
         status = FuriHalCryptoStatusOk;
     } while(false);
 

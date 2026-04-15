@@ -160,30 +160,32 @@ void crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaMode hmac_sha_
     bool success = false;
     FuriHalCryptoKey* key =
         furi_hal_crypto_key_init_hmac(hmac_sha_mode, key_hmac, sizeof(key_hmac));
-    FuriHalCryptoKey* wrapped_key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKey* wrapped_key = NULL;
     do {
-        FuriHalCryptoStatus status = furi_hal_crypto_wrap_key(key, wrapped_key);
+        FuriHalCryptoStatus status = furi_hal_crypto_wrap_key(key, &wrapped_key);
         CRYPTO_COMMON_CHECK_STATUS(status, "wrap key");
 
-        crypto_common_print_key("Key =\t\t", key);
-        crypto_common_print_key("Wrapped key =\t", wrapped_key);
-
-        // Initialize HMAC
-        FuriHalCryptoHmac* handle = NULL;
-        status = furi_hal_crypto_hmac_init(&handle, wrapped_key);
-        CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
-
         do {
-            // Compute HMAC digest
-            status = furi_hal_crypto_hmac_digest(
-                handle, (uint8_t*)message, sizeof(message), digest, digest_length);
-            CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
-            success = true;
+            crypto_common_print_key("Key =\t\t", key);
+            crypto_common_print_key("Wrapped key =\t", wrapped_key);
+
+            // Initialize HMAC
+            FuriHalCryptoHmac* handle = NULL;
+            status = furi_hal_crypto_hmac_init(&handle, wrapped_key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
+
+            do {
+                // Compute HMAC digest
+                status = furi_hal_crypto_hmac_digest(
+                    handle, (uint8_t*)message, sizeof(message), digest, digest_length);
+                CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
+                success = true;
+            } while(false);
+            // Deinitialize HMAC
+            furi_hal_crypto_hmac_deinit(handle);
         } while(false);
-        // Deinitialize HMAC
-        furi_hal_crypto_hmac_deinit(handle);
+        furi_hal_crypto_key_free(wrapped_key);
     } while(false);
-    furi_hal_crypto_key_free(wrapped_key);
     furi_hal_crypto_key_free(key);
 
     if(success) {

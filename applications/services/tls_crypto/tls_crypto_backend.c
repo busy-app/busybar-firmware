@@ -48,9 +48,9 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
 
     const uint32_t internal_key_id = (uint32_t)sign_message_request->key_id + KEY_ID_OFFSET;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKey* key = NULL;
     FuriHalCryptoStatus hal_status = furi_hal_crypto_storage_read(
-        key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
+        &key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
 
     if(hal_status == FuriHalCryptoStatusOk) {
         if(!(key->flags & FuriHalCryptoKeyFlagWrap)) {
@@ -76,9 +76,8 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
                 status = TlsCryptoStatusOk;
             }
         }
+        furi_hal_crypto_key_free(key);
     }
-
-    furi_hal_crypto_key_free(key);
 
     return status;
 }
@@ -93,9 +92,9 @@ static TlsCryptoStatus tls_crypto_get_certificate_request_handler(
 
     const uint32_t internal_key_id = (uint32_t)get_cert_request->key_id + KEY_ID_OFFSET;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKey* key = NULL;
     FuriHalCryptoStatus hal_status = furi_hal_crypto_storage_read(
-        key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeCrtDerEcdsa256, internal_key_id);
+        &key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeCrtDerEcdsa256, internal_key_id);
 
     if(hal_status == FuriHalCryptoStatusOk) {
         const size_t data_len = key->length;
@@ -106,9 +105,8 @@ static TlsCryptoStatus tls_crypto_get_certificate_request_handler(
         certificate->length = data_len;
 
         status = TlsCryptoStatusOk;
+        furi_hal_crypto_key_free(key);
     }
-
-    furi_hal_crypto_key_free(key);
 
     return status;
 }

@@ -330,45 +330,44 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
 }
 
 FuriHalCryptoStatus furi_hal_crypto_storage_read(
-    FuriHalCryptoKey* key,
+    FuriHalCryptoKey** key_out,
     FuriHalCryptoPartition partition,
     FuriHalCryptoKeyType type,
     uint32_t id) {
-    furi_check(key);
+    furi_check(key_out);
 
-    return furi_hal_crypto_storage_read_ex(key, NULL, partition, type, id);
+    return furi_hal_crypto_storage_read_ex(key_out, NULL, partition, type, id);
 }
 
 FuriHalCryptoStatus furi_hal_crypto_storage_read_ex(
-    FuriHalCryptoKey* key,
+    FuriHalCryptoKey** key_out,
     FuriHalCryptoKeySlot* slot,
     FuriHalCryptoPartition partition,
     FuriHalCryptoKeyType type,
     uint32_t id) {
-    furi_check(key);
+    furi_check(key_out);
 
     FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
 
     FuriHalCryptoKeyIter iter = furi_hal_crypto_key_iter_init(partition);
-    FuriHalCryptoKey* current_key = furi_hal_crypto_key_alloc();
+    FuriHalCryptoKey* current_key = NULL;
     FuriHalCryptoKeySlot current_slot;
 
-    while((ret = furi_hal_crypto_key_iter_get_and_advance(&iter, current_key, &current_slot)) ==
+    while((ret = furi_hal_crypto_key_iter_get_and_advance(&iter, &current_key, &current_slot)) ==
           FuriHalCryptoStatusOk) {
         if(current_slot.header.id == id && current_slot.header.type == type) {
-            *key = *current_key;
+            *key_out = current_key;
             if(slot) {
                 *slot = current_slot;
             }
-            furi_hal_crypto_key_free(current_key);
             return FuriHalCryptoStatusOk;
         }
+        furi_hal_crypto_key_free(current_key);
     }
 
     if(ret == FuriHalCryptoStatusStorageFull) {
         ret = FuriHalCryptoStatusNotFound;
     }
-    furi_hal_crypto_key_free(current_key);
     return ret;
 }
 
@@ -392,7 +391,7 @@ FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partit
 
 FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
     FuriHalCryptoKeyIter* iter,
-    FuriHalCryptoKey* key_out,
+    FuriHalCryptoKey** key_out,
     FuriHalCryptoKeySlot* slot_out) {
     furi_check(key_out);
     furi_check(slot_out);
@@ -406,10 +405,14 @@ FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
     if(ret != FuriHalCryptoStatusOk) {
         return ret;
     }
-    ret = load_key(slot_out, key_out);
+    FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
+    ret = load_key(slot_out, key);
     if(ret != FuriHalCryptoStatusOk) {
+        furi_hal_crypto_key_free(key);
         return ret;
+    } else {
+        *key_out = key;
+        iter->address.offset += slot_out->header.size + sizeof(FuriHalCryptoKeySlotHeader);
+        return FuriHalCryptoStatusOk;
     }
-    iter->address.offset += slot_out->header.size + sizeof(FuriHalCryptoKeySlotHeader);
-    return FuriHalCryptoStatusOk;
 }

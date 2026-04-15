@@ -128,8 +128,14 @@ typedef enum {
 extern "C" {
 #endif
 
-FuriHalCryptoKey* furi_hal_crypto_key_alloc(void);
-
+/**
+ * Initialize key from a raw buffer.
+ *
+ * For certain key types data length is checked.
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if data length doesn't match key type.
+ */
 FuriHalCryptoStatus furi_hal_crypto_key_init_raw(
     FuriHalCryptoKey** key,
     FuriHalCryptoKeyType type,
@@ -411,7 +417,7 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
  */
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus
-    furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key);
+    furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey** wrapped_key);
 
 //#################### Key generation ##############
 
@@ -428,7 +434,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size);
  */
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
-    FuriHalCryptoKey* key,
+    FuriHalCryptoKey** key,
     FuriHalCryptoKeyType type,
     FuriHalCryptoKeyFlag flags);
 
@@ -440,7 +446,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
     const FuriHalCryptoKey* priv_key,
-    FuriHalCryptoKey* pub_key);
+    FuriHalCryptoKey** pub_key);
 
 /** Generate a CSR in DER format for ECDSA 256.
 * @param[in] priv_key Pointer to the private key.
@@ -451,7 +457,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     const FuriHalCryptoKey* priv_key,
-    FuriHalCryptoKey* csr_der_key,
+    FuriHalCryptoKey** csr_der_key,
     const char* subject_name);
 
 //#################### Util ##############

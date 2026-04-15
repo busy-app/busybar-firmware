@@ -152,25 +152,25 @@ void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context) {
 
     {
         printf(ANSI_FG_YELLOW "ECDSA SECP256R1 key wrap on test" ANSI_RESET "\r\n");
-        FuriHalCryptoKey* private_key_wrap = furi_hal_crypto_key_alloc();
         do {
-            status = furi_hal_crypto_wrap_key(&private_key, private_key_wrap);
+            FuriHalCryptoKey* private_key_wrap = NULL;
+            status = furi_hal_crypto_wrap_key(&private_key, &private_key_wrap);
             CRYPTO_COMMON_CHECK_STATUS(status, "key wrap");
             crypto_common_print_key("Key =\t\t", &private_key);
             crypto_common_print_key("Wrapped key =\t", private_key_wrap);
             test_custom_sha_mode(FuriHalCryptoEcdsaModeSha256, private_key_wrap, &public_key);
             test_custom_sha_mode(FuriHalCryptoEcdsaModeSha384, private_key_wrap, &public_key);
             test_custom_sha_mode(FuriHalCryptoEcdsaModeSha512, private_key_wrap, &public_key);
+            furi_hal_crypto_key_free(private_key_wrap);
         } while(false);
-        furi_hal_crypto_key_free(private_key_wrap);
     }
 
     {
         printf(ANSI_FG_YELLOW "ECDSA SECP224R1 key wrap on test" ANSI_RESET "\r\n");
 
-        FuriHalCryptoKey* private_key_wrap_224 = furi_hal_crypto_key_alloc();
         do {
-            status = furi_hal_crypto_wrap_key(&private_key_224, private_key_wrap_224);
+            FuriHalCryptoKey* private_key_wrap_224 = NULL;
+            status = furi_hal_crypto_wrap_key(&private_key_224, &private_key_wrap_224);
             CRYPTO_COMMON_CHECK_STATUS(status, "key wrap");
 
             crypto_common_print_key("Key =\t\t", &private_key_224);
@@ -181,8 +181,8 @@ void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context) {
                 FuriHalCryptoEcdsaModeSha384, private_key_wrap_224, &public_key_224);
             test_custom_sha_mode(
                 FuriHalCryptoEcdsaModeSha512, private_key_wrap_224, &public_key_224);
+            furi_hal_crypto_key_free(private_key_wrap_224);
         } while(false);
-        furi_hal_crypto_key_free(private_key_wrap_224);
     }
 
     printf("Crypto ECDSA done\r\n");

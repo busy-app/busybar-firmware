@@ -31,11 +31,10 @@ typedef struct {
 static bool supervisor_is_tls_crypto_healthy(void) {
     bool is_healthy = false;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
-
     do {
+        FuriHalCryptoKey* key = NULL;
         FuriHalCryptoStatus status = furi_hal_crypto_storage_read(
-            key,
+            &key,
             FuriHalCryptoPartitionMain,
             FuriHalCryptoKeyTypeEcdsaPriv256,
             SUPERVISOR_CRYPTO_KEY_ID);
@@ -46,27 +45,28 @@ static bool supervisor_is_tls_crypto_healthy(void) {
             break;
         }
 
-        FuriHalCryptoEcdsaSign* sign_ctx = NULL;
-        status = furi_hal_crypto_ecdsa_sign_init(&sign_ctx, FuriHalCryptoEcdsaModeSha256, key);
+        do {
+            FuriHalCryptoEcdsaSign* sign_ctx = NULL;
+            status = furi_hal_crypto_ecdsa_sign_init(&sign_ctx, FuriHalCryptoEcdsaModeSha256, key);
 
-        if(status != FuriHalCryptoStatusOk) {
-            break;
-        }
+            if(status != FuriHalCryptoStatusOk) {
+                break;
+            }
 
-        uint8_t message[SUPERVISOR_CRYPTO_TEST_MSG_LEN];
-        furi_hal_random_fill_buf(message, sizeof(message));
+            uint8_t message[SUPERVISOR_CRYPTO_TEST_MSG_LEN];
+            furi_hal_random_fill_buf(message, sizeof(message));
 
-        uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE];
-        size_t signature_len = sizeof(signature);
+            uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE];
+            size_t signature_len = sizeof(signature);
 
-        is_healthy = furi_hal_crypto_ecdsa_sign(
-                         sign_ctx, message, sizeof(message), signature, &signature_len) ==
-                     FuriHalCryptoStatusOk;
+            is_healthy = furi_hal_crypto_ecdsa_sign(
+                             sign_ctx, message, sizeof(message), signature, &signature_len) ==
+                         FuriHalCryptoStatusOk;
 
-        furi_hal_crypto_ecdsa_sign_deinit(sign_ctx);
-
+            furi_hal_crypto_ecdsa_sign_deinit(sign_ctx);
+        } while(false);
+        furi_hal_crypto_key_free(key);
     } while(false);
-    furi_hal_crypto_key_free(key);
 
     return is_healthy;
 }
