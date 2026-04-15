@@ -34,7 +34,7 @@ static bool supervisor_is_tls_crypto_healthy(void) {
     FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
 
     do {
-        const FuriHalCryptoStatus status = furi_hal_crypto_storage_read(
+        FuriHalCryptoStatus status = furi_hal_crypto_storage_read(
             key,
             FuriHalCryptoPartitionMain,
             FuriHalCryptoKeyTypeEcdsaPriv256,
@@ -46,8 +46,12 @@ static bool supervisor_is_tls_crypto_healthy(void) {
             break;
         }
 
-        FuriHalCryptoEcdsa* sign_ctx =
-            furi_hal_crypto_ecdsa_sign_init(FuriHalCryptoEcdsaModeSha256, key);
+        FuriHalCryptoEcdsa* sign_ctx = NULL;
+        status = furi_hal_crypto_ecdsa_sign_init(&sign_ctx, FuriHalCryptoEcdsaModeSha256, key);
+
+        if(status != FuriHalCryptoStatusOk) {
+            break;
+        }
 
         uint8_t message[SUPERVISOR_CRYPTO_TEST_MSG_LEN];
         furi_hal_random_fill_buf(message, sizeof(message));

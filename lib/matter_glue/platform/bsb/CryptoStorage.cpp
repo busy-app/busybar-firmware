@@ -24,6 +24,10 @@ static CHIP_ERROR TranslateFuriHalCryptoStatus(FuriHalCryptoStatus status) {
         return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
     case FuriHalCryptoStatusErrorCrc:
         return CHIP_ERROR_INTEGRITY_CHECK_FAILED;
+    case FuriHalCryptoStatusWrongType:
+        return CHIP_ERROR_INVALID_ARGUMENT;
+    case FuriHalCryptoStatusUnavailable:
+        return CHIP_ERROR_PERSISTED_STORAGE_FAILED;
     default:
         return CHIP_ERROR_INTERNAL;
     }
@@ -78,9 +82,14 @@ CHIP_ERROR SignWithECDSA256Key(
             ChipLogDetail(Crypto, "WARNING: Using unwrapped private key");
         }
 
-        FuriHalCryptoEcdsa* ecdsa = furi_hal_crypto_ecdsa_sign_init(
+        FuriHalCryptoEcdsa* ecdsa = NULL;
+        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_ecdsa_sign_init(
+            &ecdsa,
             FuriHalCryptoEcdsaModeSha256,
-            private_key);
+            private_key));
+        if(!CHIP_ERROR::IsSuccess(err)) {
+            break;
+        }
 
         uint8_t asn1_sig[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
         size_t asn1_sig_len = 0;

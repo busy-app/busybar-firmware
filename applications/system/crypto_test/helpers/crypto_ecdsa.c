@@ -72,14 +72,23 @@ void crypto_ecdsa_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaMode mode) {
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
-    FuriHalCryptoEcdsa* handle = furi_hal_crypto_ecdsa_sign_init(mode, &private_key);
+    FuriHalCryptoEcdsa* handle = NULL;
+    FuriHalCryptoStatus status = furi_hal_crypto_ecdsa_sign_init(&handle, mode, &private_key);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA sign initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     furi_hal_crypto_ecdsa_sign(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
     crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
-    handle = furi_hal_crypto_ecdsa_verify_init(mode, &public_key);
+    status = furi_hal_crypto_ecdsa_verify_init(&handle, mode, &public_key);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA verify initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
         printf(ANSI_FG_GREEN "ECDSA mode success\r\n" ANSI_RESET);
@@ -110,14 +119,23 @@ void crypto_ecdsa_test_wrap_on_custom_sha_mode(
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
-    FuriHalCryptoEcdsa* handle = furi_hal_crypto_ecdsa_sign_init(mode, private_key_wrap);
+    FuriHalCryptoEcdsa* handle = NULL;
+    FuriHalCryptoStatus status = furi_hal_crypto_ecdsa_sign_init(&handle, mode, private_key_wrap);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA sign initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     furi_hal_crypto_ecdsa_sign(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
     crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
-    handle = furi_hal_crypto_ecdsa_verify_init(mode, &public_key);
+    status = furi_hal_crypto_ecdsa_verify_init(&handle, mode, &public_key);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA verify initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
         printf(ANSI_FG_GREEN " ECDSA mode success" ANSI_RESET "\r\n");
@@ -146,14 +164,23 @@ void crypto_ecdsa_224_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaMode mode)
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
-    FuriHalCryptoEcdsa* handle = furi_hal_crypto_ecdsa_sign_init(mode, &private_key_224);
+    FuriHalCryptoEcdsa* handle = NULL;
+    FuriHalCryptoStatus status = furi_hal_crypto_ecdsa_sign_init(&handle, mode, &private_key_224);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA sign initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     furi_hal_crypto_ecdsa_sign(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
     crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
-    handle = furi_hal_crypto_ecdsa_verify_init(mode, &public_key_224);
+    status = furi_hal_crypto_ecdsa_verify_init(&handle, mode, &public_key_224);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA verify initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
         printf(ANSI_FG_GREEN " ECDSA mode success" ANSI_RESET "\r\n");
@@ -184,14 +211,23 @@ void crypto_ecdsa_224_test_wrap_on_custom_sha_mode(
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
-    FuriHalCryptoEcdsa* handle = furi_hal_crypto_ecdsa_sign_init(mode, private_key_wrap);
+    FuriHalCryptoEcdsa* handle = NULL;
+    FuriHalCryptoStatus status = furi_hal_crypto_ecdsa_sign_init(&handle, mode, private_key_wrap);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA sign initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     furi_hal_crypto_ecdsa_sign(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
     crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
-    handle = furi_hal_crypto_ecdsa_verify_init(mode, &public_key_224);
+    status = furi_hal_crypto_ecdsa_verify_init(&handle, mode, &public_key_224);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA verify initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
         printf(ANSI_FG_GREEN " ECDSA mode success" ANSI_RESET "\r\n");
@@ -209,8 +245,13 @@ void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context) {
 
     crypto_common_print_buffer_hex("message =\t\t", (uint8_t*)input_data, INPUT_MSG_SIZE);
 
-    FuriHalCryptoEcdsa* handle =
-        furi_hal_crypto_ecdsa_verify_init(FuriHalCryptoEcdsaModeSha256, &public_key);
+    FuriHalCryptoEcdsa* handle = NULL;
+    FuriHalCryptoStatus status =
+        furi_hal_crypto_ecdsa_verify_init(&handle, FuriHalCryptoEcdsaModeSha256, &public_key);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " ECDSA verify initialization failed" ANSI_RESET "\r\n");
+        return;
+    }
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature_test, sizeof(signature_test))) {
         printf(ANSI_FG_GREEN " ECDSA signature_test success" ANSI_RESET "\r\n");
@@ -228,10 +269,16 @@ void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context) {
     printf(ANSI_FG_YELLOW "ECDSA SECP256R1 key wrap on test" ANSI_RESET "\r\n");
 
     FuriHalCryptoKey* private_key_wrap = furi_hal_crypto_key_alloc();
-    FuriHalCryptoStatus status = furi_hal_crypto_wrap_key(&private_key, private_key_wrap);
-    furi_check(status == FuriHalCryptoStatusOk);
-    crypto_common_print_buffer_hex("Key =\t\t", private_key.data, private_key.length);
-    crypto_common_print_buffer_hex("Wrapped key =\t", private_key_wrap->data, private_key.length);
+    status = furi_hal_crypto_wrap_key(&private_key, private_key_wrap);
+    if(status == FuriHalCryptoStatusUnavailable) {
+        printf(ANSI_FG_RED " key wrapping is unavailable" ANSI_RESET "\r\n");
+        return;
+    } else if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " key wrapping failed" ANSI_RESET "\r\n");
+        return;
+    }
+    crypto_common_print_key("Key =\t\t", &private_key);
+    crypto_common_print_key("Wrapped key =\t", private_key_wrap);
     crypto_ecdsa_test_wrap_on_custom_sha_mode(FuriHalCryptoEcdsaModeSha256, private_key_wrap);
     crypto_ecdsa_test_wrap_on_custom_sha_mode(FuriHalCryptoEcdsaModeSha384, private_key_wrap);
     crypto_ecdsa_test_wrap_on_custom_sha_mode(FuriHalCryptoEcdsaModeSha512, private_key_wrap);
@@ -246,10 +293,15 @@ void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context) {
 
     FuriHalCryptoKey* private_key_wrap_224 = furi_hal_crypto_key_alloc();
     status = furi_hal_crypto_wrap_key(&private_key_224, private_key_wrap_224);
-    furi_check(status == FuriHalCryptoStatusOk);
-    crypto_common_print_buffer_hex("Key =\t\t", private_key_224.data, private_key_224.length);
-    crypto_common_print_buffer_hex(
-        "Wrapped key =\t", private_key_wrap_224->data, private_key_wrap_224->length);
+    if(status == FuriHalCryptoStatusUnavailable) {
+        printf(ANSI_FG_RED " key wrapping is unavailable" ANSI_RESET "\r\n");
+        return;
+    } else if(status != FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_RED " key wrapping failed" ANSI_RESET "\r\n");
+        return;
+    }
+    crypto_common_print_key("Key =\t\t", &private_key_224);
+    crypto_common_print_key("Wrapped key =\t", private_key_wrap_224);
     crypto_ecdsa_224_test_wrap_on_custom_sha_mode(
         FuriHalCryptoEcdsaModeSha256, private_key_wrap_224);
     crypto_ecdsa_224_test_wrap_on_custom_sha_mode(

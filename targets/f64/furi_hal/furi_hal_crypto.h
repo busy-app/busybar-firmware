@@ -145,9 +145,12 @@ void furi_hal_crypto_key_free(FuriHalCryptoKey* key);
  * @param[in] wrapping_mode Wrapping mode.
  *     - FuriHalCryptoWrappingModeOff
  *     - FuriHalCryptoWrappingModeOn
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
  */
 FuriHalCryptoStatus furi_hal_crypto_aes_init(
-    FuriHalCryptoAes** aes,
+    FuriHalCryptoAes** handle,
     FuriHalCryptoAesMode mode,
     const FuriHalCryptoKey* key);
 
@@ -196,6 +199,7 @@ bool furi_hal_crypto_aes_decrypt(
 /**
  * @brief Initialize ECDSA signing
  *
+ * @param[out] handle ECDSA handle
  * @param[in] mode ECDSA mode
  *    - FuriHalCryptoEcdsaModeSha256
  *    - FuriHalCryptoEcdsaModeSha384
@@ -207,14 +211,19 @@ bool furi_hal_crypto_aes_decrypt(
  * @param[in] wrapping_mode Wrapping mode
  *    - FuriHalCryptoWrappingModeOff
  *    - FuriHalCryptoWrappingModeOn
- * @return FuriHalCryptoEcdsa* ECDSA handle
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
  */
-FuriHalCryptoEcdsa*
-    furi_hal_crypto_ecdsa_sign_init(FuriHalCryptoEcdsaMode mode, const FuriHalCryptoKey* key);
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
+    FuriHalCryptoEcdsa** handle,
+    FuriHalCryptoEcdsaMode mode,
+    const FuriHalCryptoKey* key);
 
 /**
  * @brief Initialize ECDSA verification
  * 
+ * @param[out] handle ECDSA handle
  * @param[in] mode ECDSA mode
  *   - FuriHalCryptoEcdsaModeSha256
  *   - FuriHalCryptoEcdsaModeSha384
@@ -223,10 +232,14 @@ FuriHalCryptoEcdsa*
  * @param[in] key_size Key size
  *   - FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224
  *   - FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256
- * @return FuriHalCryptoEcdsa* ECDSA handle
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
  */
-FuriHalCryptoEcdsa*
-    furi_hal_crypto_ecdsa_verify_init(FuriHalCryptoEcdsaMode mode, const FuriHalCryptoKey* key);
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify_init(
+    FuriHalCryptoEcdsa** handle,
+    FuriHalCryptoEcdsaMode mode,
+    const FuriHalCryptoKey* key);
 
 /**
  * @brief Deinitialize ECDSA handle

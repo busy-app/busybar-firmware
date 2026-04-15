@@ -167,19 +167,21 @@ struct FuriHalCryptoEcdsa {
     sl_si91x_ecdsa_config_t config;
 };
 
-FuriHalCryptoEcdsa*
-    furi_hal_crypto_ecdsa_sign_init(FuriHalCryptoEcdsaMode mode, const FuriHalCryptoKey* key) {
-    FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
-    furi_check(handle != NULL, "Failed to allocate memory for ECDSA handle");
-
-    handle->config.ecdsa_operation = SL_SI91X_ECDSA_GENERATE_SIGN;
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
+    FuriHalCryptoEcdsa** handle_out,
+    FuriHalCryptoEcdsaMode mode,
+    const FuriHalCryptoKey* key) {
+    sl_si91x_crypto_ecc_curve_t curve_id;
     if(key->type == FuriHalCryptoKeyTypeEcdsaPriv224) {
-        handle->config.curve_id = SL_SI91X_ECC_SECP224R1;
+        curve_id = SL_SI91X_ECC_SECP224R1;
     } else if(key->type == FuriHalCryptoKeyTypeEcdsaPriv256) {
-        handle->config.curve_id = SL_SI91X_ECC_SECP256R1;
+        curve_id = SL_SI91X_ECC_SECP256R1;
     } else {
-        furi_crash("Invalid key type");
+        return FuriHalCryptoStatusWrongType;
     }
+    FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
+    handle->config.curve_id = curve_id;
+    handle->config.ecdsa_operation = SL_SI91X_ECDSA_GENERATE_SIGN;
     handle->config.sha_mode = furi_hal_crypto_ecdsa_sha_mode[mode];
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
@@ -203,22 +205,26 @@ FuriHalCryptoEcdsa*
     handle->config.key_config.b0.key_slot = 0;
     handle->config.key_config.b0.reserved = 0;
 
-    return handle;
+    *handle_out = handle;
+
+    return FuriHalCryptoStatusOk;
 }
 
-FuriHalCryptoEcdsa*
-    furi_hal_crypto_ecdsa_verify_init(FuriHalCryptoEcdsaMode mode, const FuriHalCryptoKey* key) {
-    FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
-    furi_check(handle != NULL, "Failed to allocate memory for ECDSA handle");
-
-    handle->config.ecdsa_operation = SL_SI91X_ECDSA_VERIFY_SIGN;
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify_init(
+    FuriHalCryptoEcdsa** handle_out,
+    FuriHalCryptoEcdsaMode mode,
+    const FuriHalCryptoKey* key) {
+    sl_si91x_crypto_ecc_curve_t curve_id;
     if(key->type == FuriHalCryptoKeyTypeEcdsaPub224) {
-        handle->config.curve_id = SL_SI91X_ECC_SECP224R1;
+        curve_id = SL_SI91X_ECC_SECP224R1;
     } else if(key->type == FuriHalCryptoKeyTypeEcdsaPub256) {
-        handle->config.curve_id = SL_SI91X_ECC_SECP256R1;
+        curve_id = SL_SI91X_ECC_SECP256R1;
     } else {
-        furi_crash("Invalid key type");
+        return FuriHalCryptoStatusWrongType;
     }
+    FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
+    handle->config.curve_id = curve_id;
+    handle->config.ecdsa_operation = SL_SI91X_ECDSA_VERIFY_SIGN;
     handle->config.sha_mode = furi_hal_crypto_ecdsa_sha_mode[mode];
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
@@ -232,7 +238,8 @@ FuriHalCryptoEcdsa*
     handle->config.key_config.b0.key_slot = 0;
     handle->config.key_config.b0.reserved = 0;
 
-    return handle;
+    *handle_out = handle;
+    return FuriHalCryptoStatusOk;
 }
 
 void furi_hal_crypto_ecdsa_deinit(FuriHalCryptoEcdsa* handle) {
