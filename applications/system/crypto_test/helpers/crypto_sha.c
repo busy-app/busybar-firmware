@@ -38,7 +38,7 @@ void crypto_sha_check(
     size_t digest_length) {
     crypto_common_print_buffer_hex("Message =\t\t", (uint8_t*)message, sizeof(message));
     crypto_common_print_buffer_hex("Digest =\t\t", digest, digest_length);
-    crypto_common_print_buffer_hex("Expected =\t", digest_out, digest_length);
+    crypto_common_print_buffer_hex("Expected =\t\t", digest_out, digest_length);
     if(memcmp(digest, digest_out, digest_length) != 0) {
         printf(ANSI_FG_RED "%s mode failed" ANSI_RESET "\r\n", tag);
     } else {
@@ -71,28 +71,36 @@ void crypto_sha_test_custom_sha_mode(FuriHalCryptoShaMode sha_mode) {
         break;
     }
 
-    furi_hal_crypto_sha(sha_mode, (uint8_t*)message, sizeof(message) - 1, digest, digest_length);
+    FuriHalCryptoStatus status = furi_hal_crypto_sha(
+        sha_mode, (uint8_t*)message, sizeof(message) - 1, digest, digest_length);
+    do {
+        CRYPTO_COMMON_CHECK_STATUS(status, "SHA");
 
-    switch(sha_mode) {
-    case FuriHalCryptoShaModeSha1:
-        crypto_sha_check("SHA1", digest, digest_out_sha1, FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoShaModeSha256:
-        crypto_sha_check("SHA256", digest, digest_out_sha256, FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoShaModeSha384:
-        crypto_sha_check("SHA384", digest, digest_out_sha384, FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoShaModeSha512:
-        crypto_sha_check("SHA512", digest, digest_out_sha512, FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE);
-        break;
-    case FuriHalCryptoShaModeSha244:
-        crypto_sha_check("SHA224", digest, digest_out_sha244, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
-        break;
+        switch(sha_mode) {
+        case FuriHalCryptoShaModeSha1:
+            crypto_sha_check("SHA1", digest, digest_out_sha1, FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE);
+            break;
+        case FuriHalCryptoShaModeSha256:
+            crypto_sha_check(
+                "SHA256", digest, digest_out_sha256, FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE);
+            break;
+        case FuriHalCryptoShaModeSha384:
+            crypto_sha_check(
+                "SHA384", digest, digest_out_sha384, FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE);
+            break;
+        case FuriHalCryptoShaModeSha512:
+            crypto_sha_check(
+                "SHA512", digest, digest_out_sha512, FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE);
+            break;
+        case FuriHalCryptoShaModeSha244:
+            crypto_sha_check(
+                "SHA224", digest, digest_out_sha244, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
+            break;
 
-    default:
-        break;
-    }
+        default:
+            break;
+        }
+    } while(false);
 }
 
 void crypto_sha_command(PipeSide* pipe, FuriString* args, void* context) {

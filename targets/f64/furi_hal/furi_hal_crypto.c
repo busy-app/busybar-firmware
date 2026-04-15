@@ -296,14 +296,14 @@ struct FuriHalCryptoHmac {
     sl_si91x_hmac_config_t config;
 };
 
-static const sl_si91x_hmac_mode_t furi_hal_crypto_hmac_sha_mode[] = {
+static const sl_si91x_hmac_mode_t sl_hmac_sha_mode_lookup[] = {
     [FuriHalCryptoKeyTypeHmacSha1] = SL_SI91X_HMAC_SHA_1,
     [FuriHalCryptoKeyTypeHmacSha256] = SL_SI91X_HMAC_SHA_256,
     [FuriHalCryptoKeyTypeHmacSha384] = SL_SI91X_HMAC_SHA_384,
     [FuriHalCryptoKeyTypeHmacSha512] = SL_SI91X_HMAC_SHA_512,
 };
 
-static const FuriHalCryptoKeyType hmac_sha_type[] = {
+static const FuriHalCryptoKeyType hmac_sha_key_type_lookup[] = {
     [FuriHalCryptoHmacShaModeSha1] = FuriHalCryptoKeyTypeHmacSha1,
     [FuriHalCryptoHmacShaModeSha256] = FuriHalCryptoKeyTypeHmacSha256,
     [FuriHalCryptoHmacShaModeSha384] = FuriHalCryptoKeyTypeHmacSha384,
@@ -315,7 +315,7 @@ FuriHalCryptoKey* furi_hal_crypto_key_init_hmac(
     const uint8_t* data,
     size_t length) {
     FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
-    key->type = hmac_sha_type[mode];
+    key->type = hmac_sha_key_type_lookup[mode];
     key->length = MIN(length, sizeof(key->data));
     memcpy(key->data, data, key->length);
     return key;
@@ -336,7 +336,7 @@ FuriHalCryptoStatus
     }
 
     FuriHalCryptoHmac* handle = malloc(sizeof(FuriHalCryptoHmac));
-    handle->config.hmac_mode = furi_hal_crypto_hmac_sha_mode[key->type];
+    handle->config.hmac_mode = sl_hmac_sha_mode_lookup[key->type];
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
     if((key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
@@ -401,7 +401,7 @@ FuriHalCryptoStatus furi_hal_crypto_hmac_digest(
 }
 
 //#################### SHA ####################
-static const sl_si91x_crypto_sha_mode_t furi_hal_crypto_sha_mode[] = {
+static const sl_si91x_crypto_sha_mode_t sl_sha_mode_lookup[] = {
     [FuriHalCryptoShaModeSha1] = SL_SI91X_SHA_1,
     [FuriHalCryptoShaModeSha256] = SL_SI91X_SHA_256,
     [FuriHalCryptoShaModeSha384] = SL_SI91X_SHA_384,
@@ -409,31 +409,31 @@ static const sl_si91x_crypto_sha_mode_t furi_hal_crypto_sha_mode[] = {
     [FuriHalCryptoShaModeSha244] = SL_SI91X_SHA_224,
 };
 
-bool furi_hal_crypto_sha(
+static const size_t sha_digest_length_lookup[] = {
+    [FuriHalCryptoShaModeSha1] = FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE,
+    [FuriHalCryptoShaModeSha256] = FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE,
+    [FuriHalCryptoShaModeSha384] = FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE,
+    [FuriHalCryptoShaModeSha512] = FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE,
+    [FuriHalCryptoShaModeSha244] = FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE,
+};
+
+FuriHalCryptoStatus furi_hal_crypto_sha(
     FuriHalCryptoShaMode sha_mode,
-    uint8_t* msg,
+    const uint8_t* msg,
     uint16_t msg_length,
     uint8_t* digest,
     size_t digest_length) {
     furi_check(sha_mode < FuriHalCryptoShaModeMAX, "Invalid SHA mode");
     furi_assert(msg && msg_length && digest);
-    furi_assert(
-        (sha_mode == FuriHalCryptoShaModeSha1 &&
-         digest_length == FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE) ||
-        (sha_mode == FuriHalCryptoShaModeSha256 &&
-         digest_length == FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE) ||
-        (sha_mode == FuriHalCryptoShaModeSha384 &&
-         digest_length == FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE) ||
-        (sha_mode == FuriHalCryptoShaModeSha512 &&
-         digest_length == FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE) ||
-        (sha_mode == FuriHalCryptoShaModeSha244 &&
-         digest_length == FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE));
-    sl_status_t status = sl_si91x_sha(furi_hal_crypto_sha_mode[sha_mode], msg, msg_length, digest);
+    if(sha_digest_length_lookup[sha_mode] != digest_length) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
+    sl_status_t status = sl_si91x_sha(sl_sha_mode_lookup[sha_mode], msg, msg_length, digest);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed, Error Code : 0x%08lX", status);
-        return false;
+        return FuriHalCryptoStatusFail;
     }
-    return true;
+    return FuriHalCryptoStatusOk;
 }
 
 //#################### Wrap Key ####################
@@ -453,7 +453,7 @@ FuriHalCryptoStatus
     case FuriHalCryptoKeyTypeHmacSha384:
     case FuriHalCryptoKeyTypeHmacSha512:
         wrap_config->padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
-        wrap_config->hmac_sha_mode = furi_hal_crypto_hmac_sha_mode[key->type];
+        wrap_config->hmac_sha_mode = sl_hmac_sha_mode_lookup[key->type];
         break;
     default:
         wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;

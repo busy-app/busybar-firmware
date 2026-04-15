@@ -350,13 +350,14 @@ FuriHalCryptoStatus furi_hal_crypto_hmac_digest(
  * @param[in] msg_length Length of the message buffer
  * @param[out] digest Pointer to the digest buffer
  * @param[in] digest_length Length of the digest buffer
- * @return 
- *   true - Success
- *   false - Failure
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if digest length doesn't match sha_mode
+ *    - FuriHalCryptoStatusFail otherwise
  */
-bool furi_hal_crypto_sha(
+FuriHalCryptoStatus furi_hal_crypto_sha(
     FuriHalCryptoShaMode sha_mode,
-    uint8_t* msg,
+    const uint8_t* msg,
     uint16_t msg_length,
     uint8_t* digest,
     size_t digest_length);
