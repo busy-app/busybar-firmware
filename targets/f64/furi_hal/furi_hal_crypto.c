@@ -51,7 +51,7 @@ FuriHalCryptoStatus furi_hal_crypto_aes_init(
     case FuriHalCryptoKeyTypeAes256:
         break;
     default:
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     FuriHalCryptoAes* handle = malloc(sizeof(FuriHalCryptoAes));
@@ -100,18 +100,22 @@ void furi_hal_crypto_aes_deinit(FuriHalCryptoAes* handle) {
     free(handle);
 }
 
-bool furi_hal_crypto_aes_encrypt(
+FuriHalCryptoStatus furi_hal_crypto_aes_encrypt(
     FuriHalCryptoAes* handle,
-    uint8_t* iv,
-    uint8_t* input,
+    const uint8_t* iv,
+    const uint8_t* input,
     uint16_t input_length,
     uint8_t* output) {
     furi_check(handle);
     furi_check(input);
-    furi_check(input_length % 16 == 0);
-    furi_check(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
-    if(handle->config.aes_mode != SL_SI91X_AES_ECB) {
-        furi_check(iv);
+    if(input_length % 16 != 0) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
+    if(input_length > SL_SI91X_MAX_DATA_SIZE_IN_BYTES) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
+    if(handle->config.aes_mode != SL_SI91X_AES_ECB && !iv) {
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
@@ -123,23 +127,27 @@ bool furi_hal_crypto_aes_encrypt(
 
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "AES encryption failed, Error Code : 0x%08lX", status);
-        return false;
+        return FuriHalCryptoStatusDriverError;
     }
-    return true;
+    return FuriHalCryptoStatusOk;
 }
 
-bool furi_hal_crypto_aes_decrypt(
+FuriHalCryptoStatus furi_hal_crypto_aes_decrypt(
     FuriHalCryptoAes* handle,
-    uint8_t* iv,
-    uint8_t* input,
+    const uint8_t* iv,
+    const uint8_t* input,
     uint16_t input_length,
     uint8_t* output) {
     furi_check(handle);
     furi_check(input);
-    furi_check(input_length % 16 == 0);
-    furi_check(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
-    if(handle->config.aes_mode != SL_SI91X_AES_ECB) {
-        furi_check(iv);
+    if(input_length % 16 != 0) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
+    if(input_length > SL_SI91X_MAX_DATA_SIZE_IN_BYTES) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
+    if(handle->config.aes_mode != SL_SI91X_AES_ECB && !iv) {
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_DECRYPT;
@@ -151,9 +159,9 @@ bool furi_hal_crypto_aes_decrypt(
 
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "AES decryption failed, Error Code : 0x%08lX", status);
-        return false;
+        return FuriHalCryptoStatusDriverError;
     }
-    return true;
+    return FuriHalCryptoStatusOk;
 }
 
 //#################### ECDSA ####################
@@ -163,12 +171,16 @@ static const sl_si91x_crypto_ecdsa_sha_mode_t furi_hal_crypto_ecdsa_sha_mode[] =
     [FuriHalCryptoEcdsaModeSha512] = SL_SI91X_ECDSA_SHA_512,
 };
 
-struct FuriHalCryptoEcdsa {
+struct FuriHalCryptoEcdsaSign {
+    sl_si91x_ecdsa_config_t config;
+};
+
+struct FuriHalCryptoEcdsaVerify {
     sl_si91x_ecdsa_config_t config;
 };
 
 FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
-    FuriHalCryptoEcdsa** handle_out,
+    FuriHalCryptoEcdsaSign** handle_out,
     FuriHalCryptoEcdsaMode mode,
     const FuriHalCryptoKey* key) {
     sl_si91x_crypto_ecc_curve_t curve_id;
@@ -177,9 +189,9 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
     } else if(key->type == FuriHalCryptoKeyTypeEcdsaPriv256) {
         curve_id = SL_SI91X_ECC_SECP256R1;
     } else {
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
-    FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
+    FuriHalCryptoEcdsaSign* handle = malloc(sizeof(FuriHalCryptoEcdsaSign));
     handle->config.curve_id = curve_id;
     handle->config.ecdsa_operation = SL_SI91X_ECDSA_GENERATE_SIGN;
     handle->config.sha_mode = furi_hal_crypto_ecdsa_sha_mode[mode];
@@ -211,7 +223,7 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
 }
 
 FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify_init(
-    FuriHalCryptoEcdsa** handle_out,
+    FuriHalCryptoEcdsaVerify** handle_out,
     FuriHalCryptoEcdsaMode mode,
     const FuriHalCryptoKey* key) {
     sl_si91x_crypto_ecc_curve_t curve_id;
@@ -220,9 +232,9 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify_init(
     } else if(key->type == FuriHalCryptoKeyTypeEcdsaPub256) {
         curve_id = SL_SI91X_ECC_SECP256R1;
     } else {
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
-    FuriHalCryptoEcdsa* handle = malloc(sizeof(FuriHalCryptoEcdsa));
+    FuriHalCryptoEcdsaVerify* handle = malloc(sizeof(FuriHalCryptoEcdsaVerify));
     handle->config.curve_id = curve_id;
     handle->config.ecdsa_operation = SL_SI91X_ECDSA_VERIFY_SIGN;
     handle->config.sha_mode = furi_hal_crypto_ecdsa_sha_mode[mode];
@@ -242,13 +254,18 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify_init(
     return FuriHalCryptoStatusOk;
 }
 
-void furi_hal_crypto_ecdsa_deinit(FuriHalCryptoEcdsa* handle) {
+void furi_hal_crypto_ecdsa_sign_deinit(FuriHalCryptoEcdsaSign* handle) {
     furi_check(handle);
     free(handle);
 }
 
-bool furi_hal_crypto_ecdsa_sign(
-    FuriHalCryptoEcdsa* handle,
+void furi_hal_crypto_ecdsa_verify_deinit(FuriHalCryptoEcdsaVerify* handle) {
+    furi_check(handle);
+    free(handle);
+}
+
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign(
+    FuriHalCryptoEcdsaSign* handle,
     const uint8_t* input,
     uint16_t input_length,
     uint8_t* output,
@@ -261,20 +278,19 @@ bool furi_hal_crypto_ecdsa_sign(
     sl_status_t status = sl_si91x_ecdsa(&handle->config, output);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to sign data, Error Code : 0x%08lX", status);
-        return false;
+        return FuriHalCryptoStatusDriverError;
     }
     *output_length = handle->config.signature_length;
-    return true;
+    return FuriHalCryptoStatusOk;
 }
 
-bool furi_hal_crypto_ecdsa_verify(
-    FuriHalCryptoEcdsa* handle,
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify(
+    FuriHalCryptoEcdsaVerify* handle,
     uint8_t* input,
     uint16_t input_length,
     uint8_t* signature,
     uint16_t signature_length) {
     furi_check(handle && input && signature);
-    furi_check(handle->config.public_key && handle->config.public_key_length);
     uint8_t* verify = NULL;
     handle->config.msg = input;
     handle->config.msg_length = input_length;
@@ -283,12 +299,11 @@ bool furi_hal_crypto_ecdsa_verify(
     sl_status_t status = sl_si91x_ecdsa(&handle->config, verify);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to verify data, Error Code : 0x%08lX", status);
-        return false;
+        return FuriHalCryptoStatusDriverError;
     } else if(*verify != 1) {
-        FURI_LOG_D(TAG, "Failed to verify data");
-        return false;
+        return FuriHalCryptoStatusFail;
     }
-    return true;
+    return FuriHalCryptoStatusOk;
 }
 
 //#################### HMAC ####################
@@ -332,7 +347,7 @@ FuriHalCryptoStatus
     case FuriHalCryptoKeyTypeHmacSha512:
         break;
     default:
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     FuriHalCryptoHmac* handle = malloc(sizeof(FuriHalCryptoHmac));
@@ -395,7 +410,7 @@ FuriHalCryptoStatus furi_hal_crypto_hmac_digest(
     sl_status_t status = sl_si91x_hmac(&handle->config, output);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to compute HMAC, , Error Code : 0x%08lX", status);
-        return FuriHalCryptoStatusFail;
+        return FuriHalCryptoStatusDriverError;
     }
     return FuriHalCryptoStatusOk;
 }
@@ -431,7 +446,7 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
     sl_status_t status = sl_si91x_sha(sl_sha_mode_lookup[sha_mode], msg, msg_length, digest);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed, Error Code : 0x%08lX", status);
-        return FuriHalCryptoStatusFail;
+        return FuriHalCryptoStatusDriverError;
     }
     return FuriHalCryptoStatusOk;
 }
@@ -476,7 +491,7 @@ FuriHalCryptoStatus
         ret = FuriHalCryptoStatusUnavailable;
     } else {
         FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
-        ret = FuriHalCryptoStatusFail;
+        ret = FuriHalCryptoStatusDriverError;
     }
 
     free(wrap_config);
@@ -505,7 +520,7 @@ FuriHalCryptoStatus
         return FuriHalCryptoStatusUnavailable;
     } else if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
-        return FuriHalCryptoStatusFail;
+        return FuriHalCryptoStatusDriverError;
     } else {
         return FuriHalCryptoStatusOk;
     }
@@ -523,13 +538,13 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size) {
     status = sl_si91x_trng_entropy();
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to check TRNG entropy: 0x%08lx\r\n", status);
-        return FuriHalCryptoStatusFail;
+        return FuriHalCryptoStatusDriverError;
     }
     // This API Initializes key which needs to be programmed to TRNG hardware engine
     status = sl_si91x_trng_program_key(trng_key, TRNG_KEY_SIZE);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to program TRNG key: 0x%08lx\r\n", status);
-        return FuriHalCryptoStatusFail;
+        return FuriHalCryptoStatusDriverError;
     }
     // Get Random dwords of desired length
     uint32_t reget_num = 10;
@@ -540,7 +555,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size) {
 
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to get random numbers: 0x%08lx\r\n", status);
-        return FuriHalCryptoStatusFail;
+        return FuriHalCryptoStatusDriverError;
     }
     return FuriHalCryptoStatusOk;
 }
@@ -580,7 +595,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
         key->length = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
         break;
     default:
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     key->type = type;
@@ -595,17 +610,17 @@ FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
     furi_check(pub_key);
     if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv224 &&
        priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256) {
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
     if(priv_key->flags & FuriHalCryptoKeyFlagWrap) {
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     psa_status_t psa_status;
     psa_key_id_t psa_key_id;
     psa_key_attributes_t key_attr;
     size_t pubkey_len;
-    FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
+    FuriHalCryptoStatus status = FuriHalCryptoStatusDriverError;
 
     do {
         psa_status = psa_crypto_init();
@@ -678,7 +693,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
 
     if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256 ||
        (priv_key->flags & FuriHalCryptoKeyFlagWrap) != 0) {
-        return FuriHalCryptoStatusWrongType;
+        return FuriHalCryptoStatusInvalidParameter;
     }
 
     psa_key_id_t psa_key_id = 0;
@@ -689,7 +704,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     size_t max_size = FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX;
     uint8_t* buffer = malloc(max_size);
     psa_key_attributes_t key_attr;
-    FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
+    FuriHalCryptoStatus status = FuriHalCryptoStatusDriverError;
     psa_status_t psa_status;
 
     do {

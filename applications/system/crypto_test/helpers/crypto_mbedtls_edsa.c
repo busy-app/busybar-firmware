@@ -29,7 +29,9 @@ static const uint8_t public_key_check[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256] = 
 
 void crypto_mbedtls_edsa_wrap(uint8_t* key, size_t key_size, uint8_t* wrapped_key) {
     furi_check(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
-    furi_hal_crypto_wrap_raw_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
+    FuriHalCryptoStatus status =
+        furi_hal_crypto_wrap_raw_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
+    furi_check(status == FuriHalCryptoStatusOk);
 }
 
 //sli_si91x_crypto_wrap_key(key, key_size, SL_SI91X_WRAP_IV_CBC_MODE, WRAP_IV);

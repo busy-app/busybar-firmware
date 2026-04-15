@@ -46,7 +46,7 @@ static bool supervisor_is_tls_crypto_healthy(void) {
             break;
         }
 
-        FuriHalCryptoEcdsa* sign_ctx = NULL;
+        FuriHalCryptoEcdsaSign* sign_ctx = NULL;
         status = furi_hal_crypto_ecdsa_sign_init(&sign_ctx, FuriHalCryptoEcdsaModeSha256, key);
 
         if(status != FuriHalCryptoStatusOk) {
@@ -60,9 +60,10 @@ static bool supervisor_is_tls_crypto_healthy(void) {
         size_t signature_len = sizeof(signature);
 
         is_healthy = furi_hal_crypto_ecdsa_sign(
-            sign_ctx, message, sizeof(message), signature, &signature_len);
+                         sign_ctx, message, sizeof(message), signature, &signature_len) ==
+                     FuriHalCryptoStatusOk;
 
-        furi_hal_crypto_ecdsa_deinit(sign_ctx);
+        furi_hal_crypto_ecdsa_sign_deinit(sign_ctx);
 
     } while(false);
     furi_hal_crypto_key_free(key);

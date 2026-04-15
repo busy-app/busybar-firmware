@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "furi_hal_common.h"
 
 #define FURI_HAL_CRYPTO_DATA_SIZE_MAX (996UL) // Maximum data size for keys
 
@@ -25,7 +26,8 @@ typedef enum {
 } FuriHalCryptoAesMode;
 
 //#################### ECDSA ####################
-typedef struct FuriHalCryptoEcdsa FuriHalCryptoEcdsa;
+typedef struct FuriHalCryptoEcdsaSign FuriHalCryptoEcdsaSign;
+typedef struct FuriHalCryptoEcdsaVerify FuriHalCryptoEcdsaVerify;
 
 #define FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224      28
 #define FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256      32
@@ -117,9 +119,9 @@ typedef enum {
     FuriHalCryptoStatusDuplicate,
     FuriHalCryptoStatusNotFound,
     FuriHalCryptoStatusErrorCrc,
-    FuriHalCryptoStatusWrongType,
     FuriHalCryptoStatusUnavailable,
     FuriHalCryptoStatusInvalidParameter,
+    FuriHalCryptoStatusDriverError,
 } FuriHalCryptoStatus;
 
 #ifdef __cplusplus
@@ -148,8 +150,9 @@ void furi_hal_crypto_key_free(FuriHalCryptoKey* key);
  *     - FuriHalCryptoWrappingModeOn
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
- *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
+ *    - FuriHalCryptoStatusInvalidParameter if supplied key is of a wrong type
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_aes_init(
     FuriHalCryptoAes** handle,
     FuriHalCryptoAesMode mode,
@@ -169,13 +172,19 @@ void furi_hal_crypto_aes_deinit(FuriHalCryptoAes* handle);
  * @param[in] iv Pointer to the initialization vector.
  * @param[in] input Pointer to the input data.
  * @param[in] input_length Length of the input data.
- * @param[out] output Pointer to the output buffer.
- * @returns true if the operation was successful, false otherwise.
+ * @param[in] output Pointer to the output buffer.
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if input length is not a multiple of 16
+ *    - FuriHalCryptoStatusInvalidParameter if input length is too large
+ *    - FuriHalCryptoStatusInvalidParameter if no iv is supplied in CBC or CTR mode
+ *    - FuriHalCryptoStatusDriverError otherwise
  */
-bool furi_hal_crypto_aes_encrypt(
+FURI_HAL_NODISCARD
+FuriHalCryptoStatus furi_hal_crypto_aes_encrypt(
     FuriHalCryptoAes* handle,
-    uint8_t* iv,
-    uint8_t* input,
+    const uint8_t* iv,
+    const uint8_t* input,
     uint16_t input_length,
     uint8_t* output);
 
@@ -186,13 +195,19 @@ bool furi_hal_crypto_aes_encrypt(
  * @param[in] iv Pointer to the initialization vector.
  * @param[in] input Pointer to the input data.
  * @param[in] input_length Length of the input data.
- * @param[out] output Pointer to the output buffer.
- * @returns true if the operation was successful, false otherwise.
+ * @param[in] output Pointer to the output buffer.
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if input length is not a multiple of 16
+ *    - FuriHalCryptoStatusInvalidParameter if input length is too large
+ *    - FuriHalCryptoStatusInvalidParameter if no iv is supplied in CBC or CTR mode
+ *    - FuriHalCryptoStatusDriverError otherwise
  */
-bool furi_hal_crypto_aes_decrypt(
+FURI_HAL_NODISCARD
+FuriHalCryptoStatus furi_hal_crypto_aes_decrypt(
     FuriHalCryptoAes* handle,
-    uint8_t* iv,
-    uint8_t* input,
+    const uint8_t* iv,
+    const uint8_t* input,
     uint16_t input_length,
     uint8_t* output);
 
@@ -214,10 +229,11 @@ bool furi_hal_crypto_aes_decrypt(
  *    - FuriHalCryptoWrappingModeOn
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
- *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
+ *    - FuriHalCryptoStatusInvalidParameter if supplied key is of a wrong type
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
-    FuriHalCryptoEcdsa** handle,
+    FuriHalCryptoEcdsaSign** handle,
     FuriHalCryptoEcdsaMode mode,
     const FuriHalCryptoKey* key);
 
@@ -235,19 +251,27 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
  *   - FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
- *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
+ *    - FuriHalCryptoStatusInvalidParameter if supplied key is of a wrong type
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify_init(
-    FuriHalCryptoEcdsa** handle,
+    FuriHalCryptoEcdsaVerify** handle,
     FuriHalCryptoEcdsaMode mode,
     const FuriHalCryptoKey* key);
 
 /**
- * @brief Deinitialize ECDSA handle
+ * @brief Deinitialize ECDSA sign handle
  * 
- * @param handle Pointer to ECDSA handle
+ * @param handle Pointer to ECDSA sign handle
  */
-void furi_hal_crypto_ecdsa_deinit(FuriHalCryptoEcdsa* handle);
+void furi_hal_crypto_ecdsa_sign_deinit(FuriHalCryptoEcdsaSign* handle);
+
+/**
+ * @brief Deinitialize ECDSA verify handle
+ *
+ * @param handle Pointer to ECDSA verify handle
+ */
+void furi_hal_crypto_ecdsa_verify_deinit(FuriHalCryptoEcdsaVerify* handle);
 
 /**
  * @brief Sign data using ECDSA
@@ -257,10 +281,13 @@ void furi_hal_crypto_ecdsa_deinit(FuriHalCryptoEcdsa* handle);
  * @param input_length Length of input data
  * @param output Pointer to output buffer
  * @param output_length Length of output buffer
- * @return true if the operation was successful, false otherwise
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusDriverError otherwise
  */
-bool furi_hal_crypto_ecdsa_sign(
-    FuriHalCryptoEcdsa* handle,
+FURI_HAL_NODISCARD
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign(
+    FuriHalCryptoEcdsaSign* handle,
     const uint8_t* input,
     uint16_t input_length,
     uint8_t* output,
@@ -274,10 +301,14 @@ bool furi_hal_crypto_ecdsa_sign(
  * @param input_length Length of input data
  * @param signature Pointer to signature
  * @param signature_length Length of signature
- * @return true if the operation was successful, false otherwise
+* @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusFail on verification failure
+ *    - FuriHalCryptoStatusDriverError otherwise
  */
-bool furi_hal_crypto_ecdsa_verify(
-    FuriHalCryptoEcdsa* handle,
+FURI_HAL_NODISCARD
+FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify(
+    FuriHalCryptoEcdsaVerify* handle,
     uint8_t* input,
     uint16_t input_length,
     uint8_t* signature,
@@ -303,8 +334,9 @@ FuriHalCryptoKey* furi_hal_crypto_key_init_hmac(
  * @param[in] key Pointer to the key.
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
- *    - FuriHalCryptoStatusWrongType if supplied key is of a wrong type
+ *    - FuriHalCryptoStatusInvalidParameter if supplied key is of a wrong type
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus
     furi_hal_crypto_hmac_init(FuriHalCryptoHmac** handle, const FuriHalCryptoKey* key);
 
@@ -327,8 +359,9 @@ void furi_hal_crypto_hmac_deinit(FuriHalCryptoHmac* handle);
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
  *    - FuriHalCryptoStatusInvalidParameter if output length doesn't match the digest length
- *    - FuriHalCryptoStatusFail otherwise
+ *    - FuriHalCryptoStatusDriverError otherwise
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_hmac_digest(
     FuriHalCryptoHmac* handle,
     const uint8_t* input,
@@ -353,8 +386,9 @@ FuriHalCryptoStatus furi_hal_crypto_hmac_digest(
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
  *    - FuriHalCryptoStatusInvalidParameter if digest length doesn't match sha_mode
- *    - FuriHalCryptoStatusFail otherwise
+ *    - FuriHalCryptoStatusDriverError otherwise
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_sha(
     FuriHalCryptoShaMode sha_mode,
     const uint8_t* msg,
@@ -369,9 +403,11 @@ FuriHalCryptoStatus furi_hal_crypto_sha(
  * @param[in] uint8_t* key Pointer to the key.
  * @param[out] uint8_t* wrapped_key Pointer to the wrapped key.
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus
     furi_hal_crypto_wrap_key(const FuriHalCryptoKey* key, FuriHalCryptoKey* wrapped_key);
 
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus
     furi_hal_crypto_wrap_raw_key(size_t size, const uint8_t* src_buf, uint8_t* dst_buf);
 
@@ -382,11 +418,13 @@ FuriHalCryptoStatus
 * @param[in] size Size of the buffer to fill.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size);
 
 /** Generate a random key.
  * @param[in] type key type to generate.
  */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
     FuriHalCryptoKey* key,
     FuriHalCryptoKeyType type,
@@ -397,6 +435,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
 * @param[out] pub_key Pointer to the public key.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
     const FuriHalCryptoKey* priv_key,
     FuriHalCryptoKey* pub_key);
@@ -407,6 +446,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
 * @param[in] subject_name Subject name for the CSR.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
+FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     const FuriHalCryptoKey* priv_key,
     FuriHalCryptoKey* csr_der_key,

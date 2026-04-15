@@ -403,7 +403,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     }
 
     FuriHalCryptoStatus status = furi_hal_crypto_gen_random_key(key, type, flags);
-    if(status == FuriHalCryptoStatusWrongType) {
+    if(status == FuriHalCryptoStatusInvalidParameter) {
         printf("Error: Unsupported key type: %ld\r\n", (uint32_t)type);
         furi_hal_crypto_key_free(key);
         printf(CLI_STATUS_ERROR);

@@ -37,15 +37,6 @@ static void crypto_aes_check(char* tag, uint8_t* encrypted_buffer, uint8_t* decr
     }
 }
 
-static bool check_status(FuriHalCryptoStatus status) {
-    if(status != FuriHalCryptoStatusOk) {
-        printf(ANSI_FG_RED "fail (status = %d)\r\n" ANSI_RESET, status);
-        return false;
-    } else {
-        return true;
-    }
-}
-
 static void crypto_aes_test_custom_size_key(FuriHalCryptoKeyType type) {
     uint8_t encrypted_buffer[BUFFER_SIZE] = {0};
     uint8_t decrypted_buffer[BUFFER_SIZE] = {0};
@@ -53,23 +44,23 @@ static void crypto_aes_test_custom_size_key(FuriHalCryptoKeyType type) {
     uint8_t message[sizeof(message_const)];
     memcpy(message, message_const, sizeof(message_const));
 
-    FuriHalCryptoKey* keyy = furi_hal_crypto_key_alloc();
-    memcpy(keyy->data, key_const, sizeof(key_const));
-    keyy->type = type;
-    keyy->flags = 0;
+    FuriHalCryptoKey* key = furi_hal_crypto_key_alloc();
+    memcpy(key->data, key_const, sizeof(key_const));
+    key->type = type;
+    key->flags = 0;
 
     switch(type) {
     case FuriHalCryptoKeyTypeAes128:
         printf("\r\n\r\nCrypto AES 128 bit key\r\n");
-        keyy->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
+        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
         break;
     case FuriHalCryptoKeyTypeAes192:
         printf("\r\n\r\nCrypto AES 192 bit key\r\n");
-        keyy->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
+        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
         break;
     case FuriHalCryptoKeyTypeAes256:
         printf("\r\n\r\nCrypto AES 256 bit key\r\n");
-        keyy->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
+        key->length = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
         break;
     default:
         furi_assert(false);
@@ -82,107 +73,154 @@ static void crypto_aes_test_custom_size_key(FuriHalCryptoKeyType type) {
     //FuriHalCryptoAesModeECB
     printf("Crypto AES FuriHalCryptoAesModeECB\r\n");
     FuriHalCryptoAes* handle = NULL;
-    FuriHalCryptoStatus status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeECB, keyy);
-    if(check_status(status)) {
-        furi_hal_crypto_aes_encrypt(handle, NULL, message, sizeof(message), encrypted_buffer);
-        furi_hal_crypto_aes_decrypt(
-            handle, NULL, encrypted_buffer, sizeof(message), decrypted_buffer);
-        furi_hal_crypto_aes_deinit(handle);
+    FuriHalCryptoStatus status = FuriHalCryptoStatusOk;
+    do {
+        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeECB, key);
+        CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
 
-        crypto_aes_check("FuriHalCryptoAesModeECB", encrypted_buffer, decrypted_buffer);
-    }
+        do {
+            status = furi_hal_crypto_aes_encrypt(
+                handle, NULL, message, sizeof(message), encrypted_buffer);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES encrypt");
+            status = furi_hal_crypto_aes_decrypt(
+                handle, NULL, encrypted_buffer, sizeof(message), decrypted_buffer);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES decrypt");
+            crypto_aes_check("FuriHalCryptoAesModeECB", encrypted_buffer, decrypted_buffer);
+        } while(false);
+        furi_hal_crypto_aes_deinit(handle);
+    } while(false);
 
     //FuriHalCryptoAesModeCTR
     printf("Crypto AES FuriHalCryptoAesModeCTR\r\n");
-    status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCTR, keyy);
-
-    if(check_status(status)) {
-        furi_hal_crypto_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
-        furi_hal_crypto_aes_decrypt(
-            handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+    do {
+        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCTR, key);
+        CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
+        do {
+            status = furi_hal_crypto_aes_encrypt(
+                handle, iv, message, sizeof(message), encrypted_buffer);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES encrypt");
+            status = furi_hal_crypto_aes_decrypt(
+                handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES decrypt");
+            crypto_aes_check("FuriHalCryptoAesModeCTR", encrypted_buffer, decrypted_buffer);
+        } while(false);
         furi_hal_crypto_aes_deinit(handle);
-
-        crypto_aes_check("FuriHalCryptoAesModeCTR", encrypted_buffer, decrypted_buffer);
-    }
+    } while(false);
 
     //FuriHalCryptoAesModeCTR
     printf("Crypto AES FuriHalCryptoAesModeCBC\r\n");
 
-    status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCBC, keyy);
+    do {
+        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCBC, key);
+        CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
 
-    if(check_status(status)) {
-        furi_hal_crypto_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
-        furi_hal_crypto_aes_decrypt(
-            handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+        do {
+            status = furi_hal_crypto_aes_encrypt(
+                handle, iv, message, sizeof(message), encrypted_buffer);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES encrypt");
+            status = furi_hal_crypto_aes_decrypt(
+                handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES decrypt");
+            crypto_aes_check("FuriHalCryptoAesModeCBC", encrypted_buffer, decrypted_buffer);
+        } while(false);
+
         furi_hal_crypto_aes_deinit(handle);
 
-        crypto_aes_check("FuriHalCryptoAesModeCBC", encrypted_buffer, decrypted_buffer);
-    }
+    } while(false);
 
     //Wrap key
     printf("Crypto AES Wrap key\r\n");
 
-    FuriHalCryptoKey* wrapped_keyy = furi_hal_crypto_key_alloc();
-    status = furi_hal_crypto_wrap_key(keyy, wrapped_keyy);
-    if(check_status(status)) {
-        crypto_common_print_key("Key =\t\t", keyy);
-        crypto_common_print_key("Wrapped key =\t", wrapped_keyy);
+    FuriHalCryptoKey* wrapped_key = furi_hal_crypto_key_alloc();
+    do {
+        status = furi_hal_crypto_wrap_key(key, wrapped_key);
+        CRYPTO_COMMON_CHECK_STATUS(status, "key wrap");
+
+        crypto_common_print_key("Key =\t\t", key);
+        crypto_common_print_key("Wrapped key =\t", wrapped_key);
 
         //FuriHalCryptoAesModeECB, crypt key, decrypt wrapped key
         printf("Crypto AES FuriHalCryptoAesModeECB, Wrap key\r\n");
 
-        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeECB, keyy);
-        if(check_status(status)) {
-            furi_hal_crypto_aes_encrypt(handle, NULL, message, sizeof(message), encrypted_buffer);
+        do {
+            status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeECB, key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
+            do {
+                status = furi_hal_crypto_aes_encrypt(
+                    handle, NULL, message, sizeof(message), encrypted_buffer);
+                CRYPTO_COMMON_CHECK_STATUS(status, "AES encrypt");
+            } while(false);
             furi_hal_crypto_aes_deinit(handle);
-        }
+        } while(false);
 
-        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeECB, wrapped_keyy);
-        if(check_status(status)) {
-            furi_hal_crypto_aes_decrypt(
-                handle, NULL, encrypted_buffer, sizeof(message), decrypted_buffer);
+        do {
+            status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeECB, wrapped_key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
+            do {
+                status = furi_hal_crypto_aes_decrypt(
+                    handle, NULL, encrypted_buffer, sizeof(message), decrypted_buffer);
+                CRYPTO_COMMON_CHECK_STATUS(status, "AES decrypt");
+            } while(false);
             furi_hal_crypto_aes_deinit(handle);
-        }
+        } while(false);
 
         crypto_aes_check("FuriHalCryptoAesModeECB, Wrap key", encrypted_buffer, decrypted_buffer);
 
         //FuriHalCryptoAesModeCTR, crypt key, decrypt wrapped key
         printf("Crypto AES FuriHalCryptoAesModeCTR, Wrap key\r\n");
 
-        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCTR, keyy);
-        if(check_status(status)) {
-            furi_hal_crypto_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
+        do {
+            status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCTR, key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
+            do {
+                status = furi_hal_crypto_aes_encrypt(
+                    handle, iv, message, sizeof(message), encrypted_buffer);
+                CRYPTO_COMMON_CHECK_STATUS(status, "AES encrypt");
+            } while(false);
             furi_hal_crypto_aes_deinit(handle);
-        }
+        } while(false);
 
-        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCTR, wrapped_keyy);
-        if(check_status(status)) {
-            furi_hal_crypto_aes_decrypt(
-                handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+        do {
+            status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCTR, wrapped_key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
+            do {
+                status = furi_hal_crypto_aes_decrypt(
+                    handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+                CRYPTO_COMMON_CHECK_STATUS(status, "AES decrypt");
+            } while(false);
             furi_hal_crypto_aes_deinit(handle);
-        }
+        } while(false);
 
         crypto_aes_check("FuriHalCryptoAesModeCTR, Wrap key", encrypted_buffer, decrypted_buffer);
 
         //FuriHalCryptoAesModeCTR, crypt key, decrypt wrapped key
         printf("Crypto AES FuriHalCryptoAesModeCBC, Wrap key\r\n");
 
-        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCBC, keyy);
-        if(check_status(status)) {
-            furi_hal_crypto_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
+        do {
+            status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCBC, key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
+            do {
+                status = furi_hal_crypto_aes_encrypt(
+                    handle, iv, message, sizeof(message), encrypted_buffer);
+                CRYPTO_COMMON_CHECK_STATUS(status, "AES encrypt");
+            } while(false);
             furi_hal_crypto_aes_deinit(handle);
-        }
+        } while(false);
 
-        status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCBC, wrapped_keyy);
-        if(check_status(status)) {
-            furi_hal_crypto_aes_decrypt(
-                handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+        do {
+            status = furi_hal_crypto_aes_init(&handle, FuriHalCryptoAesModeCBC, wrapped_key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "AES init");
+            do {
+                status = furi_hal_crypto_aes_decrypt(
+                    handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
+                CRYPTO_COMMON_CHECK_STATUS(status, "AES decrypt");
+            } while(false);
             furi_hal_crypto_aes_deinit(handle);
-        }
+        } while(false);
         crypto_aes_check("FuriHalCryptoAesModeCBC, Wrap key", encrypted_buffer, decrypted_buffer);
-    }
-    furi_hal_crypto_key_free(wrapped_keyy);
-    furi_hal_crypto_key_free(keyy);
+    } while(false);
+    furi_hal_crypto_key_free(wrapped_key);
+    furi_hal_crypto_key_free(key);
 }
 
 void crypto_aes_command(PipeSide* pipe, FuriString* args, void* context) {
