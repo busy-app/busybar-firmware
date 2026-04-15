@@ -13,6 +13,8 @@
 
 #define USB_RESET_TIMEOUT_US (10000U)
 
+#define TAG "FuriHalUsb"
+
 static void furi_hal_usb_disable_global_interrupt(void) {
     CLEAR_BIT(USB_OTG_HS->GAHBCFG, USB_OTG_GAHBCFG_GINT);
 }
@@ -36,6 +38,7 @@ static void furi_hal_usb_core_reset(void) {
 
     do {
         if(READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST) == 0) {
+            FURI_LOG_I(TAG, "Core reset");
             break;
         }
     } while(!furi_hal_cortex_timer_is_expired(timer));
@@ -54,6 +57,7 @@ static void furi_hal_usb_flush_fifos(void) {
 
     do {
         if(READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH | USB_OTG_GRSTCTL_TXFFLSH) == 0) {
+            FURI_LOG_I(TAG, "FIFOs flushed");
             break;
         }
     } while(!furi_hal_cortex_timer_is_expired(timer));
@@ -75,6 +79,9 @@ void furi_hal_usb_init(void) {
     LL_PWR_EnableUSBPowerSupply();
     LL_PWR_EnableUSBEPODBooster();
 
+    // Configuring the SYSCFG registers OTG_HS PHY
+    SYSCFG->OTGHSPHYCR |= SYSCFG_OTGHSPHYCR_EN;
+
     furi_hal_usb_disable_global_interrupt();
     furi_hal_usb_core_reset();
 
@@ -82,9 +89,6 @@ void furi_hal_usb_init(void) {
         &gpio_usb_dm, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10USB_HS);
     furi_hal_gpio_init_ex(
         &gpio_usb_dp, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10USB_HS);
-
-    // Configuring the SYSCFG registers OTG_HS PHY
-    SYSCFG->OTGHSPHYCR |= SYSCFG_OTGHSPHYCR_EN;
 
     // Disable VBUS sense (B device)
     USB_OTG_HS->GCCFG &= ~USB_OTG_GCCFG_VBDEN;
