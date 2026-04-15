@@ -46,70 +46,50 @@ static void furi_hal_usb_core_reset(void) {
     furi_hal_usb_wait_ahb_idle();
 }
 
-static void furi_hal_usb_flush_fifos(void) {
-    furi_hal_usb_wait_ahb_idle();
+static void furi_hal_usb_enable_power(void) {
+    LL_PWR_EnableVddUSB();
 
-    SET_BIT(
-        USB_OTG_HS->GRSTCTL,
-        USB_OTG_GRSTCTL_RXFFLSH | USB_OTG_GRSTCTL_TXFFLSH | USB_OTG_GRSTCTL_TXFNUM_4);
+    LL_PWR_EnableEPODBooster();
+    while(LL_PWR_IsActiveFlag_BOOST() == 0) {
+    }
 
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(USB_RESET_TIMEOUT_US);
+    LL_PWR_EnableUSBPowerSupply();
 
-    do {
-        if(READ_BIT(USB_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH | USB_OTG_GRSTCTL_TXFFLSH) == 0) {
-            FURI_LOG_I(TAG, "FIFOs flushed");
-            break;
-        }
-    } while(!furi_hal_cortex_timer_is_expired(timer));
+    LL_PWR_EnableUSBEPODBooster();
+    while(LL_PWR_IsActiveFlag_USBBOOST() == 0) {
+    }
 }
 
-void furi_hal_usb_init(void) {
-    // USB Clock
+static void furi_hal_usb_enable_phy(void) {
     LL_RCC_SetUSBPHYClockSource(LL_RCC_USBPHYCLKSOURCE_HSE);
-    // TODO: HSE value
+
     MODIFY_REG(
         SYSCFG->OTGHSPHYCR,
-        SYSCFG_OTGHSPHYCR_CLKSEL,
-        SYSCFG_OTGHSPHYCR_CLKSEL_0 | SYSCFG_OTGHSPHYCR_CLKSEL_1);
-
-    furi_hal_bus_enable(FuriHalBusOTG_HS);
-    furi_hal_bus_enable(FuriHalBusUSBPHY);
-
-    LL_PWR_EnableVddUSB();
-    LL_PWR_EnableUSBPowerSupply();
-    LL_PWR_EnableUSBEPODBooster();
-
-    // Configuring the SYSCFG registers OTG_HS PHY
-    SYSCFG->OTGHSPHYCR |= SYSCFG_OTGHSPHYCR_EN;
-
-    furi_hal_usb_disable_global_interrupt();
-    furi_hal_usb_core_reset();
+        SYSCFG_OTGHSPHYCR_CLKSEL | SYSCFG_OTGHSPHYCR_EN,
+        SYSCFG_OTGHSPHYCR_CLKSEL_0 | SYSCFG_OTGHSPHYCR_CLKSEL_1 | SYSCFG_OTGHSPHYCR_EN);
 
     furi_hal_gpio_init_ex(
         &gpio_usb_dm, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10USB_HS);
     furi_hal_gpio_init_ex(
         &gpio_usb_dp, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10USB_HS);
+}
+
+void furi_hal_usb_init(void) {
+    furi_hal_bus_enable(FuriHalBusUSBPHY);
+    furi_hal_bus_enable(FuriHalBusOTG_HS);
+
+    furi_hal_usb_enable_phy();
+    furi_hal_usb_enable_power();
+
+    furi_hal_usb_disable_global_interrupt();
+    furi_hal_usb_core_reset();
 
     // Disable VBUS sense (B device)
-    USB_OTG_HS->GCCFG &= ~USB_OTG_GCCFG_VBDEN;
-    USB_OTG_HS->GCCFG &= ~USB_OTG_GCCFG_PULLDOWNEN;
-
+    CLEAR_BIT(USB_OTG_HS->GCCFG, USB_OTG_GCCFG_PULLDOWNEN | USB_OTG_GCCFG_VBDEN);
     // B-peripheral session valid override enable
-    USB_OTG_HS->GCCFG |= USB_OTG_GCCFG_VBVALEXTOEN;
-    USB_OTG_HS->GCCFG |= USB_OTG_GCCFG_VBVALOVAL;
+    SET_BIT(USB_OTG_HS->GCCFG, USB_OTG_GCCFG_VBVALEXTOEN | USB_OTG_GCCFG_VBVALOVAL);
 
-    USB_OTG_DEV->DCTL |= USB_OTG_DCTL_SDIS;
-
-    CLEAR_REG(USB_OTG_PCGCCTL);
-
-    furi_hal_usb_flush_fifos();
-
-    CLEAR_REG(USB_OTG_DEV->DIEPMSK);
-    CLEAR_REG(USB_OTG_DEV->DOEPMSK);
-    CLEAR_REG(USB_OTG_DEV->DAINTMSK);
-
-    CLEAR_REG(USB_OTG_HS->GINTMSK);
-    WRITE_REG(USB_OTG_HS->GINTSTS, 0xBFFFFFFFUL);
+    SET_BIT(USB_OTG_DEV->DCTL, USB_OTG_DCTL_SDIS);
 }
 
 void furi_hal_usb_set_irq(FuriHalInterruptISR usb_isr, void* isr_ctx) {
