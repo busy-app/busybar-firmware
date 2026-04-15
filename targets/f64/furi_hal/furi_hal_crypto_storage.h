@@ -31,14 +31,6 @@ _Static_assert(
     sizeof(FuriHalCryptoKeySlotHeader) == 28,
     "Size check for 'FuriHalCryptoKeySlotHeader' failed.");
 
-typedef struct FuriHalCryptoKeyDeprecated {
-    FuriHalCryptoKeySlotHeader header;
-    FuriHalCryptoPartition partition;
-    uint32_t address; // Address in NWP flash where the key is stored
-    uint16_t length;
-    uint8_t data[FURI_HAL_CRYPTO_DATA_SIZE_MAX];
-} FuriHalCryptoKeyDeprecated;
-
 typedef struct FuriHalCryptoKeyAddress {
     FuriHalCryptoPartition partition;
     uint32_t offset; // Address in NWP flash where the key is stored (offset from partition start)
@@ -63,19 +55,6 @@ FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
     FuriHalCryptoKeyIter* iter,
     FuriHalCryptoKey* key_out,
     FuriHalCryptoKeySlot* slot_out);
-
-/*
-* Allocate a key structure.
-* @param[in] partition Partition to get the start address of.
-* @return Pointer to the allocated key structure.
-*/
-FuriHalCryptoKeyDeprecated* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition);
-
-/*
-* Free the key structure.
-* @param[in] key Pointer to the key structure to free.
-*/
-void furi_hal_crypto_storage_free(FuriHalCryptoKeyDeprecated* key);
 
 /** Write a key to the NWP flash.
 * @param[in] key Pointer to the key

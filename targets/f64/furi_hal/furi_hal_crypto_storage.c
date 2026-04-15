@@ -43,27 +43,6 @@ static uint32_t get_abs_address(const FuriHalCryptoKeyAddress* address) {
     return get_partition_start(address->partition) + address->offset;
 }
 
-FuriHalCryptoKeyDeprecated* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition) {
-    FuriHalCryptoKeyDeprecated* key = malloc(sizeof(FuriHalCryptoKeyDeprecated));
-
-    FuriHalCryptoKeySlotHeader* header = &key->header;
-    header->magic_number = FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY, header->reserved = UINT16_MAX,
-    header->reserved1 = UINT32_MAX,
-
-    key->partition = partition;
-    key->address = FURI_HAL_CRYPTO_KEY_ADDRESS_INIT;
-    key->length = FURI_HAL_CRYPTO_DATA_SIZE_MAX;
-
-    return key;
-}
-
-void furi_hal_crypto_storage_free(FuriHalCryptoKeyDeprecated* key) {
-    furi_check(key);
-
-    memset(key, 0, sizeof(FuriHalCryptoKeyDeprecated));
-    free(key);
-}
-
 static FuriHalCryptoStatus furi_hal_crypto_storage_check_key_slot_is_free(
     const FuriHalCryptoKey* key,
     FuriHalCryptoPartition partition,
