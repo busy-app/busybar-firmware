@@ -53,7 +53,11 @@ static void
     furi_hal_mpu_disable();
     /* MPU's actual limit address is postfixed with 0x1F */
     LL_MPU_ConfigRegion(
-        region, mpu_attributes, FuriHalMpuAttributesIndexNull, address, address + size - 1);
+        region,
+        mpu_attributes,
+        FuriHalMpuAttributesIndexNull << MPU_RLAR_AttrIndx_Pos,
+        address,
+        address + size - 1);
     furi_hal_mpu_enable();
 }
 
@@ -69,7 +73,11 @@ static void
     furi_hal_mpu_disable();
     /* MPU's actual limit address is postfixed with 0x1F */
     LL_MPU_ConfigRegion(
-        region, mpu_attributes, FuriHalMpuAttributesIndexStack, address, address + size - 1);
+        region,
+        mpu_attributes,
+        FuriHalMpuAttributesIndexStack << MPU_RLAR_AttrIndx_Pos,
+        address,
+        address + size - 1);
     furi_hal_mpu_enable();
 }
 
