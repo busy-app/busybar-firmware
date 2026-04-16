@@ -25,9 +25,12 @@ typedef enum {
 } FirmwareSettingsSceneSettingsCheckChannelIdx;
 
 static const char* firmware_settings_scene_settings_check_channel_values[] = {
-    [FirmwareSettingsSceneSettingsCheckChannelIdxDevelopment] = "development",
-    [FirmwareSettingsSceneSettingsCheckChannelIdxRc] = "release-candidate",
-    [FirmwareSettingsSceneSettingsCheckChannelIdxRelease] = "release",
+    [FirmwareSettingsSceneSettingsCheckChannelIdxDevelopment] =
+        UPDATER_SETTINGS_CHECK_CHANNEL_ID_DEVELOPMENT,
+    [FirmwareSettingsSceneSettingsCheckChannelIdxRc] =
+        UPDATER_SETTINGS_CHECK_CHANNEL_ID_RELEASE_CANDIDATE,
+    [FirmwareSettingsSceneSettingsCheckChannelIdxRelease] =
+        UPDATER_SETTINGS_CHECK_CHANNEL_ID_RELEASE,
 };
 
 static_assert(
