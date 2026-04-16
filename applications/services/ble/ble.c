@@ -69,23 +69,6 @@ static void ble_custom_event_handler_init(Ble* instance) {
 #endif
 }
 
-static void ble_deinit_services(Ble* instance) {
-    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
-        ble_service_deinit(instance->services[i]);
-    }
-}
-
-static void ble_custom_event_handler_deinit(Ble* instance) {
-    furi_string_printf(instance->error, "Intercom error");
-    instance->status = BleServiceStatusError;
-
-    ble_deinit_services(instance);
-    ble_command_unblock_with_result(instance, false);
-
-    ble_invoke_retry_command_on_internal_event(
-        instance, BleCommandDisable, BleEventTypeIntercomDeinit, BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
-}
-
 static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Ble* ble = context;
@@ -108,7 +91,12 @@ static void ble_custom_event_callback(uint32_t events, void* context) {
         }
 
         if(events & BleEventTypeIntercomDeinit) {
-            ble_custom_event_handler_deinit(instance);
+            ble_command_unblock_with_result(instance, false);
+            ble_invoke_retry_command_on_internal_event(
+                instance,
+                BleCommandDeinit,
+                BleEventTypeIntercomDeinit,
+                BLE_COMMAND_INVOKE_RETRY_TIMEOUT);
         }
 
         if(events & BleEventTypeDeviceNameChanged) {
