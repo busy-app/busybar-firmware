@@ -36,8 +36,6 @@ static bool furi_hal_nvm_is_valid(void) {
     return (header->magic == NVM_MAGIC) && (header->version == NVM_VERSION);
 }
 
-#pragma GCC push_options
-#pragma GCC optimize("O0")
 void furi_hal_nvm_reset(void) {
     memset((void*)nvm_storage, 0, sizeof(NvmData));
 
@@ -51,7 +49,6 @@ void furi_hal_nvm_reset(void) {
 
     nvm_was_reset = true;
 }
-#pragma GCC pop_options
 
 void furi_hal_nvm_set_flag(FuriHalNvmFlag flag) {
     nvm_storage->flags |= (1 << flag);
