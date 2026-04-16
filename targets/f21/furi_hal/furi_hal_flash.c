@@ -1,16 +1,11 @@
 #include "furi_hal_flash.h"
 #include "furi_hal_flash_otp.h"
 
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
-
-#include <core/common_defines.h>
 #include <furi.h>
 #include <furi_hal_cortex.h>
 #include <furi_hal_bits.h>
 
-#include "stm32u5xx.h"
+#include <stm32u5xx_ll_icache.h>
 
 #define FURI_HAL_FLASH_TOTAL_PAGES (2 * FLASH_PAGE_NB)
 #define FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US \
@@ -258,6 +253,7 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
            page_start_addr, &bytes_programmed_total, data, length)) {
         // This path should ideally not be reached if furi_crash halts execution.
         furi_hal_flash_lock();
+        LL_ICACHE_Invalidate();
         FURI_CRITICAL_EXIT();
         return;
     }
@@ -266,6 +262,7 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
     FLASH->NSCR &= ~(FLASH_NSCR_BWR | FLASH_NSCR_PG);
 
     furi_hal_flash_lock();
+    LL_ICACHE_Invalidate();
     FURI_CRITICAL_EXIT();
 }
 
@@ -294,6 +291,7 @@ static bool
     if(!furi_hal_flash_program_quad_word_remainder(base, &bytes_programmed_total, data, length)) {
         // This path should ideally not be reached if furi_crash halts execution.
         furi_hal_flash_lock();
+        LL_ICACHE_Invalidate();
         FURI_CRITICAL_EXIT();
         return false;
     }
@@ -302,6 +300,7 @@ static bool
     FLASH->NSCR &= ~(FLASH_NSCR_BWR | FLASH_NSCR_PG);
 
     furi_hal_flash_lock();
+    LL_ICACHE_Invalidate();
     FURI_CRITICAL_EXIT();
 
     return true;
