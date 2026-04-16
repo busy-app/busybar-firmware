@@ -90,13 +90,7 @@ static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, 
 static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandSetDeviceName response");
     Ble* instance = context;
-    instance->current_command->header.result = frame->header.result;
-
-    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_command_lock);
-    const FuriThreadId current_id = furi_thread_get_current_id();
-    if(owner_id == current_id) {
-        furi_mutex_release(instance->current_command_lock);
-    }
+    ble_command_unblock_with_result(instance, frame->header.result);
     return true;
 }
 
@@ -191,13 +185,6 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
         instance->status = *resp_status;
         ble_save_enabled_state(true);
     }
-    instance->current_command->header.result = frame->header.result;
-
-    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_command_lock);
-    const FuriThreadId current_id = furi_thread_get_current_id();
-    if(owner_id == current_id) {
-        furi_mutex_release(instance->current_command_lock);
-    }
 
     ble_command_unblock_with_result(instance, frame->header.result);
     ble_http_repeater_start(instance);
@@ -289,10 +276,8 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
         result = true;
     } while(false);
 
-    instance->current_command->header.result = result;
     memcpy(instance->current_command->data, response, sizeof(BleState));
-
-    ble_command_unblock_with_result(instance, frame->header.result);
+    ble_command_unblock_with_result(instance, result);
     return true;
 }
 
