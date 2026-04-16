@@ -112,7 +112,7 @@ static bool api_audio_volume_callback(
                 } else {
                     break;
                 }
-            } else if(silent_len != -4) {
+            } else if(silent_len != -4) { /* -4 = var not present, see mg_http_get_var */
                 break;
             }
 
