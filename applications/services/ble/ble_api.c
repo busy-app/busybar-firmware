@@ -7,6 +7,7 @@
 
 #define BLE_API_LOCK_TIMEOUT (100)
 
+///TODO: Rework command mechanism to reduce complexity
 static void ble_send_message(
     Ble* instance,
     const BleSystemCommand command,
@@ -44,6 +45,7 @@ static void ble_send_message(
         memset(instance->current_command, 0, instance->current_command_size);
         furi_mutex_release(instance->current_command_lock);
     } else {
+        FURI_LOG_W(TAG, "API command lock missed");
         *result = false;
     }
 }
