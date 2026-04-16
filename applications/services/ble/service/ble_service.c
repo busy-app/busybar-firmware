@@ -3,8 +3,10 @@
 
 #define TAG "BleServiceBase"
 
+#define BLE_SERVICE_LOCK_TIMEOUT (5000)
+
 bool ble_service_lock(BleServiceObject* instance) {
-    if(furi_mutex_acquire(instance->service_lock, FuriWaitForever) != FuriStatusOk) {
+    if(furi_mutex_acquire(instance->service_lock, BLE_SERVICE_LOCK_TIMEOUT) != FuriStatusOk) {
         BLE_LOG_W("%s - service lock failed", instance->config->name);
         return false;
     }
