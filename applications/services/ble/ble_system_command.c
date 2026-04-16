@@ -19,3 +19,23 @@ bool ble_command_request_process(BleIntercomFrameGeneric* frame, void* context) 
 bool ble_command_response_process(BleIntercomFrameGeneric* frame, void* context) {
     return ble_command_common_process(frame, context, BleIntercomFrameTypeResponse);
 }
+
+static void ble_deinit_services(Ble* instance) {
+    for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
+        ble_service_deinit(instance->services[i]);
+    }
+}
+
+bool ble_command_deinit_process(BleIntercomFrameGeneric* frame, void* context) {
+    UNUSED(frame);
+    Ble* instance = context;
+
+    if(instance->status != BleServiceStatusError) {
+        furi_string_printf(instance->error, "Intercom error");
+        instance->status = BleServiceStatusError;
+
+        ble_deinit_services(instance);
+        ble_command_unblock_with_result(instance, false);
+    }
+    return false;
+}
