@@ -45,10 +45,11 @@ CHIP_ERROR LoadCryptoStorageKey(
     MutableByteSpan& out_span) {
     CHIP_ERROR err;
 
-    FuriHalCryptoKey *key = nullptr;
+    FuriHalCryptoKey* key = nullptr;
 
     do {
-        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(&key, FuriHalCryptoPartitionMain, key_type, key_id));
+        err = TranslateFuriHalCryptoStatus(
+            furi_hal_crypto_storage_read(&key, FuriHalCryptoPartitionMain, key_type, key_id));
 
         if(!CHIP_ERROR::IsSuccess(err)) {
             break;
@@ -72,8 +73,8 @@ CHIP_ERROR SignWithECDSA256Key(
     FuriHalCryptoKey* private_key = nullptr;
 
     do {
-        err = TranslateFuriHalCryptoStatus(
-            furi_hal_crypto_storage_read(&private_key, FuriHalCryptoPartitionMain, key_type, key_id));
+        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(
+            &private_key, FuriHalCryptoPartitionMain, key_type, key_id));
 
         if(!CHIP_ERROR::IsSuccess(err)) {
             break;
@@ -86,9 +87,7 @@ CHIP_ERROR SignWithECDSA256Key(
         do {
             FuriHalCryptoEcdsaSign* ecdsa = nullptr;
             err = TranslateFuriHalCryptoStatus(furi_hal_crypto_ecdsa_sign_init(
-                &ecdsa,
-                FuriHalCryptoEcdsaModeSha256,
-                private_key));
+                &ecdsa, FuriHalCryptoEcdsaModeSha256, private_key));
             if(!CHIP_ERROR::IsSuccess(err)) {
                 break;
             }
@@ -113,7 +112,6 @@ CHIP_ERROR SignWithECDSA256Key(
 
         furi_hal_crypto_key_free(private_key);
     } while(false);
-
 
     return err;
 }
