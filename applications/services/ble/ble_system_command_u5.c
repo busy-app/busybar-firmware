@@ -161,6 +161,11 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
     return ble_command_set_device_name_request(frame, instance);
 }
 
+static bool ble_command_deinit_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandDeinit request");
+    return ble_command_deinit_process(frame, context);
+}
+
 static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandEnable request");
     Ble* instance = context;
@@ -374,6 +379,11 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_init_request,
             .response = ble_command_init_response,
+        },
+    [BleCommandDeinit] =
+        {
+            .request = ble_command_deinit_request,
+            .response = NULL,
         },
     [BleCommandEnable] =
         {

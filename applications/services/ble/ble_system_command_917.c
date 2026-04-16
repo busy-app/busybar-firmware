@@ -106,6 +106,12 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     return ble_command_response_process(frame, context);
 }
 
+static bool ble_command_deinit_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandDeinit request");
+    ble_worker_stop();
+    return ble_command_deinit_process(frame, context);
+}
+
 static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* context) {
     UNUSED(frame);
     UNUSED(context);
@@ -201,6 +207,11 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_init_request,
             .response = ble_command_init_response,
+        },
+    [BleCommandDeinit] =
+        {
+            .request = ble_command_deinit_request,
+            .response = NULL,
         },
     [BleCommandEnable] =
         {
