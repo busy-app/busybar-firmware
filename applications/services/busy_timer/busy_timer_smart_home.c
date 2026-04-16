@@ -18,7 +18,9 @@ static void
                                                              MatterSwitchStateOff;
     } else if(event_type == BusyTimerEventTypePaused) {
         const bool is_paused = event->paused.is_paused;
-        switch_state = is_paused ? MatterSwitchStateOff : MatterSwitchStateOn;
+        if(instance->state == BusyTimerStateWork) {
+            switch_state = is_paused ? MatterSwitchStateOff : MatterSwitchStateOn;
+        }
 
     } else if(event_type == BusyTimerEventTypeIntervalEnded) {
         switch_state = MatterSwitchStateOff;
