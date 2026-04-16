@@ -16,7 +16,7 @@ typedef enum {
  *
  * @param[in] instance Pointer to ble instance
  * @param[in] source Source from where frame should be taken
- * @param[out] BleIntercomFrameGeneric Pointer to frame stuct
+ * @param[out] BleIntercomFrameGeneric Pointer to frame struct
  */
 typedef BleIntercomFrameGeneric* (
     *BleCommandEngineExtractFrame)(Ble* instance, BleCommandEngineExtractFrameSource source);

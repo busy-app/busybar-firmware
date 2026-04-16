@@ -176,7 +176,7 @@ typedef struct {
 } BleWorker;
 
 //==========================================================
-static BleWorker* ble_worker_instance = 0;
+static BleWorker* ble_worker_instance = NULL;
 /*==============================================*/
 /**
  * @fn         ble_worker_echo_app_on_adv_report_event

@@ -45,16 +45,13 @@ bool ble_command_engine_run(BleCommandEngine* instance, BleCommandEngineExtractF
 
     bool result = false;
 
-    do {
-        if(frame_type == BleIntercomFrameTypeRequest && item->request) {
-            result = item->request(frame, instance->ble);
-        } else if(frame_type == BleIntercomFrameTypeResponse && item->response) {
-            result = item->response(frame, instance->ble);
-        } else {
-            __furi_crash("Unknown frame");
-        }
-
-    } while(false);
+    if(frame_type == BleIntercomFrameTypeRequest && item->request) {
+        result = item->request(frame, instance->ble);
+    } else if(frame_type == BleIntercomFrameTypeResponse && item->response) {
+        result = item->response(frame, instance->ble);
+    } else {
+        furi_crash("Unknown frame");
+    }
 
     return result;
 }
