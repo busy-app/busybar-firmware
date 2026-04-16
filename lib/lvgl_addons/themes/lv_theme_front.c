@@ -165,6 +165,7 @@ static void style_init(my_theme_t* theme, FontRegistry* font_registry) {
     lv_style_set_align(&theme->styles.status_view_header, LV_ALIGN_LEFT_MID);
     lv_style_set_x(&theme->styles.status_view_header, 10);
     lv_style_set_text_color(&theme->styles.status_view_header, COLOR_FG_FOCUSED);
+    lv_style_set_text_line_space(&theme->styles.status_view_header, -2);
 
     lv_style_init(&theme->styles.status_view_additional_text);
     lv_style_set_align(&theme->styles.status_view_additional_text, LV_ALIGN_LEFT_MID);

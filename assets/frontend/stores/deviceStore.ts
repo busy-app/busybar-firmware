@@ -113,23 +113,19 @@ export const useDeviceStore = defineStore('device', () => {
 
   // Connection type
   const connectionType = ref<'usb' | 'wifi'>('wifi');
+  interface TransportResponse {
+    type: 'usb' | 'wifi' | string;
+  }
   async function detectConnectionType () {
-    try {
-      const now = Date.now();
-      await $fetch('/api/name', {
-        baseURL: useRuntimeConfig().public.barUrl
+    await apiRequest<TransportResponse>('/api/transport', { timeout: 3000 })
+      .then(response => {
+        connectionType.value = response.type === 'usb' ? 'usb' : 'wifi';
+        console.debug('Detected connection type:', connectionType.value);
+      })
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t get connection type', true);
+        return connectionType.value;
       });
-      const elapsed = Date.now() - now;
-      if (elapsed <= 75) {
-        connectionType.value = 'usb';
-      } else {
-        console.debug(`Connection check took ${elapsed}ms, treating as wifi connection`);
-        connectionType.value = 'wifi';
-      }
-    } catch {
-      connectionType.value = 'wifi';
-    }
-    return connectionType.value;
   }
 
   // API version

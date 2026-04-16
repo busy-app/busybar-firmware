@@ -555,18 +555,16 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     busy_timer_stop_timer(instance);
 
-    const BusyTimerSnapshotType type = snapshot->type;
-
-    if(type == BusyTimerSnapshotTypeNotStarted) {
-        instance->state = BusyTimerStateIdle;
-        busy_timer_exit_app();
-        return;
-    }
-
     BusyTimerMode new_mode;
     BusyTimerState new_state;
 
-    if(type == BusyTimerSnapshotTypeInfinite) {
+    const BusyTimerSnapshotType type = snapshot->type;
+
+    if(type == BusyTimerSnapshotTypeNotStarted) {
+        new_mode = BusyTimerModeMax;
+        new_state = BusyTimerStateIdle;
+
+    } else if(type == BusyTimerSnapshotTypeInfinite) {
         new_mode = BusyTimerModeInfinite;
         new_state = BusyTimerStateWork;
 
@@ -604,15 +602,20 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     strcpy(instance->card_id, snapshot->common.card_id);
     instance->app_config = snapshot->app_config;
 
-    if(!snapshot->common.is_paused) {
-        busy_timer_start_timer(instance);
+    if(new_state != BusyTimerStateIdle) {
+        if(!snapshot->common.is_paused) {
+            busy_timer_start_timer(instance);
+        }
+        // Override prev_tick_timestamp_ms value set by busy_timer_start_timer() call above
+        instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
+
+        busy_timer_start_app(&snapshot->app_config);
+        busy_timer_notify_initial_state(instance);
+
+    } else {
+        busy_timer_notify_state_changed(instance);
+        busy_timer_exit_app();
     }
-
-    instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
-
-    busy_timer_start_app(&snapshot->app_config);
-
-    busy_timer_notify_initial_state(instance);
 
     busy_timer_schedule_publish_last_known_snapshot(instance);
 }
