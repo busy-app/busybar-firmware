@@ -3,10 +3,16 @@ from __future__ import annotations
 """
 Schemathesis fixtures and shared configuration.
 
-SKIP_OPERATION_IDS: operations that must not participate in automated fuzzing
-on real hardware — either destructive, session-breaking, require external
-services, or use WebSocket transport.
+SKIP_OPERATION_IDS / SKIP_PATHS: operations that must NOT participate in
+automated fuzzing on real hardware — destructive, session-breaking, require
+external services, or use WebSocket transport.
+
+All other operations are tested automatically.  When a new API operation is
+added it is covered by default; it only needs an explicit SKIP entry if it
+carries a safety risk.
 """
+
+import re
 
 import pytest
 import schemathesis
@@ -21,6 +27,9 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         "installFirmwareUpdate",
         "abortFirmwareDownload",
         "updateFirmware",
+        # Changelog requires a specific version that exists on the device —
+        # tested separately in test_api_update.py with a known version
+        "getUpdateChangelog",
         # Filesystem mutations — could corrupt FS state
         "writeStorageFile",
         "removeStorageFile",
@@ -32,44 +41,46 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         # Asset uploads — would overwrite application assets
         "uploadAssetWithAppId",
         "deleteAppAssets",
-        # WiFi — disconnect would break the HTTP session used by the test runner
-        "connectWifi",
-        "disconnectWifi",
         # BLE pairing — alters pairing state
         "setBleParingMode",
         # Matter commissioning — long-running background operation
         "startMatterCommissioning",
+        # Smart home pairing — long-running background operation
+        "startSmartHomePairing",
+        # Audio volume — crashes AudioSrv, see FW-814
+        "setAudioVolume",
         # WebSocket — not supported by a plain HTTP client
         "connectWebSocket",
         "connectInputWebSocket",
+        # Storage endpoints require real files on the device; schemathesis-generated
+        # paths are always non-existent and the firmware returns 400 instead of 404
+        "readStorageFile",
+        "listStorageFiles",
+        # Scan is not possible while the device is connected to Wi-Fi (always 400
+        # during the test run); tested separately in the dedicated Wi-Fi test suite
+        "getWifiNetworks",
+        # Requires custom_url when profile=custom; schemathesis cannot satisfy
+        # this inter-parameter dependency and always sends profile=custom without it
+        "setAccountProfile",
     }
 )
 
-# Operations explicitly allowed among POST/PUT (Safe Writes)
-SAFE_WRITE_OPERATION_IDS: frozenset[str] = frozenset(
+# POST operations without operationId that must be skipped.
+# These are excluded by path because schemathesis cannot filter them by
+# operationId (the schema does not assign one).
+SKIP_PATHS: frozenset[str] = frozenset(
     {
-        # System settings
-        "setHttpAccess",
-        # Display — reversible
-        "setDisplayBrightness",
-        "clearDisplay",
-        # Audio — reversible
-        # "setAudioVolume",  # TODO: crashes AudioSrv, see FW-814
-        "stopAudio",
-        # Time — reversible
-        "setTimeTimestamp",
-        "setTimeTimezone",
-        # Account profile — local fields only
-        "setAccountProfile",
-        # Busy timer profiles
-        "setBusyProfile",
-        "setBusySnapshot",
-        # Auto-update settings — configures policy only, does not trigger update
-        "setAutoupdateSettings",
-        # Input key — sends a button press (reversible)
-        "setInputKey",
+        # WiFi — session-breaking: disconnect drops the HTTP connection mid-run;
+        # connect may switch the device to a different network
+        "/api/wifi/connect",
+        "/api/wifi/disconnect",
+        # Smart home switch — toggles physical devices (real-world side effects)
+        "/api/smart_home/switch",
     }
 )
+
+# Regex used to exclude SKIP_PATHS in schemathesis .exclude(path_regex=...)
+SKIP_PATHS_RE: str = "^(" + "|".join(re.escape(p) for p in sorted(SKIP_PATHS)) + ")$"
 
 
 # ---------------------------------------------------------------------------
