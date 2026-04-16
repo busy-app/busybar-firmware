@@ -134,7 +134,7 @@ void furi_hal_mpu_reset_stack_protection(void) {
     furi_hal_mpu_protect_disable(FuriHalMpuRegionStack);
 }
 
-void furi_hal_mpu_init(void) {
+void furi_hal_mpu_init_early(void) {
     LL_MPU_ConfigAttributes(FuriHalMpuAttributesIdxNull, LL_MPU_DEVICE_NGNRNE);
     LL_MPU_ConfigAttributes(FuriHalMpuAttributesIdxStack, LL_MPU_DEVICE_NGNRNE);
 
