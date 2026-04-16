@@ -410,6 +410,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     if(status == FuriHalCryptoStatusInvalidParameter) {
         printf("Error: Unsupported key type: %ld\r\n", (uint32_t)type);
         printf(CLI_STATUS_ERROR);
+        return;
     } else if(status != FuriHalCryptoStatusOk) {
         printf("Error: Failed to generate random buffer:: %d\r\n", status);
         printf(CLI_STATUS_ERROR);
@@ -629,7 +630,6 @@ void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
     } else {
         show_status(status, &slot, "read");
     }
-    furi_hal_crypto_key_free(key);
 }
 
 static void crypto_command_print_usage(void) {

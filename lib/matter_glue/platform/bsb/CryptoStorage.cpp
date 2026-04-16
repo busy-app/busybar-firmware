@@ -79,7 +79,7 @@ CHIP_ERROR SignWithECDSA256Key(
             break;
         }
 
-        if((private_key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
+        if(!furi_hal_crypto_key_is_wrapped(private_key)) {
             ChipLogDetail(Crypto, "WARNING: Using unwrapped private key");
         }
 

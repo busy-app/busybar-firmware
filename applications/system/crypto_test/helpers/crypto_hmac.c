@@ -81,25 +81,29 @@ void crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaMode hmac_sha_mode) {
     }
 
     bool success = false;
-    // Initialize HMAC
-    FuriHalCryptoKey* key =
-        furi_hal_crypto_key_init_hmac(hmac_sha_mode, key_hmac, sizeof(key_hmac));
-    crypto_common_print_key("Key =\t\t", key);
     do {
-        FuriHalCryptoHmac* handle = NULL;
-        FuriHalCryptoStatus status = furi_hal_crypto_hmac_init(&handle, key);
-        CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
+        // Initialize HMAC
+        FuriHalCryptoKey* key = NULL;
+        FuriHalCryptoStatus status =
+            furi_hal_crypto_key_init_hmac(&key, hmac_sha_mode, key_hmac, sizeof(key_hmac));
+        CRYPTO_COMMON_CHECK_STATUS(status, "hmac key init");
+        crypto_common_print_key("Key =\t\t", key);
         do {
-            // Compute HMAC digest
-            status = furi_hal_crypto_hmac_digest(
-                handle, (uint8_t*)message, sizeof(message), digest, digest_length);
-            CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
-            success = true;
+            FuriHalCryptoHmac* handle = NULL;
+            status = furi_hal_crypto_hmac_init(&handle, key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
+            do {
+                // Compute HMAC digest
+                status = furi_hal_crypto_hmac_digest(
+                    handle, (uint8_t*)message, sizeof(message), digest, digest_length);
+                CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
+                success = true;
+            } while(false);
+            // Deinitialize HMAC
+            furi_hal_crypto_hmac_deinit(handle);
         } while(false);
-        // Deinitialize HMAC
-        furi_hal_crypto_hmac_deinit(handle);
+        furi_hal_crypto_key_free(key);
     } while(false);
-    furi_hal_crypto_key_free(key);
 
     if(success) {
         switch(hmac_sha_mode) {
@@ -158,35 +162,40 @@ void crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaMode hmac_sha_
     }
 
     bool success = false;
-    FuriHalCryptoKey* key =
-        furi_hal_crypto_key_init_hmac(hmac_sha_mode, key_hmac, sizeof(key_hmac));
-    FuriHalCryptoKey* wrapped_key = NULL;
+
     do {
-        FuriHalCryptoStatus status = furi_hal_crypto_wrap_key(key, &wrapped_key);
-        CRYPTO_COMMON_CHECK_STATUS(status, "wrap key");
-
+        FuriHalCryptoKey* key = NULL;
+        FuriHalCryptoStatus status =
+            furi_hal_crypto_key_init_hmac(&key, hmac_sha_mode, key_hmac, sizeof(key_hmac));
+        CRYPTO_COMMON_CHECK_STATUS(status, "hmac key init");
+        FuriHalCryptoKey* wrapped_key = NULL;
         do {
-            crypto_common_print_key("Key =\t\t", key);
-            crypto_common_print_key("Wrapped key =\t", wrapped_key);
-
-            // Initialize HMAC
-            FuriHalCryptoHmac* handle = NULL;
-            status = furi_hal_crypto_hmac_init(&handle, wrapped_key);
-            CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
+            status = furi_hal_crypto_wrap_key(key, &wrapped_key);
+            CRYPTO_COMMON_CHECK_STATUS(status, "wrap key");
 
             do {
-                // Compute HMAC digest
-                status = furi_hal_crypto_hmac_digest(
-                    handle, (uint8_t*)message, sizeof(message), digest, digest_length);
-                CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
-                success = true;
+                crypto_common_print_key("Key =\t\t", key);
+                crypto_common_print_key("Wrapped key =\t", wrapped_key);
+
+                // Initialize HMAC
+                FuriHalCryptoHmac* handle = NULL;
+                status = furi_hal_crypto_hmac_init(&handle, wrapped_key);
+                CRYPTO_COMMON_CHECK_STATUS(status, "hmac init");
+
+                do {
+                    // Compute HMAC digest
+                    status = furi_hal_crypto_hmac_digest(
+                        handle, (uint8_t*)message, sizeof(message), digest, digest_length);
+                    CRYPTO_COMMON_CHECK_STATUS(status, "hmac digest");
+                    success = true;
+                } while(false);
+                // Deinitialize HMAC
+                furi_hal_crypto_hmac_deinit(handle);
             } while(false);
-            // Deinitialize HMAC
-            furi_hal_crypto_hmac_deinit(handle);
+            furi_hal_crypto_key_free(wrapped_key);
         } while(false);
-        furi_hal_crypto_key_free(wrapped_key);
+        furi_hal_crypto_key_free(key);
     } while(false);
-    furi_hal_crypto_key_free(key);
 
     if(success) {
         switch(hmac_sha_mode) {

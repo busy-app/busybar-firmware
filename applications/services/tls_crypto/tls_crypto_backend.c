@@ -53,7 +53,7 @@ static TlsCryptoStatus tls_crypto_sign_message_request_handler(
         &key, FuriHalCryptoPartitionMain, FuriHalCryptoKeyTypeEcdsaPriv256, internal_key_id);
 
     if(hal_status == FuriHalCryptoStatusOk) {
-        if(!(key->flags & FuriHalCryptoKeyFlagWrap)) {
+        if(!furi_hal_crypto_key_is_wrapped(key)) {
             FURI_LOG_W(TAG, "Using unwrapped private key");
         }
 

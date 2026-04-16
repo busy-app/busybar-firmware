@@ -24,7 +24,7 @@ void crypto_common_print_buffer_hex(const char* tag, const uint8_t* buffer, uint
 void crypto_common_print_key(const char* tag, const FuriHalCryptoKey* key) {
     printf("%s", tag);
     printf("%s ", furi_hal_crypto_get_key_type_name(key->type));
-    if(key->flags & FuriHalCryptoKeyFlagWrap) {
+    if(furi_hal_crypto_key_is_wrapped(key)) {
         printf("wrapped ");
     }
     crypto_common_print_buffer_hex("", key->data, key->length);

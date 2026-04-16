@@ -6,11 +6,6 @@
 
 #define FURI_HAL_CRYPTO_DATA_SIZE_MAX (996UL) // Maximum data size for keys
 
-typedef enum {
-    FuriHalCryptoWrappingModeOff,
-    FuriHalCryptoWrappingModeOn,
-} FuriHalCryptoWrappingMode;
-
 //#################### AES ####################
 typedef struct FuriHalCryptoAes FuriHalCryptoAes;
 
@@ -96,13 +91,13 @@ typedef enum {
 
     FuriHalCryptoKeyTypeNone = 0xFFFFFFFF,
 } FuriHalCryptoKeyType;
-_Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "Size check for 'FuriHalCryptoKeyType' failed.");
+_Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "FuriHalCryptoKeyType must be 32 bit");
 
 typedef enum {
     FuriHalCryptoKeyFlagWrap = (1 << 0UL),
     FuriHalCryptoKeyFlagNone = 0xFFFFFFFF,
 } FuriHalCryptoKeyFlag;
-_Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "Size check for 'FuriHalCryptoKeyFlag' failed.");
+_Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "FuriHalCryptoKeyFlag must be 32 bit");
 
 typedef struct FuriHalCryptoKey {
     FuriHalCryptoKeyType type;
@@ -142,24 +137,20 @@ FuriHalCryptoStatus furi_hal_crypto_key_init_raw(
     const uint8_t* data,
     size_t length);
 
+bool furi_hal_crypto_key_is_wrapped(const FuriHalCryptoKey* key);
+
 void furi_hal_crypto_key_free(FuriHalCryptoKey* key);
 
 //#################### AES ####################
 /**
  * Initialize the AES module.
  * 
+ * @param[out] handle AES handle
  * @param[in] mode AES mode.
  *     - FuriHalCryptoAesModeCBC
  *     - FuriHalCryptoAesModeECB
  *     - FuriHalCryptoAesModeCTR
  * @param[in] key Pointer to the key.
- * @param[in] key_size Size of the key.
- *     - FURI_HAL_CRYPTO_AES_KEY_SIZE_128
- *     - FURI_HAL_CRYPTO_AES_KEY_SIZE_192
- *     - FURI_HAL_CRYPTO_AES_KEY_SIZE_256
- * @param[in] wrapping_mode Wrapping mode.
- *     - FuriHalCryptoWrappingModeOff
- *     - FuriHalCryptoWrappingModeOn
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
  *    - FuriHalCryptoStatusInvalidParameter if supplied key is of a wrong type
@@ -232,13 +223,7 @@ FuriHalCryptoStatus furi_hal_crypto_aes_decrypt(
  *    - FuriHalCryptoEcdsaModeSha256
  *    - FuriHalCryptoEcdsaModeSha384
  *    - FuriHalCryptoEcdsaModeSha512
- * @param[in] key Pointer to private key
- * @param[in] key_size Key size
- *    - FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224
- *    - FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256
- * @param[in] wrapping_mode Wrapping mode
- *    - FuriHalCryptoWrappingModeOff
- *    - FuriHalCryptoWrappingModeOn
+ * @param[in] key Pointer to private key. Key must be valid through the whole lifetime of the handle.
  * @return status of the operation
  *    - FuriHalCryptoStatusOk on success
  *    - FuriHalCryptoStatusInvalidParameter if supplied key is of a wrong type
@@ -257,7 +242,7 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
  *   - FuriHalCryptoEcdsaModeSha256
  *   - FuriHalCryptoEcdsaModeSha384
  *   - FuriHalCryptoEcdsaModeSha512
- * @param[in] key Pointer to public key
+ * @param[in] key Pointer to public key. Key must be valid through the whole lifetime of the handle.
  * @param[in] key_size Key size
  *   - FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224
  *   - FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256
@@ -330,11 +315,17 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_verify(
 /**
  * Create a SHA-HMAC key from a buffer.
  *
+ * @param[out] key_out Pointer to key
  * @param mode SHA mode
  * @param data key data
  * @param length data length in bytes
+ * @return status of the operation
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if data is too long
  */
-FuriHalCryptoKey* furi_hal_crypto_key_init_hmac(
+FURI_HAL_NODISCARD
+FuriHalCryptoStatus furi_hal_crypto_key_init_hmac(
+    FuriHalCryptoKey** key_out,
     FuriHalCryptoHmacShaMode mode,
     const uint8_t* data,
     size_t length);
@@ -431,12 +422,17 @@ FuriHalCryptoStatus
 * @param[out] buf Pointer to the buffer to fill with random data.
 * @param[in] size Size of the buffer to fill.
 * @return FuriHalCryptoStatus indicating the result of the operation.
+*    - FuriHalCryptoStatusOk on success
+*    - FuriHalCryptoStatusDriverError if random buffer cannot be generated
 */
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_random_buf(uint8_t* buf, size_t size);
 
 /** Generate a random key.
  * @param[in] type key type to generate.
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusInvalidParameter if key type is unsupported
+ *    - FuriHalCryptoStatusDriverError if random buffer cannot be generated
  */
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
@@ -448,6 +444,9 @@ FuriHalCryptoStatus furi_hal_crypto_gen_random_key(
 * @param[in] priv_key Pointer to the private key.
 * @param[out] pub_key Pointer to the public key.
 * @return FuriHalCryptoStatus indicating the result of the operation.
+*    - FuriHalCryptoStatusOk on success
+*    - FuriHalCryptoStatusInvalidParameter if private key is wrapped
+*    - FuriHalCryptoStatusInvalidParameter if private key is not a ECDSA private key
 */
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
@@ -459,6 +458,9 @@ FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
 * @param[out] csr_der_key Pointer to the CSR DER key.
 * @param[in] subject_name Subject name for the CSR.
 * @return FuriHalCryptoStatus indicating the result of the operation.
+*    - FuriHalCryptoStatusOk on success
+*    - FuriHalCryptoStatusInvalidParameter if private key is wrapped
+*    - FuriHalCryptoStatusInvalidParameter if private key is not a ECDSA-256 private key
 */
 FURI_HAL_NODISCARD
 FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(

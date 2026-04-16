@@ -80,8 +80,12 @@ FuriHalCryptoStatus furi_hal_crypto_key_init_raw(
 }
 
 void furi_hal_crypto_key_free(FuriHalCryptoKey* key) {
-    bzero(key->data, sizeof(key->data));
+    explicit_bzero(key->data, sizeof(key->data));
     free(key);
+}
+
+bool furi_hal_crypto_key_is_wrapped(const FuriHalCryptoKey* key) {
+    return key->flags & FuriHalCryptoKeyFlagWrap;
 }
 
 //#################### AES ####################
@@ -139,7 +143,7 @@ FuriHalCryptoStatus furi_hal_crypto_aes_init(
     }
     memcpy(handle->config.key_config.b0.key_buffer, key->data, key->length);
 
-    if((key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
+    if(!furi_hal_crypto_key_is_wrapped(key)) {
         handle->config.key_config.b0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.b0.key_type = SL_SI91X_WRAPPED_KEY;
@@ -258,7 +262,7 @@ FuriHalCryptoStatus furi_hal_crypto_ecdsa_sign_init(
     handle->config.public_key = NULL;
     handle->config.public_key_length = 0;
     handle->config.signature_length = 0;
-    if((key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
+    if(!furi_hal_crypto_key_is_wrapped(key)) {
         handle->config.key_config.b0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.b0.key_type = SL_SI91X_WRAPPED_KEY;
@@ -381,15 +385,20 @@ static const FuriHalCryptoKeyType hmac_sha_key_type_lookup[] = {
     [FuriHalCryptoHmacShaModeSha512] = FuriHalCryptoKeyTypeHmacSha512,
 };
 
-FuriHalCryptoKey* furi_hal_crypto_key_init_hmac(
+FuriHalCryptoStatus furi_hal_crypto_key_init_hmac(
+    FuriHalCryptoKey** key_out,
     FuriHalCryptoHmacShaMode mode,
     const uint8_t* data,
     size_t length) {
+    if(length > FURI_HAL_CRYPTO_DATA_SIZE_MAX) {
+        return FuriHalCryptoStatusInvalidParameter;
+    }
     FuriHalCryptoKey* key = key_alloc();
     key->type = hmac_sha_key_type_lookup[mode];
     key->length = MIN(length, sizeof(key->data));
     memcpy(key->data, data, key->length);
-    return key;
+    *key_out = key;
+    return FuriHalCryptoStatusOk;
 }
 
 FuriHalCryptoStatus
@@ -410,7 +419,7 @@ FuriHalCryptoStatus
     handle->config.hmac_mode = sl_hmac_sha_mode_lookup[key->type];
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
-    if((key->flags & FuriHalCryptoKeyFlagWrap) == 0) {
+    if(!furi_hal_crypto_key_is_wrapped(key)) {
         handle->config.key_config.B0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.B0.key_type = SL_SI91X_WRAPPED_KEY;
@@ -515,7 +524,7 @@ FuriHalCryptoStatus
     if(key->length > SL_SI91X_WRAP_KEY_BUFFER_SIZE) {
         return FuriHalCryptoStatusInvalidParameter;
     }
-    if(key->flags & FuriHalCryptoKeyFlagWrap) {
+    if(furi_hal_crypto_key_is_wrapped(key)) {
         return FuriHalCryptoStatusInvalidParameter;
     }
     //sl_si91x_wrap_config_t - size 1432 bytes
@@ -660,7 +669,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_asymmetric_pub_key(
        priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256) {
         return FuriHalCryptoStatusInvalidParameter;
     }
-    if(priv_key->flags & FuriHalCryptoKeyFlagWrap) {
+    if(furi_hal_crypto_key_is_wrapped(priv_key)) {
         return FuriHalCryptoStatusInvalidParameter;
     }
 
@@ -746,7 +755,7 @@ FuriHalCryptoStatus furi_hal_crypto_gen_csr_der_ecdsa256(
     furi_check(priv_key);
 
     if(priv_key->type != FuriHalCryptoKeyTypeEcdsaPriv256 ||
-       (priv_key->flags & FuriHalCryptoKeyFlagWrap) != 0) {
+       furi_hal_crypto_key_is_wrapped(priv_key)) {
         return FuriHalCryptoStatusInvalidParameter;
     }
 

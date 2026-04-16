@@ -49,8 +49,18 @@ typedef struct {
 extern "C" {
 #endif
 
+/** Initialize a key iterator.
+ * @param[in] partition Partition to iterate in.
+ */
 FuriHalCryptoKeyIter furi_hal_crypto_key_iter_init(FuriHalCryptoPartition partition);
 
+/** Get current key pointed by the key iterator and andvance the iterator to the next key.
+ * @return FuriHalCryptoStatus status of the operation.
+ *    - FuriHalCryptoStatusOk on success
+ *    - FuriHalCryptoStatusStorageFull on reaching the end of the storage
+ *    - FuriHalCryptoStatusNotFound if there are no more keys
+ *    - other errors corresponding to various storage failures
+ */
 FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
     FuriHalCryptoKeyIter* iter,
     FuriHalCryptoKey** key_out,
@@ -60,7 +70,6 @@ FuriHalCryptoStatus furi_hal_crypto_key_iter_get_and_advance(
 * @param[in] key Pointer to the key
 * @param[in] partition Partition where to store the key.
 * @param[in] id ID of the key to write.
-* @param[in] wrap Set to true to wrap the key.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
 FuriHalCryptoStatus furi_hal_crypto_storage_write(
@@ -68,13 +77,20 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(
     FuriHalCryptoPartition partition,
     uint32_t id);
 
+/** Write a key to the NWP flash, providing its slot metadata.
+* @param[in] key Pointer to the key
+* @param[in] partition Partition where to store the key.
+* @param[in] id ID of the key to write.
+* @param[out] slot Key storage slot metadata. Can be NULL.
+* @return FuriHalCryptoStatus indicating the result of the operation.
+*/
 FuriHalCryptoStatus furi_hal_crypto_storage_write_ex(
     const FuriHalCryptoKey* key,
     FuriHalCryptoPartition partition,
     uint32_t id,
     FuriHalCryptoKeySlot* slot_out);
 
-/** Read a key from the NWP flash.
+/** Read a key from the NWP flash. Keys inside a partition are uniquely identified by (id, type).
 * @param[in] key Pointer to the key
 * @param[in] partition Partition where to look for the key.
 * @param[in] type Type of the key to read.
@@ -88,8 +104,9 @@ FuriHalCryptoStatus furi_hal_crypto_storage_read(
     uint32_t id);
 
 /** Read a key and its slot (metadata) from the NWP flash.
+* Keys inside a partition are uniquely identified by (id, type).
 * @param[in] key Pointer to the key
-* @param[in] slot Pointer to the slot. Can be NULL.
+* @param[out] slot Key storage slot metadata. Can be NULL.
 * @param[in] partition Partition where to look for the key.
 * @param[in] type Type of the key to read.
 * @param[in] id ID of the key to read.
