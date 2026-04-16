@@ -98,6 +98,7 @@ static void firmware_settings_scene_settings_on_enter(void* context) {
                    firmware_settings_scene_settings_check_channel_values[i],
                    sizeof(scene->updater_settings.check_channel_id)) == 0) {
                 channel_idx = i;
+                break;
             }
         }
     }
