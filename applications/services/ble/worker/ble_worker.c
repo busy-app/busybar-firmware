@@ -137,6 +137,7 @@ typedef struct {
     FuriTimer* retry_phy_timer;
     uint8_t pairing_info_available;
     uint16_t rx_pending_handle;
+    uint16_t tx_pending_handle;
     ///TODO: this can be removed
     bool connected;
     BleDebugCanary* first_tx_pack_canary;
@@ -175,7 +176,7 @@ typedef struct {
 } BleWorker;
 
 //==========================================================
-static BleWorker* ble_worker_instance;
+static BleWorker* ble_worker_instance = NULL;
 /*==============================================*/
 /**
  * @fn         ble_worker_echo_app_on_adv_report_event
@@ -736,6 +737,13 @@ static int32_t ble_worker_thread_callback(void* context) {
             ble_debug_canary_reset(instance->first_tx_pack_canary);
             ble_debug_canary_reset(instance->first_tx_method_canary);
             ble_debug_canary_reset(instance->indicate_error_canary);
+
+#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
+            ble_worker_instance->on_connection_changed_cb(
+                ble_worker_instance->on_connection_changed_ctx,
+                ble_worker_instance->connected,
+                ble_worker_instance->str_remote_address);
+#endif
         }
 
         if(events & BLEWorkerEvtDisconnected) {
@@ -749,6 +757,12 @@ static int32_t ble_worker_thread_callback(void* context) {
                 BLE_LOG_W("Rx confirm not sent!");
                 furi_semaphore_release(ble_worker_instance->receive_sem);
                 instance->rx_pending_handle = 0;
+            }
+
+            if(instance->tx_pending_handle) {
+                BLE_LOG_W("No Tx confirm!");
+                furi_semaphore_release(ble_worker_instance->indication_sem);
+                instance->tx_pending_handle = 0;
             }
 
             BleServiceEntryDict_it_t entry_iter;
@@ -1229,9 +1243,15 @@ void ble_worker_start() {
 }
 
 void ble_worker_stop() {
-    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtExit);
-    furi_thread_join(ble_worker_instance->thread);
-    BLE_LOG_I("BLE Stopped");
+    if(ble_worker_instance) {
+        FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
+        if(state == FuriThreadStateRunning) {
+            furi_thread_flags_set(
+                furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtExit);
+            furi_thread_join(ble_worker_instance->thread);
+            BLE_LOG_I("BLE Stopped");
+        }
+    }
 }
 
 static inline bool ble_worker_indicate_retry(
@@ -1270,6 +1290,7 @@ static inline bool ble_worker_indicate_chunk(
 
     do {
         const uint8_t indication_retry_count = 4;
+        ble_worker_instance->tx_pending_handle = handle;
         if(!ble_worker_indicate_retry(dev_addr, handle, data_size, data, indication_retry_count))
             break;
 
@@ -1278,6 +1299,8 @@ static inline bool ble_worker_indicate_chunk(
             BLE_LOG_W("Indicate timeout expired");
             break;
         }
+
+        ble_worker_instance->tx_pending_handle = 0;
         result = true;
     } while(false);
     return result;

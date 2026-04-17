@@ -14,10 +14,13 @@
 
 struct LinkPinView {
     Widget base;
-    FontRegistry* font_registry;
     lv_obj_t* code_label;
     AnimPlayer* loading_spinner;
     Countdown* code_timer;
+
+    FontRegistry* font_registry;
+    const lv_font_t* font_busy_bold_10;
+    const lv_font_t* font_busy_regular_7;
 };
 
 const lv_obj_class_t link_pin_view_back_lvgl_class;
@@ -28,61 +31,38 @@ const lv_obj_class_t link_pin_view_front_lvgl_class;
 static void link_pin_view_front_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
+
     instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_busy_bold_10 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_pad_column(obj, 2, LV_PART_MAIN);
 
-    lv_obj_set_style_pad_all(obj, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_gap(obj, 2, LV_PART_MAIN);
-
-    lv_obj_t* image_cont = lv_obj_create(obj);
-    lv_obj_set_size(image_cont, 12, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_all(image_cont, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(image_cont, 0, LV_PART_MAIN);
-    lv_obj_set_flex_grow(image_cont, 0);
-
-    lv_obj_t* code_cont = lv_obj_create(obj);
-    lv_obj_set_size(code_cont, 36, LV_PCT(100));
-    lv_obj_set_style_pad_all(code_cont, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(code_cont, 0, LV_PART_MAIN);
-    lv_obj_set_flex_grow(code_cont, 0);
-
-    lv_obj_t* timer_cont = lv_obj_create(obj);
-    lv_obj_set_size(timer_cont, LV_SIZE_CONTENT, LV_PCT(100));
-    lv_obj_set_style_pad_all(timer_cont, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(timer_cont, 0, LV_PART_MAIN);
-    lv_obj_set_flex_grow(timer_cont, 1);
-
-    lv_obj_t* lock_image = lv_img_create(image_cont);
+    lv_obj_t* lock_image = lv_img_create(obj);
     lv_img_set_src(lock_image, IMG_PATH("lock_front_12x12.image"));
-    lv_obj_align(lock_image, LV_ALIGN_RIGHT_MID, 0, 0);
 
-    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
+    instance->loading_spinner = anim_player_alloc((Widget*)instance);
+    anim_player_set_source(instance->loading_spinner, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
 
-    instance->code_label = lv_label_create(code_cont);
-    lv_label_set_text(instance->code_label, "");
+    instance->code_label = lv_label_create(obj);
     lv_obj_set_style_text_color(instance->code_label, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->code_label, font, LV_PART_MAIN);
-    lv_obj_align(instance->code_label, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_obj_set_style_text_font(instance->code_label, instance->font_busy_bold_10, LV_PART_MAIN);
     lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
 
-    instance->code_timer = countdown_alloc((Widget*)timer_cont);
-    lv_obj_align((lv_obj_t*)instance->code_timer, LV_ALIGN_RIGHT_MID, 0, 0);
+    instance->code_timer = countdown_alloc((Widget*)instance);
+    lv_obj_add_flag(TO_LV_OBJ(instance->code_timer), LV_OBJ_FLAG_IGNORE_LAYOUT);
+    lv_obj_align(TO_LV_OBJ(instance->code_timer), LV_ALIGN_BOTTOM_RIGHT, 0, 1);
     countdown_set_text_color(instance->code_timer, color_hex_to_rgb(COLOR_COUNTDOWN));
-
-    instance->loading_spinner = anim_player_alloc((Widget*)code_cont);
-    anim_player_set_source(instance->loading_spinner, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
-    lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
+    countdown_set_text_font(instance->code_timer, FONT_BUSY_SUPERSCRIPT_7);
 }
 
 static void link_pin_view_front_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
 
-    font_registry_unload_font(
-        instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
+    font_registry_unload_font(instance->font_registry, instance->font_busy_bold_10);
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }
@@ -91,8 +71,8 @@ static void link_pin_view_back_lvgl_destructor(const lv_obj_class_t* class_p, lv
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
 
-    font_registry_unload_font(
-        instance->font_registry, lv_obj_get_style_text_font(instance->code_label, LV_PART_MAIN));
+    font_registry_unload_font(instance->font_registry, instance->font_busy_bold_10);
+    font_registry_unload_font(instance->font_registry, instance->font_busy_regular_7);
 
     furi_record_close(RECORD_FONT_REGISTRY);
 }
@@ -100,59 +80,44 @@ static void link_pin_view_back_lvgl_destructor(const lv_obj_class_t* class_p, lv
 static void link_pin_view_back_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
     LinkPinView* instance = (LinkPinView*)obj;
+
     instance->font_registry = furi_record_open(RECORD_FONT_REGISTRY);
+    instance->font_busy_bold_10 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
+    instance->font_busy_regular_7 =
+        font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_7);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_pad_gap(obj, 5, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(obj, 5, LV_PART_MAIN);
 
     lv_obj_t* top_line = lv_obj_create(obj);
     lv_obj_set_flex_flow(top_line, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(top_line, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
-    lv_obj_set_flex_grow(top_line, 0);
-    lv_obj_set_size(top_line, LV_PCT(100), LV_PCT(40));
-    lv_obj_set_style_pad_gap(top_line, 3, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(top_line, 4, LV_PART_MAIN);
+    lv_obj_set_size(top_line, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-    lv_obj_t* image_cont = lv_obj_create(top_line);
-    lv_obj_set_size(image_cont, LV_PCT(30), 13);
-    lv_obj_set_style_pad_all(image_cont, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(image_cont, 0, LV_PART_MAIN);
-    lv_obj_set_flex_grow(image_cont, 0);
-
-    lv_obj_t* code_cont = lv_obj_create(top_line);
-    lv_obj_set_size(code_cont, 36, 13);
-    lv_obj_set_style_pad_all(code_cont, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(code_cont, 0, LV_PART_MAIN);
-    lv_obj_set_flex_grow(code_cont, 0);
-    lv_obj_clear_flag(code_cont, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_t* lock_image = lv_img_create(image_cont);
+    lv_obj_t* lock_image = lv_img_create(top_line);
     lv_img_set_src(lock_image, IMG_PATH("lock_back_11x11.image"));
-    lv_obj_align(lock_image, LV_ALIGN_BOTTOM_RIGHT, 0, -1);
+    lv_obj_set_style_pad_bottom(lock_image, 4, LV_PART_MAIN);
 
-    const lv_font_t* font = font_registry_load_font(instance->font_registry, FONT_BUSY_BOLD_10);
-
-    instance->code_label = lv_label_create(code_cont);
-    lv_label_set_text(instance->code_label, "");
-    lv_obj_set_style_text_color(instance->code_label, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->code_label, font, LV_PART_MAIN);
-    lv_obj_align(instance->code_label, LV_ALIGN_LEFT_MID, 0, 1);
-    lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
-
-    instance->loading_spinner = anim_player_alloc((Widget*)code_cont);
+    instance->loading_spinner = anim_player_alloc((Widget*)top_line);
     anim_player_set_source(instance->loading_spinner, SHARED_ANIM_PATH("spinner_front_8x8.anim"));
-    lv_obj_align((lv_obj_t*)instance->loading_spinner, LV_ALIGN_CENTER, -4, 0);
+    lv_obj_set_style_pad_bottom(TO_LV_OBJ(instance->loading_spinner), 2, LV_PART_MAIN);
+
+    instance->code_label = lv_label_create(top_line);
+    lv_obj_set_style_text_color(instance->code_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->code_label, instance->font_busy_bold_10, LV_PART_MAIN);
+    lv_obj_add_flag(instance->code_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->code_timer = countdown_alloc((Widget*)top_line);
     countdown_set_text_color(instance->code_timer, color_hex_to_rgb(COLOR_COUNTDOWN));
+    countdown_set_text_font(instance->code_timer, FONT_BUSY_REGULAR_7);
 
-    font = lv_theme_get_font_normal(obj);
     lv_obj_t* bottom_label = lv_label_create(obj);
     lv_label_set_text(bottom_label, "Enter this code on\nwww.cloud.busy.app");
     lv_obj_set_style_text_color(bottom_label, COLOR_BOTTOM_TEXT, LV_PART_MAIN);
-    lv_obj_set_style_text_font(bottom_label, font, LV_PART_MAIN);
-    lv_obj_align(bottom_label, LV_ALIGN_TOP_MID, 0, 0);
-    lv_obj_set_flex_grow(bottom_label, 1);
+    lv_obj_set_style_text_font(bottom_label, instance->font_busy_regular_7, LV_PART_MAIN);
 }
 
 /* Public API */

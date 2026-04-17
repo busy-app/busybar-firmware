@@ -174,6 +174,10 @@ export const useFirmwareStore = defineStore('firmware', () => {
         return fetchAutoUpdateStatus();
       })
       .catch(async error => {
+        if (error.status === 409) {
+          console.debug('Auto-update check already in progress');
+          return;
+        }
         autoUpdate.value.isChecking = false;
         await handleHTTPError(error, 'Update check request failed');
       });

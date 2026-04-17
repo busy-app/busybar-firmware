@@ -7,9 +7,15 @@
 
 #define TAG "BLE_917"
 
-BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) {
-    UNUSED(events);
+BleIntercomFrameGeneric*
+    ble_command_extract_frame(Ble* instance, BleCommandEngineExtractFrameSource source) {
+    furi_check(source == BleCommandEngineExtractFrameSourceIntercomBuffer);
     return (BleIntercomFrameGeneric*)&instance->mailbox;
+}
+
+void ble_command_unblock_with_result(Ble* instance, bool result) {
+    UNUSED(instance);
+    UNUSED(result);
 }
 
 static void
@@ -100,6 +106,12 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     return ble_command_response_process(frame, context);
 }
 
+static bool ble_command_deinit_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandDeinit request");
+    ble_worker_stop();
+    return ble_command_deinit_process(frame, context);
+}
+
 static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* context) {
     UNUSED(frame);
     UNUSED(context);
@@ -112,12 +124,14 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
     Ble* instance = context;
 
     ble_worker_stop();
-
-    instance->status = BleServiceStatusReady;
-    frame->header.data_size = 0;
-    frame->header.result = true;
-
-    return ble_command_response_process(frame, context);
+    bool result = false;
+    if(instance->status != BleServiceStatusError) {
+        instance->status = BleServiceStatusReady;
+        frame->header.data_size = 0;
+        frame->header.result = true;
+        result = ble_command_response_process(frame, context);
+    }
+    return result;
 }
 
 static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* context) {
@@ -194,6 +208,11 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_init_request,
             .response = ble_command_init_response,
         },
+    [BleCommandDeinit] =
+        {
+            .request = ble_command_deinit_request,
+            .response = NULL,
+        },
     [BleCommandEnable] =
         {
             .request = ble_command_enable_request,
@@ -226,9 +245,15 @@ void ble_invoke_retry_command_on_internal_event(
     BleSystemCommand command,
     BleEventType retry_event,
     uint32_t retry_timeout) {
-    UNUSED(instance);
-    UNUSED(retry_timeout);
-    UNUSED(command);
-    UNUSED(retry_event);
-    furi_crash("Not implemented");
+    if(furi_semaphore_acquire(instance->mailbox_lock, retry_timeout) == FuriStatusOk) {
+        BleIntercomFrameHeader* header = &instance->mailbox.header;
+        header->frame_type = BleIntercomFrameTypeRequest;
+        header->command = command;
+        header->source = BleIntercomFrameSourceSystem;
+        header->data_size = 0;
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeFrameReceived);
+    } else {
+        BLE_LOG_W("Invoke retry");
+        furi_event_loop_set_custom_event(instance->event_loop, retry_event);
+    }
 }

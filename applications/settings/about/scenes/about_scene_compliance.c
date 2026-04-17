@@ -23,9 +23,7 @@ typedef struct {
     StatusView* front_status_view;
     FlexLayout* info_flex;
     Label* compliance_info_label;
-    FuriString* compliance_info_str;
     Label* compliance_message_label;
-    FuriString* compliance_message_str;
     FlexLayout* images_flex;
     Image* images[IMAGES_NUM];
 } AboutSceneCompliance;
@@ -36,17 +34,17 @@ static void about_scene_compliance_on_enter(void* context) {
 
     AboutSceneCompliance* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdCompliance);
-    scene->compliance_info_str = furi_string_alloc();
-    furi_string_printf(scene->compliance_info_str, GREY_TEXT("Product:") " BUSY Bar\n");
-    furi_string_cat_printf(scene->compliance_info_str, GREY_TEXT("Model/HVIN:") " BB.1\n");
+    FuriString* compliance_info_string = furi_string_alloc();
+    furi_string_printf(compliance_info_string, GREY_TEXT("Product:") " BUSY Bar\n");
+    furi_string_cat_printf(compliance_info_string, GREY_TEXT("Model/HVIN:") " BB.1\n");
     furi_string_cat_printf(
-        scene->compliance_info_str, GREY_TEXT("FCC ID:") " %s\n", furi_hal_version_get_fcc_id());
+        compliance_info_string, GREY_TEXT("FCC ID:") " %s\n", furi_hal_version_get_fcc_id());
     furi_string_cat_printf(
-        scene->compliance_info_str, GREY_TEXT("IC:") " %s", furi_hal_version_get_ic_id());
+        compliance_info_string, GREY_TEXT("IC:") " %s", furi_hal_version_get_ic_id());
 
-    scene->compliance_message_str = furi_string_alloc();
+    FuriString* compliance_message_string = furi_string_alloc();
     furi_string_printf(
-        scene->compliance_message_str,
+        compliance_message_string,
         GREY_TEXT("For all compliance") "\n" GREY_TEXT(
             "certificates visit:") "\nwww.busy.app/bar/compliance\n");
 
@@ -57,13 +55,15 @@ static void about_scene_compliance_on_enter(void* context) {
 
         scene->info_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
         flex_layout_set_spacing(scene->info_flex, 3);
+        widget_set_padding(flex_layout_get_base(scene->info_flex), 2, 0, 0, 0);
+
         Widget* info_flex_base = flex_layout_get_base(scene->info_flex);
         widget_set_scrollbar_mode(info_flex_base, WidgetScrollBarModeAuto);
 
         scene->compliance_info_label = label_alloc(info_flex_base);
         label_set_inline_text_color_formatting(scene->compliance_info_label, true);
-        label_set_text(
-            scene->compliance_info_label, furi_string_get_cstr(scene->compliance_info_str));
+        label_set_text(scene->compliance_info_label, furi_string_get_cstr(compliance_info_string));
+        label_set_font(scene->compliance_info_label, FONT_BUSY_REGULAR_7);
 
         scene->images_flex = flex_layout_alloc(info_flex_base, FlexLayoutTypeRow);
         Widget* images_flex_base = flex_layout_get_base(scene->images_flex);
@@ -79,8 +79,12 @@ static void about_scene_compliance_on_enter(void* context) {
         scene->compliance_message_label = label_alloc(info_flex_base);
         label_set_inline_text_color_formatting(scene->compliance_message_label, true);
         label_set_text(
-            scene->compliance_message_label, furi_string_get_cstr(scene->compliance_message_str));
+            scene->compliance_message_label, furi_string_get_cstr(compliance_message_string));
+        label_set_font(scene->compliance_message_label, FONT_BUSY_REGULAR_7);
     });
+
+    furi_string_free(compliance_message_string);
+    furi_string_free(compliance_info_string);
 }
 
 static void about_scene_compliance_on_exit(void* context) {
@@ -88,9 +92,6 @@ static void about_scene_compliance_on_exit(void* context) {
     About* instance = context;
     AboutSceneCompliance* scene =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdCompliance);
-
-    furi_string_free(scene->compliance_info_str);
-    furi_string_free(scene->compliance_message_str);
 
     with_gui(instance->gui, {
         status_view_free(scene->front_status_view);

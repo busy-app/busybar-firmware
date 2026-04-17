@@ -11,6 +11,7 @@
 
 #if !defined(BSB_MCU_SI917)
 
+#include "streaming/ble_streaming.h"
 #include <api_lock.h>
 
 typedef struct {
@@ -23,9 +24,11 @@ typedef struct {
 typedef enum {
     BleEventTypeInitOnStart = (1 << 0),
     BleEventTypeEnableOnStart = (1 << 1),
-    BleEventTypeIncomingMessage = (1 << 2),
+    BleEventTypeApiCommand = (1 << 2),
     BleEventTypeFrameReceived = (1 << 3),
     BleEventTypeDeviceNameChanged = (1 << 4),
+    BleEventTypeIntercomInit = (1 << 5),
+    BleEventTypeIntercomDeinit = (1 << 6),
 } BleEventType;
 
 typedef void (
@@ -40,13 +43,14 @@ struct Ble {
 
     FuriMessageQueue* message_queue;
     FuriEventLoop* event_loop;
+    Intercom* intercom;
     IntercomChannel* intercom_ch;
-    //--------------------------
     FuriString* error;
 
     BleServiceObject* services[BLE_SERVICES_COUNT];
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 #if !defined(BSB_MCU_SI917)
+    BleStreaming* streaming;
     FuriPubSub* on_status_change;
     FuriApiLock current_command_api_lock;
     FuriMutex* current_command_lock;

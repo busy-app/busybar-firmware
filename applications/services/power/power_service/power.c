@@ -440,12 +440,21 @@ static void power_update_info(Power* power) {
         furi_pubsub_publish(power->event_pubsub, &pub_event);
     }
 
-    uint8_t charge = power_get_battery_charge(power->bat_cal, adc_val.bat_v, adc_val.bat_i);
+    float charge = power_get_battery_charge(power->bat_cal, adc_val.bat_v, adc_val.bat_i);
+    if(power->charge_last < 0.f) {
+        power->charge_last = charge;
+    } else {
+        bool charging_up = (adc_val.bat_i > 0);
+        if((charging_up && (charge > power->charge_last)) ||
+           (!charging_up && (charge <= power->charge_last))) {
+            power->charge_last = dsp_low_pass(charge, power->charge_last, 0.95f);
+        }
+    }
+
     uint8_t previous_charge = power->info.charge;
+    power->info.charge = (uint8_t)roundf(power->charge_last);
 
-    power->info.charge = charge;
-
-    if(charge != previous_charge) {
+    if(power->info.charge != previous_charge) {
         PowerEvent pub_event = {.type = PowerEventChargeAmountUpdate};
         furi_pubsub_publish(power->event_pubsub, &pub_event);
     }
@@ -460,7 +469,6 @@ static void power_update_info(Power* power) {
 
     power->info.is_charging = power_charger_is_charging(status.chg_stat);
     power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
-    power->info.charge = charge;
 
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
@@ -499,6 +507,7 @@ static Power* power_alloc(void) {
     power->state.battery_ready = false;
     power->info.is_charging = false;
     power->info.charge = 0;
+    power->charge_last = -1.f;
 
     power->bat_cal = power_get_crude_calibration();
 

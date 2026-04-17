@@ -8,6 +8,8 @@
  */
 #define RECORD_BLE "ble"
 
+#define MAX_TX_CHUNK_SIZE (237)
+
 #define BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE (18)
 
 typedef enum {
