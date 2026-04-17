@@ -73,6 +73,7 @@ static void
             furi_semaphore_acquire(instance->wait_tx, BLE_STREAM_WAIT_TX_TIMEOUT_MS);
         if(status != FuriStatusOk) break;
 
+        memset(instance->send_buf.data, 0, BLE_STREAMING_MAX_DATA_SIZE);
         data_size -= send_size;
         index += send_size;
         instance->send_buf.header.num += 1;
